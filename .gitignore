@@ -1,0 +1,54 @@
+# --- Env & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Go (backend/) ---
+backend/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+backend/vendor/
+
+# --- Python (ai-service/) ---
+ai-service/__pycache__/
+ai-service/**/__pycache__/
+*.py[cod]
+ai-service/.venv/
+ai-service/venv/
+ai-service/.pytest_cache/
+ai-service/.mypy_cache/
+ai-service/.ruff_cache/
+*.egg-info/
+
+# Model artifacts & raw data — không commit vào git, lưu ở storage riêng
+ai-service/models/*.pkl
+ai-service/models/*.joblib
+ai-service/models/*.bin
+ai-service/data/raw/
+ai-service/data/*.csv
+ai-service/data/*.parquet
+
+# --- Node / React (dashboard/) ---
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Docker / infra ---
+infra/*.local.yml
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log

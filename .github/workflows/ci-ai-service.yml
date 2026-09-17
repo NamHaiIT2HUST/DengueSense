@@ -1,0 +1,55 @@
+name: CI - ai-service
+
+on:
+  pull_request:
+    paths:
+      - "ai-service/**"
+      - ".github/workflows/ci-ai-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ai-service/**"
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check requirements.txt exists
+        id: check
+        run: |
+          if [ -f "ai-service/requirements.txt" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "ai-service/requirements.txt chưa tồn tại — bỏ qua CI cho tới khi service được scaffold."
+          fi
+
+      - name: Setup Python
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: |
+          pip install -r requirements.txt
+          pip install ruff black pytest
+
+      - name: ruff
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: ruff check .
+
+      - name: black --check
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: black --check .
+
+      - name: pytest
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: pytest

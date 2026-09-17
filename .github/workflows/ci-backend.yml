@@ -1,0 +1,54 @@
+name: CI - backend
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/ci-backend.yml"
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check go.mod exists
+        id: check
+        run: |
+          if [ -f "backend/go.mod" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "backend/go.mod chưa tồn tại — bỏ qua CI cho tới khi service được scaffold."
+          fi
+
+      - name: Setup Go
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: go vet
+        if: steps.check.outputs.exists == 'true'
+        working-directory: backend
+        run: go vet ./...
+
+      - name: golangci-lint
+        if: steps.check.outputs.exists == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: backend
+
+      - name: Build
+        if: steps.check.outputs.exists == 'true'
+        working-directory: backend
+        run: go build ./...
+
+      - name: Test
+        if: steps.check.outputs.exists == 'true'
+        working-directory: backend
+        run: go test ./...
