@@ -1,0 +1,304 @@
+# Roadmap kỹ thuật — DengueSense
+
+Cập nhật lần cuối: 2026-09-20
+
+**Tài liệu phương pháp luận đi kèm (đọc trước khi làm phase tương ứng):** [docs/](docs/README.md)
+
+---
+
+## Cách dùng file này
+
+- Mỗi task có checkbox `- [ ]` — tick `- [x]` khi xong, commit (`chore(docs): update roadmap`).
+- Owner: 🔧 = Nam Hải · 🧬 = Minh Dương · 🤝 = cả hai.
+- **Mỗi phase có cổng nghiệm thu (Definition of Done).** Chưa qua cổng thì không sang phase sau — bỏ qua cổng là cách nhanh nhất để 2 tháng sau phải làm lại từ đầu.
+- Task nào đủ lớn thì tạo GitHub Issue riêng, gắn milestone, dán link vào dòng đó.
+
+---
+
+## Đường găng (critical path) — đọc kỹ phần này
+
+```
+Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 3  ──►  Pilot
+   ▲
+   └── Đây là nút thắt. Mọi thứ phía sau chờ nó.
+```
+
+**Bốn sự thật cần đối diện ngay:**
+
+1. 🚨 **Khác biệt của dự án KHÔNG nằm ở độ chính xác dự báo.** D-MOSS đang vận hành tại VN với độ chính xác 0.83–0.94 — con số 89.5% của ta nằm gọn bên trong khoảng đó. Khác biệt thật nằm ở **K1–K5** ([docs/06 §3](docs/06-khao-sat-tai-lieu.md#3-năm-khác-biệt-thật-sự--định-vị-mới)), đặc biệt là **phân bổ theo lợi ích cận biên** và **sinh văn bản chỉ đạo đúng thể thức pháp lý**. Đừng dồn công sức vào việc đẩy thêm vài % độ chính xác.
+2. **Phase Dữ liệu sẽ tốn thời gian gấp đôi dự tính.** Luôn luôn như vậy trong mọi dự án ML, và ở đây còn thêm bài toán ánh xạ ranh giới hành chính 2025 ([docs/01 §3](docs/01-chien-luoc-du-lieu.md#3-chuẩn-hoá-đơn-vị-không-gian-bắt-buộc-làm-trước)) — thứ hoá ra lại là **rào cản gia nhập K3**, làm sớm thì thành lợi thế.
+3. **Chưa có dữ liệu ca bệnh thật** ([docs/00 §B.1](docs/00-review-hien-trang.md#b1--chưa-có-dữ-liệu-ca-bệnh-thật-️-rủi-ro-số-1)). Gửi công văn xin dữ liệu **trong tuần này**, đồng thời dựng pipeline trên nguồn công khai — không chờ.
+4. **Vòng thi Q4/2026 cần một bản demo chạy được, không cần model hoàn hảo.** Tách rõ hai luồng: *luồng demo* (kịp deadline thi) và *luồng nghiêm túc* (cho pilot thật và hồ sơ tài trợ). Đừng để deadline thi ép chất lượng model.
+
+---
+
+## Phase 0 — Solo Bootstrap 🔧
+**20/09 – 04/10/2026 · Nam Hải làm một mình**
+
+**Mục tiêu:** một luồng chạy được thật từ dashboard → backend → ai-service → trả kết quả → vẽ bản đồ, với Layer 1/2 còn **naive**. Làm để chốt API contract trước khi hai người code song song, và để có khung sẵn cho Minh Dương cắm model thật vào.
+
+### 0.1 Hạ tầng local
+- [ ] `infra/docker-compose.yml` với `postgis/postgis:16-3.4`
+- [ ] Init script bật extension `vector` (pgvector)
+- [ ] **Done:** `docker compose up postgres` chạy, connect được bằng `psql`
+
+### 0.2 Backend skeleton
+- [ ] `go mod init github.com/NamHaiIT2HUST/DengueSense/backend`, thêm Gin
+- [ ] `cmd/api/main.go` với route `GET /healthz`
+- [ ] Dockerfile multi-stage
+- [ ] **Done:** `curl localhost:8080/healthz` trả 200, `docker build` thành công
+
+### 0.3 AI service skeleton
+- [ ] `requirements.txt` (ghim version chính xác): fastapi, uvicorn, pydantic, pandas, scikit-learn, xgboost, ortools
+- [ ] `app/main.py` với `GET /healthz`
+- [ ] **Done:** `localhost:8000/docs` hiện Swagger UI
+
+### 0.4 Chốt API contract ⭐ bước quan trọng nhất phase này
+- [ ] `app/schemas/forecast.py` — `ForecastRequest/Response` (gồm `risk_score`, và **`risk_score_lower/upper`** cho khoảng tin cậy — thêm ngay từ đầu, Layer 2 sẽ cần ở [docs/04 §4](docs/04-phuong-phap-toi-uu.md#4-đánh-giá-dưới-bất-định--phần-quan-trọng-bị-bỏ-sót))
+- [ ] `app/schemas/optimize.py` — `OptimizeRequest/Response` (gồm cả trường giải thích ở [docs/04 §6](docs/04-phuong-phap-toi-uu.md#6-giải-thích-kết-quả-cho-người-dùng))
+- [ ] Route `POST /forecast`, `POST /optimize` trả đúng shape (logic naive)
+- [ ] Export `docs/api-contract.json` từ `/openapi.json` và commit
+- [ ] **Done:** gọi bằng curl ra đúng shape đã định nghĩa
+
+### 0.5 Layer 1 & 2 bản naive (tạm, sẽ bị thay)
+- [ ] Layer 1 naive: trả `risk_score` theo trung bình lịch sử tháng, seed cố định
+- [ ] Layer 2 naive: greedy theo tỉ lệ `R/C` cho tới khi hết ngân sách
+- [ ] Đánh dấu rõ: `# TODO(Phase 2/3): thay bằng model thật — xem docs/02, docs/04`
+
+### 0.6 Nối backend ↔ ai-service
+- [ ] `backend/internal/client/aiservice.go`
+- [ ] Endpoint cho dashboard: `GET /api/risk-map`, `POST /api/optimize`
+- [ ] JWT cơ bản (user tạm trong `.env`, chưa cần bảng user)
+
+### 0.7 Dashboard
+- [ ] Vite + React + TS, Tailwind, Leaflet
+- [ ] Bản đồ tô màu theo `risk_score` từ API thật
+- [ ] **Done:** mở dashboard thấy bản đồ tô màu bằng dữ liệu chạy qua đủ 3 service
+
+### 0.8 CI
+- [ ] 3 workflow chạy thật (không còn bị skip vì thiếu manifest)
+- [ ] **Done:** cả 3 xanh trên PR
+
+### 🚪 Cổng nghiệm thu Phase 0
+> Bấm 1 nút trên dashboard → đi qua đủ 3 service → vẽ lên bản đồ. Số liệu chưa cần đúng, nhưng **API contract đã chốt và commit**.
+
+---
+
+## Phase 1 — Dữ liệu 🤝
+**05/10 – 01/11/2026 · ~4 tuần · Đây là đường găng**
+
+📖 Đọc trước: [docs/01-chien-luoc-du-lieu.md](docs/01-chien-luoc-du-lieu.md)
+
+### 1.1 Xin dữ liệu chính thức (làm ngay tuần đầu, chạy nền)
+- [ ] Soạn công văn xin dữ liệu HCDC/Bộ Y tế qua kênh GVHD/Khoa 🤝
+- [ ] Ghi rõ phạm vi cần: cấp quận/xã, theo tuần/tháng, càng dài càng tốt
+- [ ] **Không chờ kết quả** — các mục dưới chạy song song
+
+### 1.2 Kiểm chứng nguồn công khai
+- [ ] Với mỗi nguồn ở [docs/01 §2](docs/01-chien-luoc-du-lieu.md#2-danh-mục-nguồn-dữ-liệu): viết note trong `docs/data-sources/<ten>.md` (URL, cách tải, độ phủ thực tế, giấy phép, ngày kiểm chứng) 🧬
+- [ ] Gạch khỏi kế hoạch nguồn nào không xác minh được
+- [ ] **Done:** biết chính xác có bao nhiêu năm × bao nhiêu đơn vị dữ liệu thật
+
+### 1.3 Chuẩn hoá đơn vị không gian ⭐ bắt buộc làm trước mọi thứ khác
+- [ ] Chốt đơn vị phân tích chuẩn (khuyến nghị: 34 tỉnh mới) 🤝
+- [ ] Xây `crosswalk_province.csv` (cũ → mới, ghi rõ quy tắc với trường hợp tách) 🧬
+- [ ] Hàm `to_canonical_unit()` + unit test bảo toàn tổng 🧬
+- [ ] **Done:** mọi dataset đi qua một hàm duy nhất để về đơn vị chuẩn
+
+### 1.4 Pipeline thu thập
+- [ ] Ingest dịch tễ (OpenDengue + scraper HCDC) 🧬
+- [ ] Ingest ERA5-Land qua `cdsapi` + gộp không gian theo trọng số dân số 🧬
+- [ ] Ingest ONI, WorldPop, ranh giới GIS 🧬
+- [ ] Ghép thành `panel_monthly.parquet` v1.0.0 + `manifest.json` 🧬
+- [ ] **Done:** sinh lại toàn bộ từ raw bằng **một lệnh**
+
+### 1.5 Chia tập & chống rò rỉ
+- [ ] `splits.py`: rolling-origin, expanding window, embargo, nested CV 🧬
+- [ ] Unit test chứng minh **không điểm tương lai nào lọt vào train** 🧬
+- [ ] Cài đặt độ trễ báo cáo `D` như tham số config ([docs/01 §6 Bẫy 3](docs/01-chien-luoc-du-lieu.md#6-các-bẫy-rò-rỉ-dữ-liệu-phải-tránh)) 🧬
+
+### 1.6 EDA
+- [ ] Notebook: chuỗi thời gian theo vùng, tính mùa vụ, tương quan chéo khí hậu–ca bệnh theo độ trễ, bản đồ, thống kê khuyết thiếu 🧬
+- [ ] Xác nhận bằng dữ liệu: độ trễ khí hậu nào mạnh nhất? (đừng giả định 1–3 tháng, hãy đo)
+
+### 🚪 Cổng nghiệm thu Phase 1
+> Toàn bộ checklist [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã pass, **bao gồm baseline seasonal naive đã chạy và có số**.
+
+---
+
+## Phase 2 — Mô hình Layer 1 🧬
+**02/11 – 06/12/2026 · ~5 tuần**
+
+📖 Đọc trước: [docs/02](docs/02-phuong-phap-mo-hinh.md) và [docs/03](docs/03-quy-trinh-thuc-nghiem.md)
+
+### 2.0 Chuẩn bị hạ tầng thí nghiệm 🤝
+- [ ] MLflow chạy local, cấu trúc `experiments/` theo [docs/03 §1](docs/03-quy-trinh-thuc-nghiem.md#1-cấu-trúc-thư-mục-thực-nghiệm)
+- [ ] Template `config.yaml` + `RESULTS.md`
+- [ ] `metrics.py`: MASE, PR-AUC, Brier, lead time + unit test
+
+### 2.1 `exp_001` — Baseline (4 baseline)
+- [ ] B1 persistence · B2 seasonal naive · B3 climatology · B4 GLM Poisson
+- [ ] **Done:** có bảng số mốc để so mọi thứ về sau
+
+### 2.2 `exp_002` — Model zoo Tier 1 (**4 model**, đã cắt gọn theo [docs/06 §4](docs/06-khao-sat-tai-lieu.md#4-chốt-lựa-chọn-model--cắt-bớt-để-tiết-kiệm-thời-gian))
+- [ ] M1 GLM Negative Binomial phân cấp · M2 XGBoost + LightGBM (mặc định) · M3 bán cơ giới hhh4 · M4 ensemble
+- [ ] ❌ Không chạy: Random Forest, CatBoost, SARIMAX, Prophet, TFT — **tiết kiệm ~2 tuần**
+- [ ] Cùng feature set, cùng fold, cùng metric, siêu tham số mặc định
+- [ ] Báo cáo tách theo horizon (h=1,2,3,6) + độ lệch chuẩn qua các origin
+- [ ] Đối chiếu với mốc tài liệu: ≥69% @ 3 tháng (ĐBSCL), 0.83–0.94 (D-MOSS)
+- [ ] **Done:** biết **một** model đáng đầu tư tuning (không phải hai)
+
+### 2.3 `exp_003` — Ablation đặc trưng
+- [ ] Bỏ từng nhóm đặc trưng, đo mức tụt → nhóm nào đóng góp thật?
+- [ ] Đối chiếu SHAP với hiểu biết sinh học (Minh Dương rà soát) — feature vô lý mà quan trọng = cờ đỏ rò rỉ
+
+### 2.4 `exp_004` — Tuning (**2 phương pháp**, đã cắt theo [docs/06 §5](docs/06-khao-sat-tai-lieu.md#5-chốt-phương-pháp-tuning--cắt-từ-4-xuống-2-1-tuỳ-chọn))
+- [ ] T1 mặc định (đối chứng) · T2 **Optuna TPE + ASHA pruner** (100 trial)
+- [ ] 🔶 T3 Random Search 30 trial — chỉ nếu còn thời gian
+- [ ] ❌ Không chạy Hyperband riêng (đã nằm trong ASHA pruner) và Grid Search
+- [ ] ⭐ **Chỉ tune model thắng ở `exp_002`**, không tune tất cả
+- [ ] Vẽ đường hội tụ — phẳng từ trial 30 thì dừng
+- [ ] **Done:** biết tuning có đáng tiền không (T1 đã đủ tốt cũng là kết quả hợp lệ)
+
+### 2.5 `exp_005` — Ensemble
+- [ ] E1 trung bình · E2 có trọng số · E3 stacking (OOF từ rolling-origin) · E4 theo chế độ
+- [ ] Chỉ giữ nếu cải thiện ≥ 3% MASE **và** ổn định qua các origin
+
+### 2.6 `exp_006` — Hiệu chỉnh xác suất
+- [ ] Không hiệu chỉnh vs Platt vs Isotonic, đo bằng Brier + reliability diagram
+
+### 2.7 `exp_007` — Leave-one-province-out
+- [ ] **Đây là bằng chứng cho luận điểm "nhân rộng chi phí biên gần 0"** — kết quả quyết định cách phát biểu luận điểm kinh doanh
+
+### 2.8 `exp_008` — Độ vững
+- [ ] Nhiễu khí hậu ±5/±10% · khuyết thiếu 10/20% · năm bất thường (2020–21 COVID, 2023 Hà Nội)
+
+### 2.9 `exp_009` — Tier 2 (**chỉ nếu xong sớm**)
+- [ ] M5 LSTM/GRU + khí hậu · M6 Bayes spatiotemporal đầy đủ (hỗ trợ khác biệt K4)
+- [ ] Áp dụng quy tắc dừng ở [docs/02 §3](docs/02-phuong-phap-mo-hinh.md#quy-tắc-dừng) — đừng chạy cho đủ số
+
+### 2.10 `exp_010` — CHẠY TEST (chạm 1 lần) 🚨
+- [ ] Ghi vào `docs/test-set-access-log.md` trước khi chạy
+- [ ] Đánh giá theo 7 cổng ở [docs/02 §10](docs/02-phuong-phap-mo-hinh.md#10-cổng-quyết-định--điều-kiện-promote-model)
+- [ ] Viết model card đầy đủ
+- [ ] Kiểm tra tái lập chéo (Nam Hải chạy lại được kết quả của Minh Dương)
+
+### 2.11 Đưa vào production
+- [ ] Port logic từ `experiments/` sang `app/forecast/` 🧬
+- [ ] Thay Layer 1 naive bằng model thật — **không đổi shape API** ([docs/api-contract.json](docs/api-contract.json)) 🧬
+- [ ] Cập nhật số liệu trong bản thuyết minh bằng con số thật đo được 🤝
+
+### 🚪 Cổng nghiệm thu Phase 2
+> Model qua đủ 7 cổng G1–G7. **Nếu không đạt G1 (không thắng nổi seasonal naive): báo cáo trung thực và điều tra nguyên nhân — không đổi metric cho tới khi ra số đẹp.**
+
+---
+
+## Phase 3 — Tối ưu Layer 2 🧬
+**07/12 – 20/12/2026 · ~2 tuần**
+
+📖 Đọc trước: [docs/04](docs/04-phuong-phap-toi-uu.md)
+
+- [ ] 🚨 Chốt P1/P2/P3 — **khuyến nghị P2 (lợi ích cận biên)**, không phải P1 🤝
+- [ ] Định nghĩa `ΔCasesᵢ(xᵢ) = Ĉasesᵢ · eᵢ · f(xᵢ)`, chốt dạng hàm lõm `f` và giả định `eᵢ` 🧬
+- [ ] Xấp xỉ tuyến tính từng khúc hàm lõm để giải bằng CP-SAT 🧬
+- [ ] Cài đặt 6 solver: S0 xếp hạng rủi ro (baseline), greedy cận biên, CP-SAT, SCIP, SA, Tabu 🧬
+- [ ] Bộ bài toán test ở N = 34 / 100 / 570 / 3.321 / 10.000 🧬
+- [ ] Đo: giá trị mục tiêu, optimality gap, thời gian, tính ổn định 🧬
+- [ ] Test brute-force N ≤ 20 (test duy nhất chứng minh cài đặt đúng) 🧬
+- [ ] ⭐ **`exp_020` — Thí nghiệm then chốt: P2 có hơn P1 không?** ([docs/04 §4b](docs/04-phuong-phap-toi-uu.md#4b-thí-nghiệm-then-chốt-p2-có-thật-sự-hơn-p1-không-)) — ra con số "cùng ngân sách, cứu thêm X% ca" + phân tích độ nhạy theo `eᵢ` và `k` 🧬
+- [ ] Đánh giá dưới bất định: deterministic vs stochastic vs robust (khác biệt K4) 🧬
+- [ ] Trường giải thích kết quả (xếp hạng, ngưỡng cắt, shadow price) 🧬
+- [ ] Thay Layer 2 naive bằng bản thật 🧬
+- [ ] **Cập nhật bản thuyết minh:** thay "MILP + SA + Tabu" bằng "tối ưu số ca cứu được có tính lợi ích cận biên giảm dần, tối ưu chứng minh được < 1s" 🤝
+
+### 🚪 Cổng nghiệm thu Phase 3
+> Đạt O1–O7 ở [docs/04 §7](docs/04-phuong-phap-toi-uu.md#7-cổng-quyết-định-layer-2), **bao gồm O5: có bằng chứng bằng số rằng P2 hơn P1**.
+
+---
+
+## Phase 4 — GenAI RAG Layer 3 🤝
+**21/12/2026 – 31/01/2027 · ~6 tuần**
+
+📖 Đọc trước: [docs/05](docs/05-phuong-phap-genai-rag.md)
+
+### 4.1 Kho tri thức
+- [ ] Thu thập văn bản: QĐ 02/2016, hướng dẫn HCDC, mẫu văn bản hành chính 🧬
+- [ ] Metadata hiệu lực cho từng văn bản (ngày ban hành/hiệu lực/trạng thái) 🧬
+- [ ] Chunking theo cấu trúc Điều/Khoản (không cắt theo ký tự) 🧬
+- [ ] Index vào pgvector + BM25 (hybrid search) 🔧
+
+### 4.2 Đánh giá truy hồi (làm trước phần sinh)
+- [ ] Bộ câu hỏi kiểm thử + đo Recall@k, MRR 🧬
+- [ ] So sánh: kích thước chunk × model embedding × có/không hybrid
+
+### 4.3 Sinh văn bản
+- [ ] Luồng B2B trước (rủi ro thấp) 🧬
+- [ ] Luồng B2G sau (điền mẫu + LLM viết phần diễn giải) 🧬
+- [ ] So sánh cấu hình: LLM × chiến lược prompt × nhiệt độ × có/không RAG 🧬
+
+### 4.4 Guardrail ⭐
+- [ ] G1 kiểm tra số (regex + so khớp tập hợp, **không dùng LLM tự kiểm tra**) 🔧
+- [ ] G2–G6 theo [docs/05 §4](docs/05-phuong-phap-genai-rag.md#4-guardrail--kiểm-tra-bắt-buộc-trước-khi-hiện-cho-cán-bộ) 🔧
+
+### 4.5 Bộ vàng & đánh giá
+- [ ] 30–50 kịch bản + văn bản tham chiếu do Minh Dương soạn 🧬
+- [ ] Đo tính trung thực, chính xác số liệu, thể thức, hữu dụng 🤝
+
+### 4.6 Duyệt & phản hồi
+- [ ] Dashboard: Accept / Edit / Deny 🔧
+- [ ] **Lưu dữ liệu chỉnh sửa ngay từ đầu** — bỏ qua là mất vĩnh viễn 🔧
+- [ ] Kiểm chứng bằng code: không có đường nào ban hành mà không qua duyệt 🔧
+
+### 🚪 Cổng nghiệm thu Phase 4
+> Đạt R1–R7 ở [docs/05 §7](docs/05-phuong-phap-genai-rag.md#7-cổng-quyết-định-layer-3). **R1 và R2 là 100%, không thương lượng.**
+
+---
+
+## Phase 5 — Tích hợp & Sẵn sàng Pilot 🔧
+**01/02 – 15/03/2027 · ~6 tuần**
+
+- [ ] Dispatch: Gmail/SMS cảnh báo cá nhân hoá 🔧
+- [ ] Dispatch: xuất lệnh điều động CDC 🔧
+- [ ] Đa tenant (tách dữ liệu giữa các đơn vị khách hàng) 🔧
+- [ ] Offline-first: caching + fallback nội suy khi mất kết nối 🤝
+- [ ] Bảo mật: mã hoá AES-256, rà OWASP Top 10, audit log 🔧
+- [ ] Hạ tầng pilot: VM cloud, deploy docker-compose, backup DB, monitoring/alert 🔧
+- [ ] Tài liệu hướng dẫn sử dụng cho cán bộ y tế 🤝
+- [ ] Diễn tập demo end-to-end 🤝
+
+---
+
+## Phase 6 — Pilot thực địa 🤝
+**Q2/2027 trở đi**
+
+- [ ] Onboard 1–2 bệnh viện / CDC pilot
+- [ ] Theo dõi độ chính xác trên dữ liệu thực vs holdout ban đầu — **kiểm chứng có trôi mô hình không**
+- [ ] Theo dõi **tỉ lệ chấp nhận không sửa** của Layer 3 ([docs/05 §5.5](docs/05-phuong-phap-genai-rag.md#55-chỉ-số-quan-trọng-nhất-khi-vận-hành))
+- [ ] Vòng lặp re-training từ phản hồi thực tế
+- [ ] Thu thập KPI cho case study: thời gian phản ứng, lead time, ước tính tiết kiệm
+- [ ] Cập nhật TRL từ 4 lên 5 với bằng chứng thật
+
+---
+
+## Luồng song song — Chuẩn bị đối ngoại 🤝
+
+Không phụ thuộc phase kỹ thuật, nhưng có deadline riêng:
+
+- [ ] **Tuần này:** sửa các mâu thuẫn số liệu trong bản thuyết minh ([docs/00 §D](docs/00-review-hien-trang.md#d-việc-phải-làm-trước-khi-nộp-bản-thuyết-minh-tiếp-theo))
+- [ ] **Tuần này:** gửi công văn xin dữ liệu
+- [ ] **T10/2026:** hồ sơ Nafosted/quỹ trường-viện
+- [ ] **T10–T12/2026:** vòng triển khai Sáng tạo Trẻ — cần bản demo chạy được (dùng kết quả Phase 0 + Phase 1, chưa cần Phase 2 xong)
+- [ ] **Liên tục:** làm việc với Sở Y tế TP.HCM/Hà Nội, tiếp cận bệnh viện tư
+
+---
+
+## Rủi ro theo dõi xuyên suốt
+
+| Rủi ro | Dấu hiệu sớm | Phương án |
+|---|---|---|
+| **Không xin được dữ liệu thật** | Hết T10 chưa có phản hồi | Đường B (nguồn công khai) phải đủ đứng một mình. Hạ phạm vi xuống cấp tỉnh |
+| **Model không thắng baseline** | `exp_002` cho MASE > 0.95 | Báo cáo trung thực. Điều tra: dữ liệu quá thô? cần độ phân giải mịn hơn? Đây là kết quả nghiên cứu hợp lệ |
+| **Phase Dữ liệu trượt tiến độ** | Hết tuần 2 chưa xong crosswalk | Cắt phạm vi (ít tỉnh hơn, ít năm hơn), **không cắt chất lượng quy trình** |
+| **Trôi mô hình** | Sai số tăng dần trên dữ liệu mới | Lịch re-train hàng tháng, so sánh sliding vs expanding window |
+| **Hallucination GenAI** | Guardrail G1 bắt được số lạ | G1 chặn cứng. Không nới ngưỡng để "cho chạy được" |
+| **Bảo mật dữ liệu y tế** | — | Không lưu dữ liệu bệnh nhân thật ở môi trường dev. Audit trước pilot |
