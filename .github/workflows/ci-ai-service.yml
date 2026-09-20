@@ -30,7 +30,10 @@ jobs:
         if: steps.check.outputs.exists == 'true'
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          # Phải khớp đúng version dùng để `pip freeze` ra requirements.txt
+          # (xem header requirements.txt) — lệch version là một số gói khoá
+          # cứng không cài được (đã gặp: contourpy==1.4.0 cần >=3.12).
+          python-version: "3.13"
 
       - name: Install deps
         if: steps.check.outputs.exists == 'true'
