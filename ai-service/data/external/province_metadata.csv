@@ -1,0 +1,35 @@
+new_province_code,new_province_name,region,is_centrally_governed_city
+tuyen_quang,Tuyên Quang,Bắc,false
+lao_cai,Lào Cai,Bắc,false
+thai_nguyen,Thái Nguyên,Bắc,false
+phu_tho,Phú Thọ,Bắc,false
+bac_ninh,Bắc Ninh,Bắc,false
+hung_yen,Hưng Yên,Bắc,false
+hai_phong,Hải Phòng,Bắc,true
+ninh_binh,Ninh Bình,Bắc,false
+cao_bang,Cao Bằng,Bắc,false
+dien_bien,Điện Biên,Bắc,false
+lai_chau,Lai Châu,Bắc,false
+lang_son,Lạng Sơn,Bắc,false
+quang_ninh,Quảng Ninh,Bắc,false
+son_la,Sơn La,Bắc,false
+ha_noi,Hà Nội,Bắc,true
+quang_tri,Quảng Trị,Trung,false
+da_nang,Đà Nẵng,Trung,true
+quang_ngai,Quảng Ngãi,Trung,false
+gia_lai,Gia Lai,Trung,false
+khanh_hoa,Khánh Hòa,Trung,false
+lam_dong,Lâm Đồng,Trung,false
+dak_lak,Đắk Lắk,Trung,false
+ha_tinh,Hà Tĩnh,Trung,false
+nghe_an,Nghệ An,Trung,false
+thanh_hoa,Thanh Hóa,Trung,false
+hue,Huế,Trung,true
+ho_chi_minh,Hồ Chí Minh,Nam,true
+dong_nai,Đồng Nai,Nam,false
+tay_ninh,Tây Ninh,Nam,false
+can_tho,Cần Thơ,Nam,true
+vinh_long,Vĩnh Long,Nam,false
+dong_thap,Đồng Tháp,Nam,false
+ca_mau,Cà Mau,Nam,false
+an_giang,An Giang,Nam,false

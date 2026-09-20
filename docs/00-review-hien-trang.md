@@ -123,20 +123,23 @@ TRL 5 = "công nghệ được kiểm chứng trong **môi trường liên quan*
 
 **Xử lý:** hạ xuống TRL 4 và ghi rõ điều kiện để lên TRL 5. Trong các cuộc thi có hội đồng chuyên môn, tuyên bố khiêm tốn nhưng có bằng chứng thường được đánh giá cao hơn tuyên bố cao mà bị hỏi vặn không trả lời được.
 
-### C.4 — Quy mô dữ liệu quyết định lựa chọn model
+### C.4 — Quy mô dữ liệu quyết định lựa chọn model — ĐÃ ĐO THẬT, không còn ước lượng
 
-Ước lượng dữ liệu khả dụng:
+~~Ước lượng ban đầu~~ (giả định lạc quan "24 năm dữ liệu thật", đã sai — xem C.0): ~9.800 dòng cho 34 tỉnh.
 
-| Đơn vị phân tích | Số chuỗi | Điểm/chuỗi (24 năm × 12 tháng) | Tổng dòng |
+**Số thật, đo bằng code chạy được** (`app/data/build_panel.py`, xem [docs/01 §2.1c](01-chien-luoc-du-lieu.md#21c-ước-lượng-cấp-tỉnh-cho-giai-đoạn-2011-2025-đã-chốt-phương-án-2--small-area-estimation)):
+
+| Loại | Số dòng (tỉnh × tháng) | Giai đoạn | Vai trò |
 |---|---|---|---|
-| 34 tỉnh mới | 34 | 288 | ~9.800 |
-| 63 tỉnh cũ | 63 | 288 | ~18.100 |
-| ~700 huyện cũ | 700 | 288 | ~201.000 |
+| `real` | **6.776** | 1994-02 → 2010-12 (17 năm) | Ground truth thật — dùng để train + test cấp tỉnh |
+| `estimated` | 2.550 | 2011 → 2025 | Suy diễn từ tổng quốc gia thật — **không dùng làm test**, xem docs/01 §8 |
+| **Tổng** | **9.326** | 1994-2025 | 72,7% thật |
 
-**Hệ quả:**
-- Mô hình **per-district** (mỗi khu vực một model riêng): 288 điểm/chuỗi là **quá ít** cho deep learning, thậm chí ít cho cả gradient boosting nhiều feature. Rất dễ overfit.
-- Mô hình **global pooled** (một model học chung toàn bộ khu vực, thêm district ID / đặc trưng vùng làm feature): đây là hướng đúng. Với ~200k dòng ở cấp huyện, gradient boosting hoạt động tốt.
-- Deep learning (LSTM/TFT): **nên thử nhưng đừng đặt cược**. Ở quy mô này, tree ensemble thường thắng. Nếu LSTM thắng thì tốt, nhưng cần đủ thời gian; xếp vào Tier 2.
+**Hệ quả — mạnh hơn nhận định ban đầu:**
+- 6.776 dòng thật **vẫn đủ** cho model global pooled đơn giản (GLM/gradient boosting ít tham số) — quyết định cắt xuống 4 model Tier 1 ở [docs/06 §4](06-khao-sat-tai-lieu.md#4-chốt-lựa-chọn-model--cắt-bớt-để-tiết-kiệm-thời-gian) càng có cơ sở hơn.
+- Mô hình **per-province riêng** hoàn toàn loại bỏ — 6.776/34 ≈ 199 điểm/tỉnh là quá ít cho bất kỳ model riêng lẻ nào.
+- **Hệ quả mới, quan trọng:** tập test cấp tỉnh (phải 100% `real` theo nguyên tắc ở docs/01 §8) **chỉ lấy được từ 1994-2010**. Không thể trung thực báo cáo "độ chính xác cấp tỉnh cho các đợt dịch gần đây (2022, 2023)" trừ khi nguồn NSO cấp tỉnh (đang khảo sát) cho ra dữ liệu thật mới hơn.
+- Deep learning (LSTM/TFT): với 6.776 dòng thật, **càng không nên đặt cược** — giữ nguyên ở Tier 2, chỉ thử nếu dư thời gian.
 
 ### C.5 — Độ trễ báo cáo chưa được tính đến
 

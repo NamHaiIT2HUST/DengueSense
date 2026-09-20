@@ -25,13 +25,14 @@ ai-service/.mypy_cache/
 ai-service/.ruff_cache/
 *.egg-info/
 
-# Model artifacts & raw data — không commit vào git, lưu ở storage riêng
+# Model artifacts & dataset — không commit vào git (xem docs/01 §4)
+# Chỉ ai-service/data/external/ là được commit (crosswalk, alias — nhẹ, quan trọng)
 ai-service/models/*.pkl
 ai-service/models/*.joblib
 ai-service/models/*.bin
 ai-service/data/raw/
-ai-service/data/*.csv
-ai-service/data/*.parquet
+ai-service/data/interim/
+ai-service/data/processed/
 
 # --- Node / React (dashboard/) ---
 dashboard/node_modules/

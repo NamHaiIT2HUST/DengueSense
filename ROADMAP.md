@@ -27,7 +27,7 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 
 1. 🚨 **Khác biệt của dự án KHÔNG nằm ở độ chính xác dự báo.** D-MOSS đang vận hành tại VN với độ chính xác 0.83–0.94 — con số 89.5% của ta nằm gọn bên trong khoảng đó. Khác biệt thật nằm ở **K1–K5** ([docs/06 §3](docs/06-khao-sat-tai-lieu.md#3-năm-khác-biệt-thật-sự--định-vị-mới)), đặc biệt là **phân bổ theo lợi ích cận biên** và **sinh văn bản chỉ đạo đúng thể thức pháp lý**. Đừng dồn công sức vào việc đẩy thêm vài % độ chính xác.
 2. **Phase Dữ liệu sẽ tốn thời gian gấp đôi dự tính.** Luôn luôn như vậy trong mọi dự án ML, và ở đây còn thêm bài toán ánh xạ ranh giới hành chính 2025 ([docs/01 §3](docs/01-chien-luoc-du-lieu.md#3-chuẩn-hoá-đơn-vị-không-gian-bắt-buộc-làm-trước)) — thứ hoá ra lại là **rào cản gia nhập K3**, làm sớm thì thành lợi thế.
-3. **Chưa có dữ liệu ca bệnh thật** ([docs/00 §B.1](docs/00-review-hien-trang.md#b1--chưa-có-dữ-liệu-ca-bệnh-thật-️-rủi-ro-số-1)). Gửi công văn xin dữ liệu **trong tuần này**, đồng thời dựng pipeline trên nguồn công khai — không chờ.
+3. **Chưa có dữ liệu ca bệnh thật cấp tỉnh cho giai đoạn gần đây.** Đã xác nhận bằng code thật: OpenDengue chỉ có breakdown theo tỉnh tới **2010**, sau đó phải ước lượng (xem docs/01 §2.1c). Công văn (Đường A) và khảo sát NSO cấp tỉnh giờ không còn là "làm cho chắc" — có thể là **nguồn duy nhất** cho ground truth cấp tỉnh giai đoạn 2011+. Gửi công văn **trong tuần này**, không chờ kết quả mới làm tiếp.
 4. **Vòng thi Q4/2026 cần một bản demo chạy được, không cần model hoàn hảo.** Tách rõ hai luồng: *luồng demo* (kịp deadline thi) và *luồng nghiêm túc* (cho pilot thật và hồ sơ tài trợ). Đừng để deadline thi ép chất lượng model.
 
 ---
@@ -89,41 +89,51 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 
 📖 Đọc trước: [docs/01-chien-luoc-du-lieu.md](docs/01-chien-luoc-du-lieu.md)
 
+> ⚡ **Cập nhật 20/09/2026 — đã bắt đầu sớm hơn kế hoạch.** Phần 1.3 và phần lõi của 1.4 (OpenDengue) đã code + chạy thật + test xong, làm song song với Phase 0 vì không đụng tới backend/dashboard. Còn lại HCDC, ERA5, WorldPop, NSO cấp tỉnh.
+
 ### 1.1 Xin dữ liệu chính thức (làm ngay tuần đầu, chạy nền)
 - [ ] Soạn công văn xin dữ liệu HCDC/Bộ Y tế qua kênh GVHD/Khoa 🤝
 - [ ] Ghi rõ phạm vi cần: cấp quận/xã, theo tuần/tháng, càng dài càng tốt
 - [ ] **Không chờ kết quả** — các mục dưới chạy song song
 
 ### 1.2 Kiểm chứng nguồn công khai
-- [ ] Với mỗi nguồn ở [docs/01 §2](docs/01-chien-luoc-du-lieu.md#2-danh-mục-nguồn-dữ-liệu): viết note trong `docs/data-sources/<ten>.md` (URL, cách tải, độ phủ thực tế, giấy phép, ngày kiểm chứng) 🧬
-- [ ] Gạch khỏi kế hoạch nguồn nào không xác minh được
-- [ ] **Done:** biết chính xác có bao nhiêu năm × bao nhiêu đơn vị dữ liệu thật
+- [x] OpenDengue — kiểm chứng thật, tải + xử lý thành công, xem 1.4 🔧
+- [x] HCDC — kiểm chứng thật: không phải bảng, là văn xuôi theo tuần, cần NLP parse (xem [docs/01 §2.1b](docs/01-chien-luoc-du-lieu.md#21b-kế-hoạch-trích-xuất-hcdc-parse-văn-bản-không-phải-scrape-bảng)) 🔧
+- [x] ⚠️ Phát hiện: GSO đã đổi tên/tổ chức lại thành **NSO** (Cục Thống kê, Bộ Tài chính), subdomain cấp tỉnh cũ đã chết — cần khảo sát lại cấu trúc `nso.gov.vn` mới 🔧
+- [ ] **Khảo sát NSO cấp tỉnh** — ưu tiên cao, có thể là nguồn `real` DUY NHẤT cho cấp tỉnh giai đoạn gần đây (xem [docs/01 §2.1](docs/01-chien-luoc-du-lieu.md#21-dữ-liệu-dịch-tễ-biến-mục-tiêu)) 🧬
+- [ ] File note trong `docs/data-sources/` cho ERA5, WorldPop, ranh giới GIS
+- [x] **Done:** biết chính xác có bao nhiêu năm × bao nhiêu đơn vị dữ liệu thật — **6.776 dòng thật (34 tỉnh × 1994-2010)**, xem [docs/00 §C.4](docs/00-review-hien-trang.md#c4--quy-mô-dữ-liệu-quyết-định-lựa-chọn-model--đã-đo-thật-không-còn-ước-lượng)
 
-### 1.3 Chuẩn hoá đơn vị không gian ⭐ bắt buộc làm trước mọi thứ khác
-- [ ] Chốt đơn vị phân tích chuẩn (khuyến nghị: 34 tỉnh mới) 🤝
-- [ ] Xây `crosswalk_province.csv` (cũ → mới, ghi rõ quy tắc với trường hợp tách) 🧬
-- [ ] Hàm `to_canonical_unit()` + unit test bảo toàn tổng 🧬
-- [ ] **Done:** mọi dataset đi qua một hàm duy nhất để về đơn vị chuẩn
+### 1.3 Chuẩn hoá đơn vị không gian ⭐ bắt buộc làm trước mọi thứ khác — ✅ XONG
+- [x] Chốt đơn vị phân tích chuẩn: **34 tỉnh mới** (NQ 202/2025/QH15) 🤝
+- [x] `crosswalk_province.csv` — 63 tỉnh cũ → 34 tỉnh mới, đối chiếu 2 nguồn, khớp số chính thức (52 gộp + 11 giữ nguyên) 🔧
+- [x] `province_metadata.csv` — vùng miền, TP trực thuộc TW 🔧
+- [x] `opendengue_province_alias.csv` — xử lý thêm lớp phức tạp "HA TAY" (sáp nhập Hà Nội 2008, khác đợt 2025) 🔧
+- [x] Hàm `to_canonical_unit()` trong `app/data/crosswalk.py` + **14 unit test** (bảo toàn tổng, đủ 63→34, raise lỗi khi tên lạ) — pass 100% 🔧
+- [x] **Done:** mọi dataset đi qua một hàm duy nhất để về đơn vị chuẩn
 
 ### 1.4 Pipeline thu thập
-- [ ] Ingest OpenDengue (VN, admin1) — vẽ bản đồ độ phủ theo năm/tỉnh trước khi dùng, có lỗ hổng đã biết 🧬
-- [ ] Ingest HCDC: crawl + **parse NLP/regex** (không phải bảng có sẵn — xem [docs/01 §2.1b](docs/01-chien-luoc-du-lieu.md#21b-kế-hoạch-trích-xuất-hcdc-parse-văn-bản-không-phải-scrape-bảng)) — chỉ cho ra chuỗi cấp thành phố + tín hiệu phường nóng, **không đủ để tự nó thành nhãn cấp phường** 🧬
-- [ ] Ingest ERA5-Land qua `cdsapi` + gộp không gian theo trọng số dân số 🧬
-- [ ] Ingest ONI, WorldPop, ranh giới GIS 🧬
-- [ ] Ghép thành `panel_monthly.parquet` v1.0.0 + `manifest.json` 🧬
-- [ ] **Done:** sinh lại toàn bộ từ raw bằng **một lệnh**
+- [x] **Ingest OpenDengue** — `app/data/ingest_opendengue.py`, tải zip thật từ GitHub, lọc VN, tách Admin0 (quốc gia, thật tới 2025)/Admin1 (tỉnh, thật chỉ tới 2010) 🔧
+- [x] **Small-area estimation** cho 2011-2025 — `app/data/estimate_province.py`, benchmarking theo tỉ trọng lịch sử tính riêng theo tháng-trong-năm, **6 unit test bảo toàn tổng** (việc mới phát sinh, không có trong kế hoạch gốc — xem [docs/01 §2.1c](docs/01-chien-luoc-du-lieu.md#21c-ước-lượng-cấp-tỉnh-cho-giai-đoạn-2011-2025-đã-chốt-phương-án-2--small-area-estimation)) 🔧
+- [x] **`build_panel.py`** — ghép real + estimated, ghi `panel_monthly.parquet` + `manifest.json` tự động, gắn `data_source` mọi dòng 🔧
+- [x] **Done một phần:** `python -m app.data.build_panel` chạy ra **v0.1.0: 9.326 dòng, 34/34 tỉnh, 1994-2025, 72,7% real** — nhưng **chưa có cột khí hậu/dân số**, xem việc còn lại dưới
+- [ ] Ingest HCDC: crawl + **parse NLP/regex** — chỉ cho chuỗi cấp thành phố + tín hiệu phường nóng, không đủ làm nhãn cấp phường 🧬
+- [ ] Ingest ERA5-Land qua `cdsapi` (**cần đăng ký tài khoản CDS trước**) + gộp không gian theo trọng số dân số 🧬
+- [ ] Ingest ONI (nhẹ, làm nhanh), WorldPop, ranh giới GIS 34 tỉnh mới 🧬
+- [ ] Ghép cột khí hậu/dân số vào panel → lên v0.2.0 🧬
 
 ### 1.5 Chia tập & chống rò rỉ
 - [ ] `splits.py`: rolling-origin, expanding window, embargo, nested CV 🧬
 - [ ] Unit test chứng minh **không điểm tương lai nào lọt vào train** 🧬
 - [ ] Cài đặt độ trễ báo cáo `D` như tham số config ([docs/01 §6 Bẫy 3](docs/01-chien-luoc-du-lieu.md#6-các-bẫy-rò-rỉ-dữ-liệu-phải-tránh)) 🧬
+- [ ] ⚠️ Xác nhận trong code: tập test cấp tỉnh chỉ được lấy từ 1994-2010 (`data_source=="real"`) — xem [docs/03 §8](docs/03-quy-trinh-thuc-nghiem.md#8-quy-tắc-dùng-tập-test) 🧬
 
 ### 1.6 EDA
 - [ ] Notebook: chuỗi thời gian theo vùng, tính mùa vụ, tương quan chéo khí hậu–ca bệnh theo độ trễ, bản đồ, thống kê khuyết thiếu 🧬
 - [ ] Xác nhận bằng dữ liệu: độ trễ khí hậu nào mạnh nhất? (đừng giả định 1–3 tháng, hãy đo)
 
 ### 🚪 Cổng nghiệm thu Phase 1
-> Toàn bộ checklist [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã pass, **bao gồm baseline seasonal naive đã chạy và có số**.
+> Toàn bộ checklist [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã pass, **bao gồm baseline seasonal naive đã chạy và có số**. Hiện đã qua ~40% (crosswalk + OpenDengue + estimation xong; HCDC/ERA5/WorldPop/EDA/splits còn lại).
 
 ---
 
