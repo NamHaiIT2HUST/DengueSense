@@ -106,7 +106,8 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 - [ ] **Done:** mọi dataset đi qua một hàm duy nhất để về đơn vị chuẩn
 
 ### 1.4 Pipeline thu thập
-- [ ] Ingest dịch tễ (OpenDengue + scraper HCDC) 🧬
+- [ ] Ingest OpenDengue (VN, admin1) — vẽ bản đồ độ phủ theo năm/tỉnh trước khi dùng, có lỗ hổng đã biết 🧬
+- [ ] Ingest HCDC: crawl + **parse NLP/regex** (không phải bảng có sẵn — xem [docs/01 §2.1b](docs/01-chien-luoc-du-lieu.md#21b-kế-hoạch-trích-xuất-hcdc-parse-văn-bản-không-phải-scrape-bảng)) — chỉ cho ra chuỗi cấp thành phố + tín hiệu phường nóng, **không đủ để tự nó thành nhãn cấp phường** 🧬
 - [ ] Ingest ERA5-Land qua `cdsapi` + gộp không gian theo trọng số dân số 🧬
 - [ ] Ingest ONI, WorldPop, ranh giới GIS 🧬
 - [ ] Ghép thành `panel_monthly.parquet` v1.0.0 + `manifest.json` 🧬

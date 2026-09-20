@@ -19,14 +19,44 @@
 
 | Nguồn | Phạm vi / độ phân giải | Ưu tiên | Ghi chú |
 |---|---|---|---|
-| **OpenDengue** (LSHTM) | Toàn cầu, có Việt Nam cấp tỉnh (admin1), chuỗi dài | 🥇 Cao nhất | Điểm khởi đầu tốt nhất cho đường B. Kiểm tra độ phủ theo năm cho VN trước khi cam kết |
-| **HCDC** (hcdc.vn) | TP.HCM, cấp quận/phường, theo tuần | 🥇 Cao | Công khai trên web. Cần viết scraper + đối chiếu thủ công. Đây là nguồn cho pilot TP.HCM |
+| **OpenDengue** (LSHTM) | Toàn cầu, có Việt Nam cấp tỉnh (admin1), 1924–2023 | 🥇 Cao nhất | ⚠️ **Đã kiểm chứng 20/09/2026**: có thật 4.5 triệu ca VN ([Nature Sci Data 2024](https://www.nature.com/articles/s41597-024-03120-7)), nhưng độ phân giải **không đồng nhất theo năm/tỉnh**, và ít nhất 1 nghiên cứu khác đã phải **loại Việt Nam khỏi phân tích vì thiếu năm**. Điểm khởi đầu tốt nhất cho đường B, nhưng **phải tự vẽ bản đồ độ phủ** (năm nào/tỉnh nào có, năm nào thiếu) trước khi cam kết dùng — đừng giả định đầy đủ |
+| **HCDC** (hcdc.vn) | TP.HCM, cấp quận/phường, theo tuần | 🥇 Cao | ⚠️ **Đã kiểm chứng 20/09/2026**: không phải bảng/CSV tải được — mỗi tuần là **1 bài viết dạng văn xuôi** (vd *"tuần 19 ghi nhận 466 ca SXH... các phường tỷ lệ mắc cao: An Nhơn Tây, Tây Nam..."*). Phải: (1) crawl toàn bộ URL bài theo tuần từ 2019, (2) **parse bằng regex/NLP** để trích số + tên phường ra khỏi câu văn — không phải scrape bảng HTML đơn giản, (3) chuẩn hoá tên phường/quận. Tốn công hơn dự tính ban đầu — xem §2.1b |
 | **Cục Y tế Dự phòng / Bộ Y tế** | Toàn quốc, báo cáo định kỳ | 🥈 Trung bình | Định dạng không thống nhất, nhiều bản PDF → tốn công parse |
 | **Tổng cục Thống kê (GSO)** | Cấp tỉnh, theo năm | 🥉 Thấp | Chỉ theo năm → quá thô cho dự báo tháng, nhưng tốt để đối chiếu/hiệu chỉnh tổng |
 | **WHO WPRO Dengue Situation Update** | Cấp quốc gia | 🥉 Thấp | Dùng để sanity-check tổng toàn quốc |
 | **HCDC/Bộ Y tế qua công văn chính thức** | Cấp quận/xã, theo tuần/tháng | 🎯 Đường A | Mục tiêu lý tưởng. Gửi công văn sớm, đừng chờ |
 
 > **Việc đầu tiên phải làm:** với mỗi nguồn trên, viết 1 note ngắn trong `docs/data-sources/<ten-nguon>.md` ghi: URL, cách tải, độ phủ thực tế (năm nào đến năm nào, bao nhiêu đơn vị), giấy phép, ngày kiểm chứng. Nguồn nào không xác minh được thì gạch khỏi kế hoạch, không để trong tài liệu như thể đã có.
+
+### 2.1b Kế hoạch trích xuất HCDC (parse văn bản, không phải scrape bảng)
+
+Vì dữ liệu HCDC nằm trong văn xuôi chứ không phải bảng, việc lấy dữ liệu này là một **mini-pipeline NLP** riêng, không phải 1 dòng `pandas.read_html()`:
+
+```
+1. Crawl danh sách URL bài "Tình hình dịch bệnh SXH..." theo tuần
+   (mẫu URL: hcdc.vn/tinh-hinh-dich-benh-sot-xuat-huyet-...-tuan-<N><year>-<hash>.html)
+   → liệt kê được qua sitemap hoặc mục "Sốt xuất huyết - Chikungunya"
+
+2. Với mỗi bài, trích 2 loại thông tin bằng regex có kiểm tra thủ công mẫu đầu:
+   a. Số liệu cấp thành phố:  "<N> trường hợp mắc bệnh sốt xuất huyết"
+                              "giảm/tăng <X>%"
+                              "tích lũy ... <N> ca"
+   b. Danh sách phường/xã tỷ lệ mắc cao — CHỈ LÀ TÊN, không có số cụ thể theo phường
+      → đây là dữ liệu ĐỊNH TÍNH (phường nào đang nóng), không phải ĐỊNH LƯỢNG
+        (không dùng làm nhãn hồi quy được, chỉ dùng làm tín hiệu bổ sung/validate)
+
+3. Chuẩn hoá tên phường/xã qua bảng crosswalk (§3) — tên trong bài viết
+   có thể dùng tên cũ (trước sáp nhập 2025)
+
+4. QA bắt buộc: lấy ngẫu nhiên 15-20 bài, đối chiếu tay số đã parse với
+   văn bản gốc — sai số cho phép: 0 (đây là số liệu y tế, không làm tròn)
+```
+
+⚠️ **Hệ quả quan trọng cần biết trước:** vì HCDC chỉ nêu **tổng số ca cấp thành phố** + **danh sách tên phường nóng** (không có số ca theo từng phường), nguồn này **không tự nó tạo ra được** bảng `(phường, tuần) → số ca` đầy đủ. Nó chỉ dùng để:
+- Có chuỗi thời gian **cấp thành phố** đáng tin (đối chiếu/hiệu chỉnh OpenDengue)
+- Có tín hiệu **phường nào đang là điểm nóng** (dùng làm nhãn phụ, không phải nhãn chính)
+
+**Muốn có bảng số ca đầy đủ theo quận/phường thì vẫn cần Đường A (công văn xin dữ liệu thô từ HCDC/Bộ Y tế)** — đây chính là lý do đường công văn không chỉ là "làm cho chắc" mà là **con đường duy nhất tới dữ liệu đủ chi tiết cho MVP**, nếu muốn phân bổ nguồn lực ở độ phân giải dưới cấp tỉnh.
 
 ### 2.2 Dữ liệu khí hậu (biến giải thích chính)
 
