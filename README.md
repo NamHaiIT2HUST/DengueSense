@@ -105,6 +105,18 @@ Sau khi mỗi service có manifest (`go.mod`, `requirements.txt`, `package.json`
 docker compose -f infra/docker-compose.yml up
 ```
 
+## 5b. Deploy prototype (Vercel)
+
+`dashboard/` là prototype trực quan (chi tiết cái gì thật/cái gì minh hoạ: [dashboard/README.md](dashboard/README.md)). Deploy lên Vercel:
+
+1. Đăng nhập [vercel.com](https://vercel.com) bằng GitHub
+2. **Add New → Project → Import** repo `DengueSense`
+3. Ở bước cấu hình: **Root Directory** đổi thành `dashboard` (bấm Edit cạnh Root Directory)
+4. Framework Preset: Vercel tự nhận diện **Vite** — để mặc định (Build: `npm run build`, Output: `dist`)
+5. **Deploy**
+
+Không cần biến môi trường nào — toàn bộ dữ liệu là file JSON tĩnh trong `dashboard/public/data/`. Mỗi lần push nhánh này lên GitHub, Vercel tự build lại và cập nhật link.
+
 ## 6. Quy tắc làm việc & đóng góp code
 
 **Đọc [CONTRIBUTING.md](CONTRIBUTING.md) trước khi tạo branch/PR đầu tiên** — quy tắc git, coding convention, CI.
