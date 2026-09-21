@@ -139,16 +139,22 @@ Ba nguyên tắc xuyên suốt: **không có baseline thì không có kết qu�
 
 ## 7. Theo dõi tiến độ
 
-Dùng **GitHub Issues + Projects (Kanban)**, không theo dõi qua chat để tránh thất lạc task. Milestone map theo roadmap trong đề án:
+> 🔴 **Đang làm:** Phase 1 — hoàn thiện tầng dữ liệu (21/09 → 12/10/2026).
+> Checklist thi hành hằng ngày: **[PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md)**
 
-| Milestone | Thời gian | Trọng tâm |
-|---|---|---|
-| MVP | Q3/2026 (T7-T9) | Hoàn thiện Layer 1 + Layer 2, test trên dữ liệu công khai TP.HCM |
-| Pilot chuẩn bị | Q4/2026 (T10-T12) | Tích hợp Layer 3, dashboard, chuẩn bị hạ tầng pilot |
-| Pilot B2B | Q1/2027 | Triển khai thực tế 1-2 bệnh viện |
-| Đánh giá & case study | Q2/2027 | Thu KPI thực, chuẩn bị license thương mại |
+| Phase | Thời gian | Trọng tâm | Trạng thái |
+|---|---|---|---|
+| 0 — Solo Bootstrap | — | Backend, FastAPI, infra | ⏸️ Hoãn có chủ đích → gộp vào Phase 5 |
+| **1 — Dữ liệu** | **21/09 – 12/10/2026** | **Khí hậu, dân số, splits, baseline** | 🔴 **Đang làm (~40%)** |
+| 2 — Mô hình Layer 1 | 13/10 – 22/11/2026 | 4 model Tier 1, tuning, ensemble | ⏳ Chờ |
+| 3 — Tối ưu Layer 2 | 23/11 – 13/12/2026 | MILP, đánh giá dưới bất định | ⏳ Chờ |
+| 4 — GenAI RAG Layer 3 | 14/12/2026 – 31/01/2027 | Guardrail, bộ vàng | ⏳ Chờ |
+| 5 — Tích hợp & Pilot | 01/02 – 15/03/2027 | Backend, dispatch, bảo mật | ⏳ Chờ |
+| 6 — Pilot thực địa | Q2/2027 | 1-2 bệnh viện/CDC, case study | ⏳ Chờ |
 
 Danh sách task chi tiết theo từng phase (có checkbox, phân owner): xem **[ROADMAP.md](ROADMAP.md)**.
+
+Dùng **GitHub Issues + Projects (Kanban)** cho task lớn, không theo dõi qua chat để tránh thất lạc.
 
 Mỗi issue gắn nhãn `backend` / `ai-service` / `dashboard` / `infra` và milestone tương ứng; PR phải link issue (`closes #x`).
 

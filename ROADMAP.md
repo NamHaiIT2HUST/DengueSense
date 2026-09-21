@@ -1,8 +1,10 @@
 # Roadmap kỹ thuật — DengueSense
 
-Cập nhật lần cuối: 2026-09-20
+Cập nhật lần cuối: 2026-09-21
 
 **Tài liệu phương pháp luận đi kèm (đọc trước khi làm phase tương ứng):** [docs/](docs/README.md)
+
+> 👉 **Đang làm gì ngay bây giờ:** [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md) — checklist thi hành chi tiết cho phase hiện tại.
 
 ---
 
@@ -32,10 +34,31 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 
 ---
 
-## Phase 0 — Solo Bootstrap 🔧
-**20/09 – 04/10/2026 · Nam Hải làm một mình**
+## 📍 Tái lập kế hoạch — 21/09/2026
 
-**Mục tiêu:** một luồng chạy được thật từ dashboard → backend → ai-service → trả kết quả → vẽ bản đồ, với Layer 1/2 còn **naive**. Làm để chốt API contract trước khi hai người code song song, và để có khung sẵn cho Minh Dương cắm model thật vào.
+Thực tế đã đi lệch khỏi thứ tự phase ban đầu. Ghi lại cho minh bạch:
+
+| Dự định ban đầu | Thực tế đã xảy ra |
+|---|---|
+| Phase 0 trước (backend + FastAPI + infra + API contract), rồi mới tới dữ liệu | **Phần lõi dữ liệu của Phase 1 làm trước** (crosswalk 34 tỉnh, OpenDengue, small-area estimation, panel v0.1.0 — 20 test pass) |
+| Dashboard là bước cuối Phase 0, nối backend thật | **Dashboard làm sớm dạng prototype**, đọc file JSON tĩnh, phục vụ nộp báo cáo tiến độ cuộc thi |
+| Backend Go + FastAPI + docker-compose | **Chưa làm** — và đã quyết định **hoãn có chủ đích** (lý do ở dưới) |
+
+**Quyết định tái lập:** phase hiện tại là **Phase 1 — hoàn thiện tầng dữ liệu**, không quay lại làm Phase 0.
+
+Lý do hoãn Phase 0: backend/FastAPI/docker-compose **không nằm trên đường găng**. Chưa có model thật thì chưa có gì để phục vụ, dựng API bây giờ là dựng vỏ rỗng rồi phải sửa lại khi biết model thật trả ra cái gì. Prototype đã chứng minh được phần giao diện. Dựng lại khi chuẩn bị pilot, lúc đó đã biết chính xác cần expose gì.
+
+> ⚠️ Panel hiện tại **chỉ có đúng 1 biến: số ca**. Chưa có khí hậu → **chưa thể train model**. Đây là lý do Phase 1 là việc phải làm ngay, chi tiết ở [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md).
+
+---
+
+## Phase 0 — Solo Bootstrap 🔧 ⏸️ HOÃN CÓ CHỦ ĐÍCH
+**Làm lại khi chuẩn bị pilot (dự kiến Q1/2027), không phải bây giờ**
+
+**Mục tiêu (giữ nguyên cho sau này):** một luồng chạy được thật từ dashboard → backend → ai-service → trả kết quả → vẽ bản đồ. Làm để chốt API contract và có khung sẵn cho model thật cắm vào.
+
+**Phần đã xong sớm:** dashboard (bản prototype, đọc JSON tĩnh — xem [dashboard/README.md](dashboard/README.md)).
+**Phần hoãn:** infra docker-compose, backend Go, FastAPI serving, API contract.
 
 ### 0.1 Hạ tầng local
 - [ ] `infra/docker-compose.yml` với `postgis/postgis:16-3.4`
@@ -84,12 +107,15 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 
 ---
 
-## Phase 1 — Dữ liệu 🤝
-**05/10 – 01/11/2026 · ~4 tuần · Đây là đường găng**
+## Phase 1 — Dữ liệu 🤝 ⬅️ **ĐANG LÀM**
+**21/09 – 12/10/2026 · ~3 tuần · Đây là đường găng**
 
 📖 Đọc trước: [docs/01-chien-luoc-du-lieu.md](docs/01-chien-luoc-du-lieu.md)
+✅ **Checklist thi hành chi tiết: [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md)** — dùng file đó để làm việc hằng ngày, mục dưới đây chỉ là bản tóm tắt
 
-> ⚡ **Cập nhật 20/09/2026 — đã bắt đầu sớm hơn kế hoạch.** Phần 1.3 và phần lõi của 1.4 (OpenDengue) đã code + chạy thật + test xong, làm song song với Phase 0 vì không đụng tới backend/dashboard. Còn lại HCDC, ERA5, WorldPop, NSO cấp tỉnh.
+> ⚡ **Đã xong sớm (20–21/09):** chuẩn hoá 34 tỉnh (1.3) và phần lõi OpenDengue + small-area estimation (1.4) — code thật, 20 test pass, panel v0.1.0 chạy được bằng 1 lệnh.
+>
+> 🔴 **Còn thiếu mấu chốt:** panel mới chỉ có cột `cases`. **Chưa có khí hậu → chưa train được model.** Đây là trọng tâm 3 tuần tới.
 
 ### 1.1 Xin dữ liệu chính thức (làm ngay tuần đầu, chạy nền)
 - [ ] Soạn công văn xin dữ liệu HCDC/Bộ Y tế qua kênh GVHD/Khoa 🤝
@@ -132,24 +158,35 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 - [ ] Notebook: chuỗi thời gian theo vùng, tính mùa vụ, tương quan chéo khí hậu–ca bệnh theo độ trễ, bản đồ, thống kê khuyết thiếu 🧬
 - [ ] Xác nhận bằng dữ liệu: độ trễ khí hậu nào mạnh nhất? (đừng giả định 1–3 tháng, hãy đo)
 
+### 1.7 Metric & Baseline 🧬 — *chuyển từ Phase 2 sang*
+
+Chuyển về đây vì [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã quy định baseline là **điều kiện nghiệm thu Phase 1**, và vì nhóm này **chỉ cần cột `cases` đã có** → làm được ngay, không phải chờ dữ liệu khí hậu.
+
+- [ ] `app/forecast/metrics.py` — MASE, MAE, RMSE, Poisson deviance, PR-AUC, Brier, lead time + unit test
+- [ ] ⚠️ Mẫu số MASE phải tính **chỉ trên tập train**, tính trên toàn bộ dữ liệu là rò rỉ
+- [ ] `exp_001` — 4 baseline (persistence, seasonal naive ⭐, climatology, GLM Poisson) trên 4 horizon
+- [ ] `RESULTS.md` đầy đủ theo template [docs/03 §4](docs/03-quy-trinh-thuc-nghiem.md#4-resultsmd--bắt-buộc-cho-mọi-thí-nghiệm)
+
 ### 🚪 Cổng nghiệm thu Phase 1
-> Toàn bộ checklist [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã pass, **bao gồm baseline seasonal naive đã chạy và có số**. Hiện đã qua ~40% (crosswalk + OpenDengue + estimation xong; HCDC/ERA5/WorldPop/EDA/splits còn lại).
+> Toàn bộ checklist [docs/01 §9](docs/01-chien-luoc-du-lieu.md#9-checklist-nghiệm-thu-phase-dữ-liệu) đã pass, **bao gồm baseline seasonal naive đã chạy và có số**.
+>
+> Chi tiết 6 điểm nghiệm thu + cách kiểm tra: [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md). Hiện đã qua ~40% (chuẩn hoá 34 tỉnh + OpenDengue + estimation xong; còn khí hậu/dân số/splits/baseline/EDA).
 
 ---
 
 ## Phase 2 — Mô hình Layer 1 🧬
-**02/11 – 06/12/2026 · ~5 tuần**
+**13/10 – 22/11/2026 · ~6 tuần**
 
 📖 Đọc trước: [docs/02](docs/02-phuong-phap-mo-hinh.md) và [docs/03](docs/03-quy-trinh-thuc-nghiem.md)
 
 ### 2.0 Chuẩn bị hạ tầng thí nghiệm 🤝
 - [ ] MLflow chạy local, cấu trúc `experiments/` theo [docs/03 §1](docs/03-quy-trinh-thuc-nghiem.md#1-cấu-trúc-thư-mục-thực-nghiệm)
 - [ ] Template `config.yaml` + `RESULTS.md`
-- [ ] `metrics.py`: MASE, PR-AUC, Brier, lead time + unit test
+- [x] ~~`metrics.py`~~ → **đã chuyển sang Phase 1 mục 1.7** (baseline là điều kiện nghiệm thu Phase 1)
+- [ ] `app/forecast/features.py` — sinh đặc trưng + **unit test tính nhân quả** ([docs/02 §2](docs/02-phuong-phap-mo-hinh.md#2-kỹ-thuật-đặc-trưng-feature-engineering))
 
-### 2.1 `exp_001` — Baseline (4 baseline)
-- [ ] B1 persistence · B2 seasonal naive · B3 climatology · B4 GLM Poisson
-- [ ] **Done:** có bảng số mốc để so mọi thứ về sau
+### 2.1 ~~`exp_001` — Baseline~~ → **đã chuyển sang Phase 1 mục 1.7**
+Baseline phải có **trước** khi vào Phase 2 — không có mốc so sánh thì mọi con số ở `exp_002` trở đi đều không diễn giải được.
 
 ### 2.2 `exp_002` — Model zoo Tier 1 (**4 model**, đã cắt gọn theo [docs/06 §4](docs/06-khao-sat-tai-lieu.md#4-chốt-lựa-chọn-model--cắt-bớt-để-tiết-kiệm-thời-gian))
 - [ ] M1 GLM Negative Binomial phân cấp · M2 XGBoost + LightGBM (mặc định) · M3 bán cơ giới hhh4 · M4 ensemble
@@ -205,7 +242,7 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 ---
 
 ## Phase 3 — Tối ưu Layer 2 🧬
-**07/12 – 20/12/2026 · ~2 tuần**
+**23/11 – 13/12/2026 · ~3 tuần**
 
 📖 Đọc trước: [docs/04](docs/04-phuong-phap-toi-uu.md)
 
@@ -228,7 +265,7 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 ---
 
 ## Phase 4 — GenAI RAG Layer 3 🤝
-**21/12/2026 – 31/01/2027 · ~6 tuần**
+**14/12/2026 – 31/01/2027 · ~6 tuần**
 
 📖 Đọc trước: [docs/05](docs/05-phuong-phap-genai-rag.md)
 
@@ -267,6 +304,12 @@ Dữ liệu  ──►  Mô hình Layer 1  ──►  Layer 2  ──►  Layer 
 
 ## Phase 5 — Tích hợp & Sẵn sàng Pilot 🔧
 **01/02 – 15/03/2027 · ~6 tuần**
+
+> 📦 **Phần Phase 0 hoãn lại được gộp vào đây** — lúc này đã biết chính xác model trả ra gì nên dựng API không còn là đoán mò:
+> - [ ] `infra/docker-compose.yml` (Postgres + PostGIS + pgvector) 🔧
+> - [ ] `ai-service`: FastAPI app + Pydantic schemas (API contract) 🔧
+> - [ ] `backend` Go: API gateway, auth JWT, client gọi ai-service 🔧
+> - [ ] Dashboard: chuyển từ JSON tĩnh sang gọi API thật 🔧
 
 - [ ] Dispatch: Gmail/SMS cảnh báo cá nhân hoá 🔧
 - [ ] Dispatch: xuất lệnh điều động CDC 🔧
