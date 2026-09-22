@@ -1,217 +1,386 @@
-# Phase 1 — Hoàn thiện tầng dữ liệu · Checklist thi hành
+# Phase 1 — Hoàn thiện tầng dữ liệu · Kiến trúc & Checklist kỹ thuật
 
-> **Trạng thái:** đang làm · Bắt đầu 21/09/2026 · Mục tiêu xong **12/10/2026** (~3 tuần)
+> **Trạng thái:** đang làm · Bắt đầu 21/09/2026 · Mục tiêu **12/10/2026** (~3 tuần)
 > **Tài liệu gốc:** [docs/01-chien-luoc-du-lieu.md](docs/01-chien-luoc-du-lieu.md) · [ROADMAP.md](ROADMAP.md)
+> **Setup/cài đặt** (venv, `cdsapi`, `geopandas`, `rioxarray`...) đã thêm sẵn vào `ai-service/requirements.txt` — không cần làm gì thêm ngoài `pip install -r requirements.txt`. Đăng ký tài khoản CDS ([cds.climate.copernicus.eu](https://cds.climate.copernicus.eu)) là việc duy nhất chỉ bạn làm được (cần email cá nhân + chấp nhận ToS) — làm 1 lần đầu tiên, ~10 phút, rồi bỏ qua, không lặp lại trong tài liệu này.
 
----
+## 🖥️ Chạy 1 lệnh, treo máy, không cần Jupyter
 
-## Vì sao phase này là việc phải làm ngay
+Toàn bộ Luồng A (dân số + ONI + ERA5 + ghép panel v0.2.0 + export dashboard) đã gộp thành 1 script
+chạy nối tiếp, tự bỏ qua bước đã xong, tự retry khi mạng chập chờn — không cần mở từng notebook:
 
-Panel dữ liệu hiện tại (`v0.1.0`) **chỉ có đúng 1 biến: số ca**.
-
-```
-province_id | month | cases | data_source        ← đang có
-population, incidence_per_100k,
-temp_*, precip_*, humidity_*, oni                ← CHƯA CÓ
+```bash
+python -m app.data.run_luong_a
 ```
 
-Không có dữ liệu khí hậu thì **không thể train model dự báo** — độ trễ khí hậu (mưa/nhiệt 1–3 tháng trước) chính là biến giải thích mạnh nhất của sốt xuất huyết. Mọi thứ ở Phase 2 đứng sau việc này.
+Chạy nền thật sự trên Windows (đóng terminal vẫn tiếp tục — nhớ tắt sleep khi cắm sạc trong
+Settings, vì máy ngủ thì mọi tiến trình cũng dừng theo, không riêng gì Python):
 
-### Định nghĩa HOÀN THÀNH phase (cổng nghiệm thu)
+```powershell
+Start-Process -FilePath "venv\Scripts\python.exe" `
+    -ArgumentList "-m", "app.data.run_luong_a" `
+    -RedirectStandardOutput "logs\run_luong_a.out.log" `
+    -RedirectStandardError "logs\run_luong_a.err.log" `
+    -WindowStyle Hidden
+```
 
-Phase 1 chỉ được coi là xong khi **tất cả** các mục sau đúng:
-
-1. `panel_monthly.parquet` lên **v0.2.0**, có đủ cột khí hậu + dân số + `incidence_per_100k`
-2. Sinh lại toàn bộ từ raw bằng **một lệnh**, không bước thủ công nào
-3. `make_splits()` có unit test chứng minh **không điểm tương lai nào lọt vào train**
-4. **Baseline seasonal naive đã chạy, có số cụ thể** — mốc để so mọi model về sau
-5. Mỗi nguồn dữ liệu có 1 file note trong `docs/data-sources/` đã kiểm chứng
-6. Kiểm tra tái lập chéo: người kia chạy lại ra cùng kết quả (sai khác < 1%)
-
----
-
-## ⚠️ Hai việc làm NGAY HÔM NAY (có độ trễ chờ bên ngoài)
-
-Hai việc này không tốn công nhưng **chờ người khác**, làm muộn là chặn cả phase.
-
-### [ ] 0.1 — Đăng ký tài khoản Copernicus CDS 🔧 `~20 phút, chờ duyệt`
-
-Đây là cổng vào toàn bộ dữ liệu khí hậu. **Làm đầu tiên trong ngày.**
-
-- [ ] Đăng ký tài khoản mới tại [cds.climate.copernicus.eu](https://cds.climate.copernicus.eu)
-      ⚠️ **Tài khoản CDS cũ (trước 02/2025) KHÔNG dùng được** — hệ thống đã migrate, phải tạo mới
-- [ ] Vào trang dataset **ERA5-Land monthly averaged data**, bấm tab *Download* → kéo xuống cuối → **chấp nhận Terms of Use**
-      ⚠️ Bước này rất dễ quên. Không chấp nhận điều khoản thì API trả lỗi 403 dù key đúng
-- [ ] Lấy Personal Access Token, tạo file `~/.cdsapirc`:
-      ```
-      url: https://cds.climate.copernicus.eu/api
-      key: <personal-access-token>
-      ```
-      ⚠️ URL mới là `/api` — các hướng dẫn cũ trên mạng ghi `/api/v2`, sai
-- [ ] **Done khi:** chạy thử 1 request nhỏ (1 tháng, 1 biến) tải về được file `.nc`
-
-### [ ] 0.2 — Gửi công văn xin dữ liệu chính thức 🤝 `~1 giờ soạn, chờ vài tuần`
-
-- [ ] Soạn công văn qua kênh GVHD (ThS. Hồ Viết Đức Lương) → Khoa Toán-Tin
-- [ ] Phạm vi xin **hẹp và cụ thể**: số ca SXH theo tỉnh, theo tháng, 2011–2025, dữ liệu **tổng hợp** (không cần định danh cá nhân — tránh vướng hội đồng đạo đức)
-- [ ] Gọi/email hỏi trước Phòng Kế hoạch-Nghiệp vụ HCDC xem gửi đúng ai, mẫu nào
-- [ ] **Không chờ kết quả** — toàn bộ checklist dưới chạy song song
-
-> Vì sao vẫn xin dù đã có pipeline công khai: dữ liệu cấp tỉnh giai đoạn 2011–2025 hiện là **ước lượng suy diễn**, không phải số đo thật. Xin được thì thay thẳng vào, chất lượng model lên rõ rệt.
+- **Idempotent:** mất điện/mất mạng giữa chừng → chạy lại đúng lệnh trên, bước đã xong tự bỏ qua.
+- **Tự retry:** lỗi tải WorldPop (4 lần, backoff 5-40s) hay lỗi CDS (3 lần, backoff 30s-2phút) không
+  làm dừng cả loạt — 1 năm lỗi hẳn chỉ để lại lỗ hổng ở năm đó, không chặn các năm/bước còn lại.
+- **Log mốc từng bước** ghi ra `ai-service/logs/run_luong_a_<timestamp>.log` — mở lại xem tiến độ
+  bất cứ lúc nào, không cần giữ terminal mở.
+- **Đã verify end-to-end** (dữ liệu giả lập đúng schema thật, 2 lần, xoá sạch sau khi test) — wiring
+  đúng, tự lên v0.2.0, export dashboard đúng. Phần tải thật (WorldPop 1 năm, 197MB) đã chạy thật,
+  đúng số liệu kỳ vọng (99.037.315 người năm 2020, số chính thức ~97,6 triệu).
+- Vẫn còn `notebooks/00-02` nếu muốn chạy TỪNG bước có kiểm tra trực quan (đồ thị sanity check) —
+  script này chỉ là đường tắt "chạy hết rồi xem log" cho ai không cần xem từng bước.
 
 ---
 
-## Hai luồng chạy SONG SONG
+## 0. Vì sao phase này chặn tất cả
 
-Sắp xếp để **không ai phải ngồi chờ**:
+Panel hiện tại (`v0.1.0`) chỉ có `cases`. Không có khí hậu → không train được gì (độ trễ mưa/nhiệt 1-3 tháng là biến giải thích mạnh nhất của SXH). **Cổng nghiệm thu** (chỉ qua Phase 2 khi đủ 6 điểm):
 
-| | Luồng A — Dữ liệu (chờ CDS) | Luồng B — Nền móng mô hình (không chờ gì) |
+1. `panel_monthly.parquet` → `v0.2.0`, đủ cột khí hậu + dân số + `incidence_per_100k`
+2. Sinh lại toàn bộ từ raw bằng **một lệnh** (`python -m app.data.build_panel`)
+3. `make_splits()` có test chứng minh không điểm tương lai lọt vào train
+4. Baseline seasonal naive đã chạy ra số — mốc so sánh cho mọi model sau
+5. Mỗi nguồn dữ liệu có note kiểm chứng trong `docs/data-sources/`
+6. Tái lập chéo: chạy lại từ đầu trên máy khác ra cùng kết quả (sai khác < 1%)
+
+---
+
+## 1. Kiến trúc luồng dữ liệu (data flow)
+
+```mermaid
+flowchart TB
+    subgraph EXT["Nguồn ngoài"]
+        OD[("OpenDengue\nAdmin0+Admin1 zip")]
+        POP[("Dân số theo năm\nNSO/WorldPop")]
+        ERA[("ERA5-Land\nCDS API, .nc")]
+        ONI[("ONI text\nNOAA CPC")]
+        GEO[("provinces.geojson\n34 tỉnh")]
+    end
+
+    subgraph RAW["data/raw/  (gitignored, chỉ đọc)"]
+        R1[opendengue/*.zip]
+        R2[population/*.csv]
+        R3[era5/*.nc theo năm]
+        R4[oni.txt]
+    end
+
+    subgraph XFORM["app/data/  (transform, có unit test)"]
+        CW["crosswalk.py\nto_canonical_unit()\n63 tỉnh cũ → 34 tỉnh mới"]
+        EST["estimate_province.py\nsmall-area estimation\n2011-2025"]
+        ZS["zonal_stats.py\nraster ERA5 → (tỉnh, tháng)"]
+        POPI["ingest_population.py"]
+        ONII["ingest_oni.py"]
+        ERAI["ingest_era5.py"]
+    end
+
+    subgraph PANEL["build_panel.py → data/processed/v0.2.0/"]
+        BP["panel_monthly.parquet\n(province_id, month, cases,\nincidence_per_100k, temp_mean,\nprecip_total, humidity_mean,\noni, population, data_source)"]
+        MF[manifest.json]
+    end
+
+    subgraph MODEL["app/forecast/  (Luồng B, song song)"]
+        SPL["splits.py\nmake_splits() rolling-origin"]
+        MET["metrics.py\nmase(), pr_auc(), lead_time()"]
+        EXP["experiments/exp_001_baselines/\npersistence · seasonal naive ·\nclimatology · GLM Poisson"]
+        RES[RESULTS.md]
+    end
+
+    OD --> R1 --> CW
+    POP --> R2 --> POPI
+    ERA --> R3 --> ERAI --> ZS
+    ONI --> R4 --> ONII
+    GEO --> ZS
+    CW --> EST
+    CW --> BP
+    EST --> BP
+    ZS --> BP
+    POPI --> BP
+    ONII --> BP
+    BP --> MF
+    BP --> SPL --> EXP
+    MET --> EXP
+    EXP --> RES
+```
+
+**Nguyên tắc bất biến của luồng này** (đã áp dụng cho OpenDengue, giữ nguyên cho mọi nguồn mới):
+`data/raw/` không bao giờ bị sửa tay → mọi biến đổi qua `app/data/*.py` có test → `build_panel.py` là **điểm ghép duy nhất** → `data/processed/vX.Y.Z/` luôn sinh lại được từ raw bằng một lệnh.
+
+---
+
+## 2. Bản đồ module — trạng thái hiện tại vs cần thêm
+
+```
+ai-service/
+├── app/
+│   ├── data/                          # Luồng A
+│   │   ├── crosswalk.py                ✅ xong (14 test)
+│   │   ├── ingest_opendengue.py        ✅ xong
+│   │   ├── estimate_province.py        ✅ xong (6 test)
+│   │   ├── zonal_stats.py              ✅ xong (3 test, raster tổng hợp)
+│   │   ├── _retry.py                   ✅ xong (4 test) — exponential backoff dùng chung
+│   │   ├── ingest_oni.py               ✅ xong (4 test) — chạy thật, có dữ liệu
+│   │   ├── ingest_population.py        ✅ code xong, tự retry — CẦN BẠN chạy (tải WorldPop)
+│   │   ├── ingest_era5.py              ✅ code xong, tự retry — CẦN BẠN chạy (cần CDS key riêng)
+│   │   ├── build_panel.py              ✅ đã sửa — tự lên v0.2.0 khi đủ 3 interim
+│   │   └── run_luong_a.py              ✅ mới — 1 lệnh chạy hết Luồng A, treo máy được, đã verify wiring
+│   └── forecast/                      # Luồng B ✅ B1+B2 xong
+│       ├── __init__.py                 ✅
+│       ├── metrics.py                  ✅ xong (22 test) — B1
+│       └── splits.py                   ✅ xong (12 test) — B2
+├── data/
+│   ├── raw/{opendengue,population,era5,oni}/    (gitignored)
+│   ├── interim/{population_by_province_year,
+│   │   climate_by_province_month,oni_monthly}.parquet  ⬜ sinh ra khi chạy notebooks/00-02 hoặc run_luong_a.py
+│   ├── external/{crosswalk_province,province_metadata,
+│   │   opendengue_province_alias,provinces.geojson,
+│   │   oni_raw.txt}                             ✅ đã có, giữ nguyên
+│   └── processed/v0.2.0/                        ⬜ chạy `python -m app.data.build_panel` sau khi có đủ interim
+├── experiments/
+│   └── exp_001_baselines/              ⬜ B3 — cấu trúc theo docs/03 §1
+├── notebooks/                          ✅ đã sinh, chạy được ngay (hoặc dùng run_luong_a.py thay thế)
+│   ├── 00_ingest_population.ipynb      ✅ code xong, đã test 1 năm — bạn chạy full range
+│   ├── 01_ingest_oni.ipynb             ✅ đã chạy thật, xong hoàn toàn
+│   ├── 02_ingest_era5.ipynb            ✅ code xong — cần bạn có `~/.cdsapirc`
+│   └── 03_eda_panel.ipynb              ✅ đã chạy thật trên v0.1.0 (mục 1-4)
+└── tests/
+    ├── test_data/{test_crosswalk,test_estimate_province,test_zonal_stats,
+    │   test_ingest_oni,test_retry}.py                       ✅ 31 test
+    └── test_forecast/{test_metrics,test_splits}.py          ✅ 34 test
+                                                    TỔNG: 65/65 test pass
+```
+
+**Vì sao 00 và 02 chưa "chạy thật xong" dù code đã xong:** cả hai cần thứ chỉ bạn có trên máy —
+02 cần tài khoản CDS cá nhân (`~/.cdsapirc`), 00 cần thời gian/băng thông tải ~3-4GB (21 năm ×
+~150-200MB — đã test thật 1 năm: 197MB mất ~13 phút ở mạng máy dev, tức khả năng **vài giờ** cho
+cả 21 năm, không phải vài phút; cứ để chạy nền, notebook tự bỏ qua năm đã tải nếu chạy lại giữa
+chừng). Mở notebook trong Jupyter và **Run All** là xong, không cần sửa code.
+
+---
+
+## 3. Hai luồng chạy song song
+
+| | Luồng A — Dữ liệu | Luồng B — Nền móng mô hình |
 |---|---|---|
-| Ai | 🔧 Nam Hải | 🧬 Minh Dương |
-| Chặn bởi | Tài khoản CDS (mục 0.1) | **Không chặn — bắt đầu được ngay** |
-| Nội dung | Dân số, ERA5, ONI, ghép panel v0.2.0 | metrics, splits, baseline, EDA |
+| Phụ thuộc | Tài khoản CDS (chỉ chặn A3) | **Không phụ thuộc gì** — chỉ cần cột `cases` đã có sẵn |
+| Input | raw files ngoài | `data/processed/v0.1.0/panel_monthly.parquet` (đã tồn tại) |
+| Output | `panel_monthly.parquet` v0.2.0 | `app/forecast/{metrics,splits}.py` + `exp_001` results |
 
-> ⭐ Điểm quan trọng: **Luồng B chỉ cần cột `cases` đã có sẵn**. Minh Dương bắt tay được ngay hôm nay, không cần đợi dữ liệu khí hậu.
-
----
-
-# LUỒNG A — Hoàn thiện dữ liệu 🔧
-
-## A1. Dân số theo tỉnh theo năm
-
-Cần để tính `incidence_per_100k` — biến mục tiêu chính ([docs/01 §2.3](docs/01-chien-luoc-du-lieu.md#23-dữ-liệu-dân-số--kinh-tế-xã-hội)).
-
-- [ ] Chọn nguồn dân số **theo năm** cho 1994–2025 (Niên giám thống kê NSO, hoặc WorldPop annual)
-- [ ] ⚠️ **Bẫy:** file GeoJSON đang có sẵn cột `DanSo_ng` nhưng đó là **ảnh chụp 2025**, dùng cho cả chuỗi 30 năm là sai nặng — dân số VN 1994 khác 2025 rất nhiều
-- [ ] ⚠️ **Bẫy:** dữ liệu dân số lịch sử ở **ranh giới tỉnh cũ** → phải đi qua `to_canonical_unit()` y như dữ liệu ca bệnh, cộng dồn lên 34 tỉnh mới
-- [ ] Viết `app/data/ingest_population.py`
-- [ ] Unit test: bảo toàn tổng dân số trước/sau crosswalk
-- [ ] Năm nào thiếu → nội suy tuyến tính, gắn `population_source="imputed"`
-- [ ] **Done khi:** có bảng `(province_id, year) → population` phủ đủ 34 tỉnh × 1994–2025
-
-## A2. Chỉ số ENSO (ONI) — làm nhanh, lấy đà
-
-Nhẹ nhất trong nhóm, làm trước để có cảm giác tiến triển.
-
-- [ ] Viết `app/data/ingest_oni.py` — tải file text từ NOAA CPC
-- [ ] ⚠️ Nguồn NOAA có lúc chặn request tự động → thêm `User-Agent` header, hoặc tải tay 1 lần rồi commit vào `data/external/` (file rất nhẹ, chấp nhận được)
-- [ ] Parse về dạng `(year, month) → oni`
-- [ ] **Done khi:** có chuỗi ONI phủ 1994–2025
-
-## A3. Khí hậu ERA5-Land — phần nặng nhất
-
-- [ ] Viết `app/data/ingest_era5.py` dùng `cdsapi`
-- [ ] ⚠️ **Dùng dataset `reanalysis-era5-land-monthly-means`**, KHÔNG dùng bản theo giờ — bản giờ cho VN 30 năm là hàng trăm GB, tải cả tuần không xong
-- [ ] Biến cần: `2m_temperature`, `total_precipitation`, `2m_dewpoint_temperature`
-- [ ] Bbox Việt Nam: khoảng `[23.5, 102, 8.2, 110]` (N, W, S, E)
-- [ ] Tải theo **từng năm một** rồi ghép — request 30 năm một lần dễ timeout/bị huỷ
-- [ ] ⚠️ **Bẫy đơn vị — sẽ sai âm thầm nếu không xử lý:**
-  - Nhiệt độ ERA5 là **Kelvin** → trừ 273.15 ra °C
-  - `total_precipitation` là **mét/ngày tích luỹ** → nhân 1000 và nhân số ngày trong tháng ra mm/tháng
-  - **Không có sẵn độ ẩm tương đối** — phải tự tính từ nhiệt độ + điểm sương (công thức Magnus)
-- [ ] **Done khi:** có file `.nc` phủ 1994–2025, kiểm tra 1 tháng bất kỳ ra giá trị hợp lý (VN nhiệt độ ~20–30°C, không ra 300 hay -5)
-
-## A4. Gộp không gian: lưới khí hậu → 34 tỉnh
-
-- [ ] Viết `app/data/zonal_stats.py`: cắt raster ERA5 theo ranh giới tỉnh
-- [ ] Phiên bản 1: **trung bình theo diện tích** (đơn giản, chạy trước cho thông luồng)
-- [ ] Phiên bản 2 (nâng cấp sau): **trung bình có trọng số dân số** — hợp lý hơn vì muỗi và người tập trung ở khu dân cư, không rải đều trên núi
-- [ ] ⚠️ Ranh giới tỉnh dùng đúng file 34 tỉnh đã có ở `dashboard/public/data/provinces.geojson` (đã sửa lỗi nhãn Lạng Sơn/Đồng Tháp) — cân nhắc chuyển file này về `ai-service/data/external/` cho đúng chỗ
-- [ ] **Done khi:** có bảng `(province_id, month) → temp_mean, precip_total, humidity_mean`
-
-## A5. Ghép tất cả → panel v0.2.0
-
-- [ ] Cập nhật `build_panel.py`: join thêm dân số + khí hậu + ONI
-- [ ] Tính `incidence_per_100k = cases / population * 100000`
-- [ ] ⚠️ `data_source` phải **lan truyền đúng**: dòng nào `cases` là `estimated` thì `incidence` cũng là `estimated`, không được "rửa" thành `real`
-- [ ] Nâng `VERSION = "0.2.0"`, cập nhật `manifest.json` (thêm nguồn mới, cập nhật `known_issues`)
-- [ ] Chạy lại `export_dashboard_data.py` cho dashboard khớp dữ liệu mới
-- [ ] **Done khi:** `python -m app.data.build_panel` ra panel đầy đủ cột, không lỗi, không bước tay
+A1 (dân số), A2 (ONI) không phụ thuộc CDS — làm trước để có đà trong lúc chờ CDS duyệt tài khoản (thường vài phút tới vài giờ).
 
 ---
 
-# LUỒNG B — Nền móng mô hình 🧬
+# LUỒNG A — Dữ liệu 🔧
 
-> Toàn bộ luồng này **chỉ cần cột `cases` đã có** — bắt đầu ngay, không chờ Luồng A.
+> **Cả 4 module A1-A4 đã code xong + test xong.** Việc còn lại của bạn chỉ là **mở notebook, bấm Run
+> All**, không cần viết thêm dòng code nào — trừ khi sanity check phát hiện gì bất thường.
 
-## B1. Bộ chỉ số đánh giá (`app/forecast/metrics.py`)
+## A1. `ingest_population.py` — dân số theo tỉnh theo năm ✅ code xong
 
-Làm trước tiên vì mọi thứ sau đều cần nó.
+**Nguồn thật đã kiểm chứng (21/09/2026, HTTP 200):** raster WorldPop `data.worldpop.org/GIS/
+Population/Global_2000_2020/{year}/VNM/vnm_ppp_{year}.tif`, phủ 2000-2020. **Đổi hướng so với kế
+hoạch ban đầu:** GSO/NSO không có API/CSV tải được (chỉ có PDF Niên giám Thống kê, đã kiểm chứng
+qua khảo sát trang `nso.gov.vn` — xem docs/01 §2.1) → dùng WorldPop, tự động hoá được 100%, không
+cần parse PDF tay.
 
-- [ ] `mase()` — Mean Absolute Scaled Error, metric **chính** ([docs/02 §5.1](docs/02-phuong-phap-mo-hinh.md#51-bài-toán-hồi-quy))
-- [ ] ⚠️ **Bẫy quan trọng:** mẫu số MASE (sai số của seasonal naive) phải tính **chỉ trên tập train**, không được tính trên toàn bộ dữ liệu — tính sai là rò rỉ thông tin tương lai
-- [ ] `mae()`, `rmse()`, `poisson_deviance()`, `bias()`
-- [ ] `pr_auc()`, `recall_at_precision()`, `brier_score()` cho bài toán cảnh báo
-- [ ] `lead_time()` — trung vị số tuần cảnh báo trước đỉnh dịch (đây là **con số bán hàng**)
-- [ ] Unit test cho từng hàm với ví dụ tính tay được
-- [ ] **Done khi:** `pytest tests/test_forecast/test_metrics.py` pass
+**Output:** `data/interim/population_by_province_year.parquet` — `(province_id, year, population,
+population_source)`.
 
-## B2. Chia tập & chống rò rỉ (`app/forecast/splits.py`)
+```python
+def download_year(year: int, dest_dir: Path = RAW_DIR) -> Path: ...
+def population_for_year(tif_path: Path, provinces_gdf=None) -> pd.DataFrame:
+    """zonal_stat_from_file(..., stat='sum') — SUM chứ không phải MEAN vì mỗi
+    pixel WorldPop là số người, cộng dồn mới ra tổng dân số tỉnh."""
+def build_worldpop_panel(years=range(2000, 2021)) -> pd.DataFrame: ...
+def extend_to_full_range(panel, target_years) -> pd.DataFrame:
+    """Carry-forward/backward năm ngoài 2000-2020, gắn population_source='imputed'."""
+```
 
-- [ ] `make_splits()` — rolling-origin, cửa sổ mở rộng (expanding), tối thiểu 5 origin
-- [ ] Tham số `embargo_months` = horizon dài nhất (6), chừa khoảng trống train↔validation
-- [ ] Tham số `reporting_delay_months` (mặc định `D=1`) — mô phỏng đúng độ trễ báo cáo thật ([docs/01 §6 Bẫy 3](docs/01-chien-luoc-du-lieu.md#6-các-bẫy-rò-rỉ-dữ-liệu-phải-tránh))
-- [ ] ⚠️ **Ràng buộc cứng phải cài vào code, không chỉ ghi tài liệu:** tập **test** chỉ được lấy từ dòng `data_source == "real"` (tức 1994–2010). Hàm phải **raise lỗi** nếu ai đó vô tình đưa dòng `estimated` vào test
-- [ ] Unit test: chứng minh không có điểm nào của tương lai lọt vào train (đưa vào chuỗi có giá trị bất thường ở tương lai → fold train không đổi)
-- [ ] Unit test: embargo thật sự có khoảng trống
-- [ ] **Done khi:** test pass + in ra được bảng các fold (train từ đâu tới đâu, test từ đâu tới đâu)
+- ⚠️ Khánh Hòa/Đà Nẵng có ranh giới vươn ra Biển Đông (Trường Sa/Hoàng Sa) — xem cảnh báo trong
+  docstring module, đã kiểm tra không ảnh hưởng nặng tới population (raster WorldPop theo ranh giới
+  quốc gia, không theo bbox tự đặt như ERA5).
+- Đã test end-to-end 1 năm (2020) thật — tải, zonal sum, ra số hợp lý.
+- **Việc của bạn:** mở `notebooks/00_ingest_population.ipynb`, Run All (mặc định `YEARS =
+  range(2000, 2021)`, ~3-4GB, đã đo thật 1 năm ~13 phút ở mạng máy dev nên cả 21 năm có thể mất
+  vài giờ — cứ để chạy nền, notebook tự bỏ qua năm đã tải nếu chạy lại giữa chừng). Notebook tự
+  sanity-check tổng dân số trước khi lưu.
 
-## B3. `exp_001` — Bốn baseline ⭐ quan trọng nhất luồng này
+## A2. `ingest_oni.py` — chỉ số ENSO ✅ xong hoàn toàn, đã chạy thật
 
-Không có baseline thì **mọi con số accuracy về sau đều vô nghĩa** ([docs/02 §3](docs/02-phuong-phap-mo-hinh.md#tier-0--baseline-bắt-buộc-làm-trước)).
+**Nguồn thật đã xác minh:** `https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt` (không phải
+URL đoán trong bản kế hoạch cũ). Đã tải thật, parse thật, 919 dòng (1950-2026), 4 unit test pass.
+Bản dự phòng đã commit ở `data/external/oni_raw.txt` — `download()` tự fallback về file này nếu
+NOAA chặn request.
 
-- [ ] Dựng `experiments/exp_001_baselines/` theo cấu trúc ở [docs/03 §1](docs/03-quy-trinh-thuc-nghiem.md#1-cấu-trúc-thư-mục-thực-nghiệm)
-- [ ] **B1 Persistence** — dự báo `t+h` = giá trị tại `t−D`
-- [ ] **B2 Seasonal naive** ⭐ — dự báo `t+h` = cùng tháng năm trước (đây là mốc chuẩn, MASE = 1.0 theo định nghĩa)
-- [ ] **B3 Climatology** — trung bình lịch sử của tháng đó tại tỉnh đó
-- [ ] **B4 GLM Poisson** — hồi quy Poisson với mùa vụ (chưa cần khí hậu, thêm sau khi Luồng A xong)
-- [ ] Chạy trên 4 horizon (h = 1, 2, 3, 6), báo cáo **trung bình ± độ lệch chuẩn** qua các origin
-- [ ] Viết `RESULTS.md` đầy đủ theo template ([docs/03 §4](docs/03-quy-trinh-thuc-nghiem.md#4-resultsmd--bắt-buộc-cho-mọi-thí-nghiệm)) — đặc biệt mục *"Điều bất ngờ / nghi vấn"*
-- [ ] **Done khi:** có bảng số baseline cho từng horizon — đây là mốc để so mọi model ở Phase 2
+`notebooks/01_ingest_oni.ipynb` đã **chạy xong thật**, không cần bạn làm gì thêm cho bước này —
+chỉ liệt kê ở đây cho đủ bức tranh Luồng A.
 
-## B4. EDA — hiểu dữ liệu trước khi mô hình hoá
+## A3. `ingest_era5.py` — khí hậu ERA5-Land ✅ code xong, cần CDS key của bạn
 
-- [ ] Notebook `notebooks/01_eda_panel.ipynb`
-- [ ] Chuỗi thời gian ca bệnh theo 3 vùng (Bắc/Trung/Nam) — có thật sự khác nhau không?
-- [ ] Tính mùa vụ: đỉnh dịch rơi vào tháng nào, có khác giữa các vùng không?
-- [ ] Thống kê khuyết thiếu theo tỉnh × năm
-- [ ] So sánh phân phối `real` vs `estimated` — ước lượng có lệch hệ thống không?
-- [ ] **(Sau khi Luồng A xong)** Tương quan chéo khí hậu ↔ ca bệnh theo từng độ trễ 1–6 tháng
-      ⚠️ Đừng giả định "1–3 tháng là mạnh nhất" — **đo rồi mới kết luận**, con số này quyết định thiết kế đặc trưng ở Phase 2
-- [ ] Minh Dương rà soát dưới góc nhìn y sinh: có gì vô lý về mặt dịch tễ không?
+**Cú pháp đã đối chiếu tài liệu CDS hiện hành** (dataset `reanalysis-era5-land-monthly-means`,
+`product_type="monthly_averaged_reanalysis"`, `data_format="netcdf"`).
+
+```python
+VN_BBOX = [23.7, 101.8, 7.0, 118.2]  # N, W, S, E — ĐÃ SỬA so với bản kế hoạch ban đầu
+```
+
+⚠️ **Bẫy thật đã tìm ra khi viết test cho `zonal_stats.py`:** bbox áng chừng "đất liền Việt Nam"
+`[23.5, 102, 8.2, 110]` (bản kế hoạch cũ) **hẹp hơn ranh giới hành chính thật** — Khánh Hòa (Trường
+Sa) vươn tới 117.8E, Đà Nẵng (Hoàng Sa) tới 112.7E. Request ERA5 theo bbox hẹp sẽ làm zonal stat
+của 2 tỉnh này bị "boundless read" sai lệch (tái hiện được bug này bằng raster tổng hợp trong test —
+xem `tests/test_data/test_zonal_stats.py`). `VN_BBOX` đã sửa để bao trọn `total_bounds` thật của
+`provinces.geojson` + biên an toàn.
+
+- **Việc của bạn (duy nhất trong cả Luồng A cần làm thủ công):** đăng ký [cds.climate.copernicus.eu]
+  (https://cds.climate.copernicus.eu), vào dataset **ERA5-Land monthly averaged data** chấp nhận
+  Terms of Use, tạo `~/.cdsapirc`. Sau đó mở `notebooks/02_ingest_era5.ipynb`, Run All — notebook tự
+  kiểm tra file `~/.cdsapirc` tồn tại trước khi tải, tự sanity-check đơn vị (5-40°C) trước khi lưu.
+
+## A4. `zonal_stats.py` — gộp lưới raster về 34 tỉnh ✅ xong, 3 test pass
+
+Module dùng chung cho cả A1 (WorldPop, `stat="sum"`) và A3 (ERA5, `stat="mean"`) — 1 lần viết, 2 nơi
+dùng. `zonal_stat_from_file()` cho raster có sẵn trên đĩa (WorldPop), `zonal_stat_from_array()` cho
+mảng đã đọc trong bộ nhớ (từng tháng của ERA5 NetCDF qua `rioxarray`).
+
+3 unit test dùng raster tổng hợp (constant value trong bộ nhớ, không cần mạng) — đã **bắt được 1 bug
+thật** trong lúc viết test (bbox raster hẹp hơn ranh giới → sai zonal mean, xem A3) trước khi nó lọt
+vào pipeline thật.
+
+v2 (trọng số dân số cho zonal mean khí hậu, dùng WorldPop grid làm trọng số) là nâng cấp sau, không
+chặn A5.
+
+## A5. `build_panel.py` — ghép panel v0.2.0 ✅ đã sửa xong
+
+`VERSION` không còn hard-code — `build()` tự phát hiện `data/interim/population_by_province_year.
+parquet`, `climate_by_province_month.parquet`, `oni_monthly.parquet` có đủ cả 3 chưa, tự trả về
+`"0.2.0"` nếu đủ, ngược lại giữ `"0.1.0"` (hành vi cũ, đã verify không đổi khi chưa chạy Luồng A).
+
+- ✅ `data_source` của `incidence_per_100k` lan truyền đúng từ `cases`.
+- ✅ `export_dashboard_data.py` đã sửa để tự tìm thư mục `processed/vX.Y.Z` mới nhất (trước đây
+  import cứng `VERSION`, giờ không còn tồn tại module-level nữa).
+- **Việc của bạn:** sau khi notebooks/00-02 chạy xong (lưu đủ 3 file interim), chạy:
+  ```bash
+  python -m app.data.build_panel
+  ```
+  từ thư mục `ai-service/` — tự lên v0.2.0, không cần sửa code gì thêm.
 
 ---
 
-# Việc chốt lại cuối phase 🤝
+# LUỒNG B — Nền móng mô hình 🧬 ✅ ĐÃ XONG (B1, B2)
 
-- [ ] Viết note kiểm chứng cho từng nguồn trong `docs/data-sources/`: URL, cách tải, độ phủ thật, giấy phép, ngày kiểm chứng
-      (`opendengue.md`, `era5.md`, `population.md`, `oni.md`, `boundaries.md`, `hcdc.md`, `nso.md`)
-- [ ] **Khảo sát nguồn NSO cấp tỉnh** — nguồn `real` tiềm năng duy nhất cho giai đoạn gần đây; trang tỉnh cũ (`*.gso.gov.vn`) đã chết, cần dò lại cấu trúc `nso.gov.vn` mới
+> Chỉ cần `data/processed/v0.1.0/panel_monthly.parquet` đã có sẵn — không chờ Luồng A. **B1 và B2
+> đã code xong + test xong**, chỉ còn B3 (baseline) và B4 (EDA, notebook đã chạy 1 phần).
+
+## B1. `app/forecast/metrics.py` ✅ xong — 9 hàm, 22 test pass
+
+`mae`, `rmse`, `bias`, `mase`, `poisson_deviance`, `pr_auc`, `recall_at_precision`, `brier_score`,
+`lead_time` — mỗi hàm có unit test tính tay được. Một bug thật bắt được lúc viết test:
+`recall_at_precision` ban đầu định trả `NaN` khi "không đạt được `target_precision`", nhưng
+`sklearn.precision_recall_curve` **luôn** có điểm biên (recall=0, precision=1.0) nên trường hợp đó
+không bao giờ xảy ra trong thực tế — đã sửa lại để `0.0` là kết quả hợp lệ, có nghĩa ("chỉ ngưỡng
+'không dự báo gì' mới đạt được mức precision này").
+
+**Done:** `pytest tests/test_forecast/test_metrics.py` — 22/22 pass.
+
+## B2. `app/forecast/splits.py` ✅ xong — `Split` dataclass, 12 test pass
+
+Quyết định kỹ thuật cần biết (tài liệu kế hoạch gốc chỉ mô tả bằng lời, đã cụ thể hoá khi code):
+`embargo_months` **không dịch chuyển horizon** — horizon vẫn luôn tính từ `train_end` đúng nghĩa
+"dự báo h kỳ tới". Thay vào đó nó **lọc ra** những horizon còn nằm trong vùng đệm ở mỗi origin, qua
+field `Split.usable_horizons`. Với mặc định `embargo_months=6` = horizon dài nhất, chỉ h=6 "sạch"
+mỗi origin; hạ `embargo_months` xuống để đánh giá được horizon ngắn hơn, đánh đổi lấy an toàn.
+
+```python
+splits = make_splits(panel, n_origins=5, horizons=(1, 2, 3, 6))
+# Split(origin, train_end, feature_cutoff, test_start, horizons, usable_horizons)
+# .target_month(h) -> train_end + h tháng
+```
+
+- ✅ Unit test: đổi giá trị `cases` ở tháng tương lai xa nhất → cấu trúc split (train_end,
+  test_start, usable_horizons) không đổi — chứng minh `make_splits()` chỉ nhìn tập các THÁNG, không
+  nhìn giá trị dữ liệu.
+- ✅ Unit test: `test_start - train_end >= embargo_months` đúng cho mọi split.
+- ✅ Unit test: `assert_test_is_real_only()` raise đúng kể cả khi chỉ 1/34 tỉnh trong tháng đó là
+  `estimated` — không "trung bình hoá" qua các tỉnh còn lại.
+- ⚠️ **Phát hiện khi chạy thử trên panel thật:** `make_splits()` mặc định lấy origin ở **cuối**
+  chuỗi (chuẩn rolling-origin) — với panel hiện tại nghĩa là origin rơi vào 2024-2025, **toàn bộ
+  `estimated`**. `assert_test_is_real_only()` sẽ raise ở MỌI split mặc định cho tới khi có dữ liệu
+  `real` gần đây (NSO/Đường A). Muốn có tập test thật ngay bây giờ: gọi `make_splits()` trên panel
+  đã cắt tới `~2010-12` (`panel[panel.month <= '2010-12-01']`) — đúng như giới hạn đã ghi ở
+  [docs/03 §8](docs/03-quy-trinh-thuc-nghiem.md#8-quy-tắc-dùng-tập-test`).
+- **Done:** `pytest tests/test_forecast/test_splits.py` — 12/12 pass, đã verify thêm trên panel
+  v0.1.0 thật (không chỉ dữ liệu giả trong test).
+
+## B3. `experiments/exp_001_baselines/` ⭐ quan trọng nhất luồng B
+
+Cấu trúc theo [docs/03 §1](docs/03-quy-trinh-thuc-nghiem.md#1-cấu-trúc-thư-mục-thực-nghiệm). Không có baseline thì mọi accuracy sau này vô nghĩa.
+
+| Baseline | Công thức |
+|---|---|
+| B1 Persistence | `ŷ[t+h] = y[t−D]` |
+| B2 Seasonal naive ⭐ | `ŷ[t+h] = y[cùng tháng, năm trước]` — mốc chuẩn, MASE=1.0 theo định nghĩa |
+| B3 Climatology | `ŷ[t+h] = trung bình lịch sử của tháng đó tại tỉnh đó` |
+| B4 GLM Poisson | hồi quy Poisson + mùa vụ (biến `sin/cos(2π·month/12)`), chưa cần khí hậu |
+
+- Chạy cả 4 baseline qua `make_splits()` (B2), tính `mase`/`mae`/`lead_time` (B1) trên từng horizon `h ∈ {1,2,3,6}`, báo cáo **trung bình ± std qua các origin**.
+- `RESULTS.md` theo template [docs/03 §4](docs/03-quy-trinh-thuc-nghiem.md#4-resultsmd--bắt-buộc-cho-mọi-thí-nghiệm), bắt buộc có mục "Điều bất ngờ/nghi vấn".
+- **Done:** bảng số 4 baseline × 4 horizon — mốc so sánh cho Phase 2.
+
+## B4. EDA — `notebooks/01_eda_panel.ipynb`
+
+- Chuỗi ca bệnh theo 3 vùng (Bắc/Trung/Nam) — có khác nhau rõ không?
+- Mùa vụ: đỉnh dịch tháng nào, khác gì giữa vùng?
+- Thống kê khuyết thiếu theo tỉnh × năm.
+- Phân phối `real` vs `estimated` — có lệch hệ thống không?
+- (Sau khi Luồng A xong) tương quan chéo khí hậu ↔ ca bệnh theo độ trễ 1-6 tháng — **đo rồi mới kết luận**, đừng giả định "1-3 tháng mạnh nhất", con số này quyết định thiết kế feature Phase 2.
+
+---
+
+## 4. Thứ tự phụ thuộc thực thi
+
+```
+A1, A2, B1, B2 ── chạy song song, không phụ thuộc gì ──┐
+                                                         ├─→ B3 (cần B1+B2, không cần A xong)
+A3 (chờ CDS) ─→ A4 ─┐                                   │
+                     ├─→ A5 (build_panel v0.2.0) ─→ B4 phần khí hậu
+A1 ──────────────────┘
+```
+
+B3 (baseline) chạy được ngay sau B1+B2 xong, **không cần đợi Luồng A** — dùng thẳng panel v0.1.0 hiện có (`cases` là đủ cho 4 baseline). Nếu B xong trước A, chạy sớm ablation mùa vụ hoặc đọc trước docs Phase 2 thay vì chờ.
+
+---
+
+## 5. Việc chốt lại cuối phase
+
+- [ ] Note kiểm chứng từng nguồn trong `docs/data-sources/`: URL, cách tải, độ phủ thật, giấy phép, ngày kiểm chứng (`era5.md`, `population.md`, `oni.md`)
 - [ ] Cập nhật `docs/01 §9` — tick các mục đã xong
-- [ ] **Kiểm tra tái lập chéo:** Nam Hải chạy lại `exp_001` của Minh Dương, Minh Dương chạy lại `build_panel` của Nam Hải — sai khác < 1%
-- [ ] Rà soát cổng nghiệm thu 6 điểm ở đầu file này
+- [ ] Tái lập chéo: chạy lại `build_panel` + `exp_001` trên máy/venv khác, sai khác < 1%
+- [ ] Rà soát đủ 6 điểm cổng nghiệm thu ở §0
 
 ---
 
-## Hoãn lại có chủ đích (KHÔNG làm ở phase này)
-
-Ghi rõ để khỏi phân tâm — đây là quyết định, không phải bỏ sót:
+## 6. Hoãn lại có chủ đích (không làm ở phase này)
 
 | Việc | Vì sao hoãn |
 |---|---|
-| **Backend Go** (`go mod init`, Gin, JWT) | Không nằm trên đường găng. Chưa có model thật thì chưa có gì để phục vụ. Làm khi chuẩn bị pilot |
-| **FastAPI serving** (`app/main.py`, routes) | Như trên — Phase 2 xong model mới cần expose |
-| **`infra/docker-compose.yml`** | Chỉ cần khi có nhiều service chạy cùng. Hiện pipeline chạy bằng script là đủ |
-| **Ingest HCDC (parse NLP)** | Tốn công cao, giá trị thấp: chỉ ra được chuỗi **cấp thành phố** + tên phường nóng, không đủ làm nhãn cấp phường ([docs/01 §2.1b](docs/01-chien-luoc-du-lieu.md#21b-kế-hoạch-trích-xuất-hcdc-parse-văn-bản-không-phải-scrape-bảng)). Để sau khi có kết quả công văn |
-| **Nâng dashboard lên dữ liệu động** | Prototype đã đủ cho báo cáo tiến độ. Nối API thật khi có model thật |
+| Backend Go (`go mod init`, Gin, JWT) | Chưa có model thật thì chưa có gì để phục vụ — làm khi chuẩn bị pilot |
+| FastAPI serving (`app/main.py`, routes) | Như trên |
+| `infra/docker-compose.yml` | Một service, script là đủ ở quy mô này |
+| Ingest HCDC (parse NLP văn xuôi) | Tốn công cao, chỉ ra chuỗi cấp thành phố + tên phường (không phải số), giá trị thấp hơn ERA5/dân số — xem [docs/01 §2.1b](docs/01-chien-luoc-du-lieu.md#21b-kế-hoạch-trích-xuất-hcdc-parse-văn-bản-không-phải-scrape-bảng) |
+| Công văn xin dữ liệu chính thức | Khả năng không xin được trong thời gian phù hợp — không đưa vào đường găng của phase này |
+| Nâng dashboard lên dữ liệu động | Prototype tĩnh đã đủ cho báo cáo tiến độ; nối API khi có model thật |
 
 ---
 
-## Rủi ro của riêng phase này
+## 7. Rủi ro kỹ thuật riêng phase này
 
 | Rủi ro | Dấu hiệu sớm | Xử lý |
 |---|---|---|
-| CDS duyệt chậm / API lỗi | Hết 25/09 chưa tải được file test | Dùng **CHIRPS** (mưa) + nguồn nhiệt độ khác thay tạm; hoặc Google Earth Engine |
-| Không tìm được dân số theo năm | Hết tuần 1 chưa có nguồn | Tạm dùng `cases` tuyệt đối làm biến mục tiêu, ghi rõ hạn chế; bổ sung incidence sau |
-| ERA5 tải quá lâu | Tải 1 năm > 30 phút | Giảm phạm vi: 2000–2025 thay vì 1994, hoặc hạ độ phân giải |
-| Luồng B xong sớm, phải chờ Luồng A | Minh Dương hết việc trước 05/10 | Cho chạy sớm `exp_003` (ablation đặc trưng mùa vụ) hoặc bắt đầu đọc tài liệu Phase 2 |
+| CDS duyệt chậm / API lỗi | Chưa tải được file test sau vài giờ | Dùng CHIRPS (mưa) thay tạm, hoặc Google Earth Engine |
+| Không tìm được dân số theo năm đủ chuỗi | Hết tuần 1 chưa có nguồn dùng được | Tạm dùng `cases` tuyệt đối làm target, ghi rõ hạn chế, bổ sung incidence sau |
+| ERA5 tải quá lâu / bị CDS huỷ hàng đợi | 1 năm > 30 phút hoặc request bị cancel | Giảm phạm vi 2000-2025 thay vì 1994, hoặc hạ độ phân giải |
+| `geopandas`/`rioxarray` lỗi cài trên máy cụ thể | `pip install` báo lỗi biên dịch GDAL/PROJ | Cài qua `conda`/`mamba` thay `pip` cho riêng nhóm gói GIS này (wheel PyPI đôi khi thiếu binary GDAL trên một số máy) |

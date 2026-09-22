@@ -17,18 +17,26 @@ from pathlib import Path
 
 import pandas as pd
 
-from app.data.build_panel import _PROCESSED_DIR
-
+_DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 _DASHBOARD_DATA_DIR = (
     Path(__file__).resolve().parents[3] / "dashboard" / "public" / "data"
 )
-_METADATA_PATH = (
-    Path(__file__).resolve().parents[2] / "data" / "external" / "province_metadata.csv"
-)
+_METADATA_PATH = _DATA_DIR / "external" / "province_metadata.csv"
+
+
+def _latest_processed_dir() -> Path:
+    """version có thể là 0.1.0 hoặc 0.2.0 tuỳ Luồng A đã xong chưa (xem
+    build_panel.py) — luôn lấy bản mới nhất theo tên thư mục vX.Y.Z."""
+    candidates = sorted((_DATA_DIR / "processed").glob("v*"))
+    if not candidates:
+        raise FileNotFoundError(
+            "Chưa có data/processed/vX.Y.Z nào — chạy `python -m app.data.build_panel` trước."
+        )
+    return candidates[-1]
 
 
 def export(window_months: int = 12) -> dict:
-    panel = pd.read_parquet(_PROCESSED_DIR / "panel_monthly.parquet")
+    panel = pd.read_parquet(_latest_processed_dir() / "panel_monthly.parquet")
     meta = pd.read_csv(_METADATA_PATH, encoding="utf-8")
 
     last_month = panel["month"].max()

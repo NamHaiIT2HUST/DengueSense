@@ -24,6 +24,9 @@ ai-service/.pytest_cache/
 ai-service/.mypy_cache/
 ai-service/.ruff_cache/
 *.egg-info/
+ai-service/**/.ipynb_checkpoints/
+ai-service/.pytest_tmp/
+ai-service/logs/
 
 # Model artifacts & dataset — không commit vào git (xem docs/01 §4)
 # Chỉ ai-service/data/external/ là được commit (crosswalk, alias — nhẹ, quan trọng)
