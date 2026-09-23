@@ -1,0 +1,239 @@
+# Nhật ký tiến độ
+
+> File này ghi lại **mỗi việc thật đã làm xong** (không phải kế hoạch — kế hoạch xem
+> [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md)/[ROADMAP.md](ROADMAP.md)). Mới nhất ở trên cùng. Mỗi
+> mục ghi: làm gì, verify bằng cách nào, số liệu thật ra sao, file nào đổi.
+
+---
+
+## 2026-09-23 — R + rpy2 cài xong (M3 sẵn sàng khi có Rtools), exp_003 T2 tuning dựng xong
+
+**Làm:**
+- Phát hiện R 4.6.1 đã được cài (không báo trước) — cài `rpy2` vào venv. Gặp lỗi build từ nguồn (cần
+  `make`/Rtools) — chuyển sang cài bằng wheel dựng sẵn (`pip install --only-binary=:all: rpy2`) thành
+  công phần cài đặt, nhưng **runtime vẫn cần Rtools45** (rpy2 gọi `R CMD config` lúc import, không chỉ
+  lúc build) — đang chờ user cài thêm Rtools45 (~450MB, link CRAN đã gửi) để hoàn thiện M3 (hhh4).
+- Trong lúc chờ: xây `exp_003_tuning_m2/` — T2 Optuna TPE tuning cho M2a/M2b (đúng search space
+  docs/02 §6.3). Tách biệt HOÀN TOÀN inner-tuning (dữ liệu ≤2008-12) khỏi 8 outer origin đánh giá
+  (2009-11..2010-06) để không rò rỉ giữa tuning và đánh giá cuối.
+- Sanity-check thật bằng 5 trial: XGBoost ~26s/trial, LightGBM ~7.5s/trial → ước tính 100 trial mỗi
+  model ≈ 1 giờ tổng. Theo đúng yêu cầu "việc nặng/dài để notebook" — đóng gói thành
+  `notebooks/04_tune_m2.ipynb`, đã verify chạy đúng 2 lần (trước và sau khi ruff tự sắp xếp lại import)
+  bằng bản rút gọn 2 trial trước khi giao, kết quả khớp 100% với bản CLI.
+- Lệch có chủ đích so với docs/02 §6: tune CẢ 2 model (không chỉ model thắng) vì XGBoost/LightGBM gần
+  hoà nhau ở exp_002; dùng TPE sampler nhưng bỏ ASHA pruner (lợi ích nhỏ ở quy mô dữ liệu này); tune 1
+  lần trên 1 cửa sổ inner CV thay vì nested CV đầy đủ theo từng outer origin (tốn gấp 8 lần compute).
+
+**Kết quả sanity (5 trial, chưa phải kết quả cuối — cần 100 trial thật từ notebook):**
+
+| Model | T1 default MASE (outer) | T2 tuned MASE (outer, 5 trial) | Cải thiện |
+|---|---|---|---|
+| M2a XGBoost | 0.9304 | 0.9077 | 2.4% |
+| M2b LightGBM | 0.9374 | 0.9323 | 0.6% |
+
+(Số outer MASE ở đây KHÁC exp_002 vì `evaluate_params()` dùng tập feature/protocol chung nhưng tính
+trung bình gộp cả 4 horizon thành 1 số — không so trực tiếp với bảng exp_002 theo từng horizon.)
+
+**Việc chờ user:** cài Rtools45 (M3), chạy `notebooks/04_tune_m2.ipynb` full 100 trial (T2, ~1 giờ).
+
+**File:** `ai-service/app/forecast/models.py` (thêm tham số `params` cho M2), `ai-service/experiments/
+exp_003_tuning_m2/run.py`, `ai-service/notebooks/04_tune_m2.ipynb`, `ai-service/requirements.txt`
+(thêm optuna)
+
+---
+
+## 2026-09-23 — exp_002: 3 model Tier 1 (M1 GLM NegBin, M2a XGBoost, M2b LightGBM) — bắt được 1 rò rỉ dữ liệu thật trước khi báo cáo
+
+**Làm:** Xây `app/forecast/features.py` (7 nhóm đặc trưng theo docs/02 §2, causal, 16 unit test) +
+`app/forecast/models.py` (M1 GLM NegBin hiệu ứng tỉnh cố định, M2a/M2b XGBoost/LightGBM, 5 test) +
+`experiments/exp_002_model_zoo_tier1/` (config, run.py, RESULTS.md).
+
+**⭐ Rò rỉ dữ liệu thật bắt được TRƯỚC KHI báo cáo (đúng quy trình docs/02 §10 — "kết quả đẹp bất
+thường phải nghi trước khi ăn mừng"):** lần chạy đầu M2a cho MASE h=1..6 = 0.352/0.436/0.520/0.796 —
+thắng baseline mạnh nhất áp đảo ở MỌI horizon kể cả h=6 (đáng ngờ vì càng xa càng phải khó hơn). Điều
+tra: `features.py` sinh lag/momentum gắn với tháng của CHÍNH DÒNG ĐÓ, nhưng lấy thẳng feature của dòng
+tại `target_month` để dự báo khiến lag ngắn đọc dữ liệu SAU `train_end` khi h≥3 (h=6: đọc trước 4
+tháng!). Đã verify bằng số học tay (in ra chênh lệch tháng chính xác 0/1/1/4 cho h=1/2/3/6). Viết lại
+hoàn toàn phần ghép dữ liệu (`build_horizon_pairs`) — features LUÔN neo đúng 1 mốc `train_end`, không
+bao giờ đọc xa hơn. Sau khi sửa, MASE tăng lên mức hợp lý hơn (khiêm tốn, đáng tin).
+
+**Bug thật khác gặp trong lúc xây (đều đã sửa, verify lại):**
+1. `statsmodels.families.NegativeBinomial()` GLM (alpha cố định=1.0) overflow/phân kỳ với offset lớn
+   (log dân số) + 33 dummy tỉnh — chuyển sang `discrete_model.NegativeBinomial` (MLE, tự ước lượng
+   alpha) + chuẩn hoá z-score feature + warm-start từ Poisson GLM.
+2. Quên đổi đơn vị: M1 fit trên `cases` (offset population) nhưng quên đổi lại `incidence_per_100k`
+   trước khi trả về — dự báo sai lệch ~10-50 lần so với thực tế trước khi phát hiện.
+3. `add_seasonal_norm_features` ban đầu tưởng có bug nhóm sai tháng — điều tra kỹ hơn phát hiện đây là
+   **false alarm**: vì `reporting_delay_months` là hằng số áp dụng đều cho cả chuỗi, nhóm theo tháng
+   của `t` hay của `t-D` cho ra CÙNG một phép chia nhóm (chỉ khác nhãn) — đã sửa lại comment/docstring
+   cho đúng thay vì để lại tuyên bố sai về "đã sửa bug" không có thật.
+
+**Kết quả cuối cùng (MASE trung bình qua 8 origin, sau khi sửa rò rỉ):**
+
+| Model | h=1 | h=3 | h=6 |
+|---|---|---|---|
+| B3 Climatology (exp_001) | 0.522 | 1.069 | 1.638 |
+| M1 GLM NegBin | 0.497 ✅ | 1.138 ❌ | 1.644 ❌ (sát nút) |
+| **M2a XGBoost (thắng nhất quán)** | **0.449** | **0.963** | **1.611** |
+| M2b LightGBM | 0.447 | 1.001 | 1.608 |
+
+M2 thắng B3 ở mọi horizon nhưng khiêm tốn (2-14%), chưa đạt ngưỡng promote G1 (docs/02 §10) ở h=3.
+Quyết định: M2 là hướng đầu tư tuning (T2) tiếp theo, không tune M1.
+
+**File:** `ai-service/app/forecast/{features,models}.py`,
+`ai-service/experiments/exp_002_model_zoo_tier1/{config.yaml,run.py,RESULTS.md,results.json}`,
+`ai-service/tests/test_forecast/{test_features,test_models}.py`
+
+---
+
+## 2026-09-23 — Phase 1 hoàn tất cổng nghiệm thu (5/6, mục 6 không khả thi khi làm solo)
+
+**Làm:** Viết 3 file note kiểm chứng nguồn dữ liệu (`docs/data-sources/{era5,population,oni}.md`) —
+URL, cách tải, độ phủ thật, giấy phép, ngày kiểm chứng, bẫy đã gặp. Cập nhật `docs/01` §9 tick các mục
+đã xong thật. Cập nhật `PHASE-1-CHECKLIST.md` §0 (cổng nghiệm thu).
+
+**Trạng thái 6 điểm cổng nghiệm thu (docs/01 §9 / PHASE-1-CHECKLIST §0):**
+1. ✅ panel v0.2.0 đủ cột — xong
+2. ✅ sinh lại bằng 1 lệnh — verify lại lần nữa, ra đúng 9.326 dòng
+3. ✅ `make_splits()` có test chống rò rỉ — xong (B2, 12 test)
+4. ✅ baseline seasonal naive có số — xong (exp_001)
+5. 🟡 note nguồn dữ liệu — ERA5/WorldPop/ONI xong; HCDC/NSO vẫn chưa dùng được (NSO xác nhận không có
+   CSV/API, chỉ PDF — đã ghi rõ, không phải bỏ sót)
+6. ⬜ tái lập chéo trên máy khác — **không khả thi hiện tại** vì làm solo (kế hoạch gốc giả định 2
+   người); để lại khi có Minh Dương tham gia thật hoặc khi cần nộp hồ sơ chính thức
+
+**File:** `docs/data-sources/{era5,population,oni}.md`, `docs/01-chien-luoc-du-lieu.md`,
+`PHASE-1-CHECKLIST.md`
+
+---
+
+## 2026-09-23 — exp_001: 4 baseline Tier 0 chạy xong
+
+**Làm:** Dựng `ai-service/experiments/exp_001_baselines/` (`config.yaml`, `run.py`, `RESULTS.md`) theo
+đúng cấu trúc docs/03 §1. 4 baseline: B1 Persistence, B2 Seasonal naive, B3 Climatology, B4 GLM
+Poisson (pooled, offset=log(population)).
+
+**Chạy thật:** `python experiments/exp_001_baselines/run.py` trên panel v0.2.0, tập test giới hạn
+đúng `data_source=="real"` (1994-2010) theo docs/03 §8. 8 origin rolling-window, horizon 1/2/3/6.
+
+**Kết quả (MASE trung bình ± std qua 8 origin):**
+
+| Model | h=1 | h=3 | h=6 |
+|---|---|---|---|
+| B1 Persistence | 0.758±0.626 | 1.620±1.214 | 2.164±1.035 |
+| B2 Seasonal naive | 0.739±0.511 | 1.399±1.227 | 1.998±1.060 |
+| **B3 Climatology (thắng)** | **0.522±0.458** | **1.069±1.059** | **1.638±0.954** |
+| B4 GLM Poisson | 0.943±0.867 | 1.768±1.536 | 2.367±1.236 |
+
+**Phát hiện quan trọng đã điều tra kỹ (không phải bug):** B4 thua cả Persistence — kiểm tra phân phối
+dự báo vs thực tế (origin mẫu h=6): std dự báo 3.73 vs std thực tế 17.81 — model pooled dồn dự báo về
+gần trung bình chung, không nắm được tỉnh nào vốn incidence cao hẳn (Cà Mau thực tế 97/100k, model
+đoán 11.5/100k). Xác nhận đúng lý do docs/02 chọn M1 = GLM NegBin **phân cấp** (hierarchical) cho
+Phase 2 thay vì pooled đơn giản.
+
+**Quyết định:** B3 Climatology là mốc so sánh THỰC TẾ mạnh nhất cho Phase 2 (B2 vẫn giữ vai trò mốc
+quy ước theo định nghĩa MASE).
+
+**File:** `ai-service/experiments/exp_001_baselines/{config.yaml,run.py,RESULTS.md,results.json}`
+
+---
+
+## 2026-09-23 — Luồng A chạy thật xong hoàn toàn (dân số + ONI + ERA5 → panel v0.2.0)
+
+**Làm:** Nam Hải tự chạy 4 notebook (`00_ingest_population`, `01_ingest_oni`, `02_ingest_era5`,
+`03_eda_panel`) qua Jupyter trong VS Code.
+
+**Sự cố gặp + đã sửa (đều verify bằng dữ liệu thật, không đoán):**
+1. Kernel VS Code mặc định trỏ nhầm Python hệ thống (không phải venv `ai-service`) → đăng ký kernel
+   riêng `denguesense-venv` bằng `python -m ipykernel install`.
+2. CDS trả `403 required licences not accepted` — thiếu bước chấp nhận licence RIÊNG của dataset
+   ERA5-Land (khác ToS chung lúc đăng ký tài khoản).
+3. **Bug thật:** CDS (hạ tầng mới) trả file đặt tên `.nc` nhưng thực chất là ZIP chứa file `.nc` bên
+   trong (`data_stream-moda.nc`), dù request đã khai `data_format: netcdf`. Sửa
+   `load_and_convert()` trong `ingest_era5.py` tự phát hiện (đọc magic bytes ZIP) và tự giải nén —
+   trong suốt với người gọi.
+
+**Kết quả verify thật (không phải giả lập):**
+- Dân số: 21/21 năm WorldPop tải đủ, 1.088 dòng (34 tỉnh × 32 năm), 0 null, xu hướng khớp thực tế VN
+  (1994≈78M → 2010≈86.6M → 2020≈99.04M, số chính thức ~71M/87M/97M).
+- ONI: 919 dòng, 1950-2026, 0 null, 0 trùng lặp.
+- ERA5: 32/32 năm CDS (1994-2025) tải đủ sau khi sửa 2 lỗi trên. Zonal stats 13.056 dòng (34×384
+  tháng), 0 null, nhiệt độ 9.2-31.1°C/độ ẩm 44-97%/mưa 0-1160mm — đúng thực tế khí hậu VN.
+- **Panel v0.2.0:** `python -m app.data.build_panel` → 9.326 dòng, 11 cột, **0 null ở mọi cột** — cả
+  3 phép merge (dân số theo tỉnh+năm, khí hậu theo tỉnh+tháng, ONI theo năm+tháng) khớp hoàn hảo.
+- **Tương quan khí hậu ↔ ca bệnh (03_eda_panel.ipynb, 278 tháng):** nhiệt độ mạnh nhất ở độ trễ
+  **2 tháng** (r=0.565), mưa mạnh nhất ở độ trễ **1 tháng** (r=0.527) — đúng logic sinh học (mưa tạo
+  ổ đẻ trứng nhanh, nhiệt độ ảnh hưởng cả vòng đời muỗi lẫn ủ virus, chu kỳ dài hơn).
+
+**File:** `ai-service/app/data/ingest_era5.py` (fix), `ai-service/data/processed/v0.2.0/` (gitignored,
+sinh ra bằng script), `ai-service/notebooks/*.ipynb` (đã chạy, có output).
+
+---
+
+## 2026-09-22 — Hardening Luồng A cho chạy qua đêm + xây Luồng B (metrics, splits)
+
+**Làm:**
+- `app/data/_retry.py` — exponential backoff dùng chung, wire vào `download_year()` (WorldPop) và
+  `fetch_year()` (CDS) — 1 năm lỗi mạng tạm thời tự phục hồi, không sập cả vòng lặp.
+- `app/data/run_luong_a.py` — 1 script chạy hết Luồng A nối tiếp, idempotent, log ra file — cho chạy
+  nền không cần Jupyter.
+- `app/forecast/metrics.py` (B1) — 9 hàm (mae, rmse, bias, mase, poisson_deviance, pr_auc,
+  recall_at_precision, brier_score, lead_time), 22 unit test.
+- `app/forecast/splits.py` (B2) — `Split` dataclass, `make_splits()` rolling-origin expanding window,
+  `assert_test_is_real_only()`, 12 unit test.
+
+**Bug thật bắt được qua test (trước khi lọt vào pipeline):**
+1. `rioxarray` chưa import trong `ingest_era5.py` → sẽ crash `AttributeError` ngay lần chạy đầu.
+2. `recall_at_precision()` thiết kế sai — định trả NaN khi "không đạt precision mục tiêu", nhưng
+   sklearn `precision_recall_curve` luôn có điểm biên precision=1.0 nên nhánh đó không bao giờ xảy
+   ra — sửa lại 0.0 là kết quả hợp lệ.
+
+**Verify:** 65/65 test pass, ruff/black sạch, wiring `run_luong_a.py` verify 2 lần bằng dữ liệu giả
+đúng schema (xoá sạch sau test).
+
+**File:** `ai-service/app/data/{_retry,run_luong_a}.py`, `ai-service/app/forecast/{metrics,splits}.py`,
+`ai-service/tests/test_data/test_retry.py`, `ai-service/tests/test_forecast/*.py`
+
+---
+
+## 2026-09-21/22 — Xây 4 notebook cho Luồng A + module ingest mới
+
+**Làm:** Viết mới hoàn toàn `app/data/{zonal_stats,ingest_oni,ingest_population,ingest_era5}.py` +
+sinh 4 notebook (`00-03`) bằng `nbformat`. Cập nhật `build_panel.py` tự nâng version khi đủ dữ liệu.
+
+**Nguồn dữ liệu thật đã xác minh (không phải đoán URL):**
+- WorldPop: `data.worldpop.org/GIS/Population/Global_2000_2020/{year}/VNM/vnm_ppp_{year}.tif` — tải
+  thử curl HEAD trả 200, ~197MB/năm, verify 2000-2020.
+- ONI: `cpc.ncep.noaa.gov/data/indices/oni.ascii.txt` — tải thật, parse thật, đúng định dạng.
+- NSO/GSO cấp tỉnh: xác nhận **không có** CSV/API tải được, chỉ có PDF — quyết định dùng WorldPop
+  thay vì cố scrape PDF.
+
+**Bug thật bắt được khi viết test `zonal_stats.py`:** bbox ERA5 áng chừng "đất liền VN" ban đầu hẹp
+hơn ranh giới hành chính thật — Khánh Hòa (Trường Sa) vươn tới 117.8E, Đà Nẵng (Hoàng Sa) tới 112.7E.
+Sửa `VN_BBOX` để bao trọn `total_bounds` thật của `provinces.geojson`.
+
+**Verify:** `python -c "...population_for_year..."` trên file WorldPop 2020 thật → tổng dân số
+99.037.315 người (số chính thức ~97,6 triệu, sai lệch hợp lý ~1.5%).
+
+**File:** `ai-service/app/data/{zonal_stats,ingest_oni,ingest_population,ingest_era5}.py`,
+`ai-service/notebooks/*.ipynb`, `ai-service/data/external/{provinces.geojson,oni_raw.txt}`
+
+---
+
+## 2026-09-21 — Sửa CI/CD (2 lỗi thật)
+
+1. `pytest` thuần (lệnh CI) không tự thêm `ai-service/` vào `sys.path` như `python -m pytest` — thêm
+   `pytest.ini` (`pythonpath = .`).
+2. `requirements.txt` khoá cứng bằng `pip freeze` trên Windows gây lỗi ABI trên Ubuntu — quay về ghim
+   theo khoảng version.
+
+**File:** `ai-service/pytest.ini`, `ai-service/requirements.txt`
+
+---
+
+## Trước đó (đã có sẵn, không phải việc trong phiên log này)
+
+- Panel v0.1.0 (OpenDengue, small-area estimation) — `app/data/{crosswalk,ingest_opendengue,
+  estimate_province,build_panel}.py`, 20 test.
+- Dashboard prototype (React) deploy Vercel.
+- Docs phương pháp luận `docs/00-06`.

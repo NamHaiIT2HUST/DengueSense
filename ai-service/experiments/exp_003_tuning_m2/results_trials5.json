@@ -1,0 +1,48 @@
+{
+  "M2a_xgboost": {
+    "n_trials": 5,
+    "tune_seconds": 129.6157066822052,
+    "best_inner_mase": 0.8031654124701479,
+    "best_params": {
+      "n_estimators": 1339,
+      "learning_rate": 0.05859268690985102,
+      "max_depth": 8,
+      "subsample": 0.5102922471479012,
+      "colsample_bytree": 0.9849549260809971,
+      "reg_alpha": 1.452824663751602,
+      "reg_lambda": 0.0011526449540315614
+    },
+    "outer_t1_default_avg_mase": 0.9304209066719229,
+    "outer_t2_tuned_avg_mase": 0.9077190358588808,
+    "convergence": [
+      0.8372662782009831,
+      0.8031654124701479,
+      1.534180260014618,
+      1.273297469065712,
+      1.025616793683929
+    ]
+  },
+  "M2b_lightgbm": {
+    "n_trials": 5,
+    "tune_seconds": 37.58208250999451,
+    "best_inner_mase": 0.8017476550908504,
+    "best_params": {
+      "n_estimators": 1339,
+      "learning_rate": 0.05859268690985102,
+      "max_depth": 8,
+      "subsample": 0.5102922471479012,
+      "colsample_bytree": 0.9849549260809971,
+      "reg_alpha": 1.452824663751602,
+      "reg_lambda": 0.0011526449540315614
+    },
+    "outer_t1_default_avg_mase": 0.9374499984468359,
+    "outer_t2_tuned_avg_mase": 0.932257024520099,
+    "convergence": [
+      0.8067260046681586,
+      0.8017476550908504,
+      1.0106661636147707,
+      0.9255926928967451,
+      0.8597512389879572
+    ]
+  }
+}

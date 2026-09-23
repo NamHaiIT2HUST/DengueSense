@@ -44,7 +44,7 @@ Panel hiện tại đã lên `v0.2.0`. **Cổng nghiệm thu** (chỉ qua Phase 
 1. ✅ `panel_monthly.parquet` → `v0.2.0`, đủ cột khí hậu + dân số + `incidence_per_100k` — XONG THẬT 23/09/2026, 9.326 dòng, 0 null
 2. ✅ Sinh lại toàn bộ từ raw bằng **một lệnh** (`python -m app.data.build_panel`) — verify chạy được
 3. ✅ `make_splits()` có test chứng minh không điểm tương lai lọt vào train — 12 test pass
-4. ⬜ Baseline seasonal naive đã chạy ra số — mốc so sánh cho mọi model sau — **B3, việc tiếp theo**
+4. ✅ Baseline seasonal naive đã chạy ra số — mốc so sánh cho mọi model sau — XONG 23/09/2026, xem B3
 5. ⬜ Mỗi nguồn dữ liệu có note kiểm chứng trong `docs/data-sources/`
 6. ⬜ Tái lập chéo: chạy lại từ đầu trên máy khác ra cùng kết quả (sai khác < 1%)
 
@@ -326,28 +326,34 @@ splits = make_splits(panel, n_origins=5, horizons=(1, 2, 3, 6))
 - **Done:** `pytest tests/test_forecast/test_splits.py` — 12/12 pass, đã verify thêm trên panel
   v0.1.0 thật (không chỉ dữ liệu giả trong test).
 
-## B3. `experiments/exp_001_baselines/` ⭐ quan trọng nhất luồng B
+## B3. `experiments/exp_001_baselines/` ✅ XONG THẬT 23/09/2026
 
-Cấu trúc theo [docs/03 §1](docs/03-quy-trinh-thuc-nghiem.md#1-cấu-trúc-thư-mục-thực-nghiệm). Không có baseline thì mọi accuracy sau này vô nghĩa.
+Kết quả đầy đủ + diễn giải: [experiments/exp_001_baselines/RESULTS.md](ai-service/experiments/exp_001_baselines/RESULTS.md).
 
-| Baseline | Công thức |
-|---|---|
-| B1 Persistence | `ŷ[t+h] = y[t−D]` |
-| B2 Seasonal naive ⭐ | `ŷ[t+h] = y[cùng tháng, năm trước]` — mốc chuẩn, MASE=1.0 theo định nghĩa |
-| B3 Climatology | `ŷ[t+h] = trung bình lịch sử của tháng đó tại tỉnh đó` |
-| B4 GLM Poisson | hồi quy Poisson + mùa vụ (biến `sin/cos(2π·month/12)`), chưa cần khí hậu |
+**MASE trung bình qua 8 origin (real-only 1994-2010):**
 
-- Chạy cả 4 baseline qua `make_splits()` (B2), tính `mase`/`mae`/`lead_time` (B1) trên từng horizon `h ∈ {1,2,3,6}`, báo cáo **trung bình ± std qua các origin**.
-- `RESULTS.md` theo template [docs/03 §4](docs/03-quy-trinh-thuc-nghiem.md#4-resultsmd--bắt-buộc-cho-mọi-thí-nghiệm), bắt buộc có mục "Điều bất ngờ/nghi vấn".
-- **Done:** bảng số 4 baseline × 4 horizon — mốc so sánh cho Phase 2.
+| Model | h=1 | h=3 | h=6 |
+|---|---|---|---|
+| B1 Persistence | 0.758 | 1.620 | 2.164 |
+| B2 Seasonal naive ⭐ (mốc quy ước) | 0.739 | 1.399 | 1.998 |
+| **B3 Climatology (mốc THỰC TẾ mạnh nhất)** | **0.522** | **1.069** | **1.638** |
+| B4 GLM Poisson (pooled) | 0.943 | 1.768 | 2.367 |
 
-## B4. EDA — `notebooks/01_eda_panel.ipynb`
+**Phát hiện đáng chú ý:** B3 Climatology thắng cả B2 ở mọi horizon (SXH dao động mạnh theo năm, trung
+bình nhiều năm ổn định hơn 1 năm trước). B4 pooled thua cả Persistence — điều tra kỹ xác nhận không
+phải bug: model pooled không có hệ số riêng theo tỉnh nên dồn dự báo về gần trung bình chung, bỏ lỡ
+tỉnh có incidence vốn cao hẳn — xác nhận đúng lý do docs/02 chọn M1 Phase 2 là GLM NegBin **phân cấp**.
 
-- Chuỗi ca bệnh theo 3 vùng (Bắc/Trung/Nam) — có khác nhau rõ không?
-- Mùa vụ: đỉnh dịch tháng nào, khác gì giữa vùng?
-- Thống kê khuyết thiếu theo tỉnh × năm.
-- Phân phối `real` vs `estimated` — có lệch hệ thống không?
-- (Sau khi Luồng A xong) tương quan chéo khí hậu ↔ ca bệnh theo độ trễ 1-6 tháng — **đo rồi mới kết luận**, đừng giả định "1-3 tháng mạnh nhất", con số này quyết định thiết kế feature Phase 2.
+**Quyết định:** dùng B3 (không phải B2) làm mốc so sánh thực tế cho Phase 2 — B2 vẫn giữ vai trò mốc
+quy ước theo định nghĩa MASE.
+
+## B4. EDA — `notebooks/03_eda_panel.ipynb` ✅ XONG THẬT, cả mục 5
+
+- ✅ Chuỗi ca theo vùng, mùa vụ, thống kê khuyết thiếu, phân phối real/estimated — chạy trên v0.1.0.
+- ✅ **Tương quan khí hậu ↔ ca bệnh theo độ trễ** (sau khi có v0.2.0, 278 tháng): nhiệt độ mạnh nhất ở
+  độ trễ **2 tháng** (r=0.565), mưa mạnh nhất ở độ trễ **1 tháng** (r=0.527) — đúng sinh học (mưa tạo
+  ổ đẻ trứng nhanh hơn, nhiệt độ ảnh hưởng cả vòng đời muỗi lẫn ủ virus). Đo được thật, không phải giả
+  định — dùng số này để thiết kế lag feature ở Phase 2.
 
 ---
 

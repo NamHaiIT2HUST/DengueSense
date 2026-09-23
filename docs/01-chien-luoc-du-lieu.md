@@ -354,12 +354,12 @@ Quy tắc áp dụng cho toàn bộ:
 Chỉ chuyển sang Phase Mô hình khi tất cả các mục sau đã xong:
 
 - [x] `crosswalk_province.csv` + `province_metadata.csv` hoàn chỉnh + unit test bảo toàn tổng pass (14 test)
-- [x] `panel_monthly.parquet` sinh ra được bằng **một lệnh**: `python -m app.data.build_panel` — v0.1.0 đã có, 9.326 dòng
+- [x] `panel_monthly.parquet` sinh ra được bằng **một lệnh**: `python -m app.data.build_panel` — **v0.2.0** (23/09/2026), 9.326 dòng, đủ cột khí hậu + dân số + ONI, 0 null
 - [x] `manifest.json` đầy đủ, ghi rõ `real_data_pct` (72,7%)
 - [x] Phương pháp ước lượng cấp tỉnh (`estimate_province.py`) có unit test bảo toàn tổng (6 test) — xem §2.1c
-- [ ] Mỗi nguồn dữ liệu còn lại (HCDC, NSO, ERA5, WorldPop) có 1 file note trong `docs/data-sources/` đã kiểm chứng
-- [ ] Khảo sát nguồn NSO cấp tỉnh — xác định có dùng được để thay tỉ trọng đóng băng 1994-2010 không (ưu tiên cao, xem §2.1)
-- [ ] Ghép thêm cột khí hậu (ERA5), dân số (WorldPop), ONI vào panel — cần đăng ký tài khoản CDS API trước
-- [ ] Notebook EDA: chuỗi thời gian theo vùng, tính mùa vụ, tương quan chéo khí hậu–ca bệnh theo độ trễ, bản đồ phân bố, thống kê khuyết thiếu
-- [ ] Hàm chia tập `make_splits()` (rolling-origin) có unit test chứng minh **không có điểm nào của tương lai lọt vào train**
-- [ ] Baseline seasonal naive đã chạy và có số — đây là mốc để so mọi thứ về sau
+- [x] ERA5, WorldPop, ONI có file note trong `docs/data-sources/` đã kiểm chứng (`era5.md`, `population.md`, `oni.md`)
+- [ ] HCDC, NSO cấp tỉnh vẫn chưa kiểm chứng dùng được — NSO xác nhận không có CSV/API (chỉ PDF), xem `docs/data-sources/population.md` mục "Vì sao không dùng NSO/GSO"
+- [x] Ghép thêm cột khí hậu (ERA5), dân số (WorldPop), ONI vào panel — XONG, panel v0.2.0
+- [x] Notebook EDA: chuỗi thời gian theo vùng, tính mùa vụ, tương quan chéo khí hậu–ca bệnh theo độ trễ, thống kê khuyết thiếu — `notebooks/03_eda_panel.ipynb`, đã chạy đủ (kết quả: nhiệt độ mạnh nhất lag=2 tháng r=0.565, mưa lag=1 tháng r=0.527)
+- [x] Hàm chia tập `make_splits()` (rolling-origin) có unit test chứng minh **không có điểm nào của tương lai lọt vào train** — `app/forecast/splits.py`, 12 test
+- [x] Baseline seasonal naive đã chạy và có số — `experiments/exp_001_baselines/RESULTS.md`, phát hiện B3 Climatology thắng B2 ở mọi horizon

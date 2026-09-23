@@ -1,0 +1,26 @@
+experiment:
+  id: exp_001_baselines
+  description: "4 baseline Tier 0 (Persistence, Seasonal naive, Climatology, GLM Poisson) - moc so sanh bat buoc truoc khi thu bat ky model nao o Phase 2"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"   # bat buoc theo docs/03 §8 - test phai 100% real, thuc te chi co 1994-02..2010-12
+  target: incidence_per_100k
+
+splits:
+  strategy: rolling_origin
+  scheme: expanding
+  n_origins: 8
+  embargo_months: 1   # toi thieu - B1-B4 khong dung rolling-window feature nen khong can vung dem lon, xem RESULTS.md
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+models: [B1_persistence, B2_seasonal_naive, B3_climatology, B4_glm_poisson]
+
+metrics:
+  primary: mase
+  secondary: [mae]
+
+seed: 42

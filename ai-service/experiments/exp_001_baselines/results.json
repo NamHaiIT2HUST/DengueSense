@@ -1,0 +1,1282 @@
+[
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 5.54563488376411,
+    "mase": 0.8439472406416537
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 3.8808059416428904,
+    "mase": 0.5905898124494282
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.9051084906007465,
+    "mase": 0.442105970875422
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 3.511979714008862,
+    "mase": 0.5344610041863185
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 8.294032999609259,
+    "mase": 1.2622046727785974
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 3.3343980494081484,
+    "mase": 0.5074362254243601
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.4509446283031364,
+    "mase": 0.37299028864625494
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 3.6716726249834943,
+    "mase": 0.558763432022245
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 8.429397127191036,
+    "mase": 1.28280469141469
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.297147429155003,
+    "mase": 0.34958508355071455
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.4389689491594777,
+    "mase": 0.21898554439052356
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.899293214322251,
+    "mase": 0.4412209889983833
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 8.397080536870103,
+    "mase": 1.277886679717211
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 4.844126329774666,
+    "mase": 0.7371900846378922
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.458858815831806,
+    "mase": 0.37419468757743873
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 5.503578495236583,
+    "mase": 0.8375470044571418
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 7.435456680692725,
+    "mase": 1.13419356839376
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 3.3343980494081484,
+    "mase": 0.5086241483893743
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.4509446283031364,
+    "mase": 0.3738634697622457
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 3.675564940125145,
+    "mase": 0.5606652414677438
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 7.666143331983649,
+    "mase": 1.1693821691004063
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.297147429155003,
+    "mase": 0.35040347240072034
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.4389689491594777,
+    "mase": 0.2194981959202209
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.907853261781875,
+    "mase": 0.44355963715177676
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 6.995003620905675,
+    "mase": 1.0670075098848049
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.4999094733554315,
+    "mase": 0.3813324948296523
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.5466535172628482,
+    "mase": 0.23592424072191343
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.736097664438185,
+    "mase": 0.41736029228185373
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 7.724367227008829,
+    "mase": 1.1782635559607273
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 6.798382805279904,
+    "mase": 1.0370152613825503
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 4.473906026349492,
+    "mase": 0.6824430103748426
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 8.680195776537484,
+    "mase": 1.324064229667502
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 4.227760686710758,
+    "mase": 0.6466988759107625
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.297147429155003,
+    "mase": 0.3513828644335168
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.4389689491594777,
+    "mase": 0.22011170235274738
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.9111411525504387,
+    "mase": 0.4453023362674383
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 3.826877027682689,
+    "mase": 0.5853777579772529
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.4999094733554315,
+    "mase": 0.38239833474477575
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.5466535172628482,
+    "mase": 0.23658365862129527
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.737754910800822,
+    "mase": 0.41878033184312785
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 3.8096346421286778,
+    "mase": 0.5827402786632394
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.6826172025694426,
+    "mase": 0.4103461993139116
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.536222848806716,
+    "mase": 0.23498813274709388
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.960769466031313,
+    "mase": 0.45289372492912683
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 13.038294856613973,
+    "mase": 1.9944011150085696
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 12.063348088177406,
+    "mase": 1.8452685065327357
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 10.274199819523881,
+    "mase": 1.5715916690965772
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 19.099066611055374,
+    "mase": 2.9214862958394554
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 1.7796844886569791,
+    "mase": 0.2732287984500556
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.4999094733554315,
+    "mase": 0.3838024470024294
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.5466535172628482,
+    "mase": 0.23745236014232152
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.7320276474708143,
+    "mase": 0.419438746703972
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 2.166758975181216,
+    "mase": 0.3326550043521479
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.6826172025694426,
+    "mase": 0.4118529321523869
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.536222848806716,
+    "mase": 0.23585097572420446
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.953358616764161,
+    "mase": 0.4534189241934344
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 2.3324507382559823,
+    "mase": 0.3580930871283559
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 4.844126329774666,
+    "mase": 0.7437019455192404
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.458858815831806,
+    "mase": 0.3775000816661842
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 5.498229796000191,
+    "mase": 0.8441241862466886
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 18.827522056446632,
+    "mase": 2.890524282288299
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 18.787162183750958,
+    "mase": 2.88432797075526
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 15.06461628511308,
+    "mase": 2.3128183860268123
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 23.61803700781602,
+    "mase": 3.6259954584783203
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 1.4676861512497696,
+    "mase": 0.22611022735228992
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 2.6826172025694426,
+    "mase": 0.4132812625203517
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 1.536222848806716,
+    "mase": 0.2366689208804535
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 2.947819856332265,
+    "mase": 0.454138112117032
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 2.1784408965332487,
+    "mase": 0.3356083764701506
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 4.844126329774666,
+    "mase": 0.7462811479251773
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.458858815831806,
+    "mase": 0.3788092743135088
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 5.490944109407926,
+    "mase": 0.8459292335079448
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 4.779516239501571,
+    "mase": 0.7363273834991372
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 6.798382805279904,
+    "mase": 1.0473519017814463
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 4.473906026349492,
+    "mase": 0.6892453866306946
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 8.676545198976577,
+    "mase": 1.3366996792212331
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 24.209519554490367,
+    "mase": 3.729693821730393
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 22.561102668557794,
+    "mase": 3.4757404022393223
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 18.57099216123039,
+    "mase": 2.861028058456347
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 26.16480404498676,
+    "mase": 4.030922950524774
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 1.2292194358860284,
+    "mase": 0.1899940219861113
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 4.844126329774666,
+    "mase": 0.7487312822541822
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 2.458858815831806,
+    "mase": 0.38005295253011845
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 5.474503255263435,
+    "mase": 0.8461653480884251
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 4.137623221387365,
+    "mase": 0.639530790308301
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 6.798382805279904,
+    "mase": 1.0507904890434154
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 4.473906026349492,
+    "mase": 0.6915082654232075
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 8.667358542130605,
+    "mase": 1.3396682978967767
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 14.438928494392385,
+    "mase": 2.2317496923094793
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 12.063348088177406,
+    "mase": 1.8645686481838215
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 10.274199819523881,
+    "mase": 1.588029353760813
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 19.097631214245553,
+    "mase": 2.9518210165515466
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 21.319358607362368,
+    "mase": 3.295221804768598
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 20.457240026668675,
+    "mase": 3.1619686428082305
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 18.14629428204486,
+    "mase": 2.8047778404220916
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 21.04358291546935,
+    "mase": 3.252596597796509
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 4.340129143450078,
+    "mase": 0.6717672872674002
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 6.798382805279904,
+    "mase": 1.052256977606397
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 4.473906026349492,
+    "mase": 0.6924733378834402
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 8.642190576652643,
+    "mase": 1.3376424359370247
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 14.638120582823468,
+    "mase": 2.265695381312914
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 12.063348088177406,
+    "mase": 1.8671708496939863
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 10.274199819523881,
+    "mase": 1.590245615622004
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 19.079249737090908,
+    "mase": 2.9530954990879392
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 20.484872692976268,
+    "mase": 3.170658499815904
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 18.787162183750958,
+    "mase": 2.9078860463582044
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 15.06461628511308,
+    "mase": 2.3317085923231624
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 23.609673601088282,
+    "mase": 3.6543166952087858
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 12.7824433292315,
+    "mase": 1.978472758785522
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 11.839163406717057,
+    "mase": 1.8324714363046857
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 10.283030870177571,
+    "mase": 1.5916124899119783
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 11.66502882695703,
+    "mase": 1.8055188018556902
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 13.416684220255098,
+    "mase": 2.0760424633568335
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 12.063348088177406,
+    "mase": 1.866632803617897
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 10.274199819523881,
+    "mase": 1.5897873686363875
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 19.058311718064715,
+    "mase": 2.9490046688928624
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 19.257382916048137,
+    "mase": 2.9798081262494103
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 18.787162183750958,
+    "mase": 2.9070481066071556
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 15.06461628511308,
+    "mase": 2.331036684522712
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 23.6013348261563,
+    "mase": 3.651973355460798
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 22.8372818969657,
+    "mase": 3.5337469517375015
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 22.561102668557794,
+    "mase": 3.491012115301064
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 18.57099216123039,
+    "mase": 2.873598847558487
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 26.16659939075468,
+    "mase": 4.048911829857533
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "B1_persistence",
+    "n_provinces": 34,
+    "mae": 6.273620642166829,
+    "mase": 0.9707542220057309
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "B2_seasonal_naive",
+    "n_provinces": 34,
+    "mae": 6.54215747979163,
+    "mase": 1.0123065063654537
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "B3_climatology",
+    "n_provinces": 34,
+    "mae": 5.83260934685989,
+    "mase": 0.902513950352397
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "B4_glm_poisson",
+    "n_provinces": 34,
+    "mae": 7.376180286006384,
+    "mase": 1.1413597607079737
+  }
+]

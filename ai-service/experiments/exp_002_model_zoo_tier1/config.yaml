@@ -1,0 +1,49 @@
+experiment:
+  id: exp_002_model_zoo_tier1
+  description: "M1 GLM NegBin (hieu ung co dinh theo tinh) + M2a XGBoost + M2b LightGBM, cau hinh T1 mac dinh"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  strategy: rolling_origin
+  scheme: expanding
+  n_origins: 8
+  embargo_months: 1
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+models: [M1_glm_negbin, M2a_xgboost, M2b_lightgbm]
+
+features:
+  # Tap dac trung dai dien T1 mac dinh (khong dung het ~50 cot build_feature_matrix()
+  # sinh ra — chon 1-2 lag/nhom theo phat hien EDA that: temp lag~2 thang, mua lag~1
+  # thang manh nhat, xem docs/03 03_eda_panel.ipynb va PHASE-1-CHECKLIST B4).
+  columns:
+    - sin_month
+    - cos_month
+    - temp_mean_lag_1
+    - temp_mean_lag_2
+    - precip_total_lag_1
+    - precip_total_lag_2
+    - humidity_mean_lag_1
+    - temp_mean_roll_mean_3
+    - precip_total_roll_mean_3
+    - incidence_per_100k_lag_2
+    - incidence_per_100k_lag_3
+    - momentum
+    - acceleration
+    - oni_lag_3
+    - oni_lag_6
+    - incidence_per_100k_same_month_last_year
+    - incidence_per_100k_deviation_from_median
+
+metrics:
+  primary: mase
+  secondary: [mae]
+
+seed: 42
