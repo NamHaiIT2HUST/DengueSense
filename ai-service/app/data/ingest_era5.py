@@ -19,6 +19,7 @@ total_bounds thật của provinces.geojson (+ biên an toàn), KHÔNG dùng bbo
 
 from __future__ import annotations
 
+import zipfile
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -102,6 +103,32 @@ def fetch_all_years(years: Iterable[int], dest_dir: Path = RAW_DIR) -> list[int]
     return failed
 
 
+def _resolve_actual_nc_path(path: Path) -> Path:
+    """Hạ tầng CDS mới (phát hiện thật 23/09/2026) đôi khi trả về file
+    ".nc" nhưng thực chất là ZIP chứa file .nc bên trong (dù request đã
+    khai `data_format: "netcdf"`) — file tải về có magic bytes ZIP
+    (`PK\\x03\\x04`), bên trong có tên kiểu `data_stream-moda.nc`. Tự
+    giải nén ra thư mục con cạnh file gốc, trả về đường dẫn .nc thật để
+    mở. Nếu file đã là NetCDF thật (không phải zip) thì trả về nguyên,
+    idempotent với cả 2 kiểu hạ tầng CDS đã/sẽ gặp."""
+    if not zipfile.is_zipfile(path):
+        return path
+
+    with zipfile.ZipFile(path) as zf:
+        nc_members = [n for n in zf.namelist() if n.endswith(".nc")]
+        if not nc_members:
+            raise ValueError(
+                f"{path} là file zip nhưng không có file .nc bên trong "
+                f"(nội dung: {zf.namelist()})."
+            )
+        extract_dir = path.parent / f"{path.stem}_extracted"
+        extracted_path = extract_dir / nc_members[0]
+        if not extracted_path.exists():
+            extract_dir.mkdir(exist_ok=True)
+            zf.extract(nc_members[0], extract_dir)
+        return extracted_path
+
+
 def load_and_convert(nc_path: Path) -> xr.Dataset:
     """Mở file .nc + đổi đơn vị về dạng dùng được trực tiếp.
 
@@ -116,7 +143,7 @@ def load_and_convert(nc_path: Path) -> xr.Dataset:
         e_a(Td) = 6.112 * exp(17.62*Td/(Td+243.12))
         RH(%)   = 100 * e_a / e_s
     """
-    ds = xr.open_dataset(nc_path)
+    ds = xr.open_dataset(_resolve_actual_nc_path(nc_path))
 
     time_dim = "valid_time" if "valid_time" in ds.dims else "time"
     days_in_month = ds[time_dim].dt.days_in_month

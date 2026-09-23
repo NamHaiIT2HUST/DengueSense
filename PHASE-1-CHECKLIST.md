@@ -39,14 +39,14 @@ Start-Process -FilePath "venv\Scripts\python.exe" `
 
 ## 0. Vì sao phase này chặn tất cả
 
-Panel hiện tại (`v0.1.0`) chỉ có `cases`. Không có khí hậu → không train được gì (độ trễ mưa/nhiệt 1-3 tháng là biến giải thích mạnh nhất của SXH). **Cổng nghiệm thu** (chỉ qua Phase 2 khi đủ 6 điểm):
+Panel hiện tại đã lên `v0.2.0`. **Cổng nghiệm thu** (chỉ qua Phase 2 khi đủ 6 điểm):
 
-1. `panel_monthly.parquet` → `v0.2.0`, đủ cột khí hậu + dân số + `incidence_per_100k`
-2. Sinh lại toàn bộ từ raw bằng **một lệnh** (`python -m app.data.build_panel`)
-3. `make_splits()` có test chứng minh không điểm tương lai lọt vào train
-4. Baseline seasonal naive đã chạy ra số — mốc so sánh cho mọi model sau
-5. Mỗi nguồn dữ liệu có note kiểm chứng trong `docs/data-sources/`
-6. Tái lập chéo: chạy lại từ đầu trên máy khác ra cùng kết quả (sai khác < 1%)
+1. ✅ `panel_monthly.parquet` → `v0.2.0`, đủ cột khí hậu + dân số + `incidence_per_100k` — XONG THẬT 23/09/2026, 9.326 dòng, 0 null
+2. ✅ Sinh lại toàn bộ từ raw bằng **một lệnh** (`python -m app.data.build_panel`) — verify chạy được
+3. ✅ `make_splits()` có test chứng minh không điểm tương lai lọt vào train — 12 test pass
+4. ⬜ Baseline seasonal naive đã chạy ra số — mốc so sánh cho mọi model sau — **B3, việc tiếp theo**
+5. ⬜ Mỗi nguồn dữ liệu có note kiểm chứng trong `docs/data-sources/`
+6. ⬜ Tái lập chéo: chạy lại từ đầu trên máy khác ra cùng kết quả (sai khác < 1%)
 
 ---
 
@@ -124,29 +124,29 @@ ai-service/
 │   │   ├── zonal_stats.py              ✅ xong (3 test, raster tổng hợp)
 │   │   ├── _retry.py                   ✅ xong (4 test) — exponential backoff dùng chung
 │   │   ├── ingest_oni.py               ✅ xong (4 test) — chạy thật, có dữ liệu
-│   │   ├── ingest_population.py        ✅ code xong, tự retry — CẦN BẠN chạy (tải WorldPop)
-│   │   ├── ingest_era5.py              ✅ code xong, tự retry — CẦN BẠN chạy (cần CDS key riêng)
-│   │   ├── build_panel.py              ✅ đã sửa — tự lên v0.2.0 khi đủ 3 interim
+│   │   ├── ingest_population.py        ✅ XONG THẬT — đã chạy 21/21 năm WorldPop, 1.088 dòng, 0 lỗi
+│   │   ├── ingest_era5.py              ✅ XONG THẬT — đã chạy 32/32 năm CDS (1994-2025), 0 lỗi
+│   │   ├── build_panel.py              ✅ ĐÃ LÊN v0.2.0 THẬT — 9.326 dòng, 0 null ở mọi cột
 │   │   └── run_luong_a.py              ✅ mới — 1 lệnh chạy hết Luồng A, treo máy được, đã verify wiring
 │   └── forecast/                      # Luồng B ✅ B1+B2 xong
 │       ├── __init__.py                 ✅
 │       ├── metrics.py                  ✅ xong (22 test) — B1
 │       └── splits.py                   ✅ xong (12 test) — B2
 ├── data/
-│   ├── raw/{opendengue,population,era5,oni}/    (gitignored)
+│   ├── raw/{opendengue,population,era5,oni}/    (gitignored, có đủ dữ liệu thật)
 │   ├── interim/{population_by_province_year,
-│   │   climate_by_province_month,oni_monthly}.parquet  ⬜ sinh ra khi chạy notebooks/00-02 hoặc run_luong_a.py
+│   │   climate_by_province_month,oni_monthly}.parquet  ✅ ĐỦ CẢ 3, đã verify 0 null
 │   ├── external/{crosswalk_province,province_metadata,
 │   │   opendengue_province_alias,provinces.geojson,
 │   │   oni_raw.txt}                             ✅ đã có, giữ nguyên
-│   └── processed/v0.2.0/                        ⬜ chạy `python -m app.data.build_panel` sau khi có đủ interim
+│   └── processed/v0.2.0/                        ✅ ĐÃ SINH — 9.326 dòng, 11 cột, 0 null
 ├── experiments/
-│   └── exp_001_baselines/              ⬜ B3 — cấu trúc theo docs/03 §1
-├── notebooks/                          ✅ đã sinh, chạy được ngay (hoặc dùng run_luong_a.py thay thế)
-│   ├── 00_ingest_population.ipynb      ✅ code xong, đã test 1 năm — bạn chạy full range
-│   ├── 01_ingest_oni.ipynb             ✅ đã chạy thật, xong hoàn toàn
-│   ├── 02_ingest_era5.ipynb            ✅ code xong — cần bạn có `~/.cdsapirc`
-│   └── 03_eda_panel.ipynb              ✅ đã chạy thật trên v0.1.0 (mục 1-4)
+│   └── exp_001_baselines/              ⬜ B3 — cấu trúc theo docs/03 §1 — VIỆC TIẾP THEO
+├── notebooks/                          ✅ cả 4 đã chạy thật, không còn việc gì ở đây
+│   ├── 00_ingest_population.ipynb      ✅ chạy xong — 21/21 năm WorldPop
+│   ├── 01_ingest_oni.ipynb             ✅ chạy xong
+│   ├── 02_ingest_era5.ipynb            ✅ chạy xong — 32/32 năm CDS (sau khi sửa bẫy licence + zip)
+│   └── 03_eda_panel.ipynb              ⬜ chạy lại lần nữa để có mục 5 (tương quan khí hậu — giờ chạy được)
 └── tests/
     ├── test_data/{test_crosswalk,test_estimate_province,test_zonal_stats,
     │   test_ingest_oni,test_retry}.py                       ✅ 31 test
@@ -239,6 +239,17 @@ xem `tests/test_data/test_zonal_stats.py`). `VN_BBOX` đã sửa để bao trọ
   (https://cds.climate.copernicus.eu), vào dataset **ERA5-Land monthly averaged data** chấp nhận
   Terms of Use, tạo `~/.cdsapirc`. Sau đó mở `notebooks/02_ingest_era5.ipynb`, Run All — notebook tự
   kiểm tra file `~/.cdsapirc` tồn tại trước khi tải, tự sanity-check đơn vị (5-40°C) trước khi lưu.
+- ⚠️ **Bẫy thật thứ 2, phát hiện khi chạy thật 23/09/2026:** hai lỗi gặp liên tiếp khi Nam Hải chạy
+  lần đầu, cả hai đã sửa và verify bằng dữ liệu CDS thật (không phải đoán):
+  1. **403 "required licences not accepted"** — chấp nhận ToS chung lúc đăng ký tài khoản KHÔNG đủ,
+     phải vào riêng trang dataset (`.../reanalysis-era5-land-monthly-means?tab=download#manage-licences`)
+     chấp nhận licence riêng của dataset đó. Đây là việc làm trên web, không phải bug code.
+  2. **`xarray` báo lỗi "không tìm được engine phù hợp"** — hạ tầng CDS mới trả file đặt tên `.nc`
+     nhưng thực chất là **ZIP** chứa 1 file `.nc` bên trong (tên `data_stream-moda.nc`), dù request
+     đã khai đúng `data_format: "netcdf"`. Đã sửa `load_and_convert()` tự phát hiện (đọc magic bytes
+     ZIP) và tự giải nén trước khi mở — trong suốt với người gọi, không cần đổi cách dùng. Verify
+     bằng chính 32 file thật (1994-2025) Nam Hải tải: nhiệt độ 9.2-31.1°C, độ ẩm 44-97%, mưa
+     0-1160mm/tháng — đúng thực tế khí hậu VN, 0 lỗi trên toàn bộ 13.056 dòng zonal stats.
 
 ## A4. `zonal_stats.py` — gộp lưới raster về 34 tỉnh ✅ xong, 3 test pass
 
