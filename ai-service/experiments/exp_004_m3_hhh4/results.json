@@ -1,0 +1,322 @@
+[
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 5.965890889232158,
+    "mase": 0.907902748642409
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 12.630414175905926,
+    "mase": 1.9221249532897386
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 16.984213321287626,
+    "mase": 2.5846959396722546
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 24.394733222883932,
+    "mase": 3.7124455939061245
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 5.02700599658055,
+    "mase": 0.7668120620490703
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 6.162980433034303,
+    "mase": 0.9400919229930705
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 6.876036867675888,
+    "mase": 1.04886049724518
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 10.642454230429253,
+    "mase": 1.623384232930971
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 2.358201512964468,
+    "mase": 0.3607219946008066
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 3.0624602332423088,
+    "mase": 0.46844884020624494
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 3.9655011316743543,
+    "mase": 0.6065823764191954
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 14.124220875225499,
+    "mase": 2.1605096503771346
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 1.0401246564775435,
+    "mase": 0.15968673769927538
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 1.0823597568872338,
+    "mase": 0.16617094645139277
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 1.9067450778808497,
+    "mase": 0.2927359708422771
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 17.575632398878287,
+    "mase": 2.6983259970812528
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 0.873078061004602,
+    "mase": 0.13450551311800965
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 1.418080104826998,
+    "mase": 0.2184679705761051
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 3.6782174544819544,
+    "mase": 0.5666624190572884
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 20.478638028644667,
+    "mase": 3.1549180297021775
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 1.0277343029603419,
+    "mase": 0.1588515183310464
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 3.530593691839986,
+    "mase": 0.5457054094071996
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 13.218238187526877,
+    "mase": 2.0430739732067575
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 17.123688827062036,
+    "mase": 2.646719061309899
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 2.650572301950421,
+    "mase": 0.4102568624425596
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 11.875000207532754,
+    "mase": 1.8380182736619644
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 16.70157736955302,
+    "mase": 2.5850782204403515
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 9.03432940434842,
+    "mase": 1.3983378732861553
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 9.40092982119391,
+    "mase": 1.4546611654146127
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 14.24129858344937,
+    "mase": 2.203639893972422
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 16.062060366977203,
+    "mase": 2.4853770740541066
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "M3_hhh4",
+    "n_provinces": 34,
+    "mae": 11.991300659101917,
+    "mase": 1.8554844811500704
+  }
+]

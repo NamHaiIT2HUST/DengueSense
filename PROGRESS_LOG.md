@@ -6,6 +6,51 @@
 
 ---
 
+## 2026-09-23 — exp_004: M3 hhh4 chạy xong thật — kết quả âm tính, chẩn đoán rõ nguyên nhân
+
+**Làm:** Rtools45 cài xong → `rpy2` chạy được (sau khi sửa 3 bẫy Windows thật, xem
+`app/forecast/r_env.py` docstring: `R_HOME` phải đặt trước import, `bin/x64` (chứa `R.dll`) phải có
+trong `PATH` không thì lỗi khó hiểu "LoadLibrary failure", `.libPaths()` phải APPEND không REPLACE
+không thì mất luôn thư viện gốc của R). Cài `surveillance` package vào `ai-service/.rlibs/`
+(gitignored) thay vì `AppData/Local` — phát hiện `AppData/Local` bị Windows sandbox redirect sang thư
+mục ảo hoá riêng của ứng dụng, không thấy được từ terminal thường.
+
+Xây `app/data/adjacency.py` (ma trận kề 34 tỉnh từ `provinces.geojson`, dùng cho thành phần lan
+truyền không gian của hhh4 — 6 unit test, verify không có false-adjacency từ đảo xa Trường Sa/Hoàng
+Sa) + `app/forecast/models_r.py` (M3 hhh4: fit + dự báo đa bước bằng mô phỏng Monte Carlo) +
+`experiments/exp_004_m3_hhh4/`.
+
+**Bug thật gặp khi xây (đã sửa, verify lại):**
+1. Round-trip object R phức tạp (`fit`) qua biến Python rồi gán ngược lại `globalenv` gây lỗi
+   conversion khó hiểu — sửa bằng cách giữ `fit`/`stsObj` LUÔN ở trong R's global environment, chỉ
+   đưa qua Python mảng/số thô.
+2. Class `hhh4sims` (kết quả `simulate()`) có method `[` riêng KHÔNG tự drop chiều đơn vị như array
+   thường — `rowMeans()` gộp nhầm cả 34 tỉnh thành 1 số duy nhất nếu không `unclass()` trước. Bắt
+   được qua test (shape `(1,)` thay vì `(34,)`), có regression test riêng.
+
+**Kết quả (MASE, so với exp_001/002):**
+
+| Model | h=1 | h=3 | h=6 |
+|---|---|---|---|
+| B3 Climatology | 0.522 | 1.069 | 1.638 |
+| M2a XGBoost (tốt nhất) | 0.449 | 0.963 | 1.611 |
+| **M3 hhh4** | 0.544 | **1.527** | **2.406** |
+
+**M3 thua MỌI model khác (kể cả 2 baseline) ở h≥2** — tệ nhất trong 7 cấu hình đã thử qua 4 thí
+nghiệm. Chẩn đoán rõ ràng, không mơ hồ: **M3 là model DUY NHẤT không dùng bất kỳ thông tin khí hậu
+nào** (chỉ AR + lan truyền không gian + mùa vụ thuần), trong khi EDA đã đo tương quan khí hậu↔ca bệnh
+khá mạnh (temp lag 2 tháng r=0.565) mà M1/M2 đều khai thác. Không phải bug — đã verify riêng ma trận
+kề đúng, indexing đúng, dự báo có scale hợp lý.
+
+**Quyết định:** không đưa M3 (cấu hình hiện tại) vào M4 Ensemble — thua rõ rệt. Việc tiếp theo (nếu
+làm) là thêm covariate khí hậu vào `end$f` của hhh4 qua tham số `data=`.
+
+**File:** `ai-service/app/data/adjacency.py`, `ai-service/app/forecast/{r_env,models_r}.py`,
+`ai-service/experiments/exp_004_m3_hhh4/{run.py,RESULTS.md,results.json}`,
+`ai-service/tests/test_data/test_adjacency.py`, `ai-service/tests/test_forecast/test_models_r.py`
+
+---
+
 ## 2026-09-23 — R + rpy2 cài xong (M3 sẵn sàng khi có Rtools), exp_003 T2 tuning dựng xong
 
 **Làm:**
