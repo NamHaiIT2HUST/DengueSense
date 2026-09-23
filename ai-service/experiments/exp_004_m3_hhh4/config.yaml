@@ -1,0 +1,36 @@
+experiment:
+  id: exp_004_m3_hhh4
+  description: "M3 hhh4 (ban co gioi endemic-epidemic, R package surveillance qua rpy2), cau hinh T1 mac dinh - chua co covariate khi hau"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  strategy: rolling_origin
+  scheme: expanding
+  n_origins: 8              # giong het exp_001/exp_002/exp_003 - so sanh truc tiep duoc
+  embargo_months: 1
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+models: [M3_hhh4]
+
+model_spec:
+  package: surveillance (R)
+  fit_once_per_origin: true   # 1 fit hhh4 dung cho moi horizon usable cua origin do (khong fit lai)
+  components:
+    ar: "~1"                                    # tu hoi quy tren chinh tinh do
+    ne: "~1, weights = ma tran ke nhi phan 34 tinh"   # lan truyen khong gian toi tinh ke
+    end: "~1 + sin(2*pi*t/12) + cos(2*pi*t/12), offset = dan so"   # baseline mua vu - CHUA co khi hau
+  family: NegBin1
+  forecast: "simulate.hhh4() Monte Carlo, nsim=200, lay trung binh"
+
+metrics:
+  primary: mase
+  secondary: [mae]
+
+seed: 42

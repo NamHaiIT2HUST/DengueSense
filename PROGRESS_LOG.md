@@ -3,6 +3,31 @@
 > File này ghi lại **mỗi việc thật đã làm xong** (không phải kế hoạch — kế hoạch xem
 > [PHASE-1-CHECKLIST.md](PHASE-1-CHECKLIST.md)/[ROADMAP.md](ROADMAP.md)). Mới nhất ở trên cùng. Mỗi
 > mục ghi: làm gì, verify bằng cách nào, số liệu thật ra sao, file nào đổi.
+>
+> **Bảng xếp hạng model tổng hợp** (số MASE mới nhất, mọi experiment gộp 1 chỗ, có biểu đồ):
+> [ai-service/experiments/MODEL_ZOO_RESULTS.md](ai-service/experiments/MODEL_ZOO_RESULTS.md).
+
+---
+
+## 2026-09-23 — Dọn lại kết quả cho chuẩn chỉnh: bảng xếp hạng tổng hợp + biểu đồ, chuẩn hoá config
+
+**Làm:** Sau 4 experiment (exp_001-004), kết quả đang nằm rải rác ở 4 file `RESULTS.md` riêng — gộp lại
+thành 1 nguồn sự thật duy nhất trước khi làm tiếp M4, để tránh mỗi lần so sánh model lại phải lục nhiều
+file. Cụ thể:
+- Tạo `ai-service/experiments/MODEL_ZOO_RESULTS.md` — bảng MASE đầy đủ mọi model (B1-B4, M1, M2a/b, M3)
+  × mọi horizon, kèm bảng trạng thái model zoo (docs/02 §3) và việc tiếp theo ưu tiên theo thứ tự.
+- Viết `ai-service/experiments/plot_leaderboard.py` — sinh `leaderboard_mase.png` (đường MASE theo
+  horizon, mọi model, tô đậm B3/M2b) bằng script (không vẽ tay) để lần sau có model mới chỉ cần thêm 1
+  dòng rồi chạy lại.
+- Thêm `config.yaml` cho `exp_003`/`exp_004` (trước đó chỉ có hằng số trong `run.py`, không đồng bộ với
+  quy ước `config.yaml` của `exp_001`/`exp_002`) — cùng 1 khuôn cho mọi experiment từ giờ.
+- Xoá `exp_003/results_trials5.json` (file sanity-check 5-trial còn sót lại, đã bị `results_trials100.json`
+  thay thế, không file nào tham chiếu tới nữa).
+- Thêm link "Xem MODEL_ZOO_RESULTS.md" vào đầu mỗi `RESULTS.md` của exp_001-004 để điều hướng qua lại.
+
+**File:** `ai-service/experiments/{MODEL_ZOO_RESULTS.md,plot_leaderboard.py,leaderboard_mase.png}`,
+`ai-service/experiments/exp_003_tuning_m2/config.yaml`, `ai-service/experiments/exp_004_m3_hhh4/config.yaml`,
+`ai-service/experiments/exp_00{1,2,3,4}_*/RESULTS.md` (thêm link), `PROGRESS_LOG.md`
 
 ---
 

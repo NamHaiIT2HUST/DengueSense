@@ -8,6 +8,8 @@
 - **Thời gian chạy:** 8.5s cho toàn bộ 8 origin × tới 4 horizon (rất nhanh — mỗi fit hhh4 ~3-4s,
   mỗi simulate ~0.1s).
 
+> Xem [MODEL_ZOO_RESULTS.md](../MODEL_ZOO_RESULTS.md) cho bảng xếp hạng tổng hợp (mọi experiment, có biểu đồ).
+
 ## Câu hỏi
 
 M3 (hhh4, thành phần AR + lan truyền không gian NE + endemic mùa vụ) có thắng baseline hay các model

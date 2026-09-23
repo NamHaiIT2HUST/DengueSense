@@ -5,6 +5,8 @@
 - **Data version:** panel v0.2.0 (`ai-service/data/processed/v0.2.0/panel_monthly.parquet`)
 - **Lệnh chạy:** `python experiments/exp_001_baselines/run.py` (từ `ai-service/`)
 
+> Xem [MODEL_ZOO_RESULTS.md](../MODEL_ZOO_RESULTS.md) cho bảng xếp hạng tổng hợp (mọi experiment, có biểu đồ).
+
 ## Câu hỏi
 
 4 baseline bắt buộc (docs/02 §3 Tier 0) đứng ở đâu trên dữ liệu thật của dự án? Mốc nào (`B2` seasonal

@@ -347,6 +347,11 @@ tỉnh có incidence vốn cao hẳn — xác nhận đúng lý do docs/02 chọ
 **Quyết định:** dùng B3 (không phải B2) làm mốc so sánh thực tế cho Phase 2 — B2 vẫn giữ vai trò mốc
 quy ước theo định nghĩa MASE.
 
+> 📊 **Phase 2 (model zoo) đã bắt đầu chạy trước tiến độ** — M1 GLM NegBin, M2a/M2b XGBoost/LightGBM
+> (T1 + T2 tuning), M3 hhh4 đều đã có kết quả thật (`exp_002`, `exp_003`, `exp_004`). Bảng xếp hạng
+> tổng hợp + biểu đồ: [experiments/MODEL_ZOO_RESULTS.md](ai-service/experiments/MODEL_ZOO_RESULTS.md).
+> Không lặp lại số liệu ở đây để tránh 2 nguồn dễ lệch nhau khi cập nhật.
+
 ## B4. EDA — `notebooks/03_eda_panel.ipynb` ✅ XONG THẬT, cả mục 5
 
 - ✅ Chuỗi ca theo vùng, mùa vụ, thống kê khuyết thiếu, phân phối real/estimated — chạy trên v0.1.0.

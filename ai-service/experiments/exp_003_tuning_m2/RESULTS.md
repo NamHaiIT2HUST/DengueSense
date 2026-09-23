@@ -5,6 +5,8 @@
 - **Thời gian thật:** XGBoost 919s (~15 phút), LightGBM 339s (~5.5 phút) cho 100 trial mỗi model
 - **Kết quả thô:** `results_trials100.json`
 
+> Xem [MODEL_ZOO_RESULTS.md](../MODEL_ZOO_RESULTS.md) cho bảng xếp hạng tổng hợp (mọi experiment, có biểu đồ).
+
 ## Câu hỏi
 
 T2 (Optuna TPE, 100 trial, đúng search space docs/02 §6.3) có cải thiện được MASE so với T1 (cấu hình

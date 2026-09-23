@@ -5,6 +5,8 @@
 - **Data version:** panel v0.2.0
 - **Lệnh chạy:** `python experiments/exp_002_model_zoo_tier1/run.py` (từ `ai-service/`)
 
+> Xem [MODEL_ZOO_RESULTS.md](../MODEL_ZOO_RESULTS.md) cho bảng xếp hạng tổng hợp (mọi experiment, có biểu đồ).
+
 ## Câu hỏi
 
 3 model Tier 1 thuần Python (M1 GLM NegBin hiệu ứng tỉnh, M2a XGBoost, M2b LightGBM) ở cấu hình

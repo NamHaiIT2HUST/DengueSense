@@ -1,0 +1,46 @@
+experiment:
+  id: exp_003_tuning_m2
+  description: "T2 Optuna TPE tuning (100 trial) cho M2a XGBoost + M2b LightGBM - dung docs/02 §6.3 search space"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  inner_tuning:
+    strategy: rolling_origin
+    scheme: expanding
+    n_origins: 5
+    embargo_months: 1
+    cutoff: "2008-12-01"   # tach biet hoan toan khoi outer (2009-11..2010-06), khong ro ri
+  outer_evaluation:
+    strategy: rolling_origin
+    scheme: expanding
+    n_origins: 8            # giong het exp_001/exp_002 - so sanh truc tiep duoc
+    embargo_months: 1
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+models: [M2a_xgboost, M2b_lightgbm]
+
+tuning:
+  sampler: optuna.TPESampler
+  n_trials: 100
+  pruner: none   # bo ASHA - loi ich nho o quy mo du lieu nay, xem run.py docstring
+  search_space:
+    n_estimators: [100, 2000]     # log-uniform
+    learning_rate: [0.005, 0.3]   # log-uniform
+    max_depth: [3, 10]
+    subsample: [0.5, 1.0]
+    colsample_bytree: [0.5, 1.0]
+    reg_alpha: [0.0001, 10.0]     # log-uniform
+    reg_lambda: [0.0001, 10.0]    # log-uniform
+
+metrics:
+  primary: mase
+  secondary: [mae]
+
+seed: 42
