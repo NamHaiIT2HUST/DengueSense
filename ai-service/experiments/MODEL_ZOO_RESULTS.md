@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_015 — đo tác động lag theo tháng lịch)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_016 — đánh giá nhiều mùa)
 
 ## Biểu đồ
 
@@ -113,6 +113,11 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 13. **Lag theo tháng lịch (exp_015):** lỗi "lag theo số dòng" ở 5/34 tỉnh có tháng thiếu ảnh hưởng M4-R2 **không đáng kể** (MASE gộp 0.8185→0.8199,
    +0.17%; mọi horizon trong ±1%; Bắc −2.5%). Số công bố giữ nguyên; `calendarize=True` dùng cho các lần chạy lại từ giờ.
 
+14. **Đánh giá NHIỀU MÙA (exp_016, 2005–2010) — hiệu chỉnh cách đọc mọi bảng ở trên:** các con số headline là mùa **2010 = mùa KHÓ NHẤT** (M4-R2 MASE gộp 0.820; các mùa
+   khác 0.32–0.57; TB **0.515 ± 0.170**). M4-R2 thắng B3 ở **6/6 mùa, 45/48 origin** (+22.2%, CI95 18.2–26.0%). Miền Bắc chỉ thất bại ở 2 mùa dịch (2009: 2.40; 2010: 1.34), 0.34–0.40 ở 4 mùa
+   còn lại; Trung 6/6; Nam chỉ hòa với B3 (3/6). Cảnh báo ROC-AUC **0.809 ± 0.041** (3/6 mùa ≥ 0.83; 2010 tệ nhất). Bùng dịch: bias âm ở mọi mùa (−3.6…−37.5). **Định tuyến vùng khái quát:** M4-R2 hơn
+   không-định-tuyến +6.9% (CI95 5.0–8.7%), Bắc thắng 6/6 mùa. ⚠️ Mùa ≤2009 nhiễm thiết kế (chọn trên validation ≤2008/outer 2010) → số tuyệt đối lạc quan; baseline không nhiễm.
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -129,5 +134,6 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
 - [ ] Bias bùng dịch và miền Bắc >1: giới hạn dữ liệu (đã thử quy mô, isotonic, Tweedie, trọng số, pha B3, không gian) — cần nguồn mới; nêu rõ trong model card.
 - [x] Lag theo tháng lịch: đã đo tác động ≤ 1% (exp_015), dùng `calendarize=True` từ giờ.
+- [ ] Chạy lại các đòn bẩy âm tính (T2, cảnh báo) trên khung nhiều mùa (exp_016).
 - [ ] Robustness mở rộng: gián đoạn liên tục 2-3 tháng, nhiễu có tương quan/ở dữ liệu huấn luyện.
 - [x] Hiệu chỉnh xác suất + cảnh báo (exp_011/012), SHAP (exp_014), model card ([docs/07-model-card.md](../../docs/07-model-card.md)).

@@ -43,3 +43,10 @@ def test_climatology_forecast_averages_same_calendar_month_per_province():
     )
     out = climatology_forecast(df, pd.Timestamp("2002-03-01"))
     assert out == {"a": 3.0, "b": 15.0}
+
+
+def test_assemble_empty_routing_means_no_routing():
+    out = assemble_m4(
+        {"b": 3.0}, {"b": 6.0}, {"b": 0.0}, {"b": 100.0}, {"b": "Bắc"}, routing={}
+    )
+    assert math.isclose(out["b"], (3.0 + 2 * 6.0) / 3)  # GBM chuan, khong V3/B3

@@ -120,20 +120,12 @@ def _m1_array(train_pairs: pd.DataFrame, test_rows: pd.DataFrame) -> np.ndarray:
     return out
 
 
-def predict_m4_many(
-    train_pairs: pd.DataFrame,
-    test_frames: list[pd.DataFrame],
-    hist_panel: pd.DataFrame,
-    target_month: pd.Timestamp,
-    regions: dict[str, str],
-) -> list[dict[str, float]]:
-    """Dự báo M4-R2 cho NHIỀU bản `test_rows` (cùng train_pairs): fit mỗi model
-    đúng 1 lần trên `train_pairs`, dự báo trên các dòng test xếp chồng, rồi
-    tách lại theo từng bản. Mỗi bản: mỗi tỉnh đúng 1 dòng (như `test_rows`).
-    `hist_panel` = dữ liệu ≤ train_end (tính B3)."""
-    sizes = [len(f) for f in test_frames]
-    stacked = pd.concat(test_frames, ignore_index=True)
-
+def _fit_components(
+    train_pairs: pd.DataFrame, stacked: pd.DataFrame
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Fit MỖI model đúng 1 lần, dự báo trên các dòng test xếp chồng: (M1, GBM chuẩn,
+    GBM scale-aware+Tweedie). Tách riêng để nhiều cấu hình định tuyến dùng chung
+    các lần fit (exp_016: ablation định tuyến qua nhiều mùa)."""
     m1 = _m1_array(train_pairs, stacked)
     std = _gbm_avg_array(
         [(fit_predict_m2_xgboost, {}), (fit_predict_m2_lightgbm, {})],
@@ -151,8 +143,12 @@ def predict_m4_many(
         stacked,
         scale_aware=True,
     )
-    b3 = climatology_forecast(hist_panel, target_month)
+    return m1, std, v3
 
+
+def _split_and_assemble(
+    stacked, sizes, m1, std, v3, b3, regions, routing
+) -> list[dict[str, float]]:
     results = []
     start = 0
     for size in sizes:
@@ -166,9 +162,50 @@ def predict_m4_many(
                 dict(zip(ids, v3[sl].tolist())),
                 b3,
                 regions,
+                routing,
             )
         )
     return results
+
+
+def predict_m4_many(
+    train_pairs: pd.DataFrame,
+    test_frames: list[pd.DataFrame],
+    hist_panel: pd.DataFrame,
+    target_month: pd.Timestamp,
+    regions: dict[str, str],
+) -> list[dict[str, float]]:
+    """Dự báo M4-R2 cho NHIỀU bản `test_rows` (cùng train_pairs): fit mỗi model
+    đúng 1 lần trên `train_pairs`, dự báo trên các dòng test xếp chồng, rồi
+    tách lại theo từng bản. Mỗi bản: mỗi tỉnh đúng 1 dòng (như `test_rows`).
+    `hist_panel` = dữ liệu ≤ train_end (tính B3)."""
+    sizes = [len(f) for f in test_frames]
+    stacked = pd.concat(test_frames, ignore_index=True)
+    m1, std, v3 = _fit_components(train_pairs, stacked)
+    b3 = climatology_forecast(hist_panel, target_month)
+    return _split_and_assemble(stacked, sizes, m1, std, v3, b3, regions, None)
+
+
+def predict_m4_routings(
+    train_pairs: pd.DataFrame,
+    test_rows: pd.DataFrame,
+    hist_panel: pd.DataFrame,
+    target_month: pd.Timestamp,
+    regions: dict[str, str],
+    routings: dict[str, dict[str, dict] | None],
+) -> dict[str, dict[str, float]]:
+    """Dự báo cho NHIỀU cấu hình định tuyến vùng, fit chỉ 1 lần: {tên: {tỉnh: dự
+    báo}}. `routings[tên]=None` → ROUTING mặc định (M4-R2); `{}` → không định
+    tuyến (GBM chuẩn cho mọi vùng = M4 ensemble đồng đều, exp_005)."""
+    m1, std, v3 = _fit_components(train_pairs, test_rows.reset_index(drop=True))
+    b3 = climatology_forecast(hist_panel, target_month)
+    stacked = test_rows.reset_index(drop=True)
+    return {
+        name: _split_and_assemble(
+            stacked, [len(stacked)], m1, std, v3, b3, regions, routing
+        )[0]
+        for name, routing in routings.items()
+    }
 
 
 def predict_m4(

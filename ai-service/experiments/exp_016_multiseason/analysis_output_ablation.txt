@@ -1,0 +1,69 @@
+[SANITY] 6528 dòng khớp; |M4-R2(ablation) − m4(results.json)| tối đa = 0.00e+00 (kỳ vọng 0)
+
+=== MASE gộp theo mùa (mẫu số gộp toàn quốc) ===
+        no_routing  bac_only  nam_only   M4-R2
+season                                        
+2005        0.4702    0.4486    0.4511  0.4293
+2006        0.3701    0.3565    0.3338  0.3201
+2007        0.5647    0.5462    0.5841  0.5656
+2008        0.5682    0.5575    0.5124  0.5017
+2009        0.4596    0.4505    0.4616  0.4525
+2010        0.8679    0.8530    0.8347  0.8199
+TB: {'no_routing': 0.5501, 'bac_only': 0.5354, 'nam_only': 0.5296, 'M4-R2': 0.5149}
+
+Cải thiện so với no_routing (%; dương = tốt hơn):
+        bac_only  nam_only  M4-R2
+season                           
+2005        4.59      4.06   8.68
+2006        3.69      9.82  13.51
+2007        3.28     -3.43  -0.15
+2008        1.88      9.81  11.69
+2009        1.98     -0.44   1.54
+2010        1.71      3.82   5.53
+Số mùa tốt hơn no_routing: {'bac_only': 6, 'nam_only': 4, 'M4-R2': 5}
+
+=== Theo vùng (mẫu số riêng vùng): MASE mỗi cấu hình ===
+
+Bắc:
+        no_routing  bac_only  nam_only  M4-R2
+season                                       
+2005         1.119     0.398     1.119  0.398
+2006         0.813     0.399     0.813  0.399
+2007         0.942     0.378     0.942  0.378
+2008         0.678     0.342     0.678  0.342
+2009         2.702     2.404     2.702  2.404
+2010         1.747     1.338     1.747  1.338
+  M4-R2 vs no_routing: số mùa tốt hơn 6 / 6 | TB thay đổi % -43.21
+
+Trung:
+        no_routing  bac_only  nam_only  M4-R2
+season                                       
+2005         0.350     0.350     0.350  0.350
+2006         0.270     0.270     0.270  0.270
+2007         0.246     0.246     0.246  0.246
+2008         0.206     0.206     0.206  0.206
+2009         0.293     0.293     0.293  0.293
+2010         0.902     0.902     0.902  0.902
+  M4-R2 vs no_routing: số mùa tốt hơn 0 / 6 | TB thay đổi % 0.0
+
+Nam:
+        no_routing  bac_only  nam_only  M4-R2
+season                                       
+2005         0.601     0.601     0.555  0.555
+2006         0.480     0.480     0.394  0.394
+2007         0.951     0.951     0.996  0.996
+2008         0.997     0.997     0.872  0.872
+2009         0.506     0.506     0.511  0.511
+2010         0.801     0.801     0.731  0.731
+  M4-R2 vs no_routing: số mùa tốt hơn 4 / 6 | TB thay đổi % -6.89
+
+=== Bootstrap theo origin: M4-R2 vs no_routing (cải thiện MASE gộp) ===
+TB +6.90% (CI95 +5.00%…+8.74%); origin thắng: 41/48; p dấu = 6.24e-07
+
+=== Theo horizon (MASE gộp TB qua mùa) ===
+         no_routing  bac_only  nam_only   M4-R2
+horizon                                        
+1            0.3226    0.3151    0.3265  0.3190
+2            0.4411    0.4286    0.4232  0.4107
+3            0.5635    0.5499    0.5366  0.5230
+6            0.8733    0.8483    0.8322  0.8072

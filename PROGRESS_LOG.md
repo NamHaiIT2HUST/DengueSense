@@ -9,6 +9,25 @@
 
 ---
 
+## 2026-09-26 — exp_016: đánh giá NHIỀU MÙA (2005–2010) — headline cũ là mùa KHÓ NHẤT; định tuyến vùng khái quát
+
+**Làm:** `app/forecast/multiseason.py` (`season_splits`, bootstrap theo origin, kiểm định dấu; 6 test), `app/forecast/alert_classifier.py` (classifier cảnh báo dùng lại; 3 test),
+`m4.py::predict_m4_routings` (fit 1 lần, ghép nhiều cấu hình định tuyến; refactor giữ nguyên tuyệt đối — verify 0.0), exp_016 (6 mùa × 8 origin × 4 horizon; M4-R2, B2/B3, cảnh báo) + exp_016b
+(ablation định tuyến). Sanity: mùa 2010 khớp exp_015 tuyệt đối; M4-R2 trong ablation khớp results.json tuyệt đối. Chạy có checkpoint theo mùa.
+
+**Kết quả chính:** **mùa 2010 là mùa khó nhất với MỌI model** (M4-R2 0.820, B3 0.996; các mùa khác M4-R2 0.32–0.57) → con số headline cũ là kịch bản bi quan. M4-R2 thắng B3 ở **6/6 mùa, 24/24 ô mùa×horizon,
+45/48 origin** (+22.2%, CI95 18.2–26.0%). Miền Bắc chỉ thất bại ở 2 mùa dịch (2009: 2.40; 2010: 1.34; B3 cũng tệ ở 2009), 0.34–0.40 ở 4 mùa còn lại; Trung 6/6; Nam chỉ hòa B3 (3/6). Cảnh báo ROC-AUC
+0.809 ± 0.041 (3/6 mùa ≥ 0.83; 2010 tệ nhất 0.757); base rate 0.13→0.35 (dịch chuyển phân phối xác nhận). Bùng dịch: bias âm ở mọi mùa (−3.6…−37.5). **Ablation:** định tuyến vùng khái quát (+6.9%, CI95 5.0–8.7%;
+Bắc thắng 6/6 mùa, MASE vùng −43%; Nam thắng 4/6).
+
+**Hệ quả:** model card (§1 tóm tắt, §6b mới, L1–L5/L7/L9) và tài liệu bàn giao được **hiệu chỉnh**; mọi thí nghiệm từ nay báo cáo theo từng mùa. Các kết luận âm tính trước đây (T2, đòn bẩy) được đo trên mùa khó nhất — cần kiểm lại.
+⚠️ Mùa ≤2009 nhiễm thiết kế (số tuyệt đối lạc quan; baseline không nhiễm).
+
+**File:** `ai-service/app/forecast/{multiseason,alert_classifier,m4}.py`, `ai-service/tests/test_forecast/{test_multiseason,test_alert_classifier,test_m4}.py`,
+`ai-service/experiments/exp_016_multiseason/`, `docs/07-model-card.md`, `docs/08-ban-giao-layer1.md`, `ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
 ## 2026-09-25 — Tài liệu bàn giao Layer 1 cho Minh Dương (`docs/08-ban-giao-layer1.md`)
 
 **Làm:** tổng kết đầy đủ để đồng đội tiếp nhận và thử cải thiện: bản đồ mã nguồn + cách chạy/tái lập, dữ liệu, giao thức và **8 quy tắc đánh giá

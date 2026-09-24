@@ -21,9 +21,14 @@ lịch sử của chính tỉnh đó** (cảnh báo).
 
 Theo vùng: **Nam 0.72 · Trung 0.90 · Bắc 1.37 (thua naive)**. Cảnh báo: **ROC-AUC 0.758**, PR-AUC 0.646 (base 0.35), Recall@P0.8 = 0.30; **Nam ~0.60**.
 
+> **⚠️ CẬP NHẬT 2026-09-26 (exp_016, đánh giá 6 mùa 2005–2010):** bảng trên là **mùa 2010 = mùa KHÓ NHẤT** (MASE gộp 0.820; các mùa khác 0.32–0.57, TB 0.515 ± 0.170).
+> M4-R2 thắng B3 ở **6/6 mùa** (+22% TB, CI95 18–26%); cảnh báo ROC-AUC **0.809 ± 0.041** (3/6 mùa ≥ 0.83; 2010 tệ nhất 0.757). Miền Bắc thất bại chỉ ở 2 mùa dịch (2009, 2010),
+> tốt ở 4 mùa còn lại; Nam chỉ hòa với B3. **Định tuyến vùng khái quát** (+6.9%, CI95 5.0–8.7%). Chi tiết: [exp_016 RESULTS](../ai-service/experiments/exp_016_multiseason/RESULTS.md).
+> **Lưu ý nhiễm thiết kế:** mùa ≤2009 nằm trong cửa sổ đã dùng để chọn thiết kế → số tuyệt đối lạc quan (baseline B2/B3 không bị nhiễm).
+
 **3 điều quan trọng nhất cần biết trước khi động vào:**
-1. **Toàn bộ đánh giá nằm trong 1 mùa dịch** (8 origin, target 2009-12 → 2010-12) và dữ liệu thật chỉ đến 2010. Chênh lệch ±1% là nhiễu. *Cải thiện lớn nhất về phương pháp luận
-   là mở rộng đánh giá ra nhiều mùa (xem §7, ý tưởng #1)* — làm việc này TRƯỚC khi tối ưu thêm.
+1. **~~Toàn bộ đánh giá nằm trong 1 mùa dịch~~ → ĐÃ CÓ khung nhiều mùa** (`app/forecast/multiseason.py`, exp_016; 6 mùa 2005–2010). **Mọi thí nghiệm mới PHẢI báo cáo theo từng mùa**, không chỉ mùa 2010
+   (mùa khó nhất, dễ dẫn tới kết luận âm tính sai). Mùa ≤2009 nhiễm thiết kế — dùng để đo độ biến thiên và độ ổn định, không công bố như kết quả "chưa từng thấy".
 2. **Đã thử rất nhiều hướng cải thiện điểm yếu (xem §5) — hầu hết thất bại.** Đừng lặp lại; tìm hướng KHÁC (dữ liệu mới, mô hình cấu trúc khác).
 3. **Kỷ luật bắt buộc:** chọn bằng cửa sổ VALIDATION với quy tắc khai báo trước, outer chỉ để xác nhận (xem §3). Chúng ta đã suýt tự lừa mình nhiều lần khi nhìn kết quả outer.
 
@@ -45,10 +50,12 @@ Theo vùng: **Nam 0.72 · Trung 0.90 · Bắc 1.37 (thua naive)**. Cảnh báo: 
 | `app/forecast/ensemble.py` | `combine_ensemble`, `validation_error_weights`, `route_by_group`. |
 | **`app/forecast/m4.py`** | **M4-R2 sản xuất:** `predict_m4`, `predict_m4_many` (fit 1 lần, dự báo nhiều bản đầu vào), `assemble_m4`. |
 | `app/forecast/alerting.py` | Bài toán B: ngưỡng P75 nhân quả, đuôi Poisson, Platt/Isotonic/Residual, ECE/reliability. |
+| `app/forecast/multiseason.py` | **Khung đánh giá nhiều mùa:** `season_splits`, `cluster_bootstrap_ci`, `sign_test_pvalue` (6 test). |
+| `app/forecast/alert_classifier.py` | Classifier cảnh báo trực tiếp (exp_012) dùng lại được (3 test). |
 | `app/forecast/explain.py` | TreeSHAP chính xác (LightGBM `pred_contrib`, XGBoost `pred_contribs`), nhóm đặc trưng. |
-| `experiments/exp_001…015/` | Mỗi thí nghiệm: `config.yaml`, `run.py` (+`analyze.py`), `RESULTS.md`, kết quả thô. **Đọc `RESULTS.md` là nhanh nhất.** |
+| `experiments/exp_001…016/` | Mỗi thí nghiệm: `config.yaml`, `run.py` (+`analyze.py`), `RESULTS.md`, kết quả thô. **Đọc `RESULTS.md` là nhanh nhất.** |
 | `notebooks/00–04` | Ingest/EDA/tuning (đã chạy). |
-| `tests/` | **138 test** (`pytest -q`, ~10s): nhân quả đặc trưng, hồi quy các bug đã gặp, split, metric, model, ensemble, alerting, explain. |
+| `tests/` | **148 test** (`pytest -q`, ~10s): nhân quả đặc trưng, hồi quy các bug đã gặp, split, metric, model, ensemble, alerting, explain. |
 
 **Cài đặt/chạy:** Python 3.13 (venv `ai-service/venv`), `pip install -r requirements.txt` (+ `optuna`, `rpy2` nếu chạy M3/tuning). `ruff check . && black --check . && pytest -q`
 phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/interim`, `data/processed`) **không nằm trong git** — sinh lại bằng `run_luong_a`/`build_panel`
@@ -79,6 +86,7 @@ phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/in
 6. **MASE theo vùng phải dùng mẫu số riêng từng vùng** (mẫu số gộp che điểm yếu miền Bắc).
 7. **GBM nhạy THỨ TỰ cột** (bagging): đổi thứ tự cột đổi dự báo tới ~6/100k. Cột mới luôn **nối cuối**.
 8. Test set chỉ `real` (`assert_test_is_real_only`). Không dùng `estimated`/`imputed`/`simulated` làm target ở test.
+9. **Báo cáo kết quả THEO TỪNG MÙA** (`season_splits` trong `app/forecast/multiseason.py`), kèm trung bình ± sd và số mùa thắng — đừng chỉ mùa 2010 (mùa khó nhất). Ghi rõ mùa ≤2009 nhiễm thiết kế nếu dùng để chọn.
 
 ## 4. Lịch sử thí nghiệm (đọc `experiments/exp_XXX/RESULTS.md` để biết chi tiết)
 
@@ -99,8 +107,11 @@ phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/in
 | 013 | 3 đòn bẩy cảnh báo | không cái nào qua quy tắc | dừng |
 | 014 | SHAP | 3 trụ: ca gần đây, chuẩn mùa vụ, khí hậu | — |
 | 015 | Lag theo tháng lịch | ảnh hưởng ≤1% | dùng `calendarize=True` |
+| 016 | **Đánh giá nhiều mùa (2005–2010)** + ablation định tuyến | **2010 là mùa khó nhất**; M4-R2 thắng B3 6/6 mùa (+22%, CI 18–26%); cảnh báo ROC 0.809±0.041; Bắc chỉ thất bại 2 mùa dịch; định tuyến khái quát (+6.9%) | headline cũ = kịch bản bi quan; dùng khung này từ giờ |
 
 ## 5. Đã thử và THẤT BẠI — đừng lặp lại (hoặc chỉ lặp với thay đổi có lý do)
+
+> ⚠️ Các kết luận âm tính bên dưới được đo trên **mùa 2010 (mùa khó nhất)** — hãy kiểm lại bằng khung nhiều mùa trước khi bỏ hẳn.
 
 | Hướng | Kết quả | Vì sao có thể thất bại |
 |---|---|---|
@@ -116,6 +127,8 @@ phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/in
 
 ## 6. Điểm yếu còn lại (xếp theo mức quan trọng với sản phẩm)
 
+> Các số dưới đây là **mùa 2010 (khó nhất)**; xem exp_016 cho biến thiên giữa 6 mùa (ví dụ Bắc: 0.34–0.40 ở 4 mùa, 2.40 và 1.34 ở 2 mùa dịch; ROC-AUC cảnh báo 0.757–0.857).
+
 | # | Điểm yếu | Số đo hiện tại | Nghi vấn nguyên nhân |
 |---|---|---|---|
 | 1 | **Bùng dịch bị dự báo thấp** | bias ≈ −15.5/100k; MASE bùng dịch 2.5 vs 0.5; 38.7% ca bùng dịch bị dự báo < 50% thực tế (M4-E1) | hồi quy về trung bình; đặc trưng không có tín hiệu SỚM của bùng phát đột ngột |
@@ -127,8 +140,9 @@ phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/in
 
 ## 7. Ý tưởng CHƯA thử (xếp theo giá trị kỳ vọng / chi phí) — chỗ Minh Dương có thể tạo khác biệt
 
-1. **Đánh giá nhiều mùa (multi-season backtest) — làm ĐẦU TIÊN.** Hiện chỉ 8 origin cuối (2009-11→2010-06). Dữ liệu real trải 1994–2010: dựng nhiều outer window (vd 3–5 mùa 2005–2010, huấn luyện chỉ trên quá khứ của từng mùa) để có
-   ước lượng ổn định + khoảng tin cậy + biết kết quả đổi thế nào giữa các năm. Rẻ (đổi `make_splits`/thêm cửa sổ), giá trị cực cao: mọi kết luận "±1%" hiện nay đều chưa kiểm định. Có thể làm lại bảng M4-R2 vs B3 theo từng mùa.
+1. ✅ **ĐÃ LÀM — Đánh giá nhiều mùa (exp_016).** Kết quả: xem đầu tài liệu và [RESULTS](../ai-service/experiments/exp_016_multiseason/RESULTS.md). **Việc còn lại từ ý tưởng này:**
+   (a) **chạy lại các đòn bẩy âm tính** (tuning T2, đòn bẩy cảnh báo, đặc trưng không gian) trên khung nhiều mùa — chúng bị đánh giá trên mùa khó nhất nên kết luận "không cải thiện" chưa chắc đúng ở mọi mùa;
+   (b) bootstrap theo khối/mùa thay vì theo origin; (c) phân tích **vì sao "năm dịch bất thường" (Bắc 2009) làm cả model lẫn B3 thất bại** — có thể là điểm cải thiện giá trị nhất.
 2. **Dữ liệu mới** (tác động lớn nhất tới kết quả thật): ca theo TUẦN (ưu tiên số 1 cho bùng dịch/lead time), dữ liệu real sau 2010 (NSO cấp tỉnh/HCDC — thêm mùa dịch, kiểm chứng hiện đại), chỉ số muỗi (Breteau/HI). Cần quyền truy cập — chưa có.
 3. **Dự báo phân phối (probabilistic):** quantile GBM / conformal / NegBin phân cấp cho **khoảng dự báo** và đuôi bùng dịch; cảnh báo suy từ phân phối đó thay cho hồi quy điểm + hiệu chỉnh. Có thể giải quyết trực tiếp #1 và #2 (đuôi phải), chưa thử.
 4. **Mô hình hai giai đoạn (hurdle/zero-inflated) cho miền Bắc:** P(có ca) × E[ca | có ca]. Chuỗi thưa hợp cấu trúc này hơn Poisson-GBM; nhắm thẳng #3.
@@ -142,7 +156,7 @@ phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/in
 
 1. Tạo `experiments/exp_0XX_ten/` với `config.yaml` (khai báo **biến thể + quy tắc chấp nhận** trước), `run.py`, `analyze.py`. Dùng `app/forecast/backtest.py` (đừng copy lại).
 2. **Sanity đầu tiên:** biến thể control phải khớp số đã công bố (sai lệch 0.0) — chứng minh harness đúng.
-3. Chạy validation (10 origin ≤2008-12) → áp quy tắc → mới xem outer. Ghi CẢ kết quả âm tính vào `RESULTS.md` (mục "Điều bất ngờ / nghi vấn").
+3. Chạy validation (10 origin ≤2008-12) → áp quy tắc → mới xem outer → **rồi chạy khung nhiều mùa (exp_016) để biết kết quả có ổn định giữa các năm không**. Ghi CẢ kết quả âm tính vào `RESULTS.md` (mục "Điều bất ngờ / nghi vấn").
 4. Nếu được nhận: đưa vào `app/` (có test) + `verify_*` khớp tuyệt đối với experiment + cập nhật `MODEL_ZOO_RESULTS.md`, `PROGRESS_LOG.md`, `docs/07-model-card.md`.
 5. Việc chạy dài (>~10 phút): chạy nền `python -u ...`, hoặc đóng gói notebook như `04_tune_m2.ipynb` (có sleep-guard + checkpoint). Nhớ **restart kernel** khi sửa `run.py`.
 6. Commit: người dùng tự chạy `git`; không thêm dòng đồng tác giả của công cụ.

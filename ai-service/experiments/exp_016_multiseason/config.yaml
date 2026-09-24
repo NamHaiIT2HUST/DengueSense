@@ -1,0 +1,15 @@
+experiment:
+  id: exp_016_multiseason
+  description: "Danh gia NHIEU MUA (2005-2010) cho M4-R2, baseline B2/B3, classifier canh bao; kem ablation dinh tuyen vung qua cac mua"
+  author: nam-hai
+data: {path: data/processed/v0.2.0/panel_monthly.parquet, filter: "data_source == 'real'", calendarize: true}
+seasons:
+  years: [2005, 2006, 2007, 2008, 2009, 2010]
+  definition: "mua Y: 8 origin, train_end (Y-1)-11 .. Y-06, target <= Y-12; mua 2010 = dung outer cu (khop exp_015 tuyet doi)"
+  framework: app/forecast/multiseason.py
+horizons: [1, 2, 3, 6]
+models: [M4-R2 (m4.py), B3 climatology, B2 seasonal naive, classifier canh bao (alert_classifier.py)]
+ablation: {file: run_ablation.py, routings: [M4-R2, no_routing, bac_only, nam_only]}
+statistics: "bootstrap co hoan lai theo ORIGIN (5000 lan, seed 42) + kiem dinh dau; con lac quan vi origin ke nhau tu tuong quan"
+caveat: "khong mua nao sach tuyet doi cho M4-R2: thiet ke chon tren validation <=2008 va outer 2010"
+outputs: [results.json, results_ablation.json, analysis_output.txt, analysis_output_ablation.txt]
