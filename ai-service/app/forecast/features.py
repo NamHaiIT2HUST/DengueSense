@@ -260,3 +260,24 @@ def add_spatial_features(
     )
     nat["nat_mom"] = nat["nat_mean_lag_2"] - nat_mean.shift(l2).to_numpy()
     return out.merge(nat, on="month", how="left")
+
+
+def impute_climate_causal(
+    panel: pd.DataFrame, cols: tuple[str, ...] = CLIMATE_COLS
+) -> pd.DataFrame:
+    """Điền khuyết khí hậu thô NHÂN QUẢ (chỉ dùng dữ liệu các tháng TRƯỚC): giá
+    trị thiếu được thay bằng trung bình các năm trước của đúng tháng dương lịch
+    tại tỉnh đó; chưa có năm nào trước thì dùng trung bình mọi tháng trước. Dùng
+    làm phương án dự phòng khi pipeline khí hậu bị gián đoạn (exp_010). Giá
+    trị không thiếu được giữ nguyên."""
+    df = _sorted(panel)
+    for col in cols:
+        x = df[col].astype("float64")
+        by_month = x.groupby([df["province_id"], df["month"].dt.month]).transform(
+            lambda s: s.expanding().mean().shift(1)
+        )
+        overall = x.groupby(df["province_id"]).transform(
+            lambda s: s.expanding().mean().shift(1)
+        )
+        df[col] = x.fillna(by_month).fillna(overall)
+    return df

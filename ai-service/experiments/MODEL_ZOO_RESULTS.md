@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_009 — tín hiệu không gian, M4-R2 vẫn là bản hiện hành)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_013 — đòn bẩy cảnh báo, âm tính)
 
 ## Biểu đồ
 
@@ -90,6 +90,22 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
    miền Bắc (~1.3) và bias bùng dịch (~−15.5) là **giới hạn của dữ liệu hiện có**, cần nguồn mới hoặc nêu rõ trong
    model card. Hạn chế đã biết mới: 5/34 tỉnh có 1-2 tháng thiếu giữa chuỗi → lag row-based lệch nhẹ (chưa sửa).
 
+9. **Độ vững M4-R2 (exp_010, docs/02 §4.4):** vẫn thắng seasonal-naive (MASE gộp <1) ở MỌI điều kiện thử. Nhiễu khí hậu
+   5%: +1.7%; 10%: +4.3% (h=1 nhạy nhất, +15%). Khuyết 10%/20% KHÔNG xử lý: +6.0%/+8.5%, nặng nhất ở miền Trung
+   (+12-17%) và tháng bùng dịch (+15-24%). **Điền khuyết nhân quả bằng khí hậu trung bình cùng tháng đưa suy giảm về
+   ≈0 (+0.0%/+0.5%)** → bước bắt buộc trong pipeline vận hành (`features.impute_climate_causal`). Chưa thử: gián
+   đoạn liên tục nhiều tháng, nhiễu ở dữ liệu huấn luyện, năm bất thường 2020-21/2023 (dữ liệu real hết 2010).
+
+10. **Bài toán B — cảnh báo vượt ngưỡng P75 (exp_011, exp_012, docs/02 §5.2-5.3):** suy từ hồi quy M4-R2 → ROC-AUC 0.72,
+   PR-AUC 0.65 (base 0.35); hiệu chỉnh cắt Brier ~25% (0.273→0.205) nhưng KHÔNG cải thiện xếp hạng. **Classifier trực tiếp
+   (thắng theo quy tắc validation) → ROC-AUC 0.758** (h=1 0.80, h=6 0.75; Bắc 0.84; **Nam ~0.60 gần ngẫu nhiên**), Recall@P0.8
+   0.30. **Chưa đạt mốc D-MOSS 0.83–0.94** và chưa đạt "precision 0.8 ở recall hữu ích"; lead time chỉ ~37% sự kiện được báo
+   trước (trung vị 2 tháng, 1 mùa). Base rate outer (0.35) gần gấp đôi validation (0.18) → phải hiệu chỉnh lại định kỳ.
+
+11. **Đòn bẩy cho cảnh báo (exp_013) — âm tính:** không gian, model chung horizon, trung bình hạng với điểm hồi quy — KHÔNG đòn
+   bẩy nào qua quy tắc khai báo trước trên validation. A3 tệ nhất ở validation nhưng cao nhất ở outer (mâu thuẫn, không nhận).
+   **Classifier cảnh báo dừng ở ROC-AUC ~0.76** (< D-MOSS 0.83): với dữ liệu hiện có, cải thiện thêm = overfit vào 1 mùa dịch.
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -106,5 +122,5 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
 - [ ] Bias bùng dịch và miền Bắc >1: giới hạn dữ liệu (đã thử quy mô, isotonic, Tweedie, trọng số, pha B3, không gian) — cần nguồn mới; nêu rõ trong model card.
 - [ ] Sửa lag theo tháng lịch (reindex) khi chạy lại toàn pipeline (5/34 tỉnh có tháng thiếu).
-- [ ] Robustness §4.4 (nhiễu khí hậu ±5/10%, khuyết thiếu 10/20%) — cần chạy nhiều lần, đóng gói notebook.
-- [ ] Hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02, chưa bắt đầu.
+- [ ] Robustness mở rộng: gián đoạn liên tục 2-3 tháng, nhiễu có tương quan/ở dữ liệu huấn luyện.
+- [x] Hiệu chỉnh xác suất + cảnh báo (exp_011/012). [ ] SHAP, model card — chưa bắt đầu.

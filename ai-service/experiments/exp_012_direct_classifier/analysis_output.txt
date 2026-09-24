@@ -1,0 +1,28 @@
+dòng khớp: 2448 / clf 2448 / derived 2448; nhãn khớp 1.0000
+
+=== VALIDATION (điểm thô; quy tắc chọn = PR-AUC cao hơn) ===
+              PR_AUC  ROC_AUC  Recall@P0.8  Prec@R0.8
+classifier     0.495    0.792        0.048       0.32
+derived(reg)   0.289    0.605        0.004       0.21
+=> chọn theo validation: classifier
+
+=== OUTER (xác nhận) ===
+horizon  base       method  PR_AUC  ROC_AUC  Recall@P0.8  Prec@R0.8  Brier   ECE
+      1 0.312   classifier   0.688    0.796        0.376      0.523  0.171 0.083
+      1 0.312 derived(reg)   0.664    0.746        0.412      0.366  0.169 0.044
+      2 0.342   classifier   0.635    0.739        0.280      0.447  0.209 0.111
+      2 0.342 derived(reg)   0.684    0.745        0.344      0.439  0.179 0.056
+      3 0.353   classifier   0.616    0.738        0.177      0.450  0.204 0.128
+      3 0.353 derived(reg)   0.665    0.722        0.302      0.414  0.204 0.094
+      6 0.397   classifier   0.637    0.748        0.296      0.524  0.204 0.121
+      6 0.397 derived(reg)   0.577    0.665        0.046      0.418  0.253 0.164
+    all 0.351   classifier   0.646    0.758        0.296      0.472  0.197 0.089
+    all 0.351 derived(reg)   0.646    0.720        0.188      0.387  0.201 0.079
+
+=== OUTER theo vùng (PR-AUC / ROC-AUC) ===
+Bắc    base 0.275 | classifier PR 0.684 ROC 0.839 | derived PR 0.663 ROC 0.770
+Nam    base 0.238 | classifier PR 0.339 ROC 0.597 | derived PR 0.352 ROC 0.635
+Trung  base 0.537 | classifier PR 0.834 ROC 0.766 | derived PR 0.740 ROC 0.685
+
+=== Ensemble điểm: trung bình hạng (classifier + derived) ===
+{'PR_AUC': 0.694, 'ROC_AUC': 0.76, 'Recall@P0.8': 0.338, 'Prec@R0.8': 0.5}

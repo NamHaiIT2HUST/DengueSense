@@ -1,0 +1,23 @@
+experiment:
+  id: exp_010_robustness
+  description: "Do vung M4-R2 (docs/02 4.4): nhieu khi hau 5/10%, khuyet 10/20%, va bien phap giam thieu dien khuyet nhan qua"
+  author: nam-hai
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+splits:
+  outer: {n_origins: 8, embargo_months: 1}
+  reporting_delay_months: 1
+horizons: [1, 2, 3, 6]
+model: M4-R2 (app/forecast/m4.py::predict_m4_many)
+scenario: "train tren du lieu sach; chi dau vao luc du bao bi nhieu/khuyet"
+conditions:
+  clean: {}
+  noise_5: {noise_sd: 0.05}
+  noise_10: {noise_sd: 0.10}
+  missing_10: {missing_prob: 0.10}
+  missing_20: {missing_prob: 0.20}
+  missing_10_imputed: {missing_prob: 0.10, impute: causal_same_month_mean}
+  missing_20_imputed: {missing_prob: 0.20, impute: causal_same_month_mean}
+reps: 10
+metrics: {primary: mase}

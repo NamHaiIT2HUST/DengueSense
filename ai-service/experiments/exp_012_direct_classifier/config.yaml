@@ -1,0 +1,15 @@
+experiment:
+  id: exp_012_direct_classifier
+  description: "Classifier truc tiep (XGB binary:logistic + LGBM binary, T1) cho canh bao vuot P75 - phuong an du phong docs/02 muc 1, kich hoat vi exp_011 ROC-AUC ~0.73 < moc 0.83"
+  author: nam-hai
+data: {path: data/processed/v0.2.0/panel_monthly.parquet, filter: "data_source == 'real'"}
+splits:
+  validation: {n_origins: 10, cutoff: "2008-12-01", embargo_months: 1}
+  outer: {n_origins: 8, embargo_months: 1}
+  reporting_delay_months: 1
+horizons: [1, 2, 3, 6]
+label: "y(t+h) > P75 mo rong nhan qua cua tinh cho thang do (alerting.add_expanding_exceedance_threshold)"
+features: "17 T1 + prov_mean_hist/12m + thr_target + 5 dac trung ca benh chia cho (thr+1)"
+selection_rule: "PR-AUC (diem tho) cao hon tren VALIDATION; outer chi xac nhan; ca hai hieu chinh isotonic truc tuyen"
+metrics: [PR-AUC, ROC-AUC, Brier, ECE, Recall@P0.8, Precision@R0.8]
+seed: 42

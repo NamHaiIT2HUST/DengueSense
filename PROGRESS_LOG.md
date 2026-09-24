@@ -9,6 +9,58 @@
 
 ---
 
+## 2026-09-25 — exp_013: 3 đòn bẩy cho cảnh báo — không cái nào qua quy tắc khai báo trước; cảnh báo dừng ở ROC-AUC ~0.76
+
+**Làm:** thử A1 (đặc trưng không gian), A2 (model chung mọi horizon), A3 (trung bình hạng với điểm suy từ hồi quy); quy tắc nhận
+khai báo trước trên validation (PR-AUC +5% tương đối và ROC không giảm). `smoke.py` xác nhận A0 khớp exp_012 tuyệt đối.
+**Kết quả:** A1 −1.3%, A2 +1.5%, A3 −17.6% trên validation → không nhận. Outer: A1/A2 ≈ không đổi (ROC 0.758-0.760); **A3 cao nhất ở
+outer (PR-AUC 0.694) nhưng tệ nhất ở validation — không đổi quy tắc sau khi thấy outer.** Kết luận: cảnh báo ROC-AUC ~0.76 là trần
+với dữ liệu/đặc trưng hiện có; tối ưu thêm trên 1 mùa dịch = overfit.
+
+**File:** `ai-service/experiments/exp_013_alert_levers/`, `ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
+## 2026-09-25 — exp_011 + exp_012: bài toán cảnh báo (P75) — xác suất hiệu chỉnh tốt, phân biệt khiêm tốn (ROC-AUC 0.76 < mốc 0.83)
+
+**Làm:** `app/forecast/alerting.py` (ngưỡng P75 nhân quả, đuôi Poisson, Platt/Isotonic/Residual, reliability/ECE, ngưỡng mở
+rộng theo dòng; 9 test), exp_011 (suy từ hồi quy M4-R2, hiệu chỉnh, lead time), exp_012 (classifier trực tiếp — phương án
+dự phòng docs/02 §1 vì exp_011 dưới mốc). Bộ hiệu chỉnh chọn bằng Brier leave-one-origin-out TRÊN VALIDATION.
+
+**Kết quả (outer, base 0.35):** exp_011: Poisson thô cực quá tự tin (ECE 0.26); isotonic cắt Brier 0.273→0.205, ECE 0.10
+(0.079 trực tuyến), nhưng ROC-AUC chỉ 0.73, PR-AUC 0.61. **exp_012 classifier trực tiếp (thắng validation, PR-AUC 0.495 vs
+0.289): ROC-AUC 0.758, Recall@P0.8 0.30** — thắng ở h=1 (0.80) và h=6 (0.75), Bắc (0.84); **Nam ~0.60**; PR-AUC gộp ngang
+nhau (0.646). Chưa đạt mốc D-MOSS 0.83-0.94; chưa đạt precision 0.8 ở recall hữu ích. Lead time (exp_011): 37% sự kiện được
+báo trước, trung vị 2 tháng (1 mùa) — không được phát biểu "5–9 tuần" như khả năng chung.
+
+**Phát hiện:** base rate outer (0.35) gần gấp đôi validation (0.18) dù ngưỡng là P75 → dịch chuyển phân phối theo thời gian
+làm lệch hiệu chỉnh tĩnh; cần hiệu chỉnh lại định kỳ. Validation phóng đại khoảng cách classifier/derived (0.79 vs 0.61 → chỉ
++0.04 ở outer).
+
+**File:** `ai-service/app/forecast/alerting.py`, `ai-service/tests/test_forecast/test_alerting.py`,
+`ai-service/experiments/exp_011_alerting/`, `ai-service/experiments/exp_012_direct_classifier/`,
+`ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
+## 2026-09-25 — exp_010: robustness M4-R2 — chịu được nhiễu ≤5%; khuyết gây hại nhưng điền khuyết nhân quả xử lý gần hết
+
+**Làm:** `m4.py::predict_m4_many` (fit 1 lần, dự báo cho nhiều bản đầu vào; `predict_m4` giờ là trường hợp 1 bản, vẫn
+khớp tuyệt đối kết quả exp_008), `features.py::impute_climate_causal` (3 test gồm kiểm tra nhân quả), exp_010 (7 điều
+kiện × 10 lần lặp × 32 fold, ~15 phút — không cần notebook nhờ fit-1-lần). Sanity: `clean` khớp M4-R2 tuyệt đối.
+
+**Kết quả (MASE gộp so với sạch 0.8185):** nhiễu 5% +1.7%, nhiễu 10% +4.3% (h=1 +15%); khuyết 10%/20% +6.0%/+8.5%
+(Trung +12-17%, bùng dịch +15-24%, bias −15.6→−19.8); **khuyết + điền khuyết nhân quả: +0.0%/+0.5%**. Vẫn <1 mọi điều kiện.
+Miền Bắc "tốt hơn" khi khuyết là ảo giác (NaN kéo dự báo thấp xuống, mà M4 vốn dự báo Bắc quá cao).
+
+**Quyết định:** đưa điền khuyết nhân quả vào pipeline vận hành. **Chưa kiểm:** gián đoạn liên tục, nhiễu ở dữ liệu
+huấn luyện, năm bất thường 2020-21/2023 (dữ liệu real hết 2010).
+
+**File:** `ai-service/app/forecast/{m4,features}.py`, `ai-service/tests/test_forecast/test_features.py`,
+`ai-service/experiments/exp_010_robustness/`, `ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
 ## 2026-09-24 — exp_009: tín hiệu không gian — có thật nhưng YẾU; M4-R2 giữ nguyên; kết luận điểm yếu là giới hạn dữ liệu
 
 **Làm:** `features.py::add_spatial_features` (ca bệnh láng giềng theo ma trận kề + toàn quốc, nhân quả, 5 test) và

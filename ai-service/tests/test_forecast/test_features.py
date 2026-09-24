@@ -323,3 +323,57 @@ def test_spatial_neighbor_mean_skips_missing_neighbors():
     row = feat[(feat.province_id == "b") & (feat.month == pd.Timestamp("2015-06-01"))]
     assert row["nb_mean_lag_2"].iloc[0] == pytest.approx(8.0)  # chi tinh a (x1)
     assert row["nb_max_lag_2"].iloc[0] == pytest.approx(8.0)
+
+
+def test_impute_climate_causal_uses_only_past_same_month():
+    from app.forecast.features import impute_climate_causal
+
+    months = pd.to_datetime(["2000-01-01", "2001-01-01", "2002-01-01", "2003-01-01"])
+    df = pd.DataFrame(
+        {
+            "province_id": "a",
+            "month": months,
+            "temp_mean": [10.0, 20.0, np.nan, 999.0],
+            "precip_total": 1.0,
+            "humidity_mean": 1.0,
+        }
+    )
+    out = impute_climate_causal(df)
+    # 2002-01 thieu -> trung binh cac nam TRUOC cua thang 1 = (10+20)/2, khong dung 999 (tuong lai)
+    assert out.loc[2, "temp_mean"] == pytest.approx(15.0)
+    assert out.loc[3, "temp_mean"] == 999.0  # khong thieu -> giu nguyen
+    assert out.loc[0, "temp_mean"] == 10.0
+
+
+def test_impute_climate_causal_first_value_missing_stays_nan():
+    from app.forecast.features import impute_climate_causal
+
+    df = pd.DataFrame(
+        {
+            "province_id": "a",
+            "month": pd.to_datetime(["2000-01-01", "2000-02-01"]),
+            "temp_mean": [np.nan, 5.0],
+            "precip_total": 1.0,
+            "humidity_mean": 1.0,
+        }
+    )
+    out = impute_climate_causal(df)
+    assert np.isnan(out.loc[0, "temp_mean"])  # chua co lich su nao de dien
+    assert out.loc[1, "temp_mean"] == 5.0
+
+
+def test_impute_climate_causal_is_causal():
+    from app.forecast.features import impute_climate_causal
+
+    panel = _make_panel(n_months=40)
+    panel.loc[panel.index[10], "temp_mean"] = np.nan
+    a = impute_climate_causal(panel)
+    b_in = panel.copy()
+    b_in.loc[b_in["month"] == b_in["month"].max(), "temp_mean"] = 999_999.0
+    b = impute_climate_causal(b_in)
+    before = a["month"] != a["month"].max()
+    pd.testing.assert_series_equal(
+        a.loc[before, "temp_mean"].reset_index(drop=True),
+        b.loc[before, "temp_mean"].reset_index(drop=True),
+        check_names=False,
+    )

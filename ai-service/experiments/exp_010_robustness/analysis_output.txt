@@ -1,0 +1,58 @@
+=== M4-R2: MASE theo điều kiện (trung bình qua các lần lặp) ===
+                       h1     h2     h3  ...    Nam  outbreak  bias_outbreak
+condition                                ...                                
+clean               0.404  0.625  0.851  ...  0.722     2.526        -15.551
+noise_5             0.432  0.639  0.856  ...  0.740     2.549        -15.484
+noise_10            0.464  0.649  0.865  ...  0.771     2.579        -14.998
+missing_10          0.412  0.648  0.918  ...  0.727     2.909        -18.358
+missing_20          0.423  0.669  0.943  ...  0.729     3.126        -19.834
+missing_10_imputed  0.404  0.626  0.853  ...  0.719     2.536        -15.670
+missing_20_imputed  0.407  0.632  0.859  ...  0.717     2.563        -15.884
+
+[7 rows x 10 columns]
+
+=== độ lệch chuẩn qua các lần lặp ===
+                        h1      h2      h3  ...     Nam  outbreak  bias_outbreak
+condition                                   ...                                 
+clean                  NaN     NaN     NaN  ...     NaN       NaN            NaN
+noise_5             0.0141  0.0107  0.0102  ...  0.0147    0.0269         0.2010
+noise_10            0.0159  0.0186  0.0269  ...  0.0168    0.0489         0.7124
+missing_10          0.0113  0.0178  0.0387  ...  0.0170    0.1071         0.7661
+missing_20          0.0141  0.0180  0.0236  ...  0.0258    0.0732         0.5506
+missing_10_imputed  0.0025  0.0050  0.0056  ...  0.0043    0.0182         0.1029
+missing_20_imputed  0.0061  0.0070  0.0096  ...  0.0050    0.0332         0.2628
+
+[7 rows x 10 columns]
+
+=== Thay đổi tương đối so với sạch (%; dương = tệ hơn) ===
+                      h1   h2    h3   h6  all  Bac  Trung  Nam  outbreak
+condition                                                               
+noise_5              6.9  2.2   0.7  0.5  1.7  0.8    1.1  2.4       0.9
+noise_10            14.8  3.8   1.7  3.0  4.3  3.9    2.3  6.8       2.1
+missing_10           1.9  3.7   7.9  7.2  6.0 -5.0   11.6  0.7      15.2
+missing_20           4.6  7.0  10.8  8.9  8.5 -7.0   16.5  0.9      23.8
+missing_10_imputed  -0.1  0.2   0.3 -0.1  0.0 -0.5    0.5 -0.4       0.4
+missing_20_imputed   0.6  1.1   1.0 -0.2  0.5  0.3    1.4 -0.7       1.5
+
+=== Sanity: clean khớp M4-R2 (exp_008)? ===
+clean: h1 0.404 h2 0.625 h3 0.851 h6 1.394 all 0.8185 (kỳ vọng 0.404/0.625/0.851/1.394/0.8185)
+
+=== Độ phủ: số dòng test có đặc trưng NaN (trung bình mỗi fold) ===
+condition
+clean                  0.0
+noise_5                0.0
+noise_10               0.0
+missing_10            30.7
+missing_20            33.6
+missing_10_imputed     0.0
+missing_20_imputed     0.0
+Name: rows_with_nan_features, dtype: float64
+
+=== Còn thắng seasonal-naive/B3 không? (all < 1 ; và vs M4-R2 sạch) ===
+clean       MASE gộp 0.8185  < 1: True
+noise_5     MASE gộp 0.8320  < 1: True
+noise_10    MASE gộp 0.8535  < 1: True
+missing_10  MASE gộp 0.8680  < 1: True
+missing_20  MASE gộp 0.8884  < 1: True
+missing_10_imputed MASE gộp 0.8189  < 1: True
+missing_20_imputed MASE gộp 0.8225  < 1: True

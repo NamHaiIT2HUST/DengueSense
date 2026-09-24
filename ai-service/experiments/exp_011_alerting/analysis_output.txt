@@ -1,0 +1,70 @@
+=== Base rate (tỉ lệ vượt ngưỡng P75) ===
+         validation  outer
+horizon                   
+1             0.194  0.312
+2             0.182  0.342
+3             0.174  0.353
+6             0.185  0.397
+outer theo vùng: {'Bắc': 0.275, 'Nam': 0.238, 'Trung': 0.537}
+tỉnh có ngưỡng = 0 (nhãn = 'có ca'): 29.1% của quan sát outer
+
+=== CHỌN cách hiệu chỉnh: Brier leave-one-origin-out trên VALIDATION ===
+  isotonic     Brier(LOO validation) = 0.1405
+  platt        Brier(LOO validation) = 0.1442
+  residual     Brier(LOO validation) = 0.2043
+  poisson_raw  Brier(LOO validation) = 0.2333
+=> chọn: isotonic
+
+=== OUTER: chỉ số cảnh báo (fit hiệu chỉnh trên validation) ===
+horizon  base_rate    n                method  PR_AUC  ROC_AUC  Brier   ECE  Recall@P0.8  Prec@R0.8
+      1      0.312  272           poisson_raw   0.668    0.761  0.258 0.254        0.435      0.489
+      1      0.312  272                 platt   0.664    0.746  0.173 0.078        0.412      0.366
+      1      0.312  272              isotonic   0.630    0.758  0.172 0.068        0.412      0.326
+      1      0.312  272              residual   0.659    0.746  0.211 0.192        0.412      0.366
+      1      0.312  272          platt_online   0.653    0.738  0.174 0.072        0.388      0.399
+      1      0.312  272       isotonic_online   0.642    0.736  0.169 0.044        0.282      0.380
+      1      0.312  272 score_ratio(pred/thr)   0.630    0.732    NaN   NaN        0.353      0.429
+      2      0.342  272           poisson_raw   0.644    0.756  0.254 0.248        0.344      0.507
+      2      0.342  272                 platt   0.684    0.745  0.198 0.096        0.344      0.439
+      2      0.342  272              isotonic   0.611    0.739  0.185 0.092        0.333      0.342
+      2      0.342  272              residual   0.684    0.745  0.209 0.181        0.333      0.434
+      2      0.342  272          platt_online   0.673    0.731  0.192 0.071        0.441      0.429
+      2      0.342  272       isotonic_online   0.659    0.735  0.179 0.056        0.419      0.404
+      2      0.342  272 score_ratio(pred/thr)   0.674    0.752    NaN   NaN        0.333      0.453
+      3      0.353  272           poisson_raw   0.642    0.750  0.293 0.288        0.427      0.490
+      3      0.353  272                 platt   0.665    0.722  0.225 0.140        0.302      0.414
+      3      0.353  272              isotonic   0.589    0.712  0.211 0.112        0.104      0.358
+      3      0.353  272              residual   0.662    0.722  0.236 0.205        0.302      0.412
+      3      0.353  272          platt_online   0.670    0.715  0.215 0.120        0.312      0.417
+      3      0.353  272       isotonic_online   0.638    0.707  0.204 0.094        0.260      0.367
+      3      0.353  272 score_ratio(pred/thr)   0.684    0.753    NaN   NaN        0.302      0.497
+      6      0.397  272           poisson_raw   0.629    0.706  0.286 0.286        0.000      0.494
+      6      0.397  272                 platt   0.577    0.665  0.283 0.209        0.046      0.418
+      6      0.397  272              isotonic   0.527    0.683  0.253 0.166        0.000      0.404
+      6      0.397  272              residual   0.575    0.664  0.260 0.224        0.046      0.418
+      6      0.397  272          platt_online   0.466    0.589  0.281 0.206        0.009      0.410
+      6      0.397  272       isotonic_online   0.524    0.667  0.253 0.164        0.000      0.404
+      6      0.397  272 score_ratio(pred/thr)   0.641    0.732    NaN   NaN        0.167      0.525
+    all      0.351 1088           poisson_raw   0.641    0.744  0.273 0.264        0.272      0.480
+    all      0.351 1088                 platt   0.575    0.650  0.220 0.123        0.207      0.405
+    all      0.351 1088              isotonic   0.607    0.733  0.205 0.103        0.173      0.470
+    all      0.351 1088              residual   0.646    0.724  0.229 0.192        0.215      0.407
+    all      0.351 1088          platt_online   0.576    0.641  0.215 0.106        0.251      0.394
+    all      0.351 1088       isotonic_online   0.610    0.723  0.201 0.079        0.181      0.464
+    all      0.351 1088 score_ratio(pred/thr)   0.660    0.747    NaN   NaN        0.288      0.483
+
+=== OUTER theo vùng (cách được chọn) ===
+Bắc    base 0.275 | PR-AUC 0.622 | Brier 0.164 | Recall@P0.8 0.205 | n=480
+Nam    base 0.238 | PR-AUC 0.323 | Brier 0.184 | Recall@P0.8 0.000 | n=256
+Trung  base 0.537 | PR-AUC 0.689 | Brier 0.275 | Recall@P0.8 0.238 | n=352
+
+=== Lead time xấp xỉ (tháng) ===
+tau (precision>=0.8 trên validation LOO) = 0.500
+sự kiện vượt ngưỡng (tỉnh×tháng): 160; có báo trước ≥1 horizon: 59 (36.9%)
+lead time trung vị = 2.0 tháng (≈ 9 tuần); phân bố: {1: 26, 2: 23, 3: 10}
+(chỉ 109 sự kiện có ≥2 horizon dự báo; 1 mùa dịch 2009-11..2010-12)
+
+Recall theo horizon tại tau:
+{1: 0.565, 2: 0.333, 3: 0.104, 6: 0.0}
+Precision theo horizon tại tau:
+{1: 0.623, 2: 0.838, 3: 1.0}

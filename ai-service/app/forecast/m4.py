@@ -9,6 +9,9 @@ cấu hình chọn trên cửa sổ VALIDATION (exp_007, exp_008):
 Ghi chú trung thực: gain của Bắc-Tweedie (−44% trên validation) KHÔNG tái lập
 ở outer (1.429 vs 1.416); gain của Nam-blend B3 tái lập (−10%). Xem
 experiments/exp_008_outbreak_north/RESULTS.md.
+
+`predict_m4_many` fit MỘT lần rồi dự báo cho nhiều bản đầu vào (vd đầu vào bị
+nhiễu/khuyết cho kiểm định độ vững, exp_010) — `predict_m4` = trường hợp 1 bản.
 """
 
 from __future__ import annotations
@@ -16,13 +19,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from app.forecast.backtest import (
-    FEATURE_COLS_T1,
-    TARGET,
-    get_member_predictions,
-)
+from app.forecast.backtest import FEATURE_COLS_T1, TARGET
 from app.forecast.models import (
     SCALE_AWARE_CASE_COLS,
+    fit_predict_m1_glm_negbin,
     fit_predict_m2_lightgbm,
     fit_predict_m2_xgboost,
     fit_predict_scale_aware,
@@ -73,7 +73,7 @@ def assemble_m4(
     return out
 
 
-def _gbm_avg(fn_kwargs, train_pairs, test_rows, scale_aware: bool) -> dict[str, float]:
+def _gbm_avg_array(fn_kwargs, train_pairs, test_rows, scale_aware: bool) -> np.ndarray:
     preds = []
     for fn, kw in fn_kwargs:
         if scale_aware:
@@ -91,8 +91,84 @@ def _gbm_avg(fn_kwargs, train_pairs, test_rows, scale_aware: bool) -> dict[str, 
                 train_pairs, test_rows, FEATURE_COLS_T1, target_col="y_target", **kw
             )
         preds.append(np.asarray(arr, dtype=float))
-    mean = np.mean(preds, axis=0)
-    return dict(zip(test_rows["province_id"], mean.tolist()))
+    return np.mean(preds, axis=0)
+
+
+def _m1_array(train_pairs: pd.DataFrame, test_rows: pd.DataFrame) -> np.ndarray:
+    """M1 cho từng dòng test; NaN nếu M1 lỗi hội tụ, hoặc nếu dòng đó thiếu
+    bất kỳ đặc trưng nào (M1 tuyến tính không xử lý NaN — khi đầu vào khuyết
+    thì M4 tự lùi về phần GBM cho dòng đó, xem `assemble_m4`)."""
+    out = np.full(len(test_rows), np.nan)
+    complete = test_rows[FEATURE_COLS_T1 + ["population_target"]].notna().all(axis=1)
+    if not complete.any():
+        return out
+    m1_train = train_pairs.drop(columns=["population"]).rename(
+        columns={"cases_target": "_m1_target", "population_target": "population"}
+    )
+    m1_test = (
+        test_rows[complete.to_numpy()]
+        .drop(columns=["population"])
+        .rename(columns={"population_target": "population"})
+    )
+    try:
+        pred = fit_predict_m1_glm_negbin(
+            m1_train, m1_test, FEATURE_COLS_T1, target_col="_m1_target"
+        )
+        out[complete.to_numpy()] = np.asarray(pred, dtype=float)
+    except Exception as exc:  # noqa: BLE001 - M1 co the loi hoi tu (exp_002)
+        print(f"  M1 lỗi (bỏ M1 ở fold này): {exc}")
+    return out
+
+
+def predict_m4_many(
+    train_pairs: pd.DataFrame,
+    test_frames: list[pd.DataFrame],
+    hist_panel: pd.DataFrame,
+    target_month: pd.Timestamp,
+    regions: dict[str, str],
+) -> list[dict[str, float]]:
+    """Dự báo M4-R2 cho NHIỀU bản `test_rows` (cùng train_pairs): fit mỗi model
+    đúng 1 lần trên `train_pairs`, dự báo trên các dòng test xếp chồng, rồi
+    tách lại theo từng bản. Mỗi bản: mỗi tỉnh đúng 1 dòng (như `test_rows`).
+    `hist_panel` = dữ liệu ≤ train_end (tính B3)."""
+    sizes = [len(f) for f in test_frames]
+    stacked = pd.concat(test_frames, ignore_index=True)
+
+    m1 = _m1_array(train_pairs, stacked)
+    std = _gbm_avg_array(
+        [(fit_predict_m2_xgboost, {}), (fit_predict_m2_lightgbm, {})],
+        train_pairs,
+        stacked,
+        scale_aware=False,
+    )
+    tw = {"params": {"tweedie_variance_power": TWEEDIE_POWER}}
+    v3 = _gbm_avg_array(
+        [
+            (fit_predict_m2_xgboost, {"objective": "reg:tweedie", **tw}),
+            (fit_predict_m2_lightgbm, {"objective": "tweedie", **tw}),
+        ],
+        train_pairs,
+        stacked,
+        scale_aware=True,
+    )
+    b3 = climatology_forecast(hist_panel, target_month)
+
+    results = []
+    start = 0
+    for size in sizes:
+        sl = slice(start, start + size)
+        start += size
+        ids = stacked["province_id"].iloc[sl].tolist()
+        results.append(
+            assemble_m4(
+                dict(zip(ids, m1[sl].tolist())),
+                dict(zip(ids, std[sl].tolist())),
+                dict(zip(ids, v3[sl].tolist())),
+                b3,
+                regions,
+            )
+        )
+    return results
 
 
 def predict_m4(
@@ -103,29 +179,7 @@ def predict_m4(
     regions: dict[str, str],
 ) -> dict[str, float]:
     """Dự báo M4-R2 cho 1 (origin, horizon). `train_pairs`/`test_rows` theo
-    `backtest.build_horizon_pairs` (đặc trưng neo tại origin); `hist_panel` =
-    dữ liệu ≤ train_end (tính B3). M1 lỗi hội tụ thì bỏ M1 ở fold đó."""
-    m1 = get_member_predictions(train_pairs, test_rows, members=("M1_glm_negbin",))
-    std = _gbm_avg(
-        [(fit_predict_m2_xgboost, {}), (fit_predict_m2_lightgbm, {})],
-        train_pairs,
-        test_rows,
-        scale_aware=False,
-    )
-    tw = {"params": {"tweedie_variance_power": TWEEDIE_POWER}}
-    v3 = _gbm_avg(
-        [
-            (fit_predict_m2_xgboost, {"objective": "reg:tweedie", **tw}),
-            (fit_predict_m2_lightgbm, {"objective": "tweedie", **tw}),
-        ],
-        train_pairs,
-        test_rows,
-        scale_aware=True,
-    )
-    return assemble_m4(
-        m1.get("M1_glm_negbin", {}),
-        std,
-        v3,
-        climatology_forecast(hist_panel, target_month),
-        regions,
-    )
+    `backtest.build_horizon_pairs` (đặc trưng neo tại origin)."""
+    return predict_m4_many(train_pairs, [test_rows], hist_panel, target_month, regions)[
+        0
+    ]
