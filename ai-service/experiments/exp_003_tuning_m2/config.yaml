@@ -12,7 +12,7 @@ splits:
   inner_tuning:
     strategy: rolling_origin
     scheme: expanding
-    n_origins: 5
+    n_origins: 15   # tang tu 5 sau lan chay dau (T2 te hon T1 cho XGBoost) - xem run.py docstring
     embargo_months: 1
     cutoff: "2008-12-01"   # tach biet hoan toan khoi outer (2009-11..2010-06), khong ro ri
   outer_evaluation:

@@ -43,6 +43,8 @@ def _make_panel(n_months: int = 60, n_provinces: int = 6) -> pd.DataFrame:
                     "population": population,
                     "cases": float(cases),
                     "incidence_per_100k": cases / population * 100_000,
+                    "temp_mean": 25.0 + 3.0 * np.sin(2 * np.pi * m.month / 12) + i,
+                    "precip_total": 100.0 + 50.0 * np.cos(2 * np.pi * m.month / 12),
                 }
             )
     return pd.DataFrame(rows)
@@ -110,3 +112,29 @@ def test_fit_predict_m3_hhh4_returns_dict_per_province():
         )
     assert set(result.keys()) == {f"p{i}" for i in range(6)}
     assert all(v >= 0 for v in result.values())
+
+
+def test_fit_hhh4_with_climate_covariates_runs_and_differs_from_no_climate():
+    """Regression test cho covariate khí hậu (climatology theo tỉnh) thêm
+    vào end$f — chạy không lỗi, và dự báo phải KHÁC bản không có khí hậu
+    (nếu giống hệt thì covariate không thực sự được model dùng)."""
+    from app.forecast.models_r import fit_hhh4, simulate_forecast
+
+    panel = _make_panel()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        fit_hhh4(panel, pd.Timestamp("2018-06-01"), max_horizon=3)
+        pred_no_climate = simulate_forecast(train_end_idx=42, horizon=3, nsim=50)
+
+        fit_hhh4(
+            panel,
+            pd.Timestamp("2018-06-01"),
+            max_horizon=3,
+            climate_cols=("temp_mean", "precip_total"),
+        )
+        pred_with_climate = simulate_forecast(train_end_idx=42, horizon=3, nsim=50)
+
+    assert pred_with_climate.shape == (6,)
+    assert not np.isnan(pred_with_climate).any()
+    assert (pred_with_climate >= 0).all()
+    assert not np.allclose(pred_no_climate, pred_with_climate)

@@ -4,7 +4,7 @@
     "train_end": "2009-11-01",
     "horizon": 1,
     "target_month": "2009-12-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 5.965890889232158,
     "mase": 0.907902748642409
@@ -14,7 +14,7 @@
     "train_end": "2009-11-01",
     "horizon": 2,
     "target_month": "2010-01-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 12.630414175905926,
     "mase": 1.9221249532897386
@@ -24,7 +24,7 @@
     "train_end": "2009-11-01",
     "horizon": 3,
     "target_month": "2010-02-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 16.984213321287626,
     "mase": 2.5846959396722546
@@ -34,17 +34,57 @@
     "train_end": "2009-11-01",
     "horizon": 6,
     "target_month": "2010-05-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 24.394733222883932,
     "mase": 3.7124455939061245
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 1,
+    "target_month": "2009-12-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 5.430435216303174,
+    "mase": 0.8264158950853262
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 2,
+    "target_month": "2010-01-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 10.39338231383171,
+    "mase": 1.5816883924998664
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 3,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 13.672415457575894,
+    "mase": 2.0806990615464915
+  },
+  {
+    "origin": 0,
+    "train_end": "2009-11-01",
+    "horizon": 6,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 18.00464442024897,
+    "mase": 2.7399874488112084
   },
   {
     "origin": 1,
     "train_end": "2009-12-01",
     "horizon": 1,
     "target_month": "2010-01-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 5.02700599658055,
     "mase": 0.7668120620490703
@@ -54,7 +94,7 @@
     "train_end": "2009-12-01",
     "horizon": 2,
     "target_month": "2010-02-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 6.162980433034303,
     "mase": 0.9400919229930705
@@ -64,7 +104,7 @@
     "train_end": "2009-12-01",
     "horizon": 3,
     "target_month": "2010-03-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 6.876036867675888,
     "mase": 1.04886049724518
@@ -74,17 +114,57 @@
     "train_end": "2009-12-01",
     "horizon": 6,
     "target_month": "2010-06-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 10.642454230429253,
     "mase": 1.623384232930971
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 1,
+    "target_month": "2010-01-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 4.86373912471094,
+    "mase": 0.741907574811976
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 2,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 6.628224148503061,
+    "mase": 1.011059511465541
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 3,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 6.9079251042560745,
+    "mase": 1.0537246817048356
+  },
+  {
+    "origin": 1,
+    "train_end": "2009-12-01",
+    "horizon": 6,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 6.746826434290359,
+    "mase": 1.0291509287803708
   },
   {
     "origin": 2,
     "train_end": "2010-01-01",
     "horizon": 1,
     "target_month": "2010-02-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 2.358201512964468,
     "mase": 0.3607219946008066
@@ -94,7 +174,7 @@
     "train_end": "2010-01-01",
     "horizon": 2,
     "target_month": "2010-03-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 3.0624602332423088,
     "mase": 0.46844884020624494
@@ -104,7 +184,7 @@
     "train_end": "2010-01-01",
     "horizon": 3,
     "target_month": "2010-04-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 3.9655011316743543,
     "mase": 0.6065823764191954
@@ -114,17 +194,57 @@
     "train_end": "2010-01-01",
     "horizon": 6,
     "target_month": "2010-07-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 14.124220875225499,
     "mase": 2.1605096503771346
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 1,
+    "target_month": "2010-02-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 2.8914224462394404,
+    "mase": 0.4422860668636802
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 2,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 3.2028170540475065,
+    "mase": 0.48991850345526594
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 3,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 3.716878209764546,
+    "mase": 0.5685518027800299
+  },
+  {
+    "origin": 2,
+    "train_end": "2010-01-01",
+    "horizon": 6,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 14.547238882909852,
+    "mase": 2.2252165461386157
   },
   {
     "origin": 3,
     "train_end": "2010-02-01",
     "horizon": 1,
     "target_month": "2010-03-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 1.0401246564775435,
     "mase": 0.15968673769927538
@@ -134,7 +254,7 @@
     "train_end": "2010-02-01",
     "horizon": 2,
     "target_month": "2010-04-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 1.0823597568872338,
     "mase": 0.16617094645139277
@@ -144,7 +264,7 @@
     "train_end": "2010-02-01",
     "horizon": 3,
     "target_month": "2010-05-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 1.9067450778808497,
     "mase": 0.2927359708422771
@@ -154,17 +274,57 @@
     "train_end": "2010-02-01",
     "horizon": 6,
     "target_month": "2010-08-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 17.575632398878287,
     "mase": 2.6983259970812528
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 1,
+    "target_month": "2010-03-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 1.1558116833434973,
+    "mase": 0.17744776643684518
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 2,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 1.7412035593474204,
+    "mase": 0.26732095459036864
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 3,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 2.1954704475562954,
+    "mase": 0.3370629773095876
+  },
+  {
+    "origin": 3,
+    "train_end": "2010-02-01",
+    "horizon": 6,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 18.521421874266764,
+    "mase": 2.843529781007084
   },
   {
     "origin": 4,
     "train_end": "2010-03-01",
     "horizon": 1,
     "target_month": "2010-04-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 0.873078061004602,
     "mase": 0.13450551311800965
@@ -174,7 +334,7 @@
     "train_end": "2010-03-01",
     "horizon": 2,
     "target_month": "2010-05-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 1.418080104826998,
     "mase": 0.2184679705761051
@@ -184,7 +344,7 @@
     "train_end": "2010-03-01",
     "horizon": 3,
     "target_month": "2010-06-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 3.6782174544819544,
     "mase": 0.5666624190572884
@@ -194,17 +354,57 @@
     "train_end": "2010-03-01",
     "horizon": 6,
     "target_month": "2010-09-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 20.478638028644667,
     "mase": 3.1549180297021775
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 1,
+    "target_month": "2010-04-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 1.0560929522648295,
+    "mase": 0.16270060008293555
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 2,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 1.3568544428193938,
+    "mase": 0.209035607707146
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 3,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 3.283571805802615,
+    "mase": 0.505863714054524
+  },
+  {
+    "origin": 4,
+    "train_end": "2010-03-01",
+    "horizon": 6,
+    "target_month": "2010-09-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 17.217880520630032,
+    "mase": 2.6525690630310303
   },
   {
     "origin": 5,
     "train_end": "2010-04-01",
     "horizon": 1,
     "target_month": "2010-05-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 1.0277343029603419,
     "mase": 0.1588515183310464
@@ -214,7 +414,7 @@
     "train_end": "2010-04-01",
     "horizon": 2,
     "target_month": "2010-06-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 3.530593691839986,
     "mase": 0.5457054094071996
@@ -224,7 +424,7 @@
     "train_end": "2010-04-01",
     "horizon": 3,
     "target_month": "2010-07-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 13.218238187526877,
     "mase": 2.0430739732067575
@@ -234,17 +434,57 @@
     "train_end": "2010-04-01",
     "horizon": 6,
     "target_month": "2010-10-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 17.123688827062036,
     "mase": 2.646719061309899
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 1,
+    "target_month": "2010-05-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 1.00080308051262,
+    "mase": 0.15468890007065653
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 2,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 3.754765619573592,
+    "mase": 0.580354492331753
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 3,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 13.652122739283284,
+    "mase": 2.110137240072873
+  },
+  {
+    "origin": 5,
+    "train_end": "2010-04-01",
+    "horizon": 6,
+    "target_month": "2010-10-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 19.09930715167453,
+    "mase": 2.952080057438334
   },
   {
     "origin": 6,
     "train_end": "2010-05-01",
     "horizon": 1,
     "target_month": "2010-06-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 2.650572301950421,
     "mase": 0.4102568624425596
@@ -254,7 +494,7 @@
     "train_end": "2010-05-01",
     "horizon": 2,
     "target_month": "2010-07-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 11.875000207532754,
     "mase": 1.8380182736619644
@@ -264,7 +504,7 @@
     "train_end": "2010-05-01",
     "horizon": 3,
     "target_month": "2010-08-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 16.70157736955302,
     "mase": 2.5850782204403515
@@ -274,17 +514,57 @@
     "train_end": "2010-05-01",
     "horizon": 6,
     "target_month": "2010-11-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 9.03432940434842,
     "mase": 1.3983378732861553
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 1,
+    "target_month": "2010-06-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 2.525335552576258,
+    "mase": 0.39087265782269626
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 2,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 12.283678997058185,
+    "mase": 1.9012737743001291
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 3,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 17.161855630209114,
+    "mase": 2.6563203121683663
+  },
+  {
+    "origin": 6,
+    "train_end": "2010-05-01",
+    "horizon": 6,
+    "target_month": "2010-11-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 10.727137112637537,
+    "mase": 1.6603514688444567
   },
   {
     "origin": 7,
     "train_end": "2010-06-01",
     "horizon": 1,
     "target_month": "2010-07-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 9.40092982119391,
     "mase": 1.4546611654146127
@@ -294,7 +574,7 @@
     "train_end": "2010-06-01",
     "horizon": 2,
     "target_month": "2010-08-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 14.24129858344937,
     "mase": 2.203639893972422
@@ -304,7 +584,7 @@
     "train_end": "2010-06-01",
     "horizon": 3,
     "target_month": "2010-09-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 16.062060366977203,
     "mase": 2.4853770740541066
@@ -314,9 +594,49 @@
     "train_end": "2010-06-01",
     "horizon": 6,
     "target_month": "2010-12-01",
-    "model": "M3_hhh4",
+    "model": "M3_hhh4_no_climate",
     "n_provinces": 34,
     "mae": 11.991300659101917,
     "mase": 1.8554844811500704
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 1,
+    "target_month": "2010-07-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 9.294813678509984,
+    "mase": 1.4382411905055454
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 2,
+    "target_month": "2010-08-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 13.367911103091878,
+    "mase": 2.068495512065526
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 3,
+    "target_month": "2010-09-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 16.171041174644728,
+    "mase": 2.502240315425409
+  },
+  {
+    "origin": 7,
+    "train_end": "2010-06-01",
+    "horizon": 6,
+    "target_month": "2010-12-01",
+    "model": "M3_hhh4_climate",
+    "n_provinces": 34,
+    "mae": 11.338516993831107,
+    "mase": 1.7544754250941808
   }
 ]

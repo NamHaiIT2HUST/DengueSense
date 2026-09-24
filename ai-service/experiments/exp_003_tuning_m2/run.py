@@ -19,6 +19,15 @@ rỉ), KHÔNG tune riêng cho từng outer origin (sẽ tốn gấp 8 lần comp
 tương xứng lợi ích ở quy mô dự án này). Bộ tham số tốt nhất từ inner CV
 được áp dụng CỐ ĐỊNH cho cả 8 outer origin khi đánh giá cuối.
 
+📌 **INNER_N_ORIGINS = 15 (tăng từ 5 sau lần chạy 100-trial đầu tiên)** — lần
+chạy đầu (5 origin) cho kết quả T2 TỆ HƠN T1 cho XGBoost (xem RESULTS.md
+"Kết quả" phần lịch sử), chẩn đoán nguyên nhân là cửa sổ inner quá nhỏ
+(~20 điểm origin×horizon) không đủ ổn định cho không gian tìm kiếm 7 chiều
+— tăng lên 15 origin (~60 điểm, dữ liệu vẫn dư dả vì real-only trải dài
+1994-02→2008-12, ~179 tháng) để kiểm tra lại giả thuyết đó trước khi kết
+luận "T2 không giúp được gì ở bài toán này". Vẫn tách biệt hoàn toàn khỏi 8
+outer origin (không đổi).
+
 Chạy: python experiments/exp_003_tuning_m2/run.py [--trials N]  (từ ai-service/)
 """
 
@@ -53,7 +62,7 @@ SEED = 42
 # Inner tuning: chi dung du lieu <= cutoff nay -> tach biet hoan toan khoi
 # 8 outer origin cua exp_001/exp_002 (train_end 2009-11..2010-06).
 INNER_CUTOFF = pd.Timestamp("2008-12-01")
-INNER_N_ORIGINS = 5
+INNER_N_ORIGINS = 15
 INNER_EMBARGO_MONTHS = 1
 
 OUTER_N_ORIGINS = 8

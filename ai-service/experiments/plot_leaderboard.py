@@ -17,8 +17,9 @@ _OUT_PATH = Path(__file__).resolve().parent / "leaderboard_mase.png"
 
 # (tên hiển thị, MASE h=1, h=2, h=3, h=6, màu, kiểu nét, độ dày, zorder)
 # Nguồn: exp_001/RESULTS.md (B1-B4), exp_002/RESULTS.md (M1/M2a/M2b),
-# exp_004/RESULTS.md (M3). exp_003 (T2 tuning) không có ở đây vì kết quả
-# âm tính, không thay đổi bảng xếp hạng (xem MODEL_ZOO_RESULTS.md).
+# exp_004/RESULTS.md (M3, bản v2 có climatology khí hậu — bản tốt nhất hiện
+# tại). exp_003 (T2 tuning) không có ở đây vì kết quả âm tính, không thay
+# đổi bảng xếp hạng (xem MODEL_ZOO_RESULTS.md).
 GRAY = "#b0b6bd"
 RESULTS: list[tuple[str, float, float, float, float, str, str, float, int]] = [
     ("B1 Persistence", 0.758, 1.196, 1.620, 2.164, GRAY, "--", 1.3, 1),
@@ -38,7 +39,17 @@ RESULTS: list[tuple[str, float, float, float, float, str, str, float, int]] = [
     ("M1 GLM NegBin", 0.497, 0.736, 1.138, 1.644, "#4c72b0", "-", 2.0, 3),
     ("M2a XGBoost", 0.449, 0.698, 0.963, 1.611, "#55a868", "-", 2.0, 4),
     ("M2b LightGBM (tốt nhất)", 0.447, 0.694, 1.001, 1.608, "#dd5f4b", "-", 3.0, 6),
-    ("M3 hhh4 (loại khỏi M4)", 0.544, 1.038, 1.527, 2.406, "#8172b2", "-", 2.0, 5),
+    (
+        "M3 hhh4 (+khí hậu, loại khỏi M4)",
+        0.542,
+        1.014,
+        1.477,
+        2.232,
+        "#8172b2",
+        "-",
+        2.0,
+        5,
+    ),
 ]
 HORIZONS = [1, 2, 3, 6]
 

@@ -23,6 +23,29 @@ numpy array không có converter ngược. Cách né: GIỮ `fit`/`stsObj` LUÔN
 TRONG R's global environment (gán bằng `<-` trong chuỗi code R, không kéo
 ra biến Python rồi gán lại) — chỉ đưa qua lại Python các mảng/số nguyên
 thô (numpy array, int, str).
+
+## Covariate khí hậu trong `end$f` (thêm sau exp_004, xem RESULTS.md exp_004
+"Việc tiếp theo")
+
+exp_004 chạy bản KHÔNG có khí hậu, thua mọi model khác — chẩn đoán là do
+thiếu đúng tín hiệu mạnh nhất. Bản này thêm covariate khí hậu, nhưng **CỐ Ý
+dùng CHUẨN MÙA VỤ theo tỉnh (climatology: trung bình lịch sử theo tháng
+dương lịch, tính CHỈ từ dữ liệu <= train_end)**, KHÔNG dùng giá trị khí hậu
+thực đo tại từng thời điểm — lý do:
+
+`simulate.hhh4()` mô phỏng TIẾN VỀ TƯƠNG LAI (đến `train_end+horizon`), và
+tại MỖI bước tương lai đó, `end$f` cần 1 giá trị covariate cụ thể — không
+giống M1/M2 (dạng bảng, feature neo cố định tại `train_end`), hhh4 cần
+covariate CÓ MẶT Ở CẢ bước tương lai đang mô phỏng. Nếu dùng khí hậu thực đo
+(vd `temp_mean` lag 2 tháng) thì giá trị tại bước tương lai đó sẽ đọc từ
+ERA5 THẬT của giai đoạn SAU `train_end` — đúng lớp lỗi rò rỉ đã bắt được ở
+exp_002 (feature neo sai tại `target_month` thay vì `train_end`), chỉ khác
+là ở đây lộ ra qua covariate của model cơ giới thay vì qua bảng đặc trưng.
+Climatology theo tháng dương lịch thì KHÔNG có vấn đề này — giá trị "nhiệt
+độ trung bình lịch sử tháng 7 tại Cà Mau" biết trước được ở bất kỳ bước
+tương lai nào mà không cần đo thật, đúng tinh thần B3 Climatology
+(exp_001) — chỉ khác B3 là climatology tính RIÊNG theo tỉnh, dùng làm
+covariate cho `end` thay vì dùng trực tiếp làm dự báo.
 """
 
 from __future__ import annotations
@@ -42,17 +65,55 @@ def _pivot_wide(
     return wide
 
 
+def _build_climatology_covariate(
+    panel: pd.DataFrame,
+    col: str,
+    train_end: pd.Timestamp,
+    province_order: list[str],
+    all_months: pd.DatetimeIndex,
+) -> pd.DataFrame:
+    """Ma trận time×tỉnh cho biến khí hậu `col`, giá trị = TRUNG BÌNH LỊCH
+    SỬ theo (tỉnh, tháng dương lịch), tính CHỈ từ dữ liệu `<= train_end` —
+    xem module docstring phần "Covariate khí hậu trong end$f" cho lý do
+    dùng climatology thay vì giá trị thực đo (tránh rò rỉ khi mô phỏng
+    tương lai). Z-score chuẩn hoá (theo mean/std của chính climatology vừa
+    tính) để ổn định số học, cùng cách tiếp cận với M1 GLM NegBin.
+    """
+    train_data = panel[panel["month"] <= train_end]
+    clim = (
+        train_data.groupby([train_data["month"].dt.month, "province_id"])[col]
+        .mean()
+        .unstack("province_id")
+        .reindex(index=range(1, 13), columns=province_order)
+    )
+    clim = clim.apply(lambda s: s.fillna(s.mean()), axis=0)
+
+    wide = pd.DataFrame(
+        clim.loc[all_months.month].to_numpy(),
+        index=all_months,
+        columns=province_order,
+    )
+    mean, std = wide.to_numpy().mean(), wide.to_numpy().std()
+    return (wide - mean) / std
+
+
 def fit_hhh4(
     panel: pd.DataFrame,
     train_end: pd.Timestamp,
     max_horizon: int,
     province_order: list[str] | None = None,
+    climate_cols: tuple[str, ...] | None = None,
 ) -> tuple[list[str], int, pd.DatetimeIndex, pd.DataFrame]:
     """Fit hhh4 trên dữ liệu tới `train_end`; `fit`/`stsObj` được giữ trong
     R's global environment (biến tên `fit`, `stsObj`) — KHÔNG trả về qua
     Python (xem cảnh báo module). Trả về (province_order, train_end_idx
     1-indexed, all_months, pop_wide) — đủ để `simulate_forecast()` dùng
     tiếp mà không cần round-trip object R phức tạp.
+
+    `climate_cols` — tên cột khí hậu thô trong `panel` (vd `("temp_mean",
+    "precip_total")`) để thêm vào `end$f` dưới dạng climatology theo tỉnh
+    (xem `_build_climatology_covariate`). `None`/rỗng = giữ nguyên bản gốc
+    (chỉ mùa vụ sin/cos, không khí hậu) như exp_004 lần chạy đầu.
     """
     setup_r()
     from rpy2 import robjects
@@ -78,6 +139,13 @@ def fit_hhh4(
         0.0
     )
 
+    climate_matrices = {
+        col: _build_climatology_covariate(
+            panel, col, train_end, province_order, all_months
+        )
+        for col in (climate_cols or ())
+    }
+
     with (robjects.default_converter + numpy2ri.converter).context():
         r_observed = robjects.r["matrix"](
             robjects.FloatVector(observed_for_sts.flatten(order="F")),
@@ -98,9 +166,23 @@ def fit_hhh4(
         robjects.globalenv["r_population"] = r_population
         robjects.globalenv["r_neighbourhood"] = r_neighbourhood
 
+        for col, mat in climate_matrices.items():
+            r_mat = robjects.r["matrix"](
+                robjects.FloatVector(mat.to_numpy().flatten(order="F")),
+                nrow=mat.shape[0],
+                ncol=mat.shape[1],
+            )
+            robjects.globalenv[f"r_cov_{col}"] = r_mat
+
     start_year = int(all_months[0].year)
     start_month = int(all_months[0].month)
     robjects.globalenv["train_end_idx"] = train_end_idx
+
+    extra_terms = "".join(f" + {col}" for col in climate_matrices)
+    data_arg = ""
+    if climate_matrices:
+        data_list = ", ".join(f"{col} = r_cov_{col}" for col in climate_matrices)
+        data_arg = f",\n            data = list({data_list})"
 
     robjects.r(f"""
         stsObj <- sts(
@@ -113,10 +195,10 @@ def fit_hhh4(
         control <- list(
             ar = list(f = ~1),
             ne = list(f = ~1, weights = neighbourhood(stsObj) == 1),
-            end = list(f = ~1 + sin(2*pi*t/12) + cos(2*pi*t/12),
+            end = list(f = ~1 + sin(2*pi*t/12) + cos(2*pi*t/12){extra_terms},
                        offset = population(stsObj)),
             family = "NegBin1",
-            subset = 2:train_end_idx
+            subset = 2:train_end_idx{data_arg}
         )
         fit <- hhh4(stsObj, control = control)
         """)
@@ -162,6 +244,7 @@ def fit_predict_m3_hhh4(
     full_panel_for_sts: pd.DataFrame,
     nsim: int = 200,
     seed: int = 42,
+    climate_cols: tuple[str, ...] | None = None,
 ) -> dict[str, float]:
     """Giao diện tiện dụng: fit + simulate trong 1 lần gọi, trả về dict
     {province_id: predicted incidence_per_100k}.
@@ -171,7 +254,7 @@ def fit_predict_m3_hhh4(
     tháng SAU train_end không được hhh4 dùng để fit, xem `fit_hhh4()`)."""
     train_end = train_df["month"].max()
     province_order, train_end_idx, all_months, pop_wide = fit_hhh4(
-        full_panel_for_sts, train_end, max_horizon=horizon
+        full_panel_for_sts, train_end, max_horizon=horizon, climate_cols=climate_cols
     )
     pred_cases = simulate_forecast(train_end_idx, horizon, nsim=nsim, seed=seed)
 

@@ -30,6 +30,11 @@ N_ORIGINS = 8
 EMBARGO_MONTHS = 1
 REPORTING_DELAY_MONTHS = 1
 NSIM = 200
+# 2 lag manh nhat theo EDA (03_eda_panel.ipynb): temp lag~2 thang r=0.565,
+# mua lag~1 thang r=0.527 - dua vao hhh4 duoi dang climatology theo tinh,
+# xem models_r.py docstring "Covariate khi hau trong end$f" cho ly do khong
+# dung gia tri thuc do (tranh ro ri khi mo phong tuong lai).
+CLIMATE_COLS = ("temp_mean", "precip_total")
 
 _PANEL_PATH = _ROOT / "data" / "processed" / "v0.2.0" / "panel_monthly.parquet"
 _OUT_PATH = Path(__file__).resolve().parent / "results.json"
@@ -62,51 +67,64 @@ def run() -> list[dict]:
     max_h = max(HORIZONS)
 
     rows: list[dict] = []
+    # 2 bien the: ban goc (khong khi hau, xem lai ket qua cu 1 lan nua cho
+    # chac) va ban moi (co climatology khi hau) - chay chung 1 vong lap tren
+    # cung origin de so sanh cong bang, khong phai chay 2 lan rieng le.
+    variants = [
+        ("M3_hhh4_no_climate", None),
+        ("M3_hhh4_climate", CLIMATE_COLS),
+    ]
     for split in splits:
         train_df = real_panel[real_panel["month"] <= split.train_end]
         train_naive_errors = compute_train_naive_errors(train_df)
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            province_order, train_end_idx, all_months, pop_wide = fit_hhh4(
-                real_panel, split.train_end, max_horizon=max_h
-            )
-
-            for h in split.usable_horizons:
-                target_month = split.target_month(h)
-                assert_test_is_real_only(real_panel, target_month)
-
-                pred_cases = simulate_forecast(
-                    train_end_idx, horizon=h, nsim=NSIM, seed=42
+            for model_name, climate_cols in variants:
+                province_order, train_end_idx, all_months, pop_wide = fit_hhh4(
+                    real_panel,
+                    split.train_end,
+                    max_horizon=max_h,
+                    climate_cols=climate_cols,
                 )
-                target_idx = all_months.get_loc(target_month)
-                pop_at_target = pop_wide.iloc[target_idx]
 
-                pred = {
-                    p: float(pred_cases[i] / pop_at_target[p] * 100_000)
-                    for i, p in enumerate(province_order)
-                    if pop_at_target[p] > 0
-                }
+                for h in split.usable_horizons:
+                    target_month = split.target_month(h)
+                    assert_test_is_real_only(real_panel, target_month)
 
-                test_rows = real_panel[real_panel["month"] == target_month]
-                y_true = test_rows.set_index("province_id")[TARGET]
-                y_pred = pd.Series(pred).reindex(y_true.index)
-                valid = y_pred.notna() & y_true.notna()
-                if valid.sum() == 0:
-                    continue
+                    pred_cases = simulate_forecast(
+                        train_end_idx, horizon=h, nsim=NSIM, seed=42
+                    )
+                    target_idx = all_months.get_loc(target_month)
+                    pop_at_target = pop_wide.iloc[target_idx]
 
-                rows.append(
-                    {
-                        "origin": split.origin,
-                        "train_end": str(split.train_end.date()),
-                        "horizon": h,
-                        "target_month": str(target_month.date()),
-                        "model": "M3_hhh4",
-                        "n_provinces": int(valid.sum()),
-                        "mae": mae(y_true[valid], y_pred[valid]),
-                        "mase": mase(y_true[valid], y_pred[valid], train_naive_errors),
+                    pred = {
+                        p: float(pred_cases[i] / pop_at_target[p] * 100_000)
+                        for i, p in enumerate(province_order)
+                        if pop_at_target[p] > 0
                     }
-                )
+
+                    test_rows = real_panel[real_panel["month"] == target_month]
+                    y_true = test_rows.set_index("province_id")[TARGET]
+                    y_pred = pd.Series(pred).reindex(y_true.index)
+                    valid = y_pred.notna() & y_true.notna()
+                    if valid.sum() == 0:
+                        continue
+
+                    rows.append(
+                        {
+                            "origin": split.origin,
+                            "train_end": str(split.train_end.date()),
+                            "horizon": h,
+                            "target_month": str(target_month.date()),
+                            "model": model_name,
+                            "n_provinces": int(valid.sum()),
+                            "mae": mae(y_true[valid], y_pred[valid]),
+                            "mase": mase(
+                                y_true[valid], y_pred[valid], train_naive_errors
+                            ),
+                        }
+                    )
         print(f"[origin {split.origin}/{N_ORIGINS - 1}] xong.")
     return rows
 
@@ -114,7 +132,7 @@ def run() -> list[dict]:
 def summarize(rows: list[dict]) -> pd.DataFrame:
     df = pd.DataFrame(rows)
     return (
-        df.groupby("horizon")
+        df.groupby(["model", "horizon"])
         .agg(
             mase_mean=("mase", "mean"),
             mase_std=("mase", "std"),

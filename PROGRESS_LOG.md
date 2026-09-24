@@ -9,6 +9,76 @@
 
 ---
 
+## 2026-09-24 — T2 tuning kiểm chứng lại xong (inner=15 origin): kết luận "T1 default thắng" vững hơn, không phải chỉ do thiếu dữ liệu tuning
+
+**Làm:** Chạy lại `notebooks/04_tune_m2.ipynb` với `INNER_N_ORIGINS=15` (tăng từ 5) sau 2 lần thất bại
+vận hành (không liên quan tới code): lần 1 dùng nhầm kernel Jupyter cũ còn cache `run.py` bản chưa
+sửa → phát hiện qua số liệu trùng khớp tuyệt đối với bản inner=5, không báo cáo nhầm; lần 2 máy tự
+sleep giữa chừng làm mất 69 phút XGBoost đã tính xong (kernel chết, không cứu được biến trong bộ nhớ).
+Đã sửa cả 2: thêm `SetThreadExecutionState` (chặn Windows tự sleep) + 2 cell checkpoint lưu ngay sau
+mỗi model tune xong. Lần chạy thứ 3 thành công trọn vẹn.
+
+**Kết quả (outer MASE, so T1 default vs T2 tuned):**
+
+| Model | T1 default | T2 (inner=5, cũ) | T2 (inner=15, mới) |
+|---|---|---|---|
+| M2a XGBoost | 0.9304 | 0.9764 (-4.9%) | 0.9470 (-1.8%) |
+| M2b LightGBM | 0.9374 | 0.9368 (+0.1%) | 0.9408 (-0.4%) |
+
+**Phát hiện quan trọng:** đường hội tụ inner của XGBoost NAY ĐÃ PHẲNG (trước đó ở inner=5 vẫn đang
+giảm tới tận trial 100, chưa hội tụ) — xác nhận đúng giả thuyết "inner=5 quá nhỏ" cho việc TÌM tham
+số. Nhưng dù đã hội tụ sạch, **outer vẫn KHÔNG cải thiện** — cả 2 model vẫn tệ hơn T1 default. Kết
+luận cập nhật: nguyên nhân không phải (chỉ) thiếu dữ liệu tuning, mà là **dịch chuyển phân phối theo
+thời gian** giữa giai đoạn tuning (≤2008-12) và giai đoạn đánh giá (2009-11..2010-06) — tham số tối ưu
+cho quá khứ không nhất thiết tối ưu cho tương lai gần, đúng với đặc điểm SXH biến động mạnh theo năm
+đã thấy ở exp_001.
+
+**Quyết định (vững, đã kiểm chứng 2 lần độc lập):** giữ T1 default cho M2a/M2b trong M4 Ensemble.
+
+**File:** `ai-service/notebooks/04_tune_m2.ipynb` (thêm sleep-guard + checkpoint),
+`ai-service/experiments/exp_003_tuning_m2/{RESULTS.md,results_trials100.json,checkpoint_*.json}`,
+`ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
+## 2026-09-23 — Cải thiện thật 2 kết quả âm tính: M3 +khí hậu (cải thiện khiêm tốn), T2 tuning inner mở rộng (đang chờ chạy)
+
+**Bối cảnh:** sau khi dọn báo cáo cho đẹp (mục dưới), user muốn KẾT QUẢ THẬT tốt hơn trước khi làm
+tiếp, không chỉ trình bày đẹp. Quay lại đúng 2 "việc tiếp theo" đã ghi ở exp_003/exp_004.
+
+**M3 hhh4 — thêm covariate khí hậu (climatology theo tỉnh), đã chạy xong thật:**
+- Sửa `app/forecast/models_r.py::fit_hhh4()` — thêm tham số `climate_cols`, tự tính climatology
+  (trung bình lịch sử theo tỉnh × tháng dương lịch, CHỈ từ dữ liệu `<= train_end`) và wire vào
+  `end$f` + `control$data` của hhh4 qua rpy2. **Cố ý KHÔNG dùng khí hậu thực đo** — vì
+  `simulate.hhh4()` mô phỏng tiến vào tương lai, dùng khí hậu thực đo ở các bước tương lai sẽ là
+  đúng lớp lỗi rò rỉ đã bắt được ở exp_002. Thêm 1 regression test xác nhận dự báo có/không khí hậu
+  khác nhau thật (không phải covariate bị bỏ qua).
+- Chạy lại exp_004 (cả 2 biến thể, cùng 8 origin, so sánh công bằng): thêm khí hậu cải thiện MASE
+  **thật, đều đặn, tăng dần theo horizon** (h=1: -0.4%, h=6: -7.2%) — nhưng **vẫn chưa đủ**: M3 v2
+  (2.232 ở h=6) vẫn thua cả B1 Persistence (2.164), kém xa M1/M2/B3 (1.6-1.6).
+- **Chẩn đoán mới (điều bất ngờ thật sự):** climatology chỉ bắt mùa vụ trung bình nhiều năm, KHÔNG
+  bắt được bất thường khí hậu LIÊN NĂM mà M1/M2's khí hậu lag thực đo có — đây mới là phần thiếu thật
+  sự, không phải "thiếu khí hậu nói chung" như kết luận ban đầu ở exp_004 v1.
+- **Quyết định:** vẫn loại M3 khỏi M4 (cả v1 lẫn v2 đều thua). Hướng tiếp theo (chưa làm): thử
+  `oni_lag_6` (đủ xa để leak-safe ở mọi horizon ≤6) — có thể là cách duy nhất thêm được tín hiệu liên
+  năm vào hhh4 mà không rò rỉ.
+
+**T2 tuning — mở rộng inner window, đang chờ chạy thật:**
+- Nghi vấn ở exp_003 (5 origin inner quá nhỏ) đáng kiểm tra lại trước khi kết luận "T2 không giúp
+  được gì" là chắc chắn. Tăng `INNER_N_ORIGINS` từ 5 → 15 trong `exp_003/run.py` + `config.yaml` +
+  `notebooks/04_tune_m2.ipynb` (không cần sửa code notebook, chỉ import lại hằng số từ `run.py`).
+  Dữ liệu vẫn dư dả (real-only 1994-02→2008-12, ~179 tháng, dư sức cho 15 origin).
+- Smoke-test đang chạy (2 trial) để xác nhận không lỗi trước khi giao lại — **kết quả 100-trial thật
+  chưa có, cần chạy trên máy user** (nặng hơn ~3x so với bản 5-origin cũ, ước tính ~2-3 giờ thay vì
+  ~20 phút — đã cập nhật notebook, sẽ báo lại thời gian ước tính chính xác sau khi smoke-test xong).
+
+**File:** `ai-service/app/forecast/models_r.py`, `ai-service/tests/test_forecast/test_models_r.py`,
+`ai-service/experiments/exp_004_m3_hhh4/{run.py,RESULTS.md,config.yaml}`,
+`ai-service/experiments/exp_003_tuning_m2/{run.py,config.yaml}`,
+`ai-service/experiments/{MODEL_ZOO_RESULTS.md,plot_leaderboard.py,leaderboard_mase.png}`
+
+---
+
 ## 2026-09-23 — Dọn lại kết quả cho chuẩn chỉnh: bảng xếp hạng tổng hợp + biểu đồ, chuẩn hoá config
 
 **Làm:** Sau 4 experiment (exp_001-004), kết quả đang nằm rải rác ở 4 file `RESULTS.md` riêng — gộp lại

@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-23 (sau exp_004)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_003 v2 — T2 tuning kiểm chứng lại với inner=15 origin)
 
 ## Biểu đồ
 
@@ -30,9 +30,12 @@ _(sinh bằng `python experiments/plot_leaderboard.py`, xem file đó để sử
 | M1 | GLM NegBin (fixed-effect theo tỉnh) | 1 (T1 default) | 0.497 | 0.736 | 1.138 | 1.644 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
 | M2a | XGBoost | 1 (T1 default) | 0.449 | 0.698 | 0.963 | 1.611 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
 | M2b | **LightGBM 🏆 tốt nhất hiện tại** | 1 (T1 default) | **0.447** | **0.694** | **1.001** | **1.608** | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
-| M3 | hhh4 (endemic-epidemic, R/surveillance) | 1 (T1, thiếu khí hậu) | 0.544 | 1.038 | 1.527 | 2.406 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
-| — | M2a XGBoost, **T2 tuned (100 trial)** | 2 (tuning) | — | — | — | — | outer trung bình gộp 0.9764 (TỆ HƠN T1's 0.9304, −4.9%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
-| — | M2b LightGBM, **T2 tuned (100 trial)** | 2 (tuning) | — | — | — | — | outer trung bình gộp 0.9368 (≈T1's 0.9374, +0.1%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
+| M3 | hhh4 v1 (không khí hậu) | 1 (T1) | 0.544 | 1.038 | 1.527 | 2.406 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
+| M3 | **hhh4 v2 (+climatology khí hậu theo tỉnh)** | 1 (T1) | 0.542 | 1.014 | 1.477 | 2.232 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
+| — | M2a XGBoost, T2 tuned (inner=5 origin) | 2 (tuning) | — | — | — | — | outer gộp 0.9764 (TỆ HƠN T1's 0.9304, −4.9%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
+| — | M2b LightGBM, T2 tuned (inner=5 origin) | 2 (tuning) | — | — | — | — | outer gộp 0.9368 (≈T1's 0.9374, +0.1%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
+| — | M2a XGBoost, **T2 tuned (inner=15 origin, kiểm chứng lại)** | 2 (tuning) | — | — | — | — | outer gộp 0.9470 (TỆ HƠN T1, −1.8%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
+| — | M2b LightGBM, **T2 tuned (inner=15 origin, kiểm chứng lại)** | 2 (tuning) | — | — | — | — | outer gộp 0.9408 (TỆ HƠN T1, −0.4%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
 
 _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mục experiment)_
 
@@ -40,13 +43,20 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 
 1. **M2b LightGBM (T1 mặc định) đang là model tốt nhất** ở mọi horizon, nhưng thắng B3 khiêm tốn
    (2-14%, không áp đảo) — đúng như kỳ vọng thực tế cho quy mô dữ liệu 34 chuỗi × ~200 tháng.
-2. **T2 tuning (Optuna 100 trial) không cải thiện được gì** — XGBoost sau tuning còn tệ hơn, LightGBM
-   không đổi. Nguyên nhân: cửa sổ inner tuning (5 origin) quá nhỏ để dẫn đường tin cậy cho không gian
-   tìm kiếm 7 chiều. **Quyết định: dùng T1 default cho M4 ensemble, không dùng tham số đã tune.**
-3. **M3 hhh4 thua mọi model khác ở h≥2**, kể cả 2 baseline — vì đây là model DUY NHẤT không dùng thông
-   tin khí hậu (chỉ AR + lan truyền không gian + mùa vụ thuần), trong khi khí hậu là tín hiệu mạnh nhất
-   đo được (EDA: nhiệt độ lag 2 tháng r=0.565). **Quyết định: loại M3 khỏi M4 ensemble ở cấu hình hiện
-   tại** — việc tiếp theo (chưa làm) là thêm covariate khí hậu vào `end$f`.
+2. **T2 tuning (Optuna 100 trial) không cải thiện được gì — đã kiểm chứng lại 2 lần, kết luận vững.**
+   Lần 1 (inner=5 origin): XGBoost tệ hơn (-4.9%), LightGBM không đổi. Nghi ngờ inner quá nhỏ khiến
+   XGBoost chưa hội tụ (đường hội tụ vẫn đang giảm ở trial 100) → tăng inner lên 15 origin để kiểm tra
+   lại. Lần 2 (inner=15 origin): XGBoost NAY ĐÃ HỘI TỤ SẠCH (phẳng từ trial ~30) — giả thuyết "inner
+   quá nhỏ" được xác nhận đúng cho việc TÌM tham số — nhưng **outer vẫn KHÔNG cải thiện** (XGBoost
+   -1.8%, LightGBM -0.4%, cả 2 đều vẫn tệ hơn T1). Kết luận cập nhật: nguyên nhân gốc không phải thiếu
+   dữ liệu tuning, mà là **dịch chuyển phân phối theo thời gian** — tham số tối ưu cho giai đoạn tuning
+   không nhất thiết tối ưu cho giai đoạn đánh giá. **Quyết định (vững, đã kiểm chứng 2 lần): dùng T1
+   default cho M4 ensemble.**
+3. **M3 hhh4 thua mọi model khác ở mọi horizon**, kể cả 2 baseline. Thêm covariate khí hậu
+   (climatology theo tỉnh) cải thiện THẬT (0.4-7.2%, tăng dần theo horizon) nhưng KHÔNG đủ lấp khoảng
+   cách — chẩn đoán: climatology chỉ bắt mùa vụ trung bình, không bắt được bất thường khí hậu liên năm
+   mà M1/M2's khí hậu lag thực đo có. **Quyết định: vẫn loại M3 khỏi M4 ensemble** — xem exp_004
+   "Việc tiếp theo" cho hướng khả thi tiếp theo (ONI lag đủ xa, leak-safe).
 4. **Không model nào đạt ngưỡng promote G1** (docs/02 §10: MASE<0.90 ở CẢ h=1 và h=3) — M2b đạt h=1
    (0.447<0.90 ✅) nhưng không đạt h=3 (1.001>0.90 ❌). Kỳ vọng thực tế cho vòng model zoo đầu tiên,
    chưa đáng lo.
@@ -57,17 +67,16 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 |---|---|
 | B1-B4 (Tier 0) | ✅ Xong — exp_001 |
 | M1 GLM NegBin | ✅ Xong (T1) — exp_002. Không tune thêm (thua M2 mọi horizon) |
-| M2a/M2b XGBoost/LightGBM | ✅ Xong (T1 + T2) — exp_002, exp_003. T1 default là bản dùng |
-| M3 hhh4 | ✅ Xong (T1, chưa có khí hậu) — exp_004. Loại khỏi M4 ở bản hiện tại |
+| M2a/M2b XGBoost/LightGBM | ✅ Xong (T1); T2 đã kiểm chứng 2 lần (inner=5, inner=15) — vẫn giữ T1 |
+| M3 hhh4 | ✅ Xong (T1, v1 + v2 có khí hậu) — exp_004. Cả 2 bản đều loại khỏi M4 |
 | M4 Ensemble | ⬜ Chưa làm — dự kiến M1 + M2a + M2b (T1 default), bỏ M3 |
 
 ## Việc tiếp theo (ưu tiên theo thứ tự)
 
 - [ ] **M4 Ensemble** — M1 + M2a + M2b (T1 default), thử E1 (trung bình đơn giản) trước, E2 (trọng số
       theo sai số validation) sau nếu có thời gian.
-- [ ] Thêm covariate khí hậu vào `hhh4`'s `end$f` (và có thể `ar$f`) — nếu M3 vẫn thua M2 sau đó, mới
-      là bằng chứng chắc chắn cho thấy thành phần lan truyền không gian không thêm giá trị ở quy mô
-      dữ liệu này.
+- [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
+      đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
 - [ ] LOPO (leave-one-province-out) cross-validation, robustness test (nhiễu khí hậu, dữ liệu thiếu),
       hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02 protocol đầy đủ, chưa bắt
       đầu.
