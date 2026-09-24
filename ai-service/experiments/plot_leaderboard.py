@@ -38,7 +38,18 @@ RESULTS: list[tuple[str, float, float, float, float, str, str, float, int]] = [
     ("B4 GLM Poisson (pooled)", 0.943, 1.333, 1.768, 2.367, GRAY, "--", 1.3, 1),
     ("M1 GLM NegBin", 0.497, 0.736, 1.138, 1.644, "#4c72b0", "-", 2.0, 3),
     ("M2a XGBoost", 0.449, 0.698, 0.963, 1.611, "#55a868", "-", 2.0, 4),
-    ("M2b LightGBM (tốt nhất)", 0.447, 0.694, 1.001, 1.608, "#dd5f4b", "-", 3.0, 6),
+    ("M2b LightGBM", 0.447, 0.694, 1.001, 1.608, "#dd5f4b", "-", 2.0, 5),
+    (
+        "M4 Ensemble E1 (tốt nhất)",
+        0.429,
+        0.671,
+        0.898,
+        1.479,
+        "#e8a317",
+        "-",
+        3.2,
+        7,
+    ),
     (
         "M3 hhh4 (+khí hậu, loại khỏi M4)",
         0.542,
@@ -48,7 +59,7 @@ RESULTS: list[tuple[str, float, float, float, float, str, str, float, int]] = [
         "#8172b2",
         "-",
         2.0,
-        5,
+        4,
     ),
 ]
 HORIZONS = [1, 2, 3, 6]

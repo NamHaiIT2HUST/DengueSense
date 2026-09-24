@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_003 v2 — T2 tuning kiểm chứng lại với inner=15 origin)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_005 — M4 Ensemble)
 
 ## Biểu đồ
 
@@ -29,7 +29,9 @@ _(sinh bằng `python experiments/plot_leaderboard.py`, xem file đó để sử
 | B4 | GLM Poisson (pooled) | 0 (baseline) | 0.943 | 1.333 | 1.768 | 2.367 | [exp_001](exp_001_baselines/RESULTS.md) |
 | M1 | GLM NegBin (fixed-effect theo tỉnh) | 1 (T1 default) | 0.497 | 0.736 | 1.138 | 1.644 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
 | M2a | XGBoost | 1 (T1 default) | 0.449 | 0.698 | 0.963 | 1.611 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
-| M2b | **LightGBM 🏆 tốt nhất hiện tại** | 1 (T1 default) | **0.447** | **0.694** | **1.001** | **1.608** | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
+| M2b | LightGBM (đơn lẻ tốt nhất) | 1 (T1 default) | 0.447 | 0.694 | 1.001 | 1.608 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
+| M4 | **Ensemble E1 (M1+M2a+M2b) 🏆 tốt nhất hiện tại** | 1 (ensemble) | **0.429** | **0.671** | **0.898** | **1.479** | [exp_005](exp_005_m4_ensemble/RESULTS.md) |
+| M4 | Ensemble E2 (có trọng số) | 1 (ensemble) | 0.430 | 0.674 | 0.907 | 1.492 | [exp_005](exp_005_m4_ensemble/RESULTS.md) |
 | M3 | hhh4 v1 (không khí hậu) | 1 (T1) | 0.544 | 1.038 | 1.527 | 2.406 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
 | M3 | **hhh4 v2 (+climatology khí hậu theo tỉnh)** | 1 (T1) | 0.542 | 1.014 | 1.477 | 2.232 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
 | — | M2a XGBoost, T2 tuned (inner=5 origin) | 2 (tuning) | — | — | — | — | outer gộp 0.9764 (TỆ HƠN T1's 0.9304, −4.9%) — [exp_003](exp_003_tuning_m2/RESULTS.md) |
@@ -41,8 +43,10 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 
 ## Đọc nhanh
 
-1. **M2b LightGBM (T1 mặc định) đang là model tốt nhất** ở mọi horizon, nhưng thắng B3 khiêm tốn
-   (2-14%, không áp đảo) — đúng như kỳ vọng thực tế cho quy mô dữ liệu 34 chuỗi × ~200 tháng.
+1. **M4 Ensemble E1 (trung bình đơn giản M1+M2a+M2b) là model tốt nhất** ở mọi horizon, thắng model
+   đơn lẻ tốt nhất 3.9/3.3/6.8/8.0% (h=1/2/3/6) — vượt ngưỡng ≥3% của docs/02 §7, thắng đa số fold
+   (21/32 vs M2b, 27/32 vs M2a). E2 (có trọng số) không tốt hơn E1. Model đơn lẻ tốt nhất vẫn là
+   M2a/M2b, thắng B3 khiêm tốn (2-14%).
 2. **T2 tuning (Optuna 100 trial) không cải thiện được gì — đã kiểm chứng lại 2 lần, kết luận vững.**
    Lần 1 (inner=5 origin): XGBoost tệ hơn (-4.9%), LightGBM không đổi. Nghi ngờ inner quá nhỏ khiến
    XGBoost chưa hội tụ (đường hội tụ vẫn đang giảm ở trial 100) → tăng inner lên 15 origin để kiểm tra
@@ -57,9 +61,8 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
    cách — chẩn đoán: climatology chỉ bắt mùa vụ trung bình, không bắt được bất thường khí hậu liên năm
    mà M1/M2's khí hậu lag thực đo có. **Quyết định: vẫn loại M3 khỏi M4 ensemble** — xem exp_004
    "Việc tiếp theo" cho hướng khả thi tiếp theo (ONI lag đủ xa, leak-safe).
-4. **Không model nào đạt ngưỡng promote G1** (docs/02 §10: MASE<0.90 ở CẢ h=1 và h=3) — M2b đạt h=1
-   (0.447<0.90 ✅) nhưng không đạt h=3 (1.001>0.90 ❌). Kỳ vọng thực tế cho vòng model zoo đầu tiên,
-   chưa đáng lo.
+4. **M4 E1 đạt ngưỡng G1** (docs/02 §10: MASE<0.90 ở CẢ h=1 và h=3): 0.429 ✅ và 0.8975 ✅ — nhưng h=3
+   sát ngưỡng (std giữa origin lớn), cần thêm robustness/LOPO trước khi coi là chắc chắn.
 
 ## Trạng thái model zoo (docs/02 §3)
 
@@ -69,12 +72,10 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 | M1 GLM NegBin | ✅ Xong (T1) — exp_002. Không tune thêm (thua M2 mọi horizon) |
 | M2a/M2b XGBoost/LightGBM | ✅ Xong (T1); T2 đã kiểm chứng 2 lần (inner=5, inner=15) — vẫn giữ T1 |
 | M3 hhh4 | ✅ Xong (T1, v1 + v2 có khí hậu) — exp_004. Cả 2 bản đều loại khỏi M4 |
-| M4 Ensemble | ⬜ Chưa làm — dự kiến M1 + M2a + M2b (T1 default), bỏ M3 |
+| M4 Ensemble | ✅ Xong — exp_005. Chọn E1 (trung bình đơn giản) |
 
 ## Việc tiếp theo (ưu tiên theo thứ tự)
 
-- [ ] **M4 Ensemble** — M1 + M2a + M2b (T1 default), thử E1 (trung bình đơn giản) trước, E2 (trọng số
-      theo sai số validation) sau nếu có thời gian.
 - [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
 - [ ] LOPO (leave-one-province-out) cross-validation, robustness test (nhiễu khí hậu, dữ liệu thiếu),

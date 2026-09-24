@@ -9,6 +9,27 @@
 
 ---
 
+## 2026-09-24 — exp_005: M4 Ensemble xong — kết quả DƯƠNG TÍNH đầu tiên, E1 (trung bình đơn giản) thắng
+
+**Làm:** `app/forecast/ensemble.py` (`combine_ensemble`, `validation_error_weights`, 6 unit test) +
+`experiments/exp_005_m4_ensemble/`. Thành viên M1+M2a+M2b (T1 default, bỏ M3 và bỏ tham số T2 theo các
+quyết định trước). E2 ước lượng trọng số trên cửa sổ validation riêng (10 origin, ≤2008-12), không dùng
+outer.
+
+**Kết quả (outer MASE, 8 origin):** E1 = 0.429 / 0.671 / 0.898 / 1.479 (h=1/2/3/6) vs model đơn lẻ tốt
+nhất 0.447 / 0.694 / 0.963 / 1.609 → cải thiện 3.9 / 3.3 / 6.8 / 8.0%, vượt ngưỡng ≥3% docs/02 §7 ở cả
+4 horizon; thắng 21/32 fold vs M2b, 27/32 vs M2a. E2 kém hơn E1 ở mọi horizon → chọn E1.
+**E1 đạt G1** (MASE<0.90 ở h=1 và h=3), h=3 sát ngưỡng (0.8975).
+
+**Kiểm tra nghi vấn:** MASE của M1/M2a/M2b khớp chính xác exp_002 (harness đúng); tái lập y hệt sau
+refactor; quy mô cải thiện bình thường cho ensemble, khớp khảo sát docs/02.
+
+**File:** `ai-service/app/forecast/ensemble.py`, `ai-service/tests/test_forecast/test_ensemble.py`,
+`ai-service/experiments/exp_005_m4_ensemble/`, `ai-service/experiments/{MODEL_ZOO_RESULTS.md,
+plot_leaderboard.py,leaderboard_mase.png}`
+
+---
+
 ## 2026-09-24 — T2 tuning kiểm chứng lại xong (inner=15 origin): kết luận "T1 default thắng" vững hơn, không phải chỉ do thiếu dữ liệu tuning
 
 **Làm:** Chạy lại `notebooks/04_tune_m2.ipynb` với `INNER_N_ORIGINS=15` (tăng từ 5) sau 2 lần thất bại

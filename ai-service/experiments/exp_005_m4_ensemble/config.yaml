@@ -1,0 +1,44 @@
+experiment:
+  id: exp_005_m4_ensemble
+  description: "M4 Ensemble (docs/02 §7): E1 trung binh don gian + E2 trung binh co trong so (nghich dao sai so validation), thanh vien M1 GLM NegBin + M2a XGBoost + M2b LightGBM (T1 default). M3 hhh4 KHONG dua vao - da quyet dinh loai o exp_004 (thua moi model khac moi horizon)"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  validation_weights:
+    strategy: rolling_origin
+    scheme: expanding
+    n_origins: 10   # uoc luong trong so E2, tach biet hoan toan khoi outer - cutoff 2008-12 giong exp_003
+    embargo_months: 1
+    cutoff: "2008-12-01"
+  outer_evaluation:
+    strategy: rolling_origin
+    scheme: expanding
+    n_origins: 8    # giong het exp_001/002/003/004 - so sanh truc tiep duoc
+    embargo_months: 1
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+ensemble_members: [M1_glm_negbin, M2a_xgboost, M2b_lightgbm]
+excluded: [M3_hhh4]   # xem exp_004 RESULTS.md "Quyet dinh" - thua moi model khac moi horizon ca 2 ban (co/khong khi hau)
+
+methods:
+  E1_simple_average: {}
+  E2_weighted_average:
+    weight_formula: "w_model = (1/mase_validation_model) / sum(1/mase_validation)"
+    note: "1 trong so co dinh moi model (khong tach theo horizon) - tinh tren cua so validation rieng, tranh dung lai chinh outer set de uoc luong trong so"
+
+acceptance_threshold:
+  min_mase_improvement_pct: 3   # docs/02 §7 - phai thang model don le tot nhat >= 3% VA on dinh qua cac origin
+  best_single_model_reference: M2b_lightgbm
+
+metrics:
+  primary: mase
+  secondary: [mae]
+
+seed: 42

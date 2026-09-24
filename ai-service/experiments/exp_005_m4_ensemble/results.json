@@ -1,0 +1,1589 @@
+{
+  "weights": {
+    "M1_glm_negbin": 0.2649999079151813,
+    "M2a_xgboost": 0.3710309127163215,
+    "M2b_lightgbm": 0.3639691793684973
+  },
+  "rows": [
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 1,
+      "target_month": "2009-12-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.4094222059728385,
+      "mase": 0.36667131264352415
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 1,
+      "target_month": "2009-12-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.7639787663175133,
+      "mase": 0.4206285307125188
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 1,
+      "target_month": "2009-12-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.5972205419315437,
+      "mase": 0.39525088752564597
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 1,
+      "target_month": "2009-12-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.4851360309717263,
+      "mase": 0.3781936135207981
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 1,
+      "target_month": "2009-12-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.5123311218693916,
+      "mase": 0.3823322238698634
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 2,
+      "target_month": "2010-01-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.9290620162798247,
+      "mase": 0.44575127250890706
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 2,
+      "target_month": "2010-01-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 3.4631623219418506,
+      "mase": 0.5270318632143993
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 2,
+      "target_month": "2010-01-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.5102588290215775,
+      "mase": 0.5341991160225786
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 2,
+      "target_month": "2010-01-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 3.276007580667522,
+      "mase": 0.49855023202481324
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 2,
+      "target_month": "2010-01-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 3.3187071891877795,
+      "mase": 0.5050483548804403
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 3,
+      "target_month": "2010-02-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 1.930982957432345,
+      "mase": 0.29386134731339564
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 3,
+      "target_month": "2010-02-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.486626227275653,
+      "mase": 0.37842039495972685
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 3,
+      "target_month": "2010-02-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.3624255026947503,
+      "mase": 0.3595192482032709
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 3,
+      "target_month": "2010-02-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.2379093062184694,
+      "mase": 0.3405700922213278
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 3,
+      "target_month": "2010-02-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.272805819308316,
+      "mase": 0.3458807223921697
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 6,
+      "target_month": "2010-05-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 3.2020172488262255,
+      "mase": 0.48729021622852653
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 6,
+      "target_month": "2010-05-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 3.77336060767593,
+      "mase": 0.5742385388762771
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 6,
+      "target_month": "2010-05-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.9830514281904623,
+      "mase": 0.6061497614991784
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 6,
+      "target_month": "2010-05-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 3.6482235286194786,
+      "mase": 0.5551948955811082
+    },
+    {
+      "origin": 0,
+      "train_end": "2009-11-01",
+      "horizon": 6,
+      "target_month": "2010-05-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 3.6946296121324984,
+      "mase": 0.5622570781716824
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 1,
+      "target_month": "2010-01-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.8183325138999438,
+      "mase": 0.4299042746305837
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 1,
+      "target_month": "2010-01-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 3.2629115053527613,
+      "mase": 0.4977196966554475
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 1,
+      "target_month": "2010-01-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.5066787486681874,
+      "mase": 0.5349035915292288
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 1,
+      "target_month": "2010-01-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 3.1605122698114605,
+      "mase": 0.4820998686681556
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 1,
+      "target_month": "2010-01-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 3.205629607860784,
+      "mase": 0.48898200070605247
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 2,
+      "target_month": "2010-02-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.174767623734858,
+      "mase": 0.33173583782633986
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 2,
+      "target_month": "2010-02-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.342905759974677,
+      "mase": 0.35738338052806795
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 2,
+      "target_month": "2010-02-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.311242697234121,
+      "mase": 0.35255354375297954
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 2,
+      "target_month": "2010-02-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.2615587902409557,
+      "mase": 0.3449748340402801
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 2,
+      "target_month": "2010-02-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.2749636628702667,
+      "mase": 0.3470195934914085
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 3,
+      "target_month": "2010-03-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.198755353645762,
+      "mase": 0.3353948906799406
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 3,
+      "target_month": "2010-03-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.628639431583037,
+      "mase": 0.4009687723242776
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 3,
+      "target_month": "2010-03-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.4655385914731336,
+      "mase": 0.37608961132632296
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 3,
+      "target_month": "2010-03-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.416011368640223,
+      "mase": 0.36853480198376376
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 3,
+      "target_month": "2010-03-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.4434397906294336,
+      "mase": 0.3727186929197613
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 6,
+      "target_month": "2010-06-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 5.613648830814573,
+      "mase": 0.8562976926035781
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 6,
+      "target_month": "2010-06-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 6.968960097194661,
+      "mase": 1.0630348692845248
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 6,
+      "target_month": "2010-06-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 7.360417657591746,
+      "mase": 1.1227472267587293
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 6,
+      "target_month": "2010-06-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 6.573256118185341,
+      "mase": 1.0026747693937437
+    },
+    {
+      "origin": 1,
+      "train_end": "2009-12-01",
+      "horizon": 6,
+      "target_month": "2010-06-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 6.69311781275463,
+      "mase": 1.0209582950620821
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 1,
+      "target_month": "2010-02-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.011002086737568,
+      "mase": 0.3076126785121311
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 1,
+      "target_month": "2010-02-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.129948396255349,
+      "mase": 0.32580728562427796
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 1,
+      "target_month": "2010-02-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.2352989301820054,
+      "mase": 0.34192221665174183
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 1,
+      "target_month": "2010-02-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.117872438588687,
+      "mase": 0.32396008829517553
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 1,
+      "target_month": "2010-02-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.130774478836329,
+      "mase": 0.32593364724124657
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 2,
+      "target_month": "2010-03-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.032012682406466,
+      "mase": 0.310826561607265
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 2,
+      "target_month": "2010-03-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.3093214105380255,
+      "mase": 0.3532450559479292
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 2,
+      "target_month": "2010-03-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.3603079343455606,
+      "mase": 0.3610442030795479
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 2,
+      "target_month": "2010-03-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.2226690773850626,
+      "mase": 0.33999029282446014
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 2,
+      "target_month": "2010-03-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.2452712577476066,
+      "mase": 0.3434476324698982
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 3,
+      "target_month": "2010-04-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.2350347720217667,
+      "mase": 0.3418818097323469
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 3,
+      "target_month": "2010-04-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.929053921506032,
+      "mase": 0.44804236069324
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 3,
+      "target_month": "2010-04-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.765074198331927,
+      "mase": 0.4229592231868557
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 3,
+      "target_month": "2010-04-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.6168234527564285,
+      "mase": 0.4002820667390062
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 3,
+      "target_month": "2010-04-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.659837969942127,
+      "mase": 0.4068617768913038
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 6,
+      "target_month": "2010-07-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 11.39936389012305,
+      "mase": 1.7437022480985722
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 6,
+      "target_month": "2010-07-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 12.69570012424458,
+      "mase": 1.9419961553303509
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 6,
+      "target_month": "2010-07-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 13.264736450914613,
+      "mase": 2.0290387246902086
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 6,
+      "target_month": "2010-07-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 12.229217917134813,
+      "mase": 1.870640763829948
+    },
+    {
+      "origin": 2,
+      "train_end": "2010-01-01",
+      "horizon": 6,
+      "target_month": "2010-07-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 12.353676178817375,
+      "mase": 1.8896785060041723
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 1,
+      "target_month": "2010-03-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 1.6136894054452828,
+      "mase": 0.24774414798328934
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 1,
+      "target_month": "2010-03-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 1.7554017959338082,
+      "mase": 0.26950076070057183
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 1,
+      "target_month": "2010-03-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 1.5102359936072798,
+      "mase": 0.23186130380938336
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 1,
+      "target_month": "2010-03-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 1.6154988773742167,
+      "mase": 0.2480219499443239
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 1,
+      "target_month": "2010-03-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 1.6186321840130071,
+      "mase": 0.2485029956653766
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 2,
+      "target_month": "2010-04-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.207473917061125,
+      "mase": 0.33890582842782796
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 2,
+      "target_month": "2010-04-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 1.966391382330446,
+      "mase": 0.3018932614747576
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 2,
+      "target_month": "2010-04-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.0848418563911064,
+      "mase": 0.3200785526933471
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 2,
+      "target_month": "2010-04-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.0859799047692604,
+      "mase": 0.32025327332103304
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 3,
+      "target_month": "2010-05-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.85033187591947,
+      "mase": 0.43760158534003846
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 3,
+      "target_month": "2010-05-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 3.3592631062868143,
+      "mase": 0.5157360352682469
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 3,
+      "target_month": "2010-05-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.51620178313668,
+      "mase": 0.5398302870186734
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 3,
+      "target_month": "2010-05-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 3.024022987191034,
+      "mase": 0.46426778035194055
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 3,
+      "target_month": "2010-05-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 3.1077057781513577,
+      "mase": 0.4771153095464502
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 6,
+      "target_month": "2010-08-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 16.79645435179172,
+      "mase": 2.578701488950162
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 6,
+      "target_month": "2010-08-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 13.906311395398076,
+      "mase": 2.134987846246986
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 6,
+      "target_month": "2010-08-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 13.05219181240341,
+      "mase": 2.0038578235481843
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 6,
+      "target_month": "2010-08-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 12.275083760986798,
+      "mase": 1.8845511146861789
+    },
+    {
+      "origin": 3,
+      "train_end": "2010-02-01",
+      "horizon": 6,
+      "target_month": "2010-08-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 12.305331497005367,
+      "mase": 1.8891949448824092
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 1,
+      "target_month": "2010-04-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 1.5616848236789187,
+      "mase": 0.2405915666874536
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 1,
+      "target_month": "2010-04-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 1.5673497785592625,
+      "mase": 0.24146430384235848
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 1,
+      "target_month": "2010-04-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 1.4478304907651076,
+      "mase": 0.2230512846058493
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 1,
+      "target_month": "2010-04-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 1.4541039250492398,
+      "mase": 0.22401776347536573
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 1,
+      "target_month": "2010-04-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 1.4530964642599866,
+      "mase": 0.2238625550965767
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 2,
+      "target_month": "2010-05-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.711199183498162,
+      "mase": 0.4176845732693619
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 2,
+      "target_month": "2010-05-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.6215238255496027,
+      "mase": 0.40386927934131006
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 2,
+      "target_month": "2010-05-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.8308826452421987,
+      "mase": 0.4361228849766772
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 2,
+      "target_month": "2010-05-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.640690865280438,
+      "mase": 0.40682213387871863
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 2,
+      "target_month": "2010-05-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.6533476905389044,
+      "mase": 0.40877203143298324
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 3,
+      "target_month": "2010-06-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 4.906629637464525,
+      "mase": 0.7559103435812036
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 3,
+      "target_month": "2010-06-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 5.601661410735552,
+      "mase": 0.8629862277118515
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 3,
+      "target_month": "2010-06-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 4.726757197646928,
+      "mase": 0.7281993794715159
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 3,
+      "target_month": "2010-06-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 4.784468132347938,
+      "mase": 0.737090267046388
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 3,
+      "target_month": "2010-06-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 4.861834314876641,
+      "mase": 0.7490092219987448
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 6,
+      "target_month": "2010-09-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 18.504740069215934,
+      "mase": 2.8508213289214277
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 6,
+      "target_month": "2010-09-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 17.07778420616452,
+      "mase": 2.6309859681111516
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 6,
+      "target_month": "2010-09-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 17.639601918312593,
+      "mase": 2.7175390302328952
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 6,
+      "target_month": "2010-09-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 14.649036544433955,
+      "mase": 2.2568155874016154
+    },
+    {
+      "origin": 4,
+      "train_end": "2010-03-01",
+      "horizon": 6,
+      "target_month": "2010-09-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 14.862121105395499,
+      "mase": 2.2896431769262904
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 1,
+      "target_month": "2010-05-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 2.632435852636449,
+      "mase": 0.4068818476680921
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 1,
+      "target_month": "2010-05-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.753019292218387,
+      "mase": 0.4255197995278248
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 1,
+      "target_month": "2010-05-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 2.0616875910113985,
+      "mase": 0.31866427267542097
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 1,
+      "target_month": "2010-05-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 2.161294574309841,
+      "mase": 0.334060003349931
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 1,
+      "target_month": "2010-05-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 2.210275119840291,
+      "mase": 0.34163067020787585
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 2,
+      "target_month": "2010-06-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 6.282986410564051,
+      "mase": 0.9711283627456618
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 2,
+      "target_month": "2010-06-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 5.396576005213331,
+      "mase": 0.8341205404429419
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 2,
+      "target_month": "2010-06-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.8972650544140652,
+      "mase": 0.6023798850042779
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 2,
+      "target_month": "2010-06-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 4.907887743567824,
+      "mase": 0.7585865506468029
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 2,
+      "target_month": "2010-06-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 4.829735023038576,
+      "mase": 0.7465068932080923
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 3,
+      "target_month": "2010-07-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 13.211732236409174,
+      "mase": 2.0420683823548638
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 3,
+      "target_month": "2010-07-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 7.949764437865221,
+      "mase": 1.2287535287004796
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 3,
+      "target_month": "2010-07-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 8.109244502838706,
+      "mase": 1.2534035285998697
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 3,
+      "target_month": "2010-07-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 9.2283602939152,
+      "mase": 1.4263794058170487
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 3,
+      "target_month": "2010-07-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 8.952504172615036,
+      "mase": 1.3837417672919723
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 6,
+      "target_month": "2010-10-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 14.36519209100845,
+      "mase": 2.220352641923918
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 6,
+      "target_month": "2010-10-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 15.217346249535899,
+      "mase": 2.3520656552429102
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 6,
+      "target_month": "2010-10-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 14.72366282388697,
+      "mase": 2.2757595890609092
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 6,
+      "target_month": "2010-10-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 13.5107357265302,
+      "mase": 2.0882837886667804
+    },
+    {
+      "origin": 5,
+      "train_end": "2010-04-01",
+      "horizon": 6,
+      "target_month": "2010-10-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 13.718692335499332,
+      "mase": 2.1204265545417433
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 1,
+      "target_month": "2010-06-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 4.603817162052387,
+      "mase": 0.7125810462793217
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 1,
+      "target_month": "2010-06-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 2.9950343218146855,
+      "mase": 0.4635728604238828
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 1,
+      "target_month": "2010-06-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 3.016247851905851,
+      "mase": 0.46685630086809493
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 1,
+      "target_month": "2010-06-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 3.131190405874745,
+      "mase": 0.4846471649459068
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 1,
+      "target_month": "2010-06-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 3.0791679810311146,
+      "mase": 0.4765951088758661
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 2,
+      "target_month": "2010-07-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 8.501438041396362,
+      "mase": 1.3158566904764741
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 2,
+      "target_month": "2010-07-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 8.2983298574571,
+      "mase": 1.284419507563934
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 2,
+      "target_month": "2010-07-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 8.391101299511432,
+      "mase": 1.2987787162199194
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 2,
+      "target_month": "2010-07-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 8.392161392779515,
+      "mase": 1.2989427979685066
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 3,
+      "target_month": "2010-08-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 16.09593689679042,
+      "mase": 2.491336895240138
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 3,
+      "target_month": "2010-08-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 10.799219030470075,
+      "mase": 1.6715083429380473
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 3,
+      "target_month": "2010-08-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 12.769682562405402,
+      "mase": 1.976497641126372
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 3,
+      "target_month": "2010-08-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 10.224624268455347,
+      "mase": 1.5825722878579316
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 3,
+      "target_month": "2010-08-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 10.244478112954926,
+      "mase": 1.5856452755088726
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 6,
+      "target_month": "2010-11-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 9.665412164923653,
+      "mase": 1.496017168095306
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 6,
+      "target_month": "2010-11-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 8.36881894244791,
+      "mase": 1.2953298422201502
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 6,
+      "target_month": "2010-11-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 8.19279638357559,
+      "mase": 1.2680849854513199
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 6,
+      "target_month": "2010-11-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 8.460771354821304,
+      "mase": 1.309562281066121
+    },
+    {
+      "origin": 6,
+      "train_end": "2010-05-01",
+      "horizon": 6,
+      "target_month": "2010-11-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 8.379394692359012,
+      "mase": 1.2969667619047458
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 1,
+      "target_month": "2010-07-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 8.193872337989028,
+      "mase": 1.2678860613942902
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 1,
+      "target_month": "2010-07-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 6.143786795388182,
+      "mase": 0.95066426723982
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 1,
+      "target_month": "2010-07-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 6.847290322550507,
+      "mase": 1.0595215058491465
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 1,
+      "target_month": "2010-07-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 6.183307100164993,
+      "mase": 0.9567794764475912
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 1,
+      "target_month": "2010-07-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 6.144565735827223,
+      "mase": 0.9507847972755075
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 2,
+      "target_month": "2010-08-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 12.527468490694316,
+      "mase": 1.9384488833524658
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 2,
+      "target_month": "2010-08-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 9.416619256999681,
+      "mase": 1.4570888840986163
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 2,
+      "target_month": "2010-08-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 10.848979777159094,
+      "mase": 1.6787264522093372
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 2,
+      "target_month": "2010-08-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 9.066157108573488,
+      "mase": 1.4028598145321114
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 2,
+      "target_month": "2010-08-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 9.20443048683404,
+      "mase": 1.4242556676436673
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 3,
+      "target_month": "2010-09-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 15.529305580824655,
+      "mase": 2.4029407924473944
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 3,
+      "target_month": "2010-09-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 14.179021074156834,
+      "mase": 2.1940033286571103
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 3,
+      "target_month": "2010-09-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 15.192443011259192,
+      "mase": 2.350816065707713
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 3,
+      "target_month": "2010-09-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 12.023017533393471,
+      "mase": 1.8603922196608127
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 3,
+      "target_month": "2010-09-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 12.495234822040125,
+      "mase": 1.9334611782103228
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 6,
+      "target_month": "2010-12-01",
+      "model": "M1_glm_negbin",
+      "n_provinces": 34,
+      "mae": 5.948570534827476,
+      "mase": 0.9204573070245744
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 6,
+      "target_month": "2010-12-01",
+      "model": "M2a_xgboost",
+      "n_provinces": 34,
+      "mae": 5.80364495560837,
+      "mase": 0.8980321197319329
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 6,
+      "target_month": "2010-12-01",
+      "model": "M2b_lightgbm",
+      "n_provinces": 34,
+      "mae": 5.457929971474391,
+      "mase": 0.8445376068181283
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 6,
+      "target_month": "2010-12-01",
+      "model": "E1_simple_avg",
+      "n_provinces": 34,
+      "mae": 5.603582117725594,
+      "mase": 0.8670752201011521
+    },
+    {
+      "origin": 7,
+      "train_end": "2010-06-01",
+      "horizon": 6,
+      "target_month": "2010-12-01",
+      "model": "E2_weighted_avg",
+      "n_provinces": 34,
+      "mae": 5.592509678836262,
+      "mase": 0.8653619165061794
+    }
+  ]
+}
