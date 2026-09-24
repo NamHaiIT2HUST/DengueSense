@@ -52,3 +52,22 @@ def test_validation_error_weights_favors_lower_error():
     weights = validation_error_weights({"a": 1.0, "b": 4.0})
     assert weights["a"] > weights["b"]
     assert math.isclose(sum(weights.values()), 1.0)
+
+
+def test_route_by_group_uses_alt_only_for_selected_groups():
+    from app.forecast.ensemble import route_by_group
+
+    out = route_by_group(
+        {"a": 1.0, "b": 2.0},
+        {"a": 10.0, "b": 20.0},
+        {"a": "Bac", "b": "Nam"},
+        ["Bac"],
+    )
+    assert out == {"a": 10.0, "b": 2.0}
+
+
+def test_route_by_group_falls_back_when_chosen_source_missing():
+    from app.forecast.ensemble import route_by_group
+
+    out = route_by_group({"a": 1.0}, {}, {"a": "Bac"}, ["Bac"])
+    assert out == {"a": 1.0}

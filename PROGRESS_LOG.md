@@ -9,6 +9,48 @@
 
 ---
 
+## 2026-09-24 — exp_008: M4-R2 (đòn bẩy theo vùng chọn bằng validation) −4.3% so với M4-R; bùng dịch/miền Bắc vẫn chưa sửa được
+
+**Làm:** thử 4 đòn bẩy khai báo trước (Poisson control, Tweedie, trọng số mẫu bùng dịch 3x, pha 50% Climatology B3)
+trên phần GBM của M4-R; chọn theo VALIDATION (quy tắc chấp nhận + định tuyến vùng >10%), outer chỉ xác nhận.
+`models.py` thêm `objective`/`weight_col` (mặc định không đổi), `app/forecast/m4.py` (`predict_m4`, `assemble_m4`,
+`climatology_forecast`, 4 test; khớp tuyệt đối kết quả exp_008 ở 3 fold gồm h=1/3/6).
+
+**Kết quả:** M4-R2 = 0.404/0.625/0.851/1.394 (M4-R 0.424/0.666/0.894/1.436), gộp 0.8552→0.8185 (−4.3%), 27/32
+fold, G1 biên tốt hơn. Nguồn cải thiện: **Nam −10%** (pha Climatology, tái lập). **Bắc-Tweedie: −44% trên validation
+nhưng KHÔNG tái lập ở outer** (winner's curse, giữ theo quy tắc khai báo trước, ghi rõ không có bằng chứng lợi ích).
+Toàn cục: quy tắc chỉ nhận C3, nhưng outer lẫn lộn (bùng dịch tệ hơn, Trung tệ hơn). C2 giảm bias bùng dịch GBM
+(−18→−14) nhưng h=1 +11%, Bắc +21% → không nhận.
+
+**Vẫn chưa sửa:** miền Bắc 1.373 (>1, chưa thắng seasonal-naive); bias bùng dịch −15.5. Sau 3 hướng (quy mô,
+isotonic, Tweedie/trọng số) kết luận: cần tín hiệu mới, không chỉ đổi loss.
+
+**File:** `ai-service/app/forecast/{m4,models}.py`, `ai-service/tests/test_forecast/test_m4.py`,
+`ai-service/experiments/exp_008_outbreak_north/`, `ai-service/experiments/{MODEL_ZOO_RESULTS.md,plot_leaderboard.py,
+leaderboard_mase.png}`
+
+---
+
+## 2026-09-24 — exp_007: sửa điểm yếu M4 — định tuyến theo vùng (M4-R) cải thiện mọi horizon; bias bùng dịch CHƯA sửa được
+
+**Làm:** chẩn đoán (miền Bắc: 89% quan sát <1/100k, dự báo toàn 0 còn tốt hơn M4; bias trái dấu giữa vùng →
+model pooled không biết quy mô tỉnh). `features.py::add_province_baseline_features` (nhân quả, 2 test),
+`models.py::fit_predict_scale_aware` (dự báo tỉ lệ so với quy mô lịch sử tỉnh, khớp exp_007 tuyệt đối),
+`ensemble.py::route_by_group` (E4 theo vùng), exp_007 (4 biến thể chọn theo VALIDATION, outer chỉ báo cáo).
+
+**Kết quả:** V1 (chỉ thêm đặc trưng quy mô) tệ hơn V0; V3 (tỉ lệ + đặc trưng tương đối) cải thiện Bắc (−22%) và
+h=6 nhưng h=1 +12%, phá G1 ở h=3 → không dùng toàn cục. **M4-R (Bắc→V3, chọn bằng validation: chỉ Bắc cải thiện
+>10%, −37%)**: MASE 0.424/0.666/0.894/1.436 (M4 cũ 0.429/0.671/0.898/1.479), gộp 0.8693→0.8552, giữ G1, Bắc
+1.755→1.366 (vẫn >1). Isotonic (bias bùng dịch) làm tệ hơn (0.93→1.06) → bỏ. Bias bùng dịch −15 vẫn còn.
+
+**Phát hiện phụ:** GBM nhạy THỨ TỰ cột (đổi thứ tự → dự báo lệch ~6/100k ở 1 tỉnh); ghi vào docstring.
+
+**File:** `ai-service/app/forecast/{features,models,ensemble}.py`, `ai-service/tests/test_forecast/`,
+`ai-service/experiments/exp_007_scale_aware/`, `ai-service/experiments/{MODEL_ZOO_RESULTS.md,plot_leaderboard.py,
+leaderboard_mase.png}`
+
+---
+
 ## 2026-09-24 — exp_006: phân rã M4 (§4.2) + LOPO (§4.3) — lộ điểm yếu thật: thua seasonal-naive ở miền Bắc, dự báo thấp khi bùng dịch
 
 **Làm:** `app/forecast/backtest.py` (helper dùng chung cho experiment mới: nạp panel + đặc trưng, ghép cặp

@@ -40,3 +40,28 @@ def validation_error_weights(avg_error_by_model: dict[str, float]) -> dict[str, 
     inv = {name: 1.0 / err for name, err in avg_error_by_model.items()}
     total = sum(inv.values())
     return {name: v / total for name, v in inv.items()}
+
+
+def route_by_group(
+    default_preds: dict[str, float],
+    alt_preds: dict[str, float],
+    group_of: dict[str, str],
+    alt_groups: set[str] | list[str],
+) -> dict[str, float]:
+    """Ensemble theo vùng (docs/02 §7 E4): tỉnh thuộc nhóm trong `alt_groups`
+    dùng `alt_preds`, còn lại dùng `default_preds`. Nhóm nào dùng bản thay thế
+    phải được quyết định bằng cửa sổ VALIDATION, không phải outer (xem
+    exp_007). Tỉnh thiếu dự báo ở nguồn được chọn thì lùi về nguồn còn lại."""
+    alt = set(alt_groups)
+    result = {}
+    for p in default_preds.keys() | alt_preds.keys():
+        use_alt = group_of.get(p) in alt
+        first, second = (
+            (alt_preds, default_preds) if use_alt else (default_preds, alt_preds)
+        )
+        val = first.get(p)
+        if val is None:
+            val = second.get(p)
+        if val is not None:
+            result[p] = val
+    return result

@@ -154,6 +154,27 @@ def add_seasonal_norm_features(
     return df
 
 
+def add_province_baseline_features(
+    panel: pd.DataFrame,
+    target_col: str = "incidence_per_100k",
+    reporting_delay_months: int = 1,
+    min_history_months: int = 12,
+) -> pd.DataFrame:
+    """Quy mô (baseline) riêng từng tỉnh, chỉ dùng dữ liệu tới `t-D`:
+    `prov_mean_hist` = trung bình mở rộng toàn lịch sử, `prov_mean_12m` =
+    trung bình 12 tháng gần nhất. Cho model pooled biết tỉnh nào vốn có
+    incidence cao/thấp (đã thấy ở exp_006: bias trái dấu giữa các vùng) mà
+    KHÔNG cần `province_id` — vẫn dùng được cho tỉnh mới có lịch sử (LOPO)."""
+    df = _sorted(panel)
+    lagged = df.groupby("province_id")[target_col].shift(reporting_delay_months)
+    grp = lagged.groupby(df["province_id"])
+    df["prov_mean_hist"] = grp.transform(
+        lambda s: s.expanding(min_periods=min_history_months).mean()
+    )
+    df["prov_mean_12m"] = grp.transform(lambda s: s.rolling(12, min_periods=12).mean())
+    return df
+
+
 def build_feature_matrix(
     panel: pd.DataFrame, reporting_delay_months: int = 1
 ) -> pd.DataFrame:
@@ -169,4 +190,7 @@ def build_feature_matrix(
     df = add_momentum_features(df, reporting_delay_months=reporting_delay_months)
     df = add_oni_features(df)
     df = add_seasonal_norm_features(df, reporting_delay_months=reporting_delay_months)
+    df = add_province_baseline_features(
+        df, reporting_delay_months=reporting_delay_months
+    )
     return df

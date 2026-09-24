@@ -1,0 +1,24 @@
+experiment:
+  id: exp_007_scale_aware
+  description: "Sua diem yeu M4 tu exp_006 (thua seasonal-naive o mien Bac, bias theo vung, du bao thap khi bung dich): 4 bien the GBM scale-aware, chon theo validation; dinh tuyen theo vung; thu isotonic"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  validation: {n_origins: 10, cutoff: "2008-12-01", embargo_months: 1}   # chon bien the/quy tac dinh tuyen o day
+  outer: {n_origins: 8, embargo_months: 1}                              # chi bao cao, khong dung de chon
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+variants: [V0_baseline, V1_scale_features, V2_ratio_target, V3_ratio_rel_features]
+scale_definition: "prov_mean_hist + 1 (trung binh mo rong lich su tinh toi t-D, nhan qua)"
+selection_rule: "validation: trung binh MASE 3 vung (mau so rieng vung) nho nhat; dinh tuyen vung sang V3 neu V3 cai thien >10% tren validation"
+
+metrics:
+  primary: mase
+seed: 42

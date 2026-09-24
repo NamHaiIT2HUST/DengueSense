@@ -126,17 +126,21 @@ def fit_predict_m2_xgboost(
     target_col: str = "incidence_per_100k",
     seed: int = 42,
     params: dict | None = None,
+    objective: str | None = None,
+    weight_col: str | None = None,
 ) -> np.ndarray:
     """`params` ghi đè lên `DEFAULT_XGBOOST_PARAMS` (T1) — dùng cho T2
-    Optuna tuning (docs/02 §6), không đổi hành vi T1 nếu để `None`."""
+    Optuna tuning (docs/02 §6). `objective`/`weight_col` (mặc định None = T1:
+    count:poisson, không trọng số mẫu) dùng cho thử nghiệm exp_008."""
     import xgboost as xgb
 
     clean_train = _drop_incomplete_rows(train_df, feature_cols)
     final_params = {**DEFAULT_XGBOOST_PARAMS, **(params or {})}
     model = xgb.XGBRegressor(
-        objective="count:poisson", random_state=seed, **final_params
+        objective=objective or "count:poisson", random_state=seed, **final_params
     )
-    model.fit(clean_train[feature_cols], clean_train[target_col])
+    weights = None if weight_col is None else clean_train[weight_col]
+    model.fit(clean_train[feature_cols], clean_train[target_col], sample_weight=weights)
     return model.predict(predict_df[feature_cols])
 
 
@@ -147,15 +151,70 @@ def fit_predict_m2_lightgbm(
     target_col: str = "incidence_per_100k",
     seed: int = 42,
     params: dict | None = None,
+    objective: str | None = None,
+    weight_col: str | None = None,
 ) -> np.ndarray:
     """`params` ghi đè lên `DEFAULT_LIGHTGBM_PARAMS` (T1) — dùng cho T2
-    Optuna tuning (docs/02 §6), không đổi hành vi T1 nếu để `None`."""
+    Optuna tuning (docs/02 §6). `objective`/`weight_col` (mặc định None = T1:
+    poisson, không trọng số mẫu) dùng cho thử nghiệm exp_008."""
     import lightgbm as lgb
 
     clean_train = _drop_incomplete_rows(train_df, feature_cols)
     final_params = {**DEFAULT_LIGHTGBM_PARAMS, **(params or {})}
     model = lgb.LGBMRegressor(
-        objective="poisson", random_state=seed, verbosity=-1, **final_params
+        objective=objective or "poisson",
+        random_state=seed,
+        verbosity=-1,
+        **final_params,
     )
-    model.fit(clean_train[feature_cols], clean_train[target_col])
+    weights = None if weight_col is None else clean_train[weight_col]
+    model.fit(clean_train[feature_cols], clean_train[target_col], sample_weight=weights)
     return model.predict(predict_df[feature_cols])
+
+
+SCALE_AWARE_CASE_COLS = [
+    "incidence_per_100k_lag_2",
+    "incidence_per_100k_lag_3",
+    "momentum",
+    "acceleration",
+    "incidence_per_100k_same_month_last_year",
+    "incidence_per_100k_deviation_from_median",
+]
+
+
+def fit_predict_scale_aware(
+    fit_fn,
+    train_df: pd.DataFrame,
+    predict_df: pd.DataFrame,
+    feature_cols: list[str],
+    case_cols: list[str] | None = None,
+    extra_cols: list[str] | None = None,
+    scale_col: str = "prov_mean_hist",
+    scale_shift: float = 1.0,
+    target_col: str = "y_target",
+    **fit_kwargs,
+) -> np.ndarray:
+    """Biến thể "scale-aware" (V3 ở exp_007) của M2: dự báo TỈ LỆ so với quy mô
+    lịch sử của tỉnh rồi nhân lại. `feature_cols` = đặc trưng KHÔNG phải ca
+    bệnh (khí hậu, mùa vụ, ONI); `extra_cols` = cột quy mô (`prov_mean_hist`,
+    `prov_mean_12m`) đặt SAU các cột tương đối; các cột ca bệnh tuyệt đối trong
+    `case_cols` được thay bằng phiên bản chia cho `scale_col + scale_shift`. Mục đích: model pooled không còn dự báo dương
+    sàn quá cao ở tỉnh incidence ≈ 0 (miền Bắc, exp_006). Dự báo luôn ≥ 0.
+    """
+    case_cols = SCALE_AWARE_CASE_COLS if case_cols is None else case_cols
+    tr, te = train_df.copy(), predict_df.copy()
+    for df in (tr, te):
+        scale = df[scale_col] + scale_shift
+        for c in case_cols:
+            df[f"{c}__rel"] = df[c] / scale
+    tr["_y_ratio"] = tr[target_col] / (tr[scale_col] + scale_shift)
+    # THU TU COT quan trong: GBM co bagging/colsample nen doi thu tu cot doi du
+    # bao (da do o exp_007: lech toi ~6 don vi/100k). V3 = feature_cols khong
+    # phai ca benh + cot tuong doi + extra_cols (prov_mean_hist, prov_mean_12m).
+    cols = (
+        list(feature_cols) + [f"{c}__rel" for c in case_cols] + list(extra_cols or [])
+    )
+    pred_ratio = np.asarray(
+        fit_fn(tr, te, cols, target_col="_y_ratio", **fit_kwargs), dtype=float
+    )
+    return np.clip(pred_ratio * (te[scale_col] + scale_shift).to_numpy(), 0.0, None)

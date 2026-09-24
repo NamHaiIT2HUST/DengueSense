@@ -11,6 +11,7 @@ from app.forecast.models import (
     fit_predict_m1_glm_negbin,
     fit_predict_m2_lightgbm,
     fit_predict_m2_xgboost,
+    fit_predict_scale_aware,
 )
 
 FEATURE_COLS = ["sin_month", "cos_month", "temp_mean_lag_1", "momentum"]
@@ -107,3 +108,63 @@ def test_m2_lightgbm_no_nan_and_reasonable_scale(train_test_split):
     assert not np.isnan(pred).any()
     assert np.all(pred >= 0)
     assert np.median(pred) < 5 * np.median(actual) + 20
+
+
+def test_scale_aware_prediction_scales_with_province_baseline():
+    """2 tinh cung dang tuong doi, tinh B lon gap 10 lan: du bao B phai lon hon
+    A ro ret (mo hinh tuyet doi pooled thuong khong lam duoc dieu nay)."""
+    rng = np.random.default_rng(0)
+    rows = []
+    for prov, mult in [("A", 1.0), ("B", 10.0)]:
+        for i in range(300):
+            rel = rng.uniform(0.5, 2.0)
+            base = mult * 3.0
+            rows.append(
+                {
+                    "province_id": prov,
+                    "prov_mean_hist": base,
+                    "incidence_per_100k_lag_2": base * rel,
+                    "temp": rng.normal(),
+                    "y_target": base * rel * rng.uniform(0.9, 1.1),
+                }
+            )
+    df = pd.DataFrame(rows)
+    case_cols = ["incidence_per_100k_lag_2"]
+    test = pd.DataFrame(
+        {
+            "province_id": ["A", "B"],
+            "prov_mean_hist": [3.0, 30.0],
+            "incidence_per_100k_lag_2": [3.0, 30.0],
+            "temp": [0.0, 0.0],
+        }
+    )
+    pred = fit_predict_scale_aware(
+        fit_predict_m2_lightgbm,
+        df,
+        test,
+        ["temp"],
+        case_cols=case_cols,
+        extra_cols=["prov_mean_hist"],
+    )
+    assert (pred >= 0).all()
+    assert pred[1] > 5 * pred[0]
+
+
+def test_scale_aware_never_negative():
+    df = pd.DataFrame(
+        {
+            "prov_mean_hist": [0.0] * 60,
+            "incidence_per_100k_lag_2": [0.0] * 60,
+            "temp": np.linspace(-1, 1, 60),
+            "y_target": [0.0, 0.0, 0.0, 1.0] * 15,  # co so khong, khong suy bien
+        }
+    )
+    pred = fit_predict_scale_aware(
+        fit_predict_m2_lightgbm,
+        df,
+        df.head(3),
+        ["temp"],
+        case_cols=["incidence_per_100k_lag_2"],
+        extra_cols=["prov_mean_hist"],
+    )
+    assert (pred >= 0).all()

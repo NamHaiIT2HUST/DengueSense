@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_006 — phân rã + LOPO cho M4)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_008 — M4-R2)
 
 ## Biểu đồ
 
@@ -30,7 +30,9 @@ _(sinh bằng `python experiments/plot_leaderboard.py`, xem file đó để sử
 | M1 | GLM NegBin (fixed-effect theo tỉnh) | 1 (T1 default) | 0.497 | 0.736 | 1.138 | 1.644 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
 | M2a | XGBoost | 1 (T1 default) | 0.449 | 0.698 | 0.963 | 1.611 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
 | M2b | LightGBM (đơn lẻ tốt nhất) | 1 (T1 default) | 0.447 | 0.694 | 1.001 | 1.608 | [exp_002](exp_002_model_zoo_tier1/RESULTS.md) |
-| M4 | **Ensemble E1 (M1+M2a+M2b) 🏆 tốt nhất hiện tại** | 1 (ensemble) | **0.429** | **0.671** | **0.898** | **1.479** | [exp_005](exp_005_m4_ensemble/RESULTS.md) |
+| M4-R2 | **Ensemble định tuyến vùng + pha Climatology cho Nam 🏆 tốt nhất hiện tại** | 1 (ensemble) | **0.404** | **0.625** | **0.851** | **1.394** | [exp_008](exp_008_outbreak_north/RESULTS.md) |
+| M4-R | Ensemble E1 định tuyến vùng (Bắc→V3 scale-aware) | 1 (ensemble) | 0.424 | 0.666 | 0.894 | 1.436 | [exp_007](exp_007_scale_aware/RESULTS.md) |
+| M4 | Ensemble E1 (M1+M2a+M2b) | 1 (ensemble) | 0.429 | 0.671 | 0.898 | 1.479 | [exp_005](exp_005_m4_ensemble/RESULTS.md) |
 | M4 | Ensemble E2 (có trọng số) | 1 (ensemble) | 0.430 | 0.674 | 0.907 | 1.492 | [exp_005](exp_005_m4_ensemble/RESULTS.md) |
 | M3 | hhh4 v1 (không khí hậu) | 1 (T1) | 0.544 | 1.038 | 1.527 | 2.406 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
 | M3 | **hhh4 v2 (+climatology khí hậu theo tỉnh)** | 1 (T1) | 0.542 | 1.014 | 1.477 | 2.232 | [exp_004](exp_004_m3_hhh4/RESULTS.md) |
@@ -70,6 +72,18 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
    dự báo thấp hơn thực tế hơn một nửa. **LOPO (§4.3):** bỏ hẳn 1 tỉnh khỏi train chỉ kém đi +0.9% (ensemble
    GBM) — ủng hộ luận điểm nhân rộng, kèm điều kiện tỉnh mới có lịch sử địa phương.
 
+6. **Sửa điểm yếu M4 (exp_007):** chỉ thêm đặc trưng quy mô tỉnh không giúp (còn tệ hơn); phải dự báo TỈ LỆ so
+   với quy mô lịch sử (V3). V3 toàn cục là đánh đổi (Bắc −22% nhưng h=1 +12%, phá G1 ở h=3). **M4-R = định tuyến
+   theo vùng (Bắc→V3, còn lại giữ M4)**, chọn bằng validation: cải thiện mọi horizon (gộp 0.8693→0.8552), giữ G1,
+   Bắc 1.755→1.366 (**vẫn >1, chưa thắng seasonal-naive**). Bias bùng dịch (−15) KHÔNG sửa được bằng quy mô hay
+   isotonic (isotonic làm tệ hơn).
+
+7. **M4-R2 (exp_008) — bản hiện hành:** thêm đòn bẩy theo vùng chọn bằng validation (Bắc: Tweedie, Nam: pha 50%
+   Climatology, Trung: giữ nguyên). Gộp 0.8552→**0.8185** (−4.3%), thắng 27/32 fold, G1 có biên tốt hơn
+   (h=1 0.404, h=3 0.851). Cải thiện đến gần hết từ **Nam (−10%)**; Bắc-Tweedie (−44% validation) **không tái
+   lập** ở outer. **Vẫn chưa sửa được:** miền Bắc 1.373 (>1), bias bùng dịch −15.5 (thử 3 hướng: quy mô, isotonic,
+   trọng số/Tweedie — đều đánh đổi hoặc không có tác dụng). Cần tín hiệu mới, không chỉ đổi loss.
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -78,12 +92,12 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 | M1 GLM NegBin | ✅ Xong (T1) — exp_002. Không tune thêm (thua M2 mọi horizon) |
 | M2a/M2b XGBoost/LightGBM | ✅ Xong (T1); T2 đã kiểm chứng 2 lần (inner=5, inner=15) — vẫn giữ T1 |
 | M3 hhh4 | ✅ Xong (T1, v1 + v2 có khí hậu) — exp_004. Cả 2 bản đều loại khỏi M4 |
-| M4 Ensemble | ✅ Xong — exp_005. Chọn E1 (trung bình đơn giản). Phân rã + LOPO: exp_006 |
+| M4 Ensemble | ✅ Xong — exp_005 (E1). Phân rã + LOPO: exp_006. M4-R định tuyến vùng: exp_007. **M4-R2: exp_008 (bản dùng, `app/forecast/m4.py`)** |
 
 ## Việc tiếp theo (ưu tiên theo thứ tự)
 
 - [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
-- [ ] Điều tra miền Bắc (M4 thua seasonal-naive) và bias âm ở tháng bùng dịch (exp_006 "Việc tiếp theo").
+- [ ] Bias âm ở tháng bùng dịch và miền Bắc >1: cần TÍN HIỆU mới (không chỉ đổi loss) — chưa làm.
 - [ ] Robustness §4.4 (nhiễu khí hậu ±5/10%, khuyết thiếu 10/20%) — cần chạy nhiều lần, đóng gói notebook.
 - [ ] Hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02, chưa bắt đầu.

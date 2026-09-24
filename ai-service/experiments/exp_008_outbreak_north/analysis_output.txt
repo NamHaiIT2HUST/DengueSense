@@ -1,0 +1,16 @@
+Validation MASE theo vùng x đòn bẩy:
+ variant  C0_control  C1_tweedie  C2_weighted  C3_blend_B3
+region                                                   
+Bắc           0.476       0.266        0.717        0.503
+Nam           0.865       0.918        0.850        0.717
+Trung         0.225       0.215        0.258        0.314
+  Bắc: tốt nhất C1_tweedie (+44.1% vs C0) -> C1_tweedie
+  Nam: tốt nhất C3_blend_B3 (+17.1% vs C0) -> C3_blend_B3
+  Trung: tốt nhất C1_tweedie (+4.4% vs C0) -> C0_control
+
+=== OUTER ===
+C0_control                         h:{1: 0.439, 2: 0.69, 3: 0.972, 6: 1.547} all 0.9121 | region {'Bắc': 1.416, 'Nam': 0.842, 'Trung': 0.979} | outbreak MASE 2.910 bias -18.13
+C1_tweedie                         h:{1: 0.435, 2: 0.69, 3: 0.963, 6: 1.513} all 0.9002 | region {'Bắc': 1.429, 'Nam': 0.863, 'Trung': 0.932} | outbreak MASE 2.776 bias -16.47
+C2_weighted                        h:{1: 0.485, 2: 0.688, 3: 0.952, 6: 1.524} all 0.9122 | region {'Bắc': 1.708, 'Nam': 0.898, 'Trung': 0.901} | outbreak MASE 2.480 bias -14.23
+C3_blend_B3                        h:{1: 0.424, 2: 0.681, 3: 0.978, 6: 1.563} all 0.9116 | region {'Bắc': 1.12, 'Nam': 0.757, 'Trung': 1.086} | outbreak MASE 3.261 bias -21.03
+ĐỊNH TUYẾN {'Bắc': 'C1_tweedie', 'Nam': 'C3_blend_B3', 'Trung': 'C0_control'} h:{1: 0.408, 2: 0.639, 3: 0.916, 6: 1.527} all 0.8723 | region {'Bắc': 1.429, 'Nam': 0.757, 'Trung': 0.979} | outbreak MASE 2.944 bias -18.63

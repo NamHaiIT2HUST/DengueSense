@@ -10,6 +10,7 @@ from app.forecast.features import (
     add_disease_lag_features,
     add_momentum_features,
     add_oni_features,
+    add_province_baseline_features,
     add_seasonal_features,
     add_seasonal_norm_features,
     build_feature_matrix,
@@ -233,3 +234,25 @@ def test_build_feature_matrix_runs_end_to_end_no_error():
     assert "sin_month" in feat.columns
     assert "momentum" in feat.columns
     assert "incidence_per_100k_deviation_from_median" in feat.columns
+
+
+def test_province_baseline_is_causal():
+    _assert_causal(
+        lambda p: add_province_baseline_features(p, reporting_delay_months=1),
+        _make_panel(n_months=40),
+        ["prov_mean_hist", "prov_mean_12m"],
+    )
+
+
+def test_province_baseline_hand_computed():
+    panel = _make_panel(n_months=30, provinces=("a",))
+    feat = add_province_baseline_features(
+        panel, reporting_delay_months=1, min_history_months=12
+    )
+    # incidence = 2*(i+1); tai dong index 15 chi dung index <= 14 (D=1)
+    row = feat.iloc[15]
+    expected_hist = np.mean([2.0 * (i + 1) for i in range(15)])
+    expected_12m = np.mean([2.0 * (i + 1) for i in range(3, 15)])
+    assert row["prov_mean_hist"] == pytest.approx(expected_hist)
+    assert row["prov_mean_12m"] == pytest.approx(expected_12m)
+    assert np.isnan(feat.iloc[5]["prov_mean_hist"])  # chua du 12 thang lich su
