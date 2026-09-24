@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_005 — M4 Ensemble)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_006 — phân rã + LOPO cho M4)
 
 ## Biểu đồ
 
@@ -64,6 +64,12 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 4. **M4 E1 đạt ngưỡng G1** (docs/02 §10: MASE<0.90 ở CẢ h=1 và h=3): 0.429 ✅ và 0.8975 ✅ — nhưng h=3
    sát ngưỡng (std giữa origin lớn), cần thêm robustness/LOPO trước khi coi là chắc chắn.
 
+5. **Phân rã M4 (exp_006, docs/02 §4.2) — điểm yếu cần ghi vào model card:** với mẫu số riêng từng vùng,
+   M4 có kỹ năng thật ở Nam (MASE 0.80) và Trung (0.90) nhưng **thua seasonal-naive ở miền Bắc (1.755)**;
+   ở tháng bùng dịch (p90 theo tỉnh) MASE 2.56 vs 0.50 tháng thường, bias −15 ca/100k, 38.7% ca bùng dịch bị
+   dự báo thấp hơn thực tế hơn một nửa. **LOPO (§4.3):** bỏ hẳn 1 tỉnh khỏi train chỉ kém đi +0.9% (ensemble
+   GBM) — ủng hộ luận điểm nhân rộng, kèm điều kiện tỉnh mới có lịch sử địa phương.
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -72,12 +78,12 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 | M1 GLM NegBin | ✅ Xong (T1) — exp_002. Không tune thêm (thua M2 mọi horizon) |
 | M2a/M2b XGBoost/LightGBM | ✅ Xong (T1); T2 đã kiểm chứng 2 lần (inner=5, inner=15) — vẫn giữ T1 |
 | M3 hhh4 | ✅ Xong (T1, v1 + v2 có khí hậu) — exp_004. Cả 2 bản đều loại khỏi M4 |
-| M4 Ensemble | ✅ Xong — exp_005. Chọn E1 (trung bình đơn giản) |
+| M4 Ensemble | ✅ Xong — exp_005. Chọn E1 (trung bình đơn giản). Phân rã + LOPO: exp_006 |
 
 ## Việc tiếp theo (ưu tiên theo thứ tự)
 
 - [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
-- [ ] LOPO (leave-one-province-out) cross-validation, robustness test (nhiễu khí hậu, dữ liệu thiếu),
-      hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02 protocol đầy đủ, chưa bắt
-      đầu.
+- [ ] Điều tra miền Bắc (M4 thua seasonal-naive) và bias âm ở tháng bùng dịch (exp_006 "Việc tiếp theo").
+- [ ] Robustness §4.4 (nhiễu khí hậu ±5/10%, khuyết thiếu 10/20%) — cần chạy nhiều lần, đóng gói notebook.
+- [ ] Hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02, chưa bắt đầu.

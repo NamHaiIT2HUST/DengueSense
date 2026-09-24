@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-09-24 — exp_006: phân rã M4 (§4.2) + LOPO (§4.3) — lộ điểm yếu thật: thua seasonal-naive ở miền Bắc, dự báo thấp khi bùng dịch
+
+**Làm:** `app/forecast/backtest.py` (helper dùng chung cho experiment mới: nạp panel + đặc trưng, ghép cặp
+neo tại origin, mẫu số MASE, dự báo 3 model; 3 test) + `experiments/exp_006_lopo_breakdown/` (run.py lưu
+dự báo từng tỉnh, analyze.py, RESULTS.md, analysis_output.txt). Sanity: E1/M2b khớp chính xác exp_005.
+Lỗi gặp: XGBoost trả float32 → không ghi JSON được (mất ~5 phút chạy lại), sửa ép kiểu float.
+
+**Kết quả chính:**
+- MASE theo vùng (mẫu số riêng từng vùng): M4 Bắc **1.755** (thua seasonal-naive), Trung 0.904, Nam 0.800. Con
+  số gộp ~0.9 che điểm yếu miền Bắc — chỉ lộ khi tách mẫu số theo vùng.
+- Tháng bùng dịch: MASE 2.555 vs 0.503 tháng thường; bias −15.1 ca/100k; 38.7% quan sát bùng dịch bị dự báo
+  thấp hơn thực tế >50%. Ensemble vẫn giảm sai số bùng dịch 14% so với M2b đơn.
+- LOPO (ensemble GBM, M1 không tham gia được): +0.9% gộp (h=1 +5%, h≥2 ≈ 0); 9/34 tỉnh còn tốt hơn standard.
+
+**Ý nghĩa:** không được mô tả M4 là "tốt toàn quốc"; cần ghi rõ vào model card, và cảnh báo nên hiệu chỉnh cho
+bias âm khi bùng dịch. Luận điểm nhân rộng sang tỉnh mới được ủng hộ (kèm điều kiện có lịch sử địa phương).
+
+**File:** `ai-service/app/forecast/backtest.py`, `ai-service/tests/test_forecast/test_backtest.py`,
+`ai-service/experiments/exp_006_lopo_breakdown/`, `ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
 ## 2026-09-24 — exp_005: M4 Ensemble xong — kết quả DƯƠNG TÍNH đầu tiên, E1 (trung bình đơn giản) thắng
 
 **Làm:** `app/forecast/ensemble.py` (`combine_ensemble`, `validation_error_weights`, 6 unit test) +

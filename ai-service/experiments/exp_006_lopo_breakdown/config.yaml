@@ -1,0 +1,32 @@
+experiment:
+  id: exp_006_lopo_breakdown
+  description: "docs/02 §4.2 phan ra ket qua M4 (vung/mua/che do dich) + §4.3 leave-one-province-out (ensemble GBM M2a+M2b; M1 khong tham gia vi hieu ung co dinh theo tinh)"
+  author: nam-hai
+
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+  target: incidence_per_100k
+
+splits:
+  strategy: rolling_origin
+  scheme: expanding
+  n_origins: 8
+  embargo_months: 1
+  reporting_delay_months: 1
+
+horizons: [1, 2, 3, 6]
+
+breakdown:
+  region_source: data/external/province_metadata.csv
+  peak_season_months: [6, 7, 8, 9, 10, 11]   # xap xi mua mua/cao diem, dinh nghia co dinh truoc khi xem ket qua
+  outbreak_definition: "y_true > phan vi 90 cua chinh tinh do trong lich su <= train_end"
+
+lopo:
+  members: [M2a_xgboost, M2b_lightgbm]
+  comparison: "ensemble GBM (avg M2a+M2b) LOPO vs cung ensemble GBM o che do standard"
+
+metrics:
+  primary: mase
+
+seed: 42
