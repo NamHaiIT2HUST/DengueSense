@@ -1,0 +1,30 @@
+    window        variant  mase_pooled  mase_h1  mase_h3  mase_h6  reg_Bac  reg_Trung  reg_Nam  reg_avg  outbreak_mase  outbreak_bias  bias_all
+     outer    S0_baseline        0.932    0.446    0.979    1.609    1.976      0.979    0.842    1.266          2.915        -17.910    -2.225
+     outer   S1_neighbors        0.922    0.444    0.975    1.602    1.887      0.963    0.844    1.231          2.868        -17.438    -2.086
+     outer    S2_national        0.920    0.451    0.956    1.601    2.044      0.962    0.828    1.278          2.837        -17.495    -2.059
+     outer S3_all_spatial        0.913    0.452    0.944    1.600    1.914      0.950    0.834    1.233          2.809        -17.129    -1.985
+     outer  S4_v3_spatial        0.917    0.474    1.011    1.507    1.323      1.021    0.818    1.054          2.895        -17.975    -2.060
+     outer          S5_v3        0.925    0.510    0.978    1.517    1.416      1.028    0.822    1.089          2.928        -18.023    -2.040
+validation    S0_baseline        0.522    0.333    0.513    0.800    0.759      0.225    0.866    0.616          4.605        -30.100    -2.066
+validation   S1_neighbors        0.524    0.337    0.515    0.803    0.692      0.230    0.869    0.597          4.598        -30.314    -2.088
+validation    S2_national        0.520    0.354    0.502    0.789    0.788      0.228    0.856    0.624          4.548        -29.882    -1.993
+validation S3_all_spatial        0.521    0.351    0.508    0.790    0.715      0.231    0.861    0.602          4.540        -30.104    -2.007
+validation  S4_v3_spatial        0.520    0.354    0.509    0.780    0.423      0.230    0.881    0.511          4.644        -30.832    -1.962
+validation          S5_v3        0.520    0.336    0.510    0.796    0.476      0.218    0.890    0.528          4.694        -30.963    -2.057
+
+=== Quy tắc trên VALIDATION (so với S0) ===
+S1_neighbors     gộp +0.4% | bùng dịch -0.2% | reg_avg -3.1% -> không nhận
+S2_national      gộp -0.3% | bùng dịch -1.2% | reg_avg +1.2% -> không nhận
+S3_all_spatial   gộp -0.1% | bùng dịch -1.4% | reg_avg -2.3% -> không nhận
+Bắc: S4 vs S5 trên validation -11.3% -> DÙNG S4
+
+=== OUTER (xác nhận) — thay đổi so với S0 / (Bắc: so với S5) ===
+S1_neighbors     gộp -1.1% | bùng dịch MASE -1.6% (bias -17.9->-17.4) | reg_avg -2.7% | Bắc 1.976->1.887
+S2_national      gộp -1.3% | bùng dịch MASE -2.7% (bias -17.9->-17.5) | reg_avg +0.9% | Bắc 1.976->2.044
+S3_all_spatial   gộp -2.1% | bùng dịch MASE -3.6% (bias -17.9->-17.1) | reg_avg -2.6% | Bắc 1.976->1.914
+Bắc V3: S5 1.416 -> S4 (+không gian) 1.323 (-6.6%)
+
+=== M4 đầy đủ (M1 + 2*GBM)/3, outer ===
+M4-R2 (Bắc V3+Tweedie) h1 0.404 h2 0.625 h3 0.851 h6 1.394 all 0.8185 | Bắc 1.373 Trung 0.904 Nam 0.722 | bùng dịch 2.526 bias -15.55
+M4-R3 (Bắc V3+không gian) h1 0.403 h2 0.619 h3 0.850 h6 1.393 all 0.8163 | Bắc 1.313 Trung 0.904 Nam 0.722 | bùng dịch 2.520 bias -15.59
+fold M4-R3 tốt hơn M4-R2: 15/32

@@ -194,3 +194,69 @@ def build_feature_matrix(
         df, reporting_delay_months=reporting_delay_months
     )
     return df
+
+
+SPATIAL_FEATURE_COLS = [
+    "nb_mean_lag_2",
+    "nb_mean_lag_3",
+    "nb_max_lag_2",
+    "nat_mean_lag_2",
+    "nat_mom",
+]
+
+
+def add_spatial_features(
+    panel: pd.DataFrame,
+    adjacency: pd.DataFrame,
+    target_col: str = "incidence_per_100k",
+    reporting_delay_months: int = 1,
+) -> pd.DataFrame:
+    """Đặc trưng lan truyền không gian, nhân quả (chỉ dùng dữ liệu tới t-D-1
+    như `incidence_per_100k_lag_2` khi D=1): `nb_mean_lag_L`/`nb_max_lag_2` =
+    trung bình/lớn nhất incidence các tỉnh KỀ tại t-L; `nat_mean_lag_2` =
+    trung bình toàn quốc tại t-2, `nat_mom` = nat_lag_2 - nat_lag_3 (đà tăng
+    toàn quốc). L = D+1, D+2 để khớp quy ước lag của features.py. Ý tưởng:
+    bùng phát ở tỉnh lân cận/cả nước là tín hiệu SỚM cho tỉnh đang xét — thành
+    phần mà M1/M2 chưa có (hhh4 có, nhưng thiếu khí hậu, exp_004)."""
+    df = _sorted(panel)
+    # incidence có thể là dtype nullable (Float64) -> pivot ra object, phép nhân
+    # ma trận sau đó giữ object (XGBoost từ chối); ép float64 tường minh.
+    wide = (
+        df.pivot(index="month", columns="province_id", values=target_col)
+        .sort_index()
+        .astype("float64")
+    )
+    adj = adjacency.reindex(index=wide.columns, columns=wide.columns).fillna(0.0)
+    # Trung binh CHI tren lang gieng CO du lieu thang do (panel real-only co
+    # tinh-thang bi thieu): tu/mau deu bo qua NaN. Nhan ma tran truc tiep se
+    # lan truyen NaN (da gap that: chi 2788/6710 dong co gia tri).
+    adj_t = adj.to_numpy().T
+    num = wide.fillna(0.0).to_numpy() @ adj_t
+    den = wide.notna().to_numpy().astype(float) @ adj_t
+    with np.errstate(invalid="ignore", divide="ignore"):
+        nb_mean = np.where(den > 0, num / den, np.nan)
+    nb_mean = pd.DataFrame(nb_mean, index=wide.index, columns=wide.columns)
+    nb_max = pd.DataFrame(
+        {
+            p: wide[adj.columns[adj.loc[p].to_numpy() > 0]].max(axis=1)
+            for p in wide.columns
+        }
+    )
+    nat_mean = wide.mean(axis=1)
+
+    l1, l2 = reporting_delay_months + 1, reporting_delay_months + 2
+    feats = {
+        "nb_mean_lag_2": nb_mean.shift(l1),
+        "nb_mean_lag_3": nb_mean.shift(l2),
+        "nb_max_lag_2": nb_max.shift(l1),
+    }
+    out = df.copy()
+    for name, mat in feats.items():
+        mat = mat.rename_axis(index="month", columns="province_id")
+        long = mat.stack().rename(name).reset_index()
+        out = out.merge(long, on=["month", "province_id"], how="left")
+    nat = pd.DataFrame(
+        {"month": wide.index, "nat_mean_lag_2": nat_mean.shift(l1).to_numpy()}
+    )
+    nat["nat_mom"] = nat["nat_mean_lag_2"] - nat_mean.shift(l2).to_numpy()
+    return out.merge(nat, on="month", how="left")

@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_008 — M4-R2)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_009 — tín hiệu không gian, M4-R2 vẫn là bản hiện hành)
 
 ## Biểu đồ
 
@@ -84,6 +84,12 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
    lập** ở outer. **Vẫn chưa sửa được:** miền Bắc 1.373 (>1), bias bùng dịch −15.5 (thử 3 hướng: quy mô, isotonic,
    trọng số/Tweedie — đều đánh đổi hoặc không có tác dụng). Cần tín hiệu mới, không chỉ đổi loss.
 
+8. **Tín hiệu không gian (exp_009) — thử "tín hiệu mới" cuối cùng:** ca bệnh láng giềng/toàn quốc (nhân quả) chỉ
+   cho cải thiện nhỏ nhất quán (GBM gộp −1 đến −2%), bias bùng dịch gần như không đổi. M4-R3 (Bắc dùng đặc trưng
+   không gian) so với M4-R2: gộp −0.3%, tốt hơn ở 15/32 fold → **không đổi M4 sản xuất**. Kết luận sau exp_006→009:
+   miền Bắc (~1.3) và bias bùng dịch (~−15.5) là **giới hạn của dữ liệu hiện có**, cần nguồn mới hoặc nêu rõ trong
+   model card. Hạn chế đã biết mới: 5/34 tỉnh có 1-2 tháng thiếu giữa chuỗi → lag row-based lệch nhẹ (chưa sửa).
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -98,6 +104,7 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 
 - [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
-- [ ] Bias âm ở tháng bùng dịch và miền Bắc >1: cần TÍN HIỆU mới (không chỉ đổi loss) — chưa làm.
+- [ ] Bias bùng dịch và miền Bắc >1: giới hạn dữ liệu (đã thử quy mô, isotonic, Tweedie, trọng số, pha B3, không gian) — cần nguồn mới; nêu rõ trong model card.
+- [ ] Sửa lag theo tháng lịch (reindex) khi chạy lại toàn pipeline (5/34 tỉnh có tháng thiếu).
 - [ ] Robustness §4.4 (nhiễu khí hậu ±5/10%, khuyết thiếu 10/20%) — cần chạy nhiều lần, đóng gói notebook.
 - [ ] Hiệu chỉnh xác suất (Platt/Isotonic), SHAP, model card — theo docs/02, chưa bắt đầu.

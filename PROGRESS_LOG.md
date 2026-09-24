@@ -9,6 +9,26 @@
 
 ---
 
+## 2026-09-24 — exp_009: tín hiệu không gian — có thật nhưng YẾU; M4-R2 giữ nguyên; kết luận điểm yếu là giới hạn dữ liệu
+
+**Làm:** `features.py::add_spatial_features` (ca bệnh láng giềng theo ma trận kề + toàn quốc, nhân quả, 5 test) và
+exp_009 (6 biến thể, chọn theo VALIDATION, outer xác nhận). **2 bug thật bắt được nhờ smoke test trên dữ liệu thật
+(test tổng hợp không thấy):** incidence dtype nullable → cột `object` (XGBoost từ chối); phép nhân ma trận lan truyền
+NaN khi tỉnh kề thiếu tháng (chỉ 2788/6710 dòng có giá trị) → tính trung bình chỉ trên láng giềng có dữ liệu.
+
+**Kết quả:** không biến thể nào qua quy tắc toàn cục (hiệu ứng <5% trên validation); outer cho hướng cải thiện nhỏ
+(gộp −1 đến −2%), bias bùng dịch gần như không đổi. Bắc dùng S4 theo quy tắc (−11.3% validation, −6.6% outer). M4-R3 vs
+M4-R2: gộp −0.3%, tốt hơn 15/32 fold → **không đổi M4 sản xuất** (`m4.py`).
+
+**Kết luận sau exp_006→009:** miền Bắc (~1.3) và bias bùng dịch (~−15.5) không sửa được bằng dữ liệu/kỹ thuật hiện có
+(quy mô, isotonic, Tweedie, trọng số, pha B3, không gian) — giới hạn dữ liệu; nêu rõ trong model card, chuyển sang
+robustness/calibration/SHAP. **Phát hiện phụ (chưa sửa):** 5/34 tỉnh có 1-2 tháng thiếu → lag row-based lệch nhẹ.
+
+**File:** `ai-service/app/forecast/features.py`, `ai-service/tests/test_forecast/test_features.py`,
+`ai-service/experiments/exp_009_spatial_signal/`, `ai-service/experiments/MODEL_ZOO_RESULTS.md`
+
+---
+
 ## 2026-09-24 — exp_008: M4-R2 (đòn bẩy theo vùng chọn bằng validation) −4.3% so với M4-R; bùng dịch/miền Bắc vẫn chưa sửa được
 
 **Làm:** thử 4 đòn bẩy khai báo trước (Poisson control, Tweedie, trọng số mẫu bùng dịch 3x, pha 50% Climatology B3)

@@ -256,3 +256,70 @@ def test_province_baseline_hand_computed():
     assert row["prov_mean_hist"] == pytest.approx(expected_hist)
     assert row["prov_mean_12m"] == pytest.approx(expected_12m)
     assert np.isnan(feat.iloc[5]["prov_mean_hist"])  # chua du 12 thang lich su
+
+
+def _spatial_panel_and_adj():
+    panel = _make_panel(n_months=20, provinces=("a", "b", "c"))
+    panel["incidence_per_100k"] = panel["incidence_per_100k"] * panel[
+        "province_id"
+    ].map({"a": 1.0, "b": 10.0, "c": 100.0})
+    adj = pd.DataFrame(
+        [[0, 1, 0], [1, 0, 1], [0, 1, 0]],
+        index=["a", "b", "c"],
+        columns=["a", "b", "c"],
+        dtype=float,
+    )
+    return panel, adj
+
+
+def test_spatial_features_causal():
+    from app.forecast.features import SPATIAL_FEATURE_COLS, add_spatial_features
+
+    panel, adj = _spatial_panel_and_adj()
+    _assert_causal(
+        lambda p: add_spatial_features(p, adj, reporting_delay_months=1),
+        panel,
+        SPATIAL_FEATURE_COLS,
+    )
+
+
+def test_spatial_features_hand_computed():
+    from app.forecast.features import add_spatial_features
+
+    panel, adj = _spatial_panel_and_adj()
+    feat = add_spatial_features(panel, adj, reporting_delay_months=1)
+    row = feat[(feat.province_id == "b") & (feat.month == pd.Timestamp("2015-06-01"))]
+    # thang 2015-06 = index 5; lag 2 -> index 3, incidence goc = 2*(i+1) = 8
+    # ke cua b = a (x1) va c (x100): mean = (8*1 + 8*100)/2
+    assert row["nb_mean_lag_2"].iloc[0] == pytest.approx((8.0 + 800.0) / 2)
+    assert row["nb_max_lag_2"].iloc[0] == pytest.approx(800.0)
+    # toan quoc: mean(8*1, 8*10, 8*100)
+    assert row["nat_mean_lag_2"].iloc[0] == pytest.approx(8.0 * 111.0 / 3)
+    # tinh a chi co ke la b
+    ra = feat[(feat.province_id == "a") & (feat.month == pd.Timestamp("2015-06-01"))]
+    assert ra["nb_mean_lag_2"].iloc[0] == pytest.approx(80.0)
+
+
+def test_spatial_features_are_float_even_with_nullable_input():
+    from app.forecast.features import SPATIAL_FEATURE_COLS, add_spatial_features
+
+    panel, adj = _spatial_panel_and_adj()
+    panel["incidence_per_100k"] = panel["incidence_per_100k"].astype("Float64")
+    feat = add_spatial_features(panel, adj)
+    for col in SPATIAL_FEATURE_COLS:
+        assert feat[col].dtype == "float64", col
+
+
+def test_spatial_neighbor_mean_skips_missing_neighbors():
+    from app.forecast.features import add_spatial_features
+
+    panel, adj = _spatial_panel_and_adj()
+    # tinh c thieu du lieu o thang index 3 (2015-04): b phai lay mean chi tu a
+    panel.loc[
+        (panel.province_id == "c") & (panel.month == pd.Timestamp("2015-04-01")),
+        "incidence_per_100k",
+    ] = np.nan
+    feat = add_spatial_features(panel, adj)
+    row = feat[(feat.province_id == "b") & (feat.month == pd.Timestamp("2015-06-01"))]
+    assert row["nb_mean_lag_2"].iloc[0] == pytest.approx(8.0)  # chi tinh a (x1)
+    assert row["nb_max_lag_2"].iloc[0] == pytest.approx(8.0)

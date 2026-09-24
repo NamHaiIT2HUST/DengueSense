@@ -1,0 +1,17 @@
+experiment:
+  id: exp_009_spatial_signal
+  description: "Tin hieu moi cho mien Bac va bung dich: dac trung lan truyen khong gian (ca benh tinh ke, toan quoc, nhan qua) - exp_006-008 ket luan can tin hieu moi"
+  author: nam-hai
+data:
+  path: data/processed/v0.2.0/panel_monthly.parquet
+  filter: "data_source == 'real'"
+splits:
+  validation: {n_origins: 10, cutoff: "2008-12-01", embargo_months: 1}
+  outer: {n_origins: 8, embargo_months: 1}
+  reporting_delay_months: 1
+horizons: [1, 2, 3, 6]
+spatial_features: [nb_mean_lag_2, nb_mean_lag_3, nb_max_lag_2, nat_mean_lag_2, nat_mom]
+variants: [S0_baseline, S1_neighbors, S2_national, S3_all_spatial, S5_v3, S4_v3_spatial]
+selection_rule: "toan cuc: gop khong te hon S0 >1% va (bung dich hoac reg_avg giam >=5%); Bac dung S4 thay S5 neu validation Bac giam >10%"
+metrics: {primary: mase}
+seed: 42
