@@ -1,0 +1,12 @@
+
+=== M4-R2 với lag theo THÁNG LỊCH vs số đã công bố (lag theo dòng) ===
+h1   lịch 0.4071 | công bố 0.4040 | Δ +0.76%
+h2   lịch 0.6313 | công bố 0.6250 | Δ +1.00%
+h3   lịch 0.8522 | công bố 0.8510 | Δ +0.14%
+h6   lịch 1.3891 | công bố 1.3940 | Δ -0.35%
+all  lịch 0.8199 | công bố 0.8185 | Δ +0.17%
+Bắc    lịch 1.338 | công bố 1.373 | Δ -2.53%
+Nam    lịch 0.731 | công bố 0.722 | Δ +1.18%
+Trung  lịch 0.902 | công bố 0.904 | Δ -0.26%
+
+[exited with code 0]

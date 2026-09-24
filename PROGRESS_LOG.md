@@ -9,6 +9,35 @@
 
 ---
 
+## 2026-09-25 — Tài liệu bàn giao Layer 1 cho Minh Dương (`docs/08-ban-giao-layer1.md`)
+
+**Làm:** tổng kết đầy đủ để đồng đội tiếp nhận và thử cải thiện: bản đồ mã nguồn + cách chạy/tái lập, dữ liệu, giao thức và **8 quy tắc đánh giá
+bắt buộc** (validation-chọn/outer-xác-nhận, chống rò rỉ, smoke test dữ liệu thật, thứ tự cột GBM...), bảng 15 thí nghiệm, **bảng hướng đã thất bại (đừng lặp lại)**,
+6 điểm yếu còn lại xếp ưu tiên, **9 ý tưởng chưa thử** (đầu tiên: đánh giá nhiều mùa — mọi kết luận hiện dựa trên 1 mùa; rồi dữ liệu tuần/sau 2010, dự báo phân phối,
+mô hình hai giai đoạn cho miền Bắc, M1 phân cấp thật...), quy trình thử ý mới, câu hỏi mở. Liên kết trong README.
+
+**File:** `docs/08-ban-giao-layer1.md`, `README.md`
+
+---
+
+## 2026-09-25 — SHAP (exp_014), Model Card (docs/07), đo tác động lag theo tháng lịch (exp_015)
+
+**SHAP (exp_014):** `app/forecast/explain.py` — TreeSHAP chính xác có sẵn trong LightGBM/XGBoost (không cần thư viện `shap`), 5 test gồm
+tính cộng tính (tổng đóng góp + nền = điểm thô). Hồi quy dựa vào 3 trụ: ca bệnh gần đây 26–39%, chuẩn mùa vụ 12–28%, khí hậu 23–28%; mùa vụ
+(sin/cos) tăng theo horizon 9%→20%; ONI 4–6%; LightGBM/XGBoost đồng thuận (hạng nhóm 0.94–1.0); chiều tác động hợp lý. Classifier cảnh báo dựa vào
+quy mô/ngưỡng (38–48%) và ONI (10–15%, có thể tương quan giả trong 1 mùa). Có giải thích từng dự báo.
+
+**Model card (`docs/07-model-card.md`, liên kết trong README):** gom hiệu năng đo được, độ vững, SHAP, khái quát hoá, **12 giới hạn có số đo và nguồn
+experiment**, khuyến nghị vận hành, cách tái lập. Nêu thẳng: Bắc/Nam yếu, bùng dịch dự báo thấp, cảnh báo ROC-AUC 0.76 < 0.83, 1 mùa dịch, dữ liệu real hết 2010.
+
+**Lag theo tháng lịch (exp_015):** thêm `backtest.calendarize_panel` + `calendarize=True` (mặc định tắt, 1 test). Đo tác động thật lên M4-R2: MASE gộp
+0.8185→0.8199 (+0.17%), mọi horizon trong ±1%, Bắc −2.5% → không đổi kết luận; số công bố giữ nguyên, L10 đóng bằng số đo.
+
+**File:** `ai-service/app/forecast/{explain,backtest}.py`, `ai-service/tests/test_forecast/{test_explain,test_backtest}.py`,
+`ai-service/experiments/exp_014_shap/`, `ai-service/experiments/exp_015_calendar_lags/`, `docs/07-model-card.md`, `README.md`
+
+---
+
 ## 2026-09-25 — exp_013: 3 đòn bẩy cho cảnh báo — không cái nào qua quy tắc khai báo trước; cảnh báo dừng ở ROC-AUC ~0.76
 
 **Làm:** thử A1 (đặc trưng không gian), A2 (model chung mọi horizon), A3 (trung bình hạng với điểm suy từ hồi quy); quy tắc nhận

@@ -1,0 +1,77 @@
+
+=== regression_lgbm — tỉ trọng mean|SHAP| theo nhóm (%) ===
+                                 h=1   h=2   h=3   h=6
+Ca bệnh gần đây (lag, đà tăng)  33.8  25.7  25.5  39.1
+Chuẩn mùa vụ của tỉnh           24.3  28.1  26.6  12.1
+Quy mô / ngưỡng của tỉnh         0.0   0.0   0.0   0.0
+Khí hậu (nhiệt/mưa/ẩm)          27.9  25.5  22.7  22.6
+ONI (El Niño)                    5.3   5.1   4.4   6.4
+Mùa vụ                           8.7  15.7  20.8  19.9
+
+=== regression_xgb — tỉ trọng mean|SHAP| theo nhóm (%) ===
+                                 h=1   h=2   h=3   h=6
+Ca bệnh gần đây (lag, đà tăng)  33.1  25.9  25.5  41.9
+Chuẩn mùa vụ của tỉnh           29.2  33.3  28.8  14.0
+Quy mô / ngưỡng của tỉnh         0.0   0.0   0.0   0.0
+Khí hậu (nhiệt/mưa/ẩm)          24.7  21.5  20.7  22.4
+ONI (El Niño)                    4.2   4.7   6.6   6.7
+Mùa vụ                           8.7  14.7  18.3  14.9
+
+=== classifier_lgbm — tỉ trọng mean|SHAP| theo nhóm (%) ===
+                                 h=1   h=2   h=3   h=6
+Ca bệnh gần đây (lag, đà tăng)   6.1   6.2   5.4   7.2
+Chuẩn mùa vụ của tỉnh           18.9  15.3  12.6   8.5
+Quy mô / ngưỡng của tỉnh        41.3  38.9  38.3  48.2
+Khí hậu (nhiệt/mưa/ẩm)          18.1  19.7  21.9  15.4
+ONI (El Niño)                   10.2  12.4  15.1  15.4
+Mùa vụ                           5.3   7.4   6.8   5.3
+
+Tương quan hạng nhóm LGBM vs XGB (Spearman) theo horizon: {'1': 0.94, '2': 1.0, '3': 1.0, '6': 1.0}
+
+--- regression_lgbm h=1: top đặc trưng (chiều: + nghĩa giá trị cao -> đẩy dự báo lên) ---
+  incidence_per_100k_lag_2                       Ca bệnh gần đây (lag, đà |SHAP| 0.703  dir +0.95
+  incidence_per_100k_same_month_last_year        Chuẩn mùa vụ của tỉnh    |SHAP| 0.627  dir +0.91
+  temp_mean_lag_1                                Khí hậu (nhiệt/mưa/ẩm)   |SHAP| 0.604  dir +0.94
+  cos_month                                      Mùa vụ                   |SHAP| 0.257  dir -0.92
+  momentum                                       Ca bệnh gần đây (lag, đà |SHAP| 0.176  dir +0.77
+  incidence_per_100k_lag_3                       Ca bệnh gần đây (lag, đà |SHAP| 0.171  dir +0.89
+
+--- regression_lgbm h=6: top đặc trưng (chiều: + nghĩa giá trị cao -> đẩy dự báo lên) ---
+  incidence_per_100k_lag_3                       Ca bệnh gần đây (lag, đà |SHAP| 0.841  dir +0.97
+  sin_month                                      Mùa vụ                   |SHAP| 0.567  dir +0.88
+  incidence_per_100k_same_month_last_year        Chuẩn mùa vụ của tỉnh    |SHAP| 0.310  dir +0.90
+  temp_mean_lag_1                                Khí hậu (nhiệt/mưa/ẩm)   |SHAP| 0.294  dir +0.76
+  incidence_per_100k_lag_2                       Ca bệnh gần đây (lag, đà |SHAP| 0.255  dir +0.95
+  oni_lag_3                                      ONI (El Niño)            |SHAP| 0.141  dir +0.58
+
+--- classifier_lgbm h=1: top đặc trưng (chiều: + nghĩa giá trị cao -> đẩy dự báo lên) ---
+  incidence_per_100k_deviation_from_median       Chuẩn mùa vụ của tỉnh    |SHAP| 0.733  dir +0.95
+  thr_target                                     Quy mô / ngưỡng của tỉnh |SHAP| 0.483  dir -0.94
+  incidence_per_100k_lag_2__vs_thr               Quy mô / ngưỡng của tỉnh |SHAP| 0.362  dir +0.91
+  prov_mean_12m__vs_thr                          Quy mô / ngưỡng của tỉnh |SHAP| 0.270  dir +0.91
+  oni_lag_6                                      ONI (El Niño)            |SHAP| 0.214  dir +0.92
+  cos_month                                      Mùa vụ                   |SHAP| 0.211  dir -0.91
+
+--- classifier_lgbm h=6: top đặc trưng (chiều: + nghĩa giá trị cao -> đẩy dự báo lên) ---
+  oni_lag_3                                      ONI (El Niño)            |SHAP| 0.431  dir +0.81
+  incidence_per_100k_lag_3__vs_thr               Quy mô / ngưỡng của tỉnh |SHAP| 0.425  dir +0.84
+  prov_mean_hist__vs_thr                         Quy mô / ngưỡng của tỉnh |SHAP| 0.268  dir +0.94
+  prov_mean_12m__vs_thr                          Quy mô / ngưỡng của tỉnh |SHAP| 0.250  dir +0.83
+  incidence_per_100k_deviation_from_median       Chuẩn mùa vụ của tỉnh    |SHAP| 0.235  dir +0.90
+  prov_mean_hist                                 Quy mô / ngưỡng của tỉnh |SHAP| 0.234  dir -0.41
+
+=== Ví dụ giải thích từng dự báo ===
+regression_lgbm - tỉnh khanh_hoa origin 7 h=1 | điểm thô 4.55 nền 0.19
+   incidence_per_100k_lag_2                     =     17.92  SHAP +0.936  (Ca bệnh gần đây (lag, đà tăng))
+   incidence_per_100k_same_month_last_year      =     25.54  SHAP +0.568  (Chuẩn mùa vụ của tỉnh)
+   momentum                                     =      6.84  SHAP +0.544  (Ca bệnh gần đây (lag, đà tăng))
+   temp_mean_lag_1                              =     27.26  SHAP +0.460  (Khí hậu (nhiệt/mưa/ẩm))
+   incidence_per_100k_deviation_from_median     =     11.50  SHAP +0.432  (Chuẩn mùa vụ của tỉnh)
+   cos_month                                    =     -1.00  SHAP +0.331  (Mùa vụ)
+classifier_lgbm - tỉnh da_nang origin 7 h=1 | điểm thô 3.07 nền -2.01
+   incidence_per_100k_deviation_from_median     =      4.68  SHAP +1.537  (Chuẩn mùa vụ của tỉnh)
+   oni_lag_6                                    =      1.50  SHAP +0.886  (ONI (El Niño))
+   incidence_per_100k_lag_2__vs_thr             =      0.66  SHAP +0.502  (Quy mô / ngưỡng của tỉnh)
+   prov_mean_12m__vs_thr                        =      1.49  SHAP +0.443  (Quy mô / ngưỡng của tỉnh)
+   momentum                                     =      0.82  SHAP +0.291  (Ca bệnh gần đây (lag, đà tăng))
+   temp_mean_lag_1                              =     27.19  SHAP +0.222  (Khí hậu (nhiệt/mưa/ẩm))

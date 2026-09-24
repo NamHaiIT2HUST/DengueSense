@@ -1,0 +1,12 @@
+experiment:
+  id: exp_014_shap
+  description: "SHAP (TreeSHAP chinh xac, khong can thu vien shap): tin hieu nao dan dat du bao hoi quy (M2a/M2b) va classifier canh bao theo horizon"
+  author: nam-hai
+data: {path: data/processed/v0.2.0/panel_monthly.parquet, filter: "data_source == 'real'"}
+splits:
+  outer: {n_origins: 8, embargo_months: 1}
+  reporting_delay_months: 1
+horizons: [1, 2, 3, 6]
+models: [regression_lgbm (M2b poisson), regression_xgb (M2a count:poisson), classifier_lgbm (binary, exp_012)]
+protocol: "moi (horizon, origin) fit tren <= train_end, SHAP tren 34 dong test cua origin do; gop 8 origin (272 dong)"
+outputs: [results.json, shap_families.png, analysis_output.txt]

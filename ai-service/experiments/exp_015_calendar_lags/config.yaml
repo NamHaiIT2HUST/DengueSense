@@ -1,0 +1,11 @@
+experiment:
+  id: exp_015_calendar_lags
+  description: "Do tac dong cua loi lag theo SO DONG (5/34 tinh co 1-2 thang thieu giua chuoi real) len M4-R2 bang panel can theo thang lich (calendarize=True)"
+  author: nam-hai
+data: {path: data/processed/v0.2.0/panel_monthly.parquet, filter: "data_source == 'real'", calendarize: true}
+splits:
+  outer: {n_origins: 8, embargo_months: 1}
+  reporting_delay_months: 1
+horizons: [1, 2, 3, 6]
+model: "M4-R2 (app/forecast/m4.py::predict_m4)"
+compare_to: "so da cong bo exp_008/010 (lag theo dong): 0.404/0.625/0.851/1.394, gop 0.8185"

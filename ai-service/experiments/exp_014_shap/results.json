@@ -1,0 +1,816 @@
+{
+ "regression_lgbm": {
+  "family_share": {
+   "1": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.33793645859672616,
+    "Chuẩn mùa vụ của tỉnh": 0.2432788868817213,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.2786986394720219,
+    "Mùa vụ": 0.08734550110017403,
+    "ONI (El Niño)": 0.05274051394935652
+   },
+   "2": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.25714431904225205,
+    "Chuẩn mùa vụ của tỉnh": 0.2809284482825374,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.25466923439103234,
+    "Mùa vụ": 0.15675140211137928,
+    "ONI (El Niño)": 0.050506596172798957
+   },
+   "3": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.25513040846245366,
+    "Chuẩn mùa vụ của tỉnh": 0.26574343502498105,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.22741985160951203,
+    "Mùa vụ": 0.2081879764627065,
+    "ONI (El Niño)": 0.04351832844034668
+   },
+   "6": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.3907800425532957,
+    "Chuẩn mùa vụ của tỉnh": 0.12054121065277949,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.22596336900561237,
+    "Mùa vụ": 0.19895958124054472,
+    "ONI (El Niño)": 0.06375579654776774
+   }
+  },
+  "top_features": {
+   "1": [
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.7025094416363002,
+     "direction_spearman": 0.953172523669682
+    },
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.6267745048853683,
+     "direction_spearman": 0.9084086286580145
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.604379661470977,
+     "direction_spearman": 0.9384101355557833
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.2565210149102763,
+     "direction_spearman": -0.919496891576796
+    },
+    {
+     "feature": "momentum",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.17573636170419119,
+     "direction_spearman": 0.7676824859902526
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.17134027994438233,
+     "direction_spearman": 0.8945069051779383
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.14115401912599654,
+     "direction_spearman": 0.686398898882566
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.10212233002670894,
+     "direction_spearman": 0.46017744527630927
+    }
+   ],
+   "2": [
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.7802043036288506,
+     "direction_spearman": 0.9197005700647335
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.46634735243943387,
+     "direction_spearman": 0.9708946151314355
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.4642876579736639,
+     "direction_spearman": -0.9357019105789385
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.4502323433511845,
+     "direction_spearman": 0.9587089164362878
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.22080710927242708,
+     "direction_spearman": 0.905779064312836
+    },
+    {
+     "feature": "precip_total_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.1478118627807731,
+     "direction_spearman": -0.8341528777278722
+    },
+    {
+     "feature": "momentum",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.1266012994184714,
+     "direction_spearman": 0.7117375982306171
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.12301920933144342,
+     "direction_spearman": 0.725888014472018
+    }
+   ],
+   "3": [
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.7583743455296956,
+     "direction_spearman": 0.9191407680229695
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.5291998026993335,
+     "direction_spearman": -0.9242172574377583
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.41642095071088253,
+     "direction_spearman": 0.9636141355643915
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.3185487442430568,
+     "direction_spearman": 0.8804231620312046
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.2510426641440054,
+     "direction_spearman": 0.9580827789531933
+    },
+    {
+     "feature": "temp_mean_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.17729577127683682,
+     "direction_spearman": 0.6279455296168992
+    },
+    {
+     "feature": "precip_total_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.13926518252417586,
+     "direction_spearman": -0.8840339712382256
+    },
+    {
+     "feature": "sin_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.1272841485863849,
+     "direction_spearman": 0.9268286709787318
+    }
+   ],
+   "6": [
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.8411909581054527,
+     "direction_spearman": 0.9697212986115508
+    },
+    {
+     "feature": "sin_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.567177288476088,
+     "direction_spearman": 0.8843145758226711
+    },
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.3103707219501646,
+     "direction_spearman": 0.8970928289993917
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.29406369917477576,
+     "direction_spearman": 0.7558505093777503
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.25470487861008606,
+     "direction_spearman": 0.9460446436047563
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.1408430571236206,
+     "direction_spearman": 0.5793751491375791
+    },
+    {
+     "feature": "temp_mean_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.10534019845525029,
+     "direction_spearman": -0.1831330165176604
+    },
+    {
+     "feature": "precip_total_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.06400749848406914,
+     "direction_spearman": -0.8140024040701418
+    }
+   ]
+  },
+  "n_rows": {
+   "1": 272,
+   "2": 272,
+   "3": 272,
+   "6": 272
+  },
+  "local_example_h1": {
+   "province_id": "khanh_hoa",
+   "origin": 7,
+   "horizon": 1,
+   "raw_score": 4.550878933241534,
+   "base": 0.18960622810515793,
+   "top_contributions": [
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "value": 17.924473577353677,
+     "shap": 0.9363289303248086,
+     "family": "Ca bệnh gần đây (lag, đà tăng)"
+    },
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "value": 25.53942494608833,
+     "shap": 0.568090456413427,
+     "family": "Chuẩn mùa vụ của tỉnh"
+    },
+    {
+     "feature": "momentum",
+     "value": 6.84494460235512,
+     "shap": 0.5436085096997061,
+     "family": "Ca bệnh gần đây (lag, đà tăng)"
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "value": 27.255623238985656,
+     "shap": 0.4602273684645362,
+     "family": "Khí hậu (nhiệt/mưa/ẩm)"
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "value": 11.49668304987687,
+     "shap": 0.43204311340754364,
+     "family": "Chuẩn mùa vụ của tỉnh"
+    },
+    {
+     "feature": "cos_month",
+     "value": -1.0,
+     "shap": 0.3306918318007231,
+     "family": "Mùa vụ"
+    }
+   ]
+  }
+ },
+ "regression_xgb": {
+  "family_share": {
+   "1": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.3310184555726875,
+    "Chuẩn mùa vụ của tỉnh": 0.29215759305213923,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.24712048989077537,
+    "Mùa vụ": 0.087401389987827,
+    "ONI (El Niño)": 0.04230207149657093
+   },
+   "2": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.25865704911395115,
+    "Chuẩn mùa vụ của tỉnh": 0.33301605258745803,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.21456118989578915,
+    "Mùa vụ": 0.1472554852456006,
+    "ONI (El Niño)": 0.046510223157201026
+   },
+   "3": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.25494955201411046,
+    "Chuẩn mùa vụ của tỉnh": 0.2884266915193703,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.2071708322180603,
+    "Mùa vụ": 0.18316080418044706,
+    "ONI (El Niño)": 0.06629212006801194
+   },
+   "6": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.41927809946027716,
+    "Chuẩn mùa vụ của tỉnh": 0.14006283076543266,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.22439248589003905,
+    "Mùa vụ": 0.14898982587594645,
+    "ONI (El Niño)": 0.06727675800830472
+   }
+  },
+  "top_features": {
+   "1": [
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.7096295749806278,
+     "direction_spearman": 0.917657308363619
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.6941066601096227,
+     "direction_spearman": 0.9645466048027186
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.5139099644631429,
+     "direction_spearman": 0.9198478426283938
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.25537757379660275,
+     "direction_spearman": -0.938869488055987
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.19895840775022997,
+     "direction_spearman": 0.7900912339224146
+    },
+    {
+     "feature": "momentum",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.18788068341125516,
+     "direction_spearman": 0.6000500602345707
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.12855053720640547,
+     "direction_spearman": 0.9440776937459665
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.07600604138481097,
+     "direction_spearman": 0.7070739113751895
+    }
+   ],
+   "2": [
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.8657172676175833,
+     "direction_spearman": 0.9329263264628043
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.4581466221185538,
+     "direction_spearman": 0.968759544535403
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.43534404732460696,
+     "direction_spearman": -0.9173710961345551
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.3977504669258933,
+     "direction_spearman": 0.9712489594191351
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.17726445071992417,
+     "direction_spearman": 0.9514875429897012
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.16419280649450443,
+     "direction_spearman": 0.7719433386935747
+    },
+    {
+     "feature": "momentum",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.15070617521654212,
+     "direction_spearman": 0.42530389418634384
+    },
+    {
+     "feature": "precip_total_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.11228237744259839,
+     "direction_spearman": -0.8947832610194232
+    }
+   ],
+   "3": [
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.7629672141697751,
+     "direction_spearman": 0.9265366445195875
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.4935833270796245,
+     "direction_spearman": -0.9022082752904885
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.442654663885204,
+     "direction_spearman": 0.9542393919695621
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.2709469885149327,
+     "direction_spearman": 0.969351464684653
+    },
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.25404039296592923,
+     "direction_spearman": 0.9267116927951202
+    },
+    {
+     "feature": "precip_total_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.14557338411042806,
+     "direction_spearman": -0.9160355598384684
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.13117196357480304,
+     "direction_spearman": 0.8111700450205197
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.11204884102591998,
+     "direction_spearman": 0.7658623893767468
+    }
+   ],
+   "6": [
+    {
+     "feature": "incidence_per_100k_lag_3",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.7076176701093038,
+     "direction_spearman": 0.9767321140208891
+    },
+    {
+     "feature": "sin_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.34968664336894806,
+     "direction_spearman": 0.8886315825706
+    },
+    {
+     "feature": "incidence_per_100k_same_month_last_year",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.2871788590641432,
+     "direction_spearman": 0.9060161351225949
+    },
+    {
+     "feature": "incidence_per_100k_lag_2",
+     "family": "Ca bệnh gần đây (lag, đà tăng)",
+     "mean_abs_shap": 0.2749430863661794,
+     "direction_spearman": 0.961101564744266
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.23350671248922214,
+     "direction_spearman": 0.8323871700255463
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.1056104118217584,
+     "direction_spearman": 0.7579775616551484
+    },
+    {
+     "feature": "temp_mean_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.07144816914671323,
+     "direction_spearman": -0.13944141380651037
+    },
+    {
+     "feature": "oni_lag_6",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.058853738556054476,
+     "direction_spearman": 0.02893605702856924
+    }
+   ]
+  },
+  "n_rows": {
+   "1": 272,
+   "2": 272,
+   "3": 272,
+   "6": 272
+  }
+ },
+ "classifier_lgbm": {
+  "family_share": {
+   "1": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.060930305972267416,
+    "Chuẩn mùa vụ của tỉnh": 0.18918105946258856,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.18114182155423594,
+    "Mùa vụ": 0.05349025089914089,
+    "ONI (El Niño)": 0.10237698795766205,
+    "Quy mô / ngưỡng của tỉnh": 0.412879574154105
+   },
+   "2": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.062144306661046894,
+    "Chuẩn mùa vụ của tỉnh": 0.15278692875940547,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.19712535479711604,
+    "Mùa vụ": 0.07434810538611476,
+    "ONI (El Niño)": 0.12417149304351457,
+    "Quy mô / ngưỡng của tỉnh": 0.3894238113528022
+   },
+   "3": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.05396449983229755,
+    "Chuẩn mùa vụ của tỉnh": 0.12583352486877777,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.21877040693058883,
+    "Mùa vụ": 0.06786854845884699,
+    "ONI (El Niño)": 0.15100139423043987,
+    "Quy mô / ngưỡng của tỉnh": 0.382561625679049
+   },
+   "6": {
+    "Ca bệnh gần đây (lag, đà tăng)": 0.07189826583502912,
+    "Chuẩn mùa vụ của tỉnh": 0.08511342548160604,
+    "Khí hậu (nhiệt/mưa/ẩm)": 0.15390031738007653,
+    "Mùa vụ": 0.05288886601391811,
+    "ONI (El Niño)": 0.15443557199561195,
+    "Quy mô / ngưỡng của tỉnh": 0.4817635532937583
+   }
+  },
+  "top_features": {
+   "1": [
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.7331785147897089,
+     "direction_spearman": 0.9459669585049011
+    },
+    {
+     "feature": "thr_target",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.48257049465685603,
+     "direction_spearman": -0.9393697446639443
+    },
+    {
+     "feature": "incidence_per_100k_lag_2__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.36176097967179466,
+     "direction_spearman": 0.9063685837217554
+    },
+    {
+     "feature": "prov_mean_12m__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.2697343708656715,
+     "direction_spearman": 0.913391502176578
+    },
+    {
+     "feature": "oni_lag_6",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.21378110016042215,
+     "direction_spearman": 0.9166558687362502
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.21061636932868205,
+     "direction_spearman": -0.914551056678381
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.2094077157692142,
+     "direction_spearman": 0.8576598259103467
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.19247130668504922,
+     "direction_spearman": 0.9173862278377146
+    }
+   ],
+   "2": [
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.5700694762374867,
+     "direction_spearman": 0.9279575751998569
+    },
+    {
+     "feature": "prov_mean_12m__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.33523687070703023,
+     "direction_spearman": 0.9075464450247925
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.32288771945003275,
+     "direction_spearman": 0.9241580537977324
+    },
+    {
+     "feature": "thr_target",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.31140587525488084,
+     "direction_spearman": -0.87564851689971
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.283968900484409,
+     "direction_spearman": 0.7982755167825061
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.24903130241094593,
+     "direction_spearman": -0.8882919936263252
+    },
+    {
+     "feature": "incidence_per_100k_lag_2__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.247865648570035,
+     "direction_spearman": 0.8966255893326686
+    },
+    {
+     "feature": "oni_lag_6",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.21460762057157504,
+     "direction_spearman": 0.9013704374810455
+    }
+   ],
+   "3": [
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.4306589242505119,
+     "direction_spearman": 0.9468006376105986
+    },
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.39500138051959166,
+     "direction_spearman": 0.727427134213262
+    },
+    {
+     "feature": "prov_mean_12m__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.3858548160812168,
+     "direction_spearman": 0.8499063459071831
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.33809629109910955,
+     "direction_spearman": 0.9271653026808224
+    },
+    {
+     "feature": "thr_target",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.3006422454997553,
+     "direction_spearman": -0.8201349541233348
+    },
+    {
+     "feature": "prov_mean_hist__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.19210612438275013,
+     "direction_spearman": 0.8709894403404278
+    },
+    {
+     "feature": "oni_lag_6",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.19199560309984162,
+     "direction_spearman": 0.8144805261212458
+    },
+    {
+     "feature": "cos_month",
+     "family": "Mùa vụ",
+     "mean_abs_shap": 0.16054806876450767,
+     "direction_spearman": -0.8953627942973261
+    }
+   ],
+   "6": [
+    {
+     "feature": "oni_lag_3",
+     "family": "ONI (El Niño)",
+     "mean_abs_shap": 0.43083666057720427,
+     "direction_spearman": 0.8086360965236675
+    },
+    {
+     "feature": "incidence_per_100k_lag_3__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.42493256598589435,
+     "direction_spearman": 0.8407744571059416
+    },
+    {
+     "feature": "prov_mean_hist__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.2678323756320455,
+     "direction_spearman": 0.9371840987317436
+    },
+    {
+     "feature": "prov_mean_12m__vs_thr",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.2500737340408371,
+     "direction_spearman": 0.8333435502698371
+    },
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "family": "Chuẩn mùa vụ của tỉnh",
+     "mean_abs_shap": 0.23531746227988215,
+     "direction_spearman": 0.9037180119353303
+    },
+    {
+     "feature": "prov_mean_hist",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.23365989122846634,
+     "direction_spearman": -0.4103573873489219
+    },
+    {
+     "feature": "thr_target",
+     "family": "Quy mô / ngưỡng của tỉnh",
+     "mean_abs_shap": 0.19058573121700007,
+     "direction_spearman": -0.9213366381829595
+    },
+    {
+     "feature": "precip_total_roll_mean_3",
+     "family": "Khí hậu (nhiệt/mưa/ẩm)",
+     "mean_abs_shap": 0.16867520537790034,
+     "direction_spearman": -0.9252236801618176
+    }
+   ]
+  },
+  "n_rows": {
+   "1": 272,
+   "2": 272,
+   "3": 272,
+   "6": 272
+  },
+  "local_example_h1": {
+   "province_id": "da_nang",
+   "origin": 7,
+   "horizon": 1,
+   "raw_score": 3.071239239169219,
+   "base": -2.009483354650736,
+   "top_contributions": [
+    {
+     "feature": "incidence_per_100k_deviation_from_median",
+     "value": 4.679554882532596,
+     "shap": 1.5374292631870379,
+     "family": "Chuẩn mùa vụ của tỉnh"
+    },
+    {
+     "feature": "oni_lag_6",
+     "value": 1.5,
+     "shap": 0.8855073209409131,
+     "family": "ONI (El Niño)"
+    },
+    {
+     "feature": "incidence_per_100k_lag_2__vs_thr",
+     "value": 0.6593674659868175,
+     "shap": 0.5022113787416195,
+     "family": "Quy mô / ngưỡng của tỉnh"
+    },
+    {
+     "feature": "prov_mean_12m__vs_thr",
+     "value": 1.488195860114321,
+     "shap": 0.4429394554429199,
+     "family": "Quy mô / ngưỡng của tỉnh"
+    },
+    {
+     "feature": "momentum",
+     "value": 0.8150417237017145,
+     "shap": 0.2906990607769565,
+     "family": "Ca bệnh gần đây (lag, đà tăng)"
+    },
+    {
+     "feature": "temp_mean_lag_1",
+     "value": 27.19050164473684,
+     "shap": 0.22216930494482334,
+     "family": "Khí hậu (nhiệt/mưa/ẩm)"
+    }
+   ]
+  }
+ }
+}

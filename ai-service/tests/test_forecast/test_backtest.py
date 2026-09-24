@@ -3,7 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from app.forecast.backtest import build_horizon_pairs, compute_train_naive_errors
+from app.forecast.backtest import (
+    build_horizon_pairs,
+    calendarize_panel,
+    compute_train_naive_errors,
+)
+from app.forecast.features import add_disease_lag_features
 
 
 def _panel() -> pd.DataFrame:
@@ -43,3 +48,29 @@ def test_train_naive_errors_are_seasonal_lag_12_absolute_differences():
     # moi tinh: chuoi tang deu 1/thang -> |y[t]-y[t-12]| = 12; 18 diem x 2 tinh
     assert len(errs) == 36
     assert np.allclose(errs, 12.0)
+
+
+def test_calendarize_makes_row_lag_equal_calendar_lag_across_a_gap():
+    panel = _panel()
+    panel = panel[panel["month"] != pd.Timestamp("2000-10-01")]  # thieu 1 thang
+    naive = add_disease_lag_features(panel, max_lag=3, reporting_delay_months=1)
+    cal = calendarize_panel(panel)
+    cal = add_disease_lag_features(cal, max_lag=3, reporting_delay_months=1)
+    cal = cal[~cal["_inserted"]]
+    target = (cal["province_id"] == "b") & (cal["month"] == pd.Timestamp("2000-12-01"))
+    naive_t = (naive["province_id"] == "b") & (
+        naive["month"] == pd.Timestamp("2000-12-01")
+    )
+    # 2000-12: lag 2 thang = 2000-10 (thieu) -> phai la NaN theo lich; theo dong thi
+    # lay nham 2000-09 (gia tri that, sai thoi diem)
+    assert np.isnan(cal.loc[target, "incidence_per_100k_lag_2"].iloc[0])
+    assert not np.isnan(naive.loc[naive_t, "incidence_per_100k_lag_2"].iloc[0])
+    # thang khong bi anh huong giu nguyen gia tri
+    ok = (cal["province_id"] == "a") & (cal["month"] == pd.Timestamp("2000-06-01"))
+    ok_n = (naive["province_id"] == "a") & (
+        naive["month"] == pd.Timestamp("2000-06-01")
+    )
+    assert (
+        cal.loc[ok, "incidence_per_100k_lag_2"].iloc[0]
+        == naive.loc[ok_n, "incidence_per_100k_lag_2"].iloc[0]
+    )

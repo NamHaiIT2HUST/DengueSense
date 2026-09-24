@@ -51,14 +51,36 @@ _PANEL_PATH = (
 )
 
 
+def calendarize_panel(real: pd.DataFrame) -> pd.DataFrame:
+    """Chèn dòng NaN cho tháng thiếu giữa chuỗi từng tỉnh để dịch theo SỐ DÒNG
+    (shift/rolling của features.py) = dịch theo THÁNG LỊCH. Dân số điền tiến trong
+    tỉnh (để offset của M1 không NaN nếu cần); dòng chèn mang cờ `_inserted`."""
+    parts = []
+    for pid, g in real.groupby("province_id", sort=True):
+        full = pd.date_range(g["month"].min(), g["month"].max(), freq="MS")
+        g = g.set_index("month").reindex(full).rename_axis("month").reset_index()
+        g["_inserted"] = g["province_id"].isna()
+        g["province_id"] = pid
+        g["population"] = g["population"].ffill()
+        parts.append(g)
+    return pd.concat(parts, ignore_index=True)
+
+
 def load_real_panel_with_features(
     panel: pd.DataFrame | None = None,
+    calendarize: bool = False,
 ) -> pd.DataFrame:
+    """Panel real-only kèm đặc trưng. `calendarize=True` sửa lỗi lag theo số dòng ở
+    tỉnh có tháng thiếu (exp_015); mặc định False để giữ nguyên các số đã công bố."""
     if panel is None:
         panel = pd.read_parquet(_PANEL_PATH)
     real = panel[panel["data_source"] == "real"].copy()
     real = real.sort_values(["province_id", "month"]).reset_index(drop=True)
-    return build_feature_matrix(real, reporting_delay_months=REPORTING_DELAY_MONTHS)
+    if not calendarize:
+        return build_feature_matrix(real, reporting_delay_months=REPORTING_DELAY_MONTHS)
+    full = calendarize_panel(real)
+    feat = build_feature_matrix(full, reporting_delay_months=REPORTING_DELAY_MONTHS)
+    return feat[~feat["_inserted"]].drop(columns="_inserted").reset_index(drop=True)
 
 
 def build_horizon_pairs(feat_panel: pd.DataFrame, horizon: int) -> pd.DataFrame:

@@ -11,7 +11,7 @@
   (`train_end` 2009-11 → 2010-06), horizon **{1, 2, 3, 6} tháng**, `embargo_months=1`,
   `reporting_delay_months=1`, tập test **100% `data_source=="real"`** (`assert_test_is_real_only()`),
   metric chính **MASE** (mẫu số = sai số seasonal-naive trên phần train của từng origin).
-- **Cập nhật lần cuối:** 2026-09-24 (sau exp_013 — đòn bẩy cảnh báo, âm tính)
+- **Cập nhật lần cuối:** 2026-09-24 (sau exp_015 — đo tác động lag theo tháng lịch)
 
 ## Biểu đồ
 
@@ -106,6 +106,13 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
    bẩy nào qua quy tắc khai báo trước trên validation. A3 tệ nhất ở validation nhưng cao nhất ở outer (mâu thuẫn, không nhận).
    **Classifier cảnh báo dừng ở ROC-AUC ~0.76** (< D-MOSS 0.83): với dữ liệu hiện có, cải thiện thêm = overfit vào 1 mùa dịch.
 
+12. **SHAP (exp_014):** hồi quy dựa vào 3 trụ — ca bệnh gần đây (26–39%), chuẩn mùa vụ của tỉnh (12–28%), khí hậu (23–28%); mùa vụ
+   (sin/cos) tăng theo horizon (9%→20%); ONI chỉ 4–6%. LightGBM/XGBoost đồng thuận (hạng nhóm 0.94–1.0). Classifier cảnh báo dựa vào
+   quy mô/ngưỡng của tỉnh (38–48%) và ONI (10–15%, có thể tương quan giả trong 1 mùa). Chiều tác động hợp lý dịch tễ.
+
+13. **Lag theo tháng lịch (exp_015):** lỗi "lag theo số dòng" ở 5/34 tỉnh có tháng thiếu ảnh hưởng M4-R2 **không đáng kể** (MASE gộp 0.8185→0.8199,
+   +0.17%; mọi horizon trong ±1%; Bắc −2.5%). Số công bố giữ nguyên; `calendarize=True` dùng cho các lần chạy lại từ giờ.
+
 ## Trạng thái model zoo (docs/02 §3)
 
 | Model | Trạng thái |
@@ -121,6 +128,6 @@ _(std qua 8 origin và MAE chi tiết: xem `results.json` trong từng thư mụ
 - [ ] M3: thử `oni_lag_6` làm covariate (leak-safe, xem exp_004 "Việc tiếp theo") — nếu vẫn thua M2,
       đó mới là bằng chứng chắc chắn cho thấy lan truyền không gian không thêm giá trị ở quy mô này.
 - [ ] Bias bùng dịch và miền Bắc >1: giới hạn dữ liệu (đã thử quy mô, isotonic, Tweedie, trọng số, pha B3, không gian) — cần nguồn mới; nêu rõ trong model card.
-- [ ] Sửa lag theo tháng lịch (reindex) khi chạy lại toàn pipeline (5/34 tỉnh có tháng thiếu).
+- [x] Lag theo tháng lịch: đã đo tác động ≤ 1% (exp_015), dùng `calendarize=True` từ giờ.
 - [ ] Robustness mở rộng: gián đoạn liên tục 2-3 tháng, nhiễu có tương quan/ở dữ liệu huấn luyện.
-- [x] Hiệu chỉnh xác suất + cảnh báo (exp_011/012). [ ] SHAP, model card — chưa bắt đầu.
+- [x] Hiệu chỉnh xác suất + cảnh báo (exp_011/012), SHAP (exp_014), model card ([docs/07-model-card.md](../../docs/07-model-card.md)).
