@@ -16,3 +16,6 @@ services:
   forecast:
     ports:
       - "127.0.0.1:${FORECAST_HOST_PORT:-8001}:8001"
+  identity:
+    ports:
+      - "127.0.0.1:${IDENTITY_HOST_PORT:-8081}:8081"

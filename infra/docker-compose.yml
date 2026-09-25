@@ -1,5 +1,5 @@
 # DengueSense — hạ tầng dùng chung (docs/09 §3, §16).
-# Đợt 0: Postgres (PostGIS + pgvector) + NATS JetStream + gateway + forecast (khung). Service khác được thêm dần theo từng đợt.
+# Đợt 0: Postgres (PostGIS + pgvector) + NATS JetStream + identity + gateway + forecast. Service khác được thêm dần theo từng đợt.
 #
 # Chạy:  docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
 # (chưa có infra/.env thì: cp infra/.env.example infra/.env  rồi đổi mật khẩu)
@@ -75,6 +75,57 @@ services:
       GATEWAY_LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-info}
       # Đợt 0: khoá công khai nạp tĩnh. Đợt 1: thay bằng JWKS lấy từ `identity`.
       GATEWAY_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - tạo bằng go run ./cmd/devtool keygen, xem infra/README.md}"
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  # Áp migration lên schema `identity` rồi thoát; `identity` chỉ khởi động sau khi migration xong (docs/09 §9.3).
+  identity-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: identity
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/identity:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["migrate"]
+    environment:
+      IDENTITY_DB_URL: postgres://svc_identity:${SVC_IDENTITY_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  identity:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: identity
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/identity:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      IDENTITY_LISTEN_ADDR: ":8081"
+      IDENTITY_LOG_LEVEL: ${IDENTITY_LOG_LEVEL:-info}
+      IDENTITY_DB_URL: postgres://svc_identity:${SVC_IDENTITY_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      IDENTITY_JWT_PRIVATE_KEY: "${IDENTITY_JWT_PRIVATE_KEY:?thiếu IDENTITY_JWT_PRIVATE_KEY - xem infra/README.md}"
+      # SHA-256 của client_secret từng service (bí mật gốc nằm ở phía service gọi, không ở đây).
+      IDENTITY_SERVICE_SECRET_SHA256_GATEWAY: "${IDENTITY_SERVICE_SECRET_SHA256_GATEWAY:-}"
+    depends_on:
+      identity-migrate:
+        condition: service_completed_successfully
     networks: [core]
     read_only: true
     cap_drop: [ALL]
