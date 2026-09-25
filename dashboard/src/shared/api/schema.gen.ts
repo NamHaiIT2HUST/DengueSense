@@ -477,9 +477,14 @@ export interface components {
             horizon: components["schemas"]["Horizon"];
             /**
              * Format: double
-             * @description Số ca dự báo trong tháng đích.
+             * @description Số ca dự báo trong tháng đích = `incidence_pred_per_100k` × dân số / 100.000 (dân số là số ước lượng — xem `input_data_sources`).
              */
             cases_pred: number;
+            /**
+             * Format: double
+             * @description Đầu ra GỐC của mô hình (M4-R2 dự báo tỉ suất ca / 100.000 dân). Dùng để so sánh giữa các tỉnh khác quy mô; `cases_pred` chỉ là quy đổi.
+             */
+            incidence_pred_per_100k: number;
             /**
              * @description Khoảng dự báo. **Hiện luôn `null`** — chưa có khoảng đã kiểm chứng độ phủ (docs/09 §10.2, Q4).
              *     UI không được tự vẽ khoảng khi null.
@@ -497,7 +502,9 @@ export interface components {
             threshold_p75: number;
             /**
              * Format: double
-             * @description Tỉ lệ nền tháng vượt ngưỡng trong giai đoạn tham chiếu của phiên bản mô hình.
+             * @description Tỉ lệ nền: phần (tỉnh, tháng) vượt ngưỡng P75 trong CỬA SỔ HUẤN LUYỆN của lượt dự báo, ở đúng tầm dự báo này
+             *     (nhân quả — biết được tại tháng neo). Tỉ lệ nền thực tế thay đổi theo năm (0,13 → 0,35 qua 2005–2010, model card L9)
+             *     nên có thể lệch khỏi tỉ lệ ở giai đoạn được dự báo.
              */
             base_rate: number;
             input_data_sources: components["schemas"]["InputDataSources"];
@@ -561,7 +568,7 @@ export interface components {
             value: number | null;
             /**
              * Format: double
-             * @description Đóng góp SHAP vào dự báo (đơn vị của đầu ra mô hình).
+             * @description Đóng góp SHAP trên THANG LOG của tỉ suất ca (mô hình Poisson): `e^contribution` là hệ số nhân lên dự báo (đóng góp 0,69 ≈ ln 2 → nhân đôi; −0,69 → giảm một nửa).
              */
             contribution: number;
         };
@@ -570,8 +577,15 @@ export interface components {
             province_id: components["schemas"]["ProvinceId"];
             horizon: components["schemas"]["Horizon"];
             /**
+             * @description Thành phần của mô hình tổ hợp được giải thích. SHAP chính xác chỉ tính được cho cây quyết định, nên giải thích
+             *     là của thành phần GBM (LightGBM, Poisson) — KHÔNG phải của toàn bộ tổ hợp M4-R2 (còn thành phần GLM và pha
+             *     với baseline theo vùng). UI phải nói rõ điều này.
+             * @example m2b_lightgbm_poisson
+             */
+            explained_component: string;
+            /**
              * Format: double
-             * @description Giá trị nền (kỳ vọng) của mô hình.
+             * @description Giá trị nền (kỳ vọng) của thành phần được giải thích, trên thang log: `e^base_value` là tỉ suất ca / 100.000 nền.
              */
             base_value: number;
             /** @description Top-k yếu tố theo |contribution| giảm dần. */

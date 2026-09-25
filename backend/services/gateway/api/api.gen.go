@@ -405,8 +405,16 @@ type DataVersion struct {
 
 // Explanation defines model for Explanation.
 type Explanation struct {
-	// BaseValue Giá trị nền (kỳ vọng) của mô hình.
+	// BaseValue Giá trị nền (kỳ vọng) của thành phần được giải thích, trên thang log: `e^base_value` là tỉ suất ca / 100.000 nền.
 	BaseValue float64 `json:"base_value"`
+
+	// ExplainedComponent Thành phần của mô hình tổ hợp được giải thích. SHAP chính xác chỉ tính được cho cây quyết định, nên giải thích
+	// là của thành phần GBM (LightGBM, Poisson) — KHÔNG phải của toàn bộ tổ hợp M4-R2 (còn thành phần GLM và pha
+	// với baseline theo vùng). UI phải nói rõ điều này.
+	//
+	//
+	// Examples: m2b_lightgbm_poisson
+	ExplainedComponent string `json:"explained_component"`
 
 	// Factors Top-k yếu tố theo |contribution| giảm dần.
 	Factors []ExplanationFactor `json:"factors"`
@@ -425,7 +433,7 @@ type Explanation struct {
 
 // ExplanationFactor defines model for ExplanationFactor.
 type ExplanationFactor struct {
-	// Contribution Đóng góp SHAP vào dự báo (đơn vị của đầu ra mô hình).
+	// Contribution Đóng góp SHAP trên THANG LOG của tỉ suất ca (mô hình Poisson): `e^contribution` là hệ số nhân lên dự báo (đóng góp 0,69 ≈ ln 2 → nhân đôi; −0,69 → giảm một nửa).
 	Contribution float64                 `json:"contribution"`
 	Family       ExplanationFactorFamily `json:"family"`
 
@@ -446,10 +454,12 @@ type ForecastFlag string
 
 // ForecastItem defines model for ForecastItem.
 type ForecastItem struct {
-	// BaseRate Tỉ lệ nền tháng vượt ngưỡng trong giai đoạn tham chiếu của phiên bản mô hình.
+	// BaseRate Tỉ lệ nền: phần (tỉnh, tháng) vượt ngưỡng P75 trong CỬA SỔ HUẤN LUYỆN của lượt dự báo, ở đúng tầm dự báo này
+	// (nhân quả — biết được tại tháng neo). Tỉ lệ nền thực tế thay đổi theo năm (0,13 → 0,35 qua 2005–2010, model card L9)
+	// nên có thể lệch khỏi tỉ lệ ở giai đoạn được dự báo.
 	BaseRate float64 `json:"base_rate"`
 
-	// CasesPred Số ca dự báo trong tháng đích.
+	// CasesPred Số ca dự báo trong tháng đích = `incidence_pred_per_100k` × dân số / 100.000 (dân số là số ước lượng — xem `input_data_sources`).
 	CasesPred float64 `json:"cases_pred"`
 
 	// CasesPredInterval Khoảng dự báo. **Hiện luôn `null`** — chưa có khoảng đã kiểm chứng độ phủ (docs/09 §10.2, Q4).
@@ -462,6 +472,9 @@ type ForecastItem struct {
 
 	// Horizon Tầm dự báo — số tháng tính từ tháng neo (`origin_month`).
 	Horizon Horizon `json:"horizon"`
+
+	// IncidencePredPer100k Đầu ra GỐC của mô hình (M4-R2 dự báo tỉ suất ca / 100.000 dân). Dùng để so sánh giữa các tỉnh khác quy mô; `cases_pred` chỉ là quy đổi.
+	IncidencePredPer100k float64 `json:"incidence_pred_per_100k"`
 
 	// InputDataSources Tỉ trọng nguồn dữ liệu đầu vào của dự báo (cộng lại ≈ 1).
 	InputDataSources InputDataSources `json:"input_data_sources"`
