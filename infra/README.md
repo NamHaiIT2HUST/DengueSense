@@ -9,6 +9,7 @@ Hạ tầng dùng chung: Docker Compose cho dev/pilot (docs/09 §3, §16).
 | `postgres` | Postgres 16 + PostGIS + pgvector | 1 cụm, **mỗi service một schema + một user DB** (ADR-0002); khởi tạo bởi `postgres/init/01-roles-and-schemas.sh` |
 | `nats` (+ `nats-init`) | NATS JetStream | `nats-init` tạo stream `EVENTS` (giữ 30 ngày) và `DLQ` (90 ngày), chạy 1 lần, idempotent |
 | `identity-migrate` → `identity` | Xác thực (Go): người dùng, phiên, JWKS, token dịch vụ | Migration chạy xong (thoát) rồi `identity` mới khởi động; cần `IDENTITY_JWT_PRIVATE_KEY`, `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY` |
+| `surveillance-migrate` → `surveillance` | Danh mục tỉnh, ranh giới, phiên bản dữ liệu bất biến, quan sát (Go) | Kiểm token dịch vụ bằng khoá công khai `GATEWAY_JWT_PUBLIC_KEY` (dev). Dữ liệu nạp bằng `bash infra/scripts/seed-surveillance.sh` (idempotent; cần `ai-service/data/processed/v0.2.0/`) |
 | `gateway` | Cửa vào duy nhất (Go) | Chỉ chạy được khi đã đặt `GATEWAY_JWT_PUBLIC_KEY` (Đợt 0: khoá tĩnh, cặp với khoá riêng của `identity`) |
 
 Redis **chưa thêm** — chỉ khi có số đo chứng minh cần (ADR-0003). Các service còn lại được thêm theo đợt (docs/09 §18).
@@ -37,7 +38,7 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml ps
 ```
 
 `docker-compose.dev.yml` chỉ mở cổng ra `127.0.0.1` (Postgres 5432, NATS 4222/8222, gateway 8080). Cổng bị chiếm hoặc bị Windows giữ chỗ →
-đặt `POSTGRES_HOST_PORT`, `NATS_HOST_PORT`, `NATS_MONITOR_HOST_PORT`, `GATEWAY_HOST_PORT`, `IDENTITY_HOST_PORT` trong `infra/.env`.
+đặt `POSTGRES_HOST_PORT`, `NATS_HOST_PORT`, `NATS_MONITOR_HOST_PORT`, `GATEWAY_HOST_PORT`, `IDENTITY_HOST_PORT`, `SURVEILLANCE_HOST_PORT` trong `infra/.env`.
 
 ## Kiểm tra sau khi dựng
 

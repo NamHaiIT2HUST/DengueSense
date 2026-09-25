@@ -137,6 +137,77 @@ services:
       retries: 10
       start_period: 3s
 
+  # Áp migration lên schema `surveillance` rồi thoát (docs/09 §9.3).
+  surveillance-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: surveillance
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["migrate"]
+    environment:
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  surveillance:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: surveillance
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      SURVEILLANCE_LISTEN_ADDR: ":8082"
+      SURVEILLANCE_LOG_LEVEL: ${SURVEILLANCE_LOG_LEVEL:-info}
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      # Khoá CÔNG KHAI của identity để kiểm token dịch vụ (dev: cùng cặp khoá với gateway; sau này lấy từ JWKS).
+      SURVEILLANCE_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - xem infra/README.md}"
+    depends_on:
+      surveillance-migrate:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  # Công cụ một lần (KHÔNG chạy cùng `up`): nạp danh mục tỉnh, ranh giới, nhập panel. Dùng qua
+  # infra/scripts/seed-surveillance.sh hoặc `docker compose --profile tools run --rm surveillance-cli <lệnh> ...`.
+  surveillance-cli:
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    profiles: [tools]
+    restart: "no"
+    environment:
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    volumes:
+      # Dữ liệu tham chiếu nằm trong repo; chỉ đọc.
+      - ../ai-service/data/external/province_metadata.csv:/data/province_metadata.csv:ro
+      - ../dashboard/public/data/provinces.geojson:/data/provinces.geojson:ro
+      - ../ai-service/data/processed:/data/processed:ro
+    depends_on:
+      surveillance-migrate:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   forecast:
     build:
       context: ../ai-service
