@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denguesense.vn/contracts/events/forecast.run.failed.v1.json",
+  "title": "forecast.run.failed (v1) — phần `data`",
+  "description": "Phát bởi `forecast` khi lượt dự báo thất bại. Nghe bởi: workflow (hiện trạng thái cho analyst).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "run_mode", "origin_month", "error_code"],
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "run_mode": { "enum": ["backtest", "live_experimental"] },
+    "origin_month": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "error_code": { "type": "string", "pattern": "^forecast\\.[a-z_]+$" }
+  }
+}

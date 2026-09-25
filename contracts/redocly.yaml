@@ -1,0 +1,10 @@
+extends:
+  - recommended
+rules:
+  # Server tương đối "/api/v1" — cùng origin với dashboard (docs/09 §3.3), không phải URL tuyệt đối.
+  no-empty-servers: off
+  # Hợp đồng nội bộ dự án, chưa cần license URL / thông tin liên hệ.
+  info-license: off
+  operation-4xx-response: error
+  operation-operationId: error
+  operation-summary: error

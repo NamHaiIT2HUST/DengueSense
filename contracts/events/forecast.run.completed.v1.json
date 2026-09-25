@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denguesense.vn/contracts/events/forecast.run.completed.v1.json",
+  "title": "forecast.run.completed (v1) — phần `data`",
+  "description": "Phát bởi `forecast` khi một lượt dự báo hoàn tất và đã lưu kết quả. `data` chỉ chứa ID và tóm tắt — bên nhận gọi API để lấy dự báo (docs/09 §7.2). Nghe bởi: workflow.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "run_mode", "origin_month", "model_version", "data_version", "province_count", "horizons"],
+  "properties": {
+    "run_id": { "type": "string", "format": "uuid" },
+    "run_mode": { "enum": ["backtest", "live_experimental"] },
+    "origin_month": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "model_version": { "type": "string", "pattern": "^[a-z0-9-]+@[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "data_version": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "province_count": { "type": "integer", "minimum": 1, "maximum": 34 },
+    "horizons": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": [1, 2, 3, 6] }
+    }
+  }
+}

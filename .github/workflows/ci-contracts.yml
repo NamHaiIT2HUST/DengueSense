@@ -1,0 +1,40 @@
+name: CI - contracts
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/ci-contracts.yml"
+  push:
+    branches: [main]
+    paths:
+      - "contracts/**"
+
+permissions:
+  contents: read
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # cần lịch sử để so với nhánh nền
+
+      - name: Lint OpenAPI (redocly)
+        working-directory: contracts
+        run: npx --yes @redocly/cli@2 lint openapi/public-v1.yaml
+
+      # Thay đổi phá vỡ tương thích bị chặn (docs/09 §6.10). Muốn phá vỡ: thêm trường song song +
+      # deprecated, hoặc tăng /v2 — xem contracts/README.md.
+      - name: Phát hiện thay đổi phá vỡ so với nhánh nền (oasdiff)
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          if git cat-file -e "${BASE}:contracts/openapi/public-v1.yaml" 2>/dev/null; then
+            git show "${BASE}:contracts/openapi/public-v1.yaml" > /tmp/base.yaml
+            docker run --rm -v /tmp:/t -v "$PWD:/w" tufin/oasdiff \
+              breaking /t/base.yaml /w/contracts/openapi/public-v1.yaml --fail-on ERR
+          else
+            echo "Nhánh nền chưa có hợp đồng — bỏ qua so sánh (PR đầu tiên)."
+          fi

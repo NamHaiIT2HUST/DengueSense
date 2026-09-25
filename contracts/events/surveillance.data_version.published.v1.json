@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denguesense.vn/contracts/events/surveillance.data_version.published.v1.json",
+  "title": "surveillance.data_version.published (v1) — phần `data`",
+  "description": "Phát bởi `surveillance` khi một phiên bản dữ liệu (panel) mới được công bố. Nghe bởi: forecast.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["data_version", "first_month", "last_month", "real_share"],
+  "properties": {
+    "data_version": { "type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "first_month": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "last_month": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+    "real_share": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}
