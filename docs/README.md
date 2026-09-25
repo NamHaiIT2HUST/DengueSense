@@ -13,6 +13,10 @@ Bộ tài liệu này là **phương pháp luận chuẩn** của dự án — �
 | 04 | [Phương pháp tối ưu (Layer 2)](04-phuong-phap-toi-uu.md) | Formulation, so sánh solver, đánh giá dưới bất định | 🧬 Minh Dương |
 | 05 | [Phương pháp GenAI RAG (Layer 3)](05-phuong-phap-genai-rag.md) | Kiến trúc RAG, guardrail, bộ đánh giá | 🤝 Cả hai |
 | 06 | [**Khảo sát tài liệu & Định vị khác biệt**](06-khao-sat-tai-lieu.md) | ⭐ Benchmark thật từ D-MOSS/EWARS/PLOS NTD, 5 khác biệt K1–K5, **chốt model & tuning** | 🤝 Cả hai |
+| 07 | [Model Card — Layer 1](07-model-card.md) | Hiệu năng đo được, giới hạn đã biết, khuyến nghị vận hành | 🤝 Cả hai |
+| 08 | [Bàn giao Layer 1](08-ban-giao-layer1.md) | Bản đồ code, kỷ luật đánh giá, thí nghiệm, ý tưởng chưa thử | 🧬 Minh Dương |
+| 09 | [**Kiến trúc hệ thống & Backend**](09-kien-truc-backend.md) | ⭐ Microservice 8 service, API/sự kiện, dữ liệu, bảo mật, CI/CD, quy trình — **đọc trước khi code backend** | 🤝 Cả hai |
+| 10 | [**Kiến trúc Frontend**](10-kien-truc-frontend.md) | ⭐ Cấu trúc SPA, state, tích hợp API, luật trình bày số liệu trung thực, a11y, test — **đọc trước khi code dashboard** | 🔧 + người làm FE |
 
 > ⚠️ **Đọc [06](06-khao-sat-tai-lieu.md) sớm.** Khảo sát tài liệu cho thấy luận điểm "dự báo chính xác hơn" không đứng vững được, và Layer 2 đang tối ưu sai đại lượng. Doc 06 chốt lại định vị sản phẩm, danh sách model (cắt từ 10 xuống 4+2) và phương pháp tuning (cắt từ 4 xuống 2+1).
 

@@ -136,6 +136,8 @@ Trước khi bắt tay vào dữ liệu hoặc train model, đọc bộ tài li�
 | 06 | [**Khảo sát tài liệu & Định vị khác biệt**](docs/06-khao-sat-tai-lieu.md) | ⭐ Benchmark thật (D-MOSS, EWARS, PLOS NTD), 5 khác biệt K1–K5, chốt model & tuning |
 | 07 | [**Model Card — Layer 1**](docs/07-model-card.md) | ⭐ Hiệu năng đo được, độ vững, SHAP, **12 giới hạn đã biết có số đo**, khuyến nghị vận hành (mọi con số có nguồn experiment) |
 | 08 | [**Bàn giao Layer 1**](docs/08-ban-giao-layer1.md) | ⭐ Tổng kết đầy đủ để đồng đội tiếp nhận: bản đồ code, kỷ luật đánh giá, 15 thí nghiệm, hướng đã thất bại, ý tưởng chưa thử |
+| 09 | [**Kiến trúc hệ thống & Backend**](docs/09-kien-truc-backend.md) | ⭐ Microservice: danh mục service, hợp đồng API/sự kiện, dữ liệu, bảo mật, observability, CI/CD, quy trình, kế hoạch theo đợt |
+| 10 | [**Kiến trúc Frontend**](docs/10-kien-truc-frontend.md) | ⭐ Kiến trúc dashboard, luật trình bày số liệu trung thực (T1–T10), a11y, hiệu năng, test, quy trình |
 
 Ba nguyên tắc xuyên suốt: **không có baseline thì không có kết quả** · **tập test chỉ chạm một lần** · **số nào đưa vào hồ sơ thì phải chạy lại được**.
 
