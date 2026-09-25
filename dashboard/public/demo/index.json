@@ -1,0 +1,142 @@
+{
+  "provinces": [
+    { "province_id": "an_giang", "name": "An Giang", "region": "Nam", "population": 3753309 },
+    { "province_id": "bac_ninh", "name": "Bắc Ninh", "region": "Bắc", "population": 2591228 },
+    { "province_id": "ca_mau", "name": "Cà Mau", "region": "Nam", "population": 2080701 },
+    { "province_id": "can_tho", "name": "Cần Thơ", "region": "Nam", "population": 3265894 },
+    { "province_id": "cao_bang", "name": "Cao Bằng", "region": "Bắc", "population": 506089 },
+    { "province_id": "da_nang", "name": "Đà Nẵng", "region": "Trung", "population": 2331169 },
+    { "province_id": "dak_lak", "name": "Đắk Lắk", "region": "Trung", "population": 2626831 },
+    { "province_id": "dien_bien", "name": "Điện Biên", "region": "Bắc", "population": 501226 },
+    { "province_id": "dong_nai", "name": "Đồng Nai", "region": "Nam", "population": 3436792 },
+    { "province_id": "dong_thap", "name": "Đồng Tháp", "region": "Nam", "population": 3354603 },
+    { "province_id": "gia_lai", "name": "Gia Lai", "region": "Trung", "population": 2770012 },
+    { "province_id": "ha_noi", "name": "Hà Nội", "region": "Bắc", "population": 6615492 },
+    { "province_id": "ha_tinh", "name": "Hà Tĩnh", "region": "Trung", "population": 1220156 },
+    { "province_id": "hai_phong", "name": "Hải Phòng", "region": "Bắc", "population": 3550180 },
+    {
+      "province_id": "ho_chi_minh",
+      "name": "Hồ Chí Minh",
+      "region": "Nam",
+      "population": 10023001
+    },
+    { "province_id": "hue", "name": "Huế", "region": "Trung", "population": 1088148 },
+    { "province_id": "hung_yen", "name": "Hưng Yên", "region": "Bắc", "population": 2915224 },
+    { "province_id": "khanh_hoa", "name": "Khánh Hòa", "region": "Trung", "population": 1723900 },
+    { "province_id": "lai_chau", "name": "Lai Châu", "region": "Bắc", "population": 392995 },
+    { "province_id": "lam_dong", "name": "Lâm Đồng", "region": "Trung", "population": 2888868 },
+    { "province_id": "lang_son", "name": "Lạng Sơn", "region": "Bắc", "population": 732013 },
+    { "province_id": "lao_cai", "name": "Lào Cai", "region": "Bắc", "population": 1363745 },
+    { "province_id": "nghe_an", "name": "Nghệ An", "region": "Trung", "population": 2912176 },
+    { "province_id": "ninh_binh", "name": "Ninh Bình", "region": "Bắc", "population": 3490147 },
+    { "province_id": "phu_tho", "name": "Phú Thọ", "region": "Bắc", "population": 3008860 },
+    { "province_id": "quang_ngai", "name": "Quảng Ngãi", "region": "Trung", "population": 1678787 },
+    { "province_id": "quang_ninh", "name": "Quảng Ninh", "region": "Bắc", "population": 1114654 },
+    { "province_id": "quang_tri", "name": "Quảng Trị", "region": "Trung", "population": 1449595 },
+    { "province_id": "son_la", "name": "Sơn La", "region": "Bắc", "population": 1097474 },
+    { "province_id": "tay_ninh", "name": "Tây Ninh", "region": "Nam", "population": 2526441 },
+    { "province_id": "thai_nguyen", "name": "Thái Nguyên", "region": "Bắc", "population": 1427573 },
+    { "province_id": "thanh_hoa", "name": "Thanh Hóa", "region": "Trung", "population": 3387318 },
+    { "province_id": "tuyen_quang", "name": "Tuyên Quang", "region": "Bắc", "population": 1463036 },
+    { "province_id": "vinh_long", "name": "Vĩnh Long", "region": "Nam", "population": 3283082 }
+  ],
+  "runs": [
+    {
+      "run_id": "c9e85193-11db-5232-8389-7161baaa38b5",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2009-11",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "388d81cd-36ab-5794-8cab-04def06fb504",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2009-12",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "24f9e213-effc-51df-bbd2-78dfa0f1d926",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-01",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "a50ee572-e7f4-526f-999e-04a57cb655b6",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-02",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "0f6bac6d-b0cc-5177-83a7-ab3e02ae3fe4",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-03",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "7005aa28-d7bf-5400-b737-25957f23bb63",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-04",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "154448b1-95e9-5b9a-a355-7c93ef5f8497",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-05",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    },
+    {
+      "run_id": "272bbf94-7fc3-59da-bf30-11d66e0ccf45",
+      "run_mode": "backtest",
+      "status": "completed",
+      "origin_month": "2010-06",
+      "model_version": "m4-r2@1.0.0",
+      "data_version": "v0.2.0",
+      "created_at": "2026-09-24T23:26:56Z",
+      "completed_at": "2026-09-24T23:26:56Z",
+      "error_code": null
+    }
+  ],
+  "data_versions": [
+    {
+      "version": "v0.2.0",
+      "published_at": "2026-09-24T23:26:56Z",
+      "first_month": "1994-02",
+      "last_month": "2025-03",
+      "real_share": 0.7265708771177354
+    }
+  ]
+}

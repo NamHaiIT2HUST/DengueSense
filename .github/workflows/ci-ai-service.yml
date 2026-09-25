@@ -5,6 +5,7 @@ on:
     paths:
       - "ai-service/**"
       - "contracts/**"
+      - "dashboard/public/demo/**" # test_replay đối chiếu dữ liệu demo với exp_016 và hợp đồng
       - ".github/workflows/ci-ai-service.yml"
   push:
     branches: [main]
