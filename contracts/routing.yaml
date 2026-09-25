@@ -1,0 +1,94 @@
+# Bản đồ định tuyến của GATEWAY (BFF): mỗi operation CÔNG KHAI (public-v1.yaml) → các lời gọi NỘI BỘ đứng sau nó,
+# và vai trò tối thiểu ở mức thô (docs/09 §4.2, §11.3). Nguồn sự thật để hai luồng làm song song không lệch nhau:
+#   - luồng backend hiện thực đúng chuỗi upstream này;
+#   - luồng frontend biết mỗi màn hình phụ thuộc service nào (để dựng mock MSW đúng hình dạng).
+#
+# `upstream`: danh sách `<service>.<operationId>` (operationId nằm trong <service>-internal.yaml).
+#   Nhiều phần tử = gateway ghép (gọi song song trừ khi ghi chú khác; tối đa 3, timeout tổng 2 s — docs/09 §4.2).
+# `min_role`: vai trò thô gateway kiểm; service đích kiểm lại theo vai trò và phạm vi đơn vị (không tin gateway).
+#   `public` = không cần token. Thứ bậc: viewer < analyst; các vai trò khác (officer, approver…) thêm ở Đợt 2–3.
+#
+# Test `ai-service/tests/test_contracts/test_internal_contracts.py` kiểm: mọi operation công khai có mặt ở đây,
+# mọi upstream trỏ tới operation CÓ THẬT, và min_role khớp `security` của hợp đồng công khai.
+version: 1
+
+operations:
+  # ---- Xác thực (gateway bọc cookie HttpOnly quanh identity — ADR-0005) ----
+  login:
+    min_role: public
+    upstream: [identity.login]
+    notes: "Gateway đặt refresh_token vào cookie HttpOnly; phản hồi công khai KHÔNG chứa refresh_token."
+  refreshToken:
+    min_role: public
+    upstream: [identity.refreshToken]
+    notes: "Đọc refresh_token từ cookie, gọi identity, đặt cookie mới (xoay vòng)."
+  logout:
+    min_role: viewer
+    upstream: [identity.logout]
+    notes: "Đọc refresh_token từ cookie, thu hồi, xoá cookie."
+  getMe:
+    min_role: viewer
+    upstream: [identity.getUser]
+    notes: "user_id lấy từ `sub` của JWT."
+
+  # ---- Danh mục & quan sát ----
+  listProvinces:
+    min_role: viewer
+    upstream: [surveillance.listProvinces]
+  getProvince:
+    min_role: viewer
+    upstream: [surveillance.getProvince]
+  getProvinceGeometry:
+    min_role: viewer
+    upstream: [surveillance.getProvinceGeometry]
+    notes: "Cache-Control dài khi có `version`."
+  listDataVersions:
+    min_role: viewer
+    upstream: [surveillance.listDataVersions]
+  listObservations:
+    min_role: viewer
+    upstream: [surveillance.listObservations]
+
+  # ---- Dự báo ----
+  listForecastRuns:
+    min_role: viewer
+    upstream: [forecast.listForecastRuns]
+  createForecastRun:
+    min_role: analyst
+    upstream: [forecast.createForecastRun]
+    notes: "Chuyển X-Actor-ID / X-Actor-Roles / X-Org-ID và Idempotency-Key; forecast kiểm lại vai trò analyst."
+  getForecastRun:
+    min_role: viewer
+    upstream: [forecast.getForecastRun]
+  getJob:
+    min_role: viewer
+    upstream: [forecast.getJob]
+    notes: "Đợt 1 chỉ có job của forecast; khi có thêm loại job, gateway định tuyến theo tiền tố/loại."
+  getRiskMap:
+    min_role: viewer
+    upstream:
+      - forecast.listForecastRuns   # chỉ khi thiếu run_id: lấy lượt `completed` mới nhất
+      - forecast.listRunForecasts
+      - surveillance.listProvinces
+    notes: "BFF: ghép tên/vùng của tỉnh với dự báo; nguồn phụ lỗi → trả phần còn lại + warnings[] (không 500). open_alert_count = 0 ở Đợt 1 (chưa có workflow)."
+  getProvinceForecasts:
+    min_role: viewer
+    upstream:
+      - forecast.listForecastRuns   # chỉ khi thiếu run_id
+      - forecast.getProvinceForecasts
+  getProvinceExplanation:
+    min_role: viewer
+    upstream:
+      - forecast.listForecastRuns   # chỉ khi thiếu run_id
+      - forecast.getProvinceExplanation
+
+  # ---- Mô hình ----
+  getModelCard:
+    min_role: viewer
+    upstream: [forecast.getModelCard]
+  listLimitations:
+    min_role: viewer
+    upstream: [forecast.listLimitations]
+  listModelVersions:
+    min_role: viewer
+    upstream: [forecast.listModelVersions]

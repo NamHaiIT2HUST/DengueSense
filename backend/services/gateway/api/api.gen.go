@@ -415,8 +415,12 @@ type Explanation struct {
 	Horizon Horizon `json:"horizon"`
 
 	// Meta Provenance — bắt buộc trong mọi response chứa số liệu mô hình (docs/09 §6.5, docs/10 luật T3).
-	Meta       Meta   `json:"meta"`
-	ProvinceId string `json:"province_id"`
+	Meta Meta `json:"meta"`
+
+	// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+	//
+	// Examples: ho_chi_minh
+	ProvinceId ProvinceId `json:"province_id"`
 }
 
 // ExplanationFactor defines model for ExplanationFactor.
@@ -461,8 +465,12 @@ type ForecastItem struct {
 
 	// InputDataSources Tỉ trọng nguồn dữ liệu đầu vào của dự báo (cộng lại ≈ 1).
 	InputDataSources InputDataSources `json:"input_data_sources"`
-	ProvinceId       string           `json:"province_id"`
-	Region           Region           `json:"region"`
+
+	// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+	//
+	// Examples: ho_chi_minh
+	ProvinceId ProvinceId `json:"province_id"`
+	Region     Region     `json:"region"`
 
 	// Reliability Độ tin cậy theo vùng (docs/07 §12.4). Bảng tĩnh gắn với phiên bản mô hình.
 	Reliability Reliability `json:"reliability"`
@@ -505,7 +513,10 @@ type GeoJsonFeatureCollection struct {
 
 // GeoJsonFeatureCollection_Features_Properties defines model for GeoJsonFeatureCollection.Features.Properties.
 type GeoJsonFeatureCollection_Features_Properties struct {
-	ProvinceId           string                 `json:"province_id"`
+	// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+	//
+	// Examples: ho_chi_minh
+	ProvinceId           ProvinceId             `json:"province_id"`
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
@@ -697,16 +708,23 @@ type Problem struct {
 
 // Province defines model for Province.
 type Province struct {
-	// Name Examples: Hà Nội
+	// Name Examples: Hồ Chí Minh
 	Name string `json:"name"`
 
 	// Population Dân số tham chiếu; null nếu chưa có.
 	Population *int `json:"population,omitempty"`
 
-	// ProvinceId Examples: 01
-	ProvinceId string `json:"province_id"`
-	Region     Region `json:"region"`
+	// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+	//
+	// Examples: ho_chi_minh
+	ProvinceId ProvinceId `json:"province_id"`
+	Region     Region     `json:"region"`
 }
+
+// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+//
+// Examples: ho_chi_minh
+type ProvinceId = string
 
 // Region defines model for Region.
 type Region string
@@ -747,9 +765,13 @@ type RiskMapItem struct {
 	Name     string        `json:"name"`
 
 	// OpenAlertCount null khi nguồn cảnh báo không khả dụng (kèm `warnings[]`); 0 ở Đợt 1.
-	OpenAlertCount *int   `json:"open_alert_count"`
-	ProvinceId     string `json:"province_id"`
-	Region         Region `json:"region"`
+	OpenAlertCount *int `json:"open_alert_count"`
+
+	// ProvinceId Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+	//
+	// Examples: ho_chi_minh
+	ProvinceId ProvinceId `json:"province_id"`
+	Region     Region     `json:"region"`
 }
 
 // Role defines model for Role.
@@ -808,9 +830,6 @@ type IdempotencyKey = openapi_types.UUID
 // Limit defines model for Limit.
 type Limit = int
 
-// ProvinceId Examples: 01
-type ProvinceId = string
-
 // RunId defines model for RunId.
 type RunId = openapi_types.UUID
 
@@ -856,7 +875,7 @@ type GetProvinceGeometryParams struct {
 
 // ListObservationsParams defines parameters for ListObservations.
 type ListObservationsParams struct {
-	ProvinceId string     `form:"province_id" json:"province_id"`
+	ProvinceId ProvinceId `form:"province_id" json:"province_id"`
 	From       *YearMonth `form:"from,omitempty" json:"from,omitempty"`
 	To         *YearMonth `form:"to,omitempty" json:"to,omitempty"`
 

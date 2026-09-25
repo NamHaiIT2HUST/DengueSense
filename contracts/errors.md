@@ -27,14 +27,18 @@ Nguồn sự thật cho trường `code` trong `application/problem+json` (docs/
 | `common.dependency_timeout` | 504 | Service phụ thuộc quá thời gian | Hệ thống phản hồi chậm, thử lại |
 | `auth.invalid_credentials` | 401 | Sai tên đăng nhập / mật khẩu (không tiết lộ cái nào sai) | Sai tên đăng nhập hoặc mật khẩu |
 | `auth.account_locked` | 401 | Khoá tạm sau 5 lần sai | Tài khoản tạm khoá, thử lại sau |
+| `auth.invalid_service_credentials` | 401 | `client_secret` của service sai / service không được phép xin token cho `audience` đó | (lỗi hệ thống — không hiển thị) |
 | `auth.refresh_invalid` | 401 | Refresh token không hợp lệ / đã thu hồi / bị dùng lại | Phiên đã hết, hãy đăng nhập lại |
 | `forecast.run_not_found` | 404 | `run_id` không tồn tại | Không tìm thấy lượt dự báo |
 | `forecast.no_completed_run` | 404 | Chưa có lượt `completed` để làm mặc định | Chưa có lượt dự báo nào |
 | `forecast.data_version_not_found` | 404 | Phiên bản dữ liệu không tồn tại | Không tìm thấy phiên bản dữ liệu |
+| `forecast.run_not_ready` | 409 | Lượt dự báo chưa `completed` nên chưa có kết quả để đọc | Lượt dự báo chưa chạy xong |
 | `forecast.origin_out_of_range` | 400 | `origin_month` ngoài khoảng cho phép của chế độ (backtest > 2010-06) | Tháng neo không hợp lệ cho chế độ này |
 | `forecast.model_not_approved` | 409 | Phiên bản mô hình chưa `approved` mà đòi chạy live | Phiên bản mô hình chưa được duyệt |
 | `forecast.run_failed` | — | `error_code` của `ForecastRun`/`Job` khi run thất bại | Lượt dự báo thất bại |
 | `forecast.run_interrupted` | — | `error_code` khi tiến trình dừng giữa chừng | Lượt dự báo bị gián đoạn, sẽ được chạy lại |
 | `surveillance.province_not_found` | 404 | `province_id` không có trong danh mục | Không tìm thấy tỉnh |
+| `surveillance.invalid_panel` | 400 | Panel nhập vào không hợp lệ (thiếu cột, không đủ 34 tỉnh, tháng không liên tục, `sha256` không khớp) | Dữ liệu nhập không hợp lệ |
+| `surveillance.data_version_conflict` | 409 | `version` đã tồn tại với nội dung khác (phiên bản dữ liệu bất biến) | Phiên bản dữ liệu này đã tồn tại |
 | `surveillance.geometry_version_not_found` | 404 | Phiên bản ranh giới không tồn tại | Không tìm thấy phiên bản bản đồ |
 | `gateway.alerts_unavailable` | — | `warnings[].code` khi nguồn cảnh báo lỗi (BFF vẫn trả phần còn lại) | Không tải được cảnh báo |

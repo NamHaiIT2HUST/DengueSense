@@ -1,0 +1,1012 @@
+openapi: 3.1.0
+info:
+  title: DengueSense forecast — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Hợp đồng NỘI BỘ (service ↔ service), tiền tố `/internal/v1`. Gateway KHÔNG định tuyến `/internal` ra ngoài.
+
+    Quy ước (docs/09 §6): JSON `snake_case`; lỗi `application/problem+json` với `code` ở `contracts/errors.md`;
+    xác thực bằng token dịch vụ (`serviceToken`); danh tính người dùng gốc đi kèm qua header `X-Actor-*`
+    (chỉ tin khi có token dịch vụ hợp lệ); mọi POST có tác dụng phụ nhận `Idempotency-Key`.
+
+    Các schema dùng chung với `public-v1.yaml` là BẢN SAO có chủ đích (không dùng $ref chéo file để mã sinh
+    Go/Python đơn giản); test `test_internal_contracts.py` bảo đảm các bản sao KHÔNG lệch nhau.
+
+    Service `forecast` (Layer 1, Python/FastAPI): chạy dự báo theo lô, lưu kết quả bất biến, phục vụ đọc.
+    Người gọi chính: `gateway` (BFF ghép bản đồ rủi ro) và `workflow` (Đợt 2, tạo cảnh báo).
+servers:
+  - url: http://forecast:8001
+    description: Mạng nội bộ compose — KHÔNG publish ra ngoài (docs/09 §3.3)
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/forecast-runs:
+    get:
+      operationId: listForecastRuns
+      summary: Danh sách lượt dự báo (mới nhất trước)
+      parameters:
+        - name: mode
+          in: query
+          schema: { $ref: "#/components/schemas/RunMode" }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/RunStatus" }
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_cursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ForecastRun" }
+                  next_cursor: { type: [string, "null"] }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+    post:
+      operationId: createForecastRun
+      summary: Tạo lượt dự báo (job chạy nền). Yêu cầu vai trò `analyst` (kiểm ở đây, không chỉ ở gateway).
+      description: |
+        Mô hình KHÔNG BAO GIỜ chạy trong request đồng bộ (ADR-0006) — luôn là job. Cùng code path cho hai chế độ:
+        `backtest` (origin ≤ 2010-06, có dữ liệu thật) và `live_experimental` (luôn gắn cờ
+        `out_of_validated_period` / `estimated_inputs`). Trả lỗi `forecast.origin_out_of_range`,
+        `forecast.model_not_approved`, `forecast.data_version_not_found` như liệt kê ở contracts/errors.md.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/ActorId"
+        - $ref: "#/components/parameters/ActorRoles"
+        - $ref: "#/components/parameters/ActorOrg"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateForecastRunRequest" }
+      responses:
+        "202":
+          description: Đã nhận, chạy nền.
+          headers:
+            Location:
+              description: Đường dẫn job (`/internal/v1/jobs/{job_id}`).
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/forecast-runs/{run_id}:
+    get:
+      operationId: getForecastRun
+      summary: Chi tiết một lượt dự báo
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ForecastRun" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/forecast-runs/{run_id}/forecasts:
+    get:
+      operationId: listRunForecasts
+      summary: Dự báo 34 tỉnh của một lượt cho MỘT tầm dự báo (nguồn của bản đồ rủi ro)
+      description: |
+        Chỉ lượt `completed` có kết quả; lượt chưa xong trả `409 forecast.run_not_ready`. `legend` do server tính (lớp
+        rời rạc có ngưỡng cố định — frontend không tự tính, docs/10 §11.1).
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - name: horizon
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/Horizon" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RunForecasts" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/forecast-runs/{run_id}/provinces/{province_id}/forecasts:
+    get:
+      operationId: getProvinceForecasts
+      summary: Dự báo một tỉnh cho đủ các tầm dự báo của lượt
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/ProvinceIdPath"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProvinceForecasts" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/forecast-runs/{run_id}/provinces/{province_id}/explanation:
+    get:
+      operationId: getProvinceExplanation
+      summary: Yếu tố ảnh hưởng dự báo (SHAP top-k) cho một tỉnh, một tầm dự báo
+      description: Giải thích mô hình, KHÔNG phải quan hệ nhân quả.
+      parameters:
+        - $ref: "#/components/parameters/RunId"
+        - $ref: "#/components/parameters/ProvinceIdPath"
+        - name: horizon
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/Horizon" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Explanation" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/model-card:
+    get:
+      operationId: getModelCard
+      summary: Model card rút gọn của phiên bản mô hình `approved` hiện hành
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModelCard" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/model-card/limitations:
+    get:
+      operationId: listLimitations
+      summary: Giới hạn đã biết (đo được) của mô hình
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [model_version, items]
+                properties:
+                  model_version: { type: string }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Limitation" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/model-versions:
+    get:
+      operationId: listModelVersions
+      summary: Các phiên bản mô hình (danh mục đóng, trả đủ — không phân trang)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ModelVersion" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/jobs/{job_id}:
+    get:
+      operationId: getJob
+      summary: Trạng thái job chạy nền (polling)
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /healthz:
+    get:
+      operationId: healthz
+      summary: Tiến trình còn sống (không kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+        "500": { $ref: "#/components/responses/Unavailable" }
+  /readyz:
+    get:
+      operationId: readyz
+      summary: Sẵn sàng nhận tải (đã kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ready }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token DỊCH VỤ (EdDSA, 5 phút, `aud` = service đích) do `identity` cấp qua `POST /internal/v1/service-tokens`
+        (docs/09 §11.2). Service đích từ chối lời gọi thiếu/sai token. Không nhầm với access token của người dùng.
+
+  parameters:
+    ActorId:
+      name: X-Actor-ID
+      in: header
+      required: true
+      description: ID người dùng gốc do gateway gắn sau khi xác minh JWT. CHỈ được tin khi đi kèm token dịch vụ hợp
+        lệ.
+      schema:
+        type: string
+    ActorRoles:
+      name: X-Actor-Roles
+      in: header
+      required: true
+      description: Vai trò của người dùng gốc, ngăn cách bằng dấu phẩy (vd `viewer,analyst`).
+      schema:
+        type: string
+    ActorOrg:
+      name: X-Org-ID
+      in: header
+      required: false
+      description: Đơn vị trực thuộc của người dùng gốc (quyết định phạm vi dữ liệu).
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID cho mỗi lần thao tác; gửi lại cùng key trả lại đúng response cũ (24 giờ). Xem docs/09 §6.6.
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Con trỏ mờ lấy từ `next_cursor`.
+      schema:
+        type: string
+    RunId:
+      name: run_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProvinceIdPath:
+      name: province_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProvinceId'
+
+  responses:
+    ValidationError:
+      description: Đầu vào không hợp lệ (`code` = `common.validation_error`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthenticated:
+      description: Thiếu / sai / hết hạn token dịch vụ (`common.unauthenticated`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Token hợp lệ nhưng vai trò/phạm vi của người dùng gốc không đủ (`common.forbidden`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Không tìm thấy.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Xung đột trạng thái.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: Phụ thuộc (DB, NATS…) không khả dụng (`common.dependency_unavailable`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Horizon:
+      type: integer
+      enum:
+      - 1
+      - 2
+      - 3
+      - 6
+      description: Tầm dự báo — số tháng tính từ tháng neo (`origin_month`).
+    Region:
+      type: string
+      enum:
+      - Bắc
+      - Trung
+      - Nam
+    RunMode:
+      type: string
+      enum:
+      - backtest
+      - live_experimental
+    RunStatus:
+      type: string
+      enum:
+      - queued
+      - running
+      - completed
+      - failed
+      - interrupted
+      - cancelled
+    YearMonth:
+      type: string
+      pattern: ^[0-9]{4}-(0[1-9]|1[0-2])$
+      examples:
+      - 2010-03
+      description: Tháng dạng `YYYY-MM`.
+    ProvinceId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]*$
+      examples:
+      - ho_chi_minh
+      description: Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+    ForecastFlag:
+      type: string
+      enum:
+      - outbreak_underprediction_risk
+      - estimated_inputs
+      - stale_data
+      - out_of_validated_period
+      description: '`outbreak_underprediction_risk`: mô hình thiên thấp khi bùng dịch — cần chuyên môn xem xét.
+
+        `estimated_inputs`: đầu vào có dữ liệu ước lượng. `stale_data`: dữ liệu quá hạn.
+
+        `out_of_validated_period`: tháng neo sau giai đoạn đã kiểm chứng (2010).
+
+        '
+    Meta:
+      type: object
+      description: Provenance — bắt buộc trong mọi response chứa số liệu mô hình (docs/09 §6.5, docs/10 luật T3).
+      required:
+      - run_id
+      - run_mode
+      - model_version
+      - data_version
+      - origin_month
+      - generated_at
+      - limitations_ref
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        run_mode:
+          $ref: '#/components/schemas/RunMode'
+        model_version:
+          type: string
+          examples:
+          - m4-r2@1.0.0
+        data_version:
+          type: string
+          examples:
+          - v0.2.0
+        origin_month:
+          $ref: '#/components/schemas/YearMonth'
+        as_of:
+          type: string
+          format: date-time
+          description: Thời điểm dữ liệu đầu vào được chốt.
+        generated_at:
+          type: string
+          format: date-time
+        limitations_ref:
+          type: string
+          examples:
+          - /api/v1/model-card/limitations
+    Reliability:
+      type: object
+      required:
+      - region_level
+      - note_code
+      description: Độ tin cậy theo vùng (docs/07 §12.4). Bảng tĩnh gắn với phiên bản mô hình.
+      properties:
+        region_level:
+          type: string
+          enum:
+          - high
+          - high_normal_years
+          - low_in_outbreak_years
+          - equal_to_seasonal_baseline
+        note_code:
+          type: string
+          description: Mã ghi chú; frontend ánh xạ sang câu chữ tiếng Việt.
+          examples:
+          - bac_outbreak_years
+    InputDataSources:
+      type: object
+      description: Tỉ trọng nguồn dữ liệu đầu vào của dự báo (cộng lại ≈ 1).
+      required:
+      - real
+      - estimated
+      - imputed
+      properties:
+        real:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        estimated:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        imputed:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+    PredictionInterval:
+      type: object
+      required:
+      - lower
+      - upper
+      - level
+      - method
+      properties:
+        lower:
+          type: number
+          format: double
+          minimum: 0
+        upper:
+          type: number
+          format: double
+          minimum: 0
+        level:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          examples:
+          - 0.8
+        method:
+          type: string
+          examples:
+          - conformal_backtest_residuals
+    ForecastItem:
+      type: object
+      required:
+      - province_id
+      - region
+      - target_month
+      - horizon
+      - cases_pred
+      - cases_pred_interval
+      - exceed_prob
+      - threshold_p75
+      - base_rate
+      - input_data_sources
+      - reliability
+      - flags
+      properties:
+        province_id:
+          $ref: '#/components/schemas/ProvinceId'
+        region:
+          $ref: '#/components/schemas/Region'
+        target_month:
+          $ref: '#/components/schemas/YearMonth'
+        horizon:
+          $ref: '#/components/schemas/Horizon'
+        cases_pred:
+          type: number
+          format: double
+          minimum: 0
+          description: Số ca dự báo trong tháng đích.
+        cases_pred_interval:
+          description: 'Khoảng dự báo. **Hiện luôn `null`** — chưa có khoảng đã kiểm chứng độ phủ (docs/09 §10.2, Q4).
+
+            UI không được tự vẽ khoảng khi null.
+
+            '
+          oneOf:
+          - type: 'null'
+          - $ref: '#/components/schemas/PredictionInterval'
+        exceed_prob:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Xác suất số ca tháng đích vượt ngưỡng P75. LUÔN hiển thị cùng `base_rate`.
+        threshold_p75:
+          type: number
+          format: double
+          minimum: 0
+          description: Ngưỡng P75 cùng tháng dương lịch, cùng tỉnh, tính nhân quả.
+        base_rate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Tỉ lệ nền tháng vượt ngưỡng trong giai đoạn tham chiếu của phiên bản mô hình.
+        input_data_sources:
+          $ref: '#/components/schemas/InputDataSources'
+        reliability:
+          $ref: '#/components/schemas/Reliability'
+        flags:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastFlag'
+    LegendClass:
+      type: object
+      required:
+      - min
+      - max
+      - label
+      properties:
+        min:
+          type: number
+          format: double
+        max:
+          type: number
+          format: double
+        label:
+          type: string
+    ExplanationFactor:
+      type: object
+      required:
+      - feature
+      - family
+      - value
+      - contribution
+      properties:
+        feature:
+          type: string
+          examples:
+          - cases_lag_1
+        family:
+          type: string
+          enum:
+          - recent_cases
+          - seasonal_norm
+          - climate
+          - other
+        value:
+          type:
+          - number
+          - 'null'
+          format: double
+          description: Giá trị đặc trưng đầu vào.
+        contribution:
+          type: number
+          format: double
+          description: Đóng góp SHAP vào dự báo (đơn vị của đầu ra mô hình).
+    Explanation:
+      type: object
+      required:
+      - meta
+      - province_id
+      - horizon
+      - base_value
+      - factors
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        province_id:
+          $ref: '#/components/schemas/ProvinceId'
+        horizon:
+          $ref: '#/components/schemas/Horizon'
+        base_value:
+          type: number
+          format: double
+          description: Giá trị nền (kỳ vọng) của mô hình.
+        factors:
+          type: array
+          description: Top-k yếu tố theo |contribution| giảm dần.
+          items:
+            $ref: '#/components/schemas/ExplanationFactor'
+    ForecastRun:
+      type: object
+      required:
+      - run_id
+      - run_mode
+      - status
+      - origin_month
+      - model_version
+      - data_version
+      - created_at
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        run_mode:
+          $ref: '#/components/schemas/RunMode'
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        origin_month:
+          $ref: '#/components/schemas/YearMonth'
+        model_version:
+          type: string
+        data_version:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        error_code:
+          type:
+          - string
+          - 'null'
+    CreateForecastRunRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - mode
+      - origin_month
+      properties:
+        mode:
+          $ref: '#/components/schemas/RunMode'
+        origin_month:
+          $ref: '#/components/schemas/YearMonth'
+        model_version:
+          type: string
+          description: Mặc định là phiên bản `approved` hiện hành.
+        data_version:
+          type: string
+          description: Mặc định là bản mới nhất.
+    Job:
+      type: object
+      required:
+      - job_id
+      - kind
+      - status
+      - created_at
+      properties:
+        job_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - forecast_run
+          examples:
+          - forecast_run
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+          - cancelled
+        progress:
+          type:
+          - number
+          - 'null'
+          format: double
+          minimum: 0
+          maximum: 1
+        result_ref:
+          type:
+          - string
+          - 'null'
+          description: URL tài nguyên kết quả khi thành công (vd `/api/v1/forecast-runs/{id}`).
+        error_code:
+          type:
+          - string
+          - 'null'
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ModelVersion:
+      type: object
+      required:
+      - model_version
+      - status
+      - description
+      properties:
+        model_version:
+          type: string
+          examples:
+          - m4-r2@1.0.0
+        status:
+          type: string
+          enum:
+          - candidate
+          - approved
+          - retired
+        description:
+          type: string
+        source_experiments:
+          type: array
+          items:
+            type: string
+            examples:
+            - exp_008
+            - exp_016
+    ModelCard:
+      type: object
+      required:
+      - model_version
+      - intended_use
+      - not_for
+      - performance
+      - reliability_by_region
+      - updated_at
+      properties:
+        model_version:
+          type: string
+        intended_use:
+          type: string
+        not_for:
+          type: array
+          items:
+            type: string
+        performance:
+          type: object
+          required:
+          - multi_season
+          - alerting
+          properties:
+            multi_season:
+              type: object
+              description: Đánh giá nhiều mùa (exp_016) so với baseline B3 — không chỉ mùa 2010 (khó nhất).
+              required:
+              - seasons
+              - mase_pooled_mean
+              - mase_pooled_sd
+              - beats_baseline_seasons
+              - improvement_vs_baseline
+              properties:
+                seasons:
+                  type: integer
+                mase_pooled_mean:
+                  type: number
+                  format: double
+                mase_pooled_sd:
+                  type: number
+                  format: double
+                beats_baseline_seasons:
+                  type: integer
+                improvement_vs_baseline:
+                  type: object
+                  required:
+                  - mean
+                  - ci95_lower
+                  - ci95_upper
+                  properties:
+                    mean:
+                      type: number
+                      format: double
+                    ci95_lower:
+                      type: number
+                      format: double
+                    ci95_upper:
+                      type: number
+                      format: double
+            alerting:
+              type: object
+              required:
+              - roc_auc_mean
+              - roc_auc_sd
+              - base_rate_range
+              properties:
+                roc_auc_mean:
+                  type: number
+                  format: double
+                roc_auc_sd:
+                  type: number
+                  format: double
+                base_rate_range:
+                  type: array
+                  minItems: 2
+                  maxItems: 2
+                  items:
+                    type: number
+                    format: double
+        reliability_by_region:
+          type: object
+          required:
+          - Bắc
+          - Trung
+          - Nam
+          properties:
+            Bắc:
+              $ref: '#/components/schemas/Reliability'
+            Trung:
+              $ref: '#/components/schemas/Reliability'
+            Nam:
+              $ref: '#/components/schemas/Reliability'
+        updated_at:
+          type: string
+          format: date-time
+    Limitation:
+      type: object
+      required:
+      - id
+      - title
+      - summary
+      - severity
+      - evidence
+      properties:
+        id:
+          type: string
+          examples:
+          - L1
+        title:
+          type: string
+        summary:
+          type: string
+        severity:
+          type: string
+          enum:
+          - info
+          - moderate
+          - high
+        evidence:
+          type: string
+          description: Tham chiếu experiment/mục model card chứa số đo.
+          examples:
+          - exp_016 §Bắc
+    Problem:
+      type: object
+      description: RFC 9457 problem details (docs/09 §6.3).
+      required:
+      - type
+      - title
+      - status
+      - code
+      - request_id
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+          examples:
+          - common.validation_error
+        detail:
+          type: string
+        instance:
+          type: string
+        request_id:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    Legend:
+      type: object
+      description: Ngưỡng lớp màu do server trả — frontend không tự tính (docs/10 §11.1).
+      required:
+      - exceed_prob
+      - cases_per_100k
+      properties:
+        exceed_prob:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegendClass'
+        cases_per_100k:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegendClass'
+    RunForecasts:
+      type: object
+      description: Dự báo 34 tỉnh của một lượt cho một tầm dự báo.
+      required:
+      - meta
+      - horizon
+      - legend
+      - items
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        horizon:
+          $ref: '#/components/schemas/Horizon'
+        legend:
+          $ref: '#/components/schemas/Legend'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastItem'
+    ProvinceForecasts:
+      type: object
+      required:
+      - meta
+      - items
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ForecastItem'

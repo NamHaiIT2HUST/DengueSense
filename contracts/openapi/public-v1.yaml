@@ -177,7 +177,7 @@ paths:
         - name: province_id
           in: query
           required: true
-          schema: { type: string }
+          schema: { $ref: "#/components/schemas/ProvinceId" }
         - name: from
           in: query
           required: false
@@ -446,8 +446,8 @@ components:
       name: province_id
       in: path
       required: true
-      description: Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15).
-      schema: { type: string, examples: ["01"] }
+      description: Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15) dạng slug không dấu, vd `ho_chi_minh`.
+      schema: { $ref: "#/components/schemas/ProvinceId" }
     RunId:
       name: run_id
       in: path
@@ -508,6 +508,12 @@ components:
           schema: { $ref: "#/components/schemas/Problem" }
 
   schemas:
+    ProvinceId:
+      type: string
+      pattern: "^[a-z][a-z0-9_]*$"
+      examples: ["ho_chi_minh"]
+      description: Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+
     YearMonth:
       type: string
       pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
@@ -589,8 +595,8 @@ components:
       type: object
       required: [province_id, name, region]
       properties:
-        province_id: { type: string, examples: ["01"] }
-        name: { type: string, examples: ["Hà Nội"] }
+        province_id: { $ref: "#/components/schemas/ProvinceId" }
+        name: { type: string, examples: ["Hồ Chí Minh"] }
         region: { $ref: "#/components/schemas/Region" }
         population:
           type: [integer, "null"]
@@ -637,7 +643,7 @@ components:
                 type: object
                 required: [province_id]
                 properties:
-                  province_id: { type: string }
+                  province_id: { $ref: "#/components/schemas/ProvinceId" }
                 additionalProperties: true
 
     Meta:
@@ -697,7 +703,7 @@ components:
         - reliability
         - flags
       properties:
-        province_id: { type: string }
+        province_id: { $ref: "#/components/schemas/ProvinceId" }
         region: { $ref: "#/components/schemas/Region" }
         target_month: { $ref: "#/components/schemas/YearMonth" }
         horizon: { $ref: "#/components/schemas/Horizon" }
@@ -753,7 +759,7 @@ components:
       type: object
       required: [province_id, name, region, forecast, open_alert_count]
       properties:
-        province_id: { type: string }
+        province_id: { $ref: "#/components/schemas/ProvinceId" }
         name: { type: string }
         region: { $ref: "#/components/schemas/Region" }
         forecast:
@@ -816,7 +822,7 @@ components:
       required: [meta, province_id, horizon, base_value, factors]
       properties:
         meta: { $ref: "#/components/schemas/Meta" }
-        province_id: { type: string }
+        province_id: { $ref: "#/components/schemas/ProvinceId" }
         horizon: { $ref: "#/components/schemas/Horizon" }
         base_value: { type: number, format: double, description: Giá trị nền (kỳ vọng) của mô hình. }
         factors:

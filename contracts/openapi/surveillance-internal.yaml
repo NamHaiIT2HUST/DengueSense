@@ -1,0 +1,606 @@
+openapi: 3.1.0
+info:
+  title: DengueSense surveillance — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Hợp đồng NỘI BỘ (service ↔ service), tiền tố `/internal/v1`. Gateway KHÔNG định tuyến `/internal` ra ngoài.
+
+    Quy ước (docs/09 §6): JSON `snake_case`; lỗi `application/problem+json` với `code` ở `contracts/errors.md`;
+    xác thực bằng token dịch vụ (`serviceToken`); danh tính người dùng gốc đi kèm qua header `X-Actor-*`
+    (chỉ tin khi có token dịch vụ hợp lệ); mọi POST có tác dụng phụ nhận `Idempotency-Key`.
+
+    Các schema dùng chung với `public-v1.yaml` là BẢN SAO có chủ đích (không dùng $ref chéo file để mã sinh
+    Go/Python đơn giản); test `test_internal_contracts.py` bảo đảm các bản sao KHÔNG lệch nhau.
+
+    Service `surveillance` (Go): danh mục tỉnh + ranh giới, chuỗi quan sát, PHIÊN BẢN DỮ LIỆU bất biến.
+    Người gọi chính: `gateway`, `forecast` (tải panel), `ingest-worker` (nhập phiên bản mới).
+servers:
+  - url: http://surveillance:8082
+    description: Mạng nội bộ compose — KHÔNG publish ra ngoài (docs/09 §3.3)
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/provinces:
+    get:
+      operationId: listProvinces
+      summary: Danh mục 34 tỉnh (danh mục đóng, trả đủ — không phân trang)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Province" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/provinces/{province_id}:
+    get:
+      operationId: getProvince
+      summary: Chi tiết một tỉnh
+      parameters:
+        - $ref: "#/components/parameters/ProvinceIdPath"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Province" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/geo/provinces:
+    get:
+      operationId: getProvinceGeometry
+      summary: Ranh giới 34 tỉnh (GeoJSON, có phiên bản, bất biến theo `version`)
+      parameters:
+        - name: version
+          in: query
+          required: false
+          description: Mặc định là bản mới nhất. Mã lỗi `surveillance.geometry_version_not_found` nếu không có.
+          schema: { type: string, examples: ["2025-07"] }
+      responses:
+        "200":
+          description: GeoJSON FeatureCollection; mỗi feature có `properties.province_id`.
+          content:
+            application/geo+json:
+              schema: { $ref: "#/components/schemas/GeoJsonFeatureCollection" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/data-versions:
+    get:
+      operationId: listDataVersions
+      summary: Các phiên bản dữ liệu (panel) đã công bố
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/DataVersion" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+    post:
+      operationId: createDataVersion
+      summary: Nhập một phiên bản dữ liệu (panel) mới. Yêu cầu vai trò `data_manager`.
+      description: |
+        Phiên bản dữ liệu BẤT BIẾN: cùng `version` gửi lại với nội dung khác → `409`. Kiểm: đủ cột bắt buộc,
+        34 tỉnh, tháng liên tục, `data_source` hợp lệ, `sha256` khớp (lỗi `surveillance.invalid_panel`);
+        trùng `version` khác nội dung → `surveillance.data_version_conflict`. Thành công phát sự kiện
+        `surveillance.data_version.published` (contracts/events).
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/ActorId"
+        - $ref: "#/components/parameters/ActorRoles"
+        - $ref: "#/components/parameters/ActorOrg"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: "#/components/schemas/CreateDataVersionRequest" }
+            encoding:
+              panel: { contentType: application/vnd.apache.parquet }
+              manifest: { contentType: application/json }
+      responses:
+        "201":
+          description: Đã công bố.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataVersionDetail" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/data-versions/{version}:
+    get:
+      operationId: getDataVersion
+      summary: Chi tiết một phiên bản dữ liệu
+      parameters:
+        - $ref: "#/components/parameters/DataVersionPath"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DataVersionDetail" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/data-versions/{version}/panel:
+    get:
+      operationId: downloadPanel
+      summary: Tải panel (Parquet) của một phiên bản — nguồn dữ liệu của `forecast`
+      description: |
+        Trả nguyên file panel_monthly.parquet (~0,4 MB; dữ liệu chỉ tổng hợp theo tỉnh/tháng, không có dữ liệu cá
+        nhân). Bất biến theo `version` nên `Cache-Control` dài; `forecast` kiểm `X-Content-SHA256` khớp
+        `sha256` của phiên bản trước khi dùng.
+      parameters:
+        - $ref: "#/components/parameters/DataVersionPath"
+      responses:
+        "200":
+          description: Parquet.
+          headers:
+            X-Content-SHA256:
+              description: SHA-256 (hex) của nội dung.
+              schema: { type: string, pattern: "^[0-9a-f]{64}$" }
+          content:
+            application/vnd.apache.parquet:
+              schema: { type: string, format: binary }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/observations:
+    get:
+      operationId: listObservations
+      summary: Chuỗi quan sát theo tháng của một tỉnh
+      parameters:
+        - name: province_id
+          in: query
+          required: true
+          schema: { $ref: "#/components/schemas/ProvinceId" }
+        - name: from
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/YearMonth" }
+        - name: to
+          in: query
+          required: false
+          schema: { $ref: "#/components/schemas/YearMonth" }
+        - name: data_version
+          in: query
+          required: false
+          description: Mặc định là bản mới nhất.
+          schema: { $ref: "#/components/schemas/DataVersionId" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data_version, items]
+                properties:
+                  data_version: { $ref: "#/components/schemas/DataVersionId" }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Observation" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /healthz:
+    get:
+      operationId: healthz
+      summary: Tiến trình còn sống (không kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+        "500": { $ref: "#/components/responses/Unavailable" }
+  /readyz:
+    get:
+      operationId: readyz
+      summary: Sẵn sàng nhận tải (đã kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ready }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token DỊCH VỤ (EdDSA, 5 phút, `aud` = service đích) do `identity` cấp qua `POST /internal/v1/service-tokens`
+        (docs/09 §11.2). Service đích từ chối lời gọi thiếu/sai token. Không nhầm với access token của người dùng.
+
+  parameters:
+    ActorId:
+      name: X-Actor-ID
+      in: header
+      required: true
+      description: ID người dùng gốc do gateway gắn sau khi xác minh JWT. CHỈ được tin khi đi kèm token dịch vụ hợp
+        lệ.
+      schema:
+        type: string
+    ActorRoles:
+      name: X-Actor-Roles
+      in: header
+      required: true
+      description: Vai trò của người dùng gốc, ngăn cách bằng dấu phẩy (vd `viewer,analyst`).
+      schema:
+        type: string
+    ActorOrg:
+      name: X-Org-ID
+      in: header
+      required: false
+      description: Đơn vị trực thuộc của người dùng gốc (quyết định phạm vi dữ liệu).
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID cho mỗi lần thao tác; gửi lại cùng key trả lại đúng response cũ (24 giờ). Xem docs/09 §6.6.
+      schema:
+        type: string
+        format: uuid
+    ProvinceIdPath:
+      name: province_id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ProvinceId'
+    DataVersionPath:
+      name: version
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/DataVersionId'
+
+  responses:
+    ValidationError:
+      description: Đầu vào không hợp lệ (`code` = `common.validation_error`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthenticated:
+      description: Thiếu / sai / hết hạn token dịch vụ (`common.unauthenticated`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Token hợp lệ nhưng vai trò/phạm vi của người dùng gốc không đủ (`common.forbidden`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Không tìm thấy.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Xung đột trạng thái.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: Phụ thuộc (DB, NATS…) không khả dụng (`common.dependency_unavailable`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Region:
+      type: string
+      enum:
+      - Bắc
+      - Trung
+      - Nam
+    DataSource:
+      type: string
+      enum:
+      - real
+      - estimated
+      - imputed
+      - simulated
+      description: '`real` đo thật; `estimated` ước lượng small-area (2011–2025); `imputed` điền khuyết; `simulated`
+        giả lập.
+
+        UI PHẢI phân biệt rõ, không để dữ liệu không-thật trông như thật (docs/10 luật T2).
+
+        '
+    YearMonth:
+      type: string
+      pattern: ^[0-9]{4}-(0[1-9]|1[0-2])$
+      examples:
+      - 2010-03
+      description: Tháng dạng `YYYY-MM`.
+    ProvinceId:
+      type: string
+      pattern: ^[a-z][a-z0-9_]*$
+      examples:
+      - ho_chi_minh
+      description: Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+    Province:
+      type: object
+      required:
+      - province_id
+      - name
+      - region
+      properties:
+        province_id:
+          $ref: '#/components/schemas/ProvinceId'
+        name:
+          type: string
+          examples:
+          - Hồ Chí Minh
+        region:
+          $ref: '#/components/schemas/Region'
+        population:
+          type:
+          - integer
+          - 'null'
+          description: Dân số tham chiếu; null nếu chưa có.
+    DataVersion:
+      type: object
+      required:
+      - version
+      - published_at
+      - real_share
+      properties:
+        version:
+          type: string
+          examples:
+          - v0.2.0
+        published_at:
+          type: string
+          format: date-time
+        first_month:
+          $ref: '#/components/schemas/YearMonth'
+        last_month:
+          $ref: '#/components/schemas/YearMonth'
+        real_share:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Tỉ lệ dòng dữ liệu `real` trong phiên bản.
+    Observation:
+      type: object
+      required:
+      - month
+      - cases
+      - data_source
+      properties:
+        month:
+          $ref: '#/components/schemas/YearMonth'
+        cases:
+          type: number
+          format: double
+          minimum: 0
+        incidence_per_100k:
+          type:
+          - number
+          - 'null'
+          format: double
+          minimum: 0
+        data_source:
+          $ref: '#/components/schemas/DataSource'
+    GeoJsonFeatureCollection:
+      type: object
+      required:
+      - type
+      - features
+      properties:
+        type:
+          type: string
+          const: FeatureCollection
+        features:
+          type: array
+          items:
+            type: object
+            required:
+            - type
+            - geometry
+            - properties
+            properties:
+              type:
+                type: string
+                const: Feature
+              geometry:
+                type: object
+                additionalProperties: true
+              properties:
+                type: object
+                required:
+                - province_id
+                properties:
+                  province_id:
+                    $ref: '#/components/schemas/ProvinceId'
+                additionalProperties: true
+    Problem:
+      type: object
+      description: RFC 9457 problem details (docs/09 §6.3).
+      required:
+      - type
+      - title
+      - status
+      - code
+      - request_id
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+          examples:
+          - common.validation_error
+        detail:
+          type: string
+        instance:
+          type: string
+        request_id:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    DataVersionId:
+      type: string
+      pattern: ^v[0-9]+\.[0-9]+\.[0-9]+$
+      examples:
+      - v0.2.0
+      description: Tên phiên bản dữ liệu (thư mục `data/processed/vX.Y.Z` của ai-service).
+    PanelManifest:
+      type: object
+      description: Siêu dữ liệu của một phiên bản panel — phản chiếu `manifest.json` do `app.data.build_panel` ghi.
+      required:
+      - version
+      - n_rows
+      - n_provinces
+      - first_month
+      - last_month
+      - real_share
+      - sha256
+      properties:
+        version:
+          $ref: '#/components/schemas/DataVersionId'
+        n_rows:
+          type: integer
+          minimum: 1
+        n_provinces:
+          type: integer
+          minimum: 1
+          maximum: 34
+        first_month:
+          $ref: '#/components/schemas/YearMonth'
+        last_month:
+          $ref: '#/components/schemas/YearMonth'
+        real_share:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+          description: Tỉ lệ dòng `data_source=real`.
+        sha256:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+          description: SHA-256 (hex) của file panel.
+        has_climate:
+          type: boolean
+        has_population:
+          type: boolean
+        known_issues:
+          type: array
+          items:
+            type: string
+          description: Hạn chế đã biết của dữ liệu — hiển thị cho người dùng, không được giấu.
+    CreateDataVersionRequest:
+      type: object
+      required:
+      - panel
+      - manifest
+      properties:
+        panel:
+          type: string
+          format: binary
+          description: File panel_monthly.parquet.
+        manifest:
+          type: string
+          contentMediaType: application/json
+          contentSchema:
+            $ref: '#/components/schemas/PanelManifest'
+          description: JSON của PanelManifest (dạng chuỗi trong multipart).
+    DataVersionDetail:
+      type: object
+      description: DataVersion kèm siêu dữ liệu đầy đủ.
+      required:
+      - version
+      - published_at
+      - real_share
+      - n_rows
+      - n_provinces
+      - sha256
+      properties:
+        version:
+          type: string
+          examples:
+          - v0.2.0
+        published_at:
+          type: string
+          format: date-time
+        first_month:
+          $ref: '#/components/schemas/YearMonth'
+        last_month:
+          $ref: '#/components/schemas/YearMonth'
+        real_share:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        n_rows:
+          type: integer
+        n_provinces:
+          type: integer
+        sha256:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+        known_issues:
+          type: array
+          items:
+            type: string

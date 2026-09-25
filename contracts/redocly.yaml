@@ -1,10 +1,25 @@
+# Lint mọi hợp đồng OpenAPI:  cd contracts && npx @redocly/cli@latest lint
 extends:
   - recommended
 rules:
-  # Server tương đối "/api/v1" — cùng origin với dashboard (docs/09 §3.3), không phải URL tuyệt đối.
+  # Server tương đối "/api/v1" (công khai) hoặc tên compose (nội bộ) — không phải URL tuyệt đối công khai.
   no-empty-servers: off
-  # Hợp đồng nội bộ dự án, chưa cần license URL / thông tin liên hệ.
+  # Hợp đồng nội bộ dự án, chưa cần license / thông tin liên hệ.
   info-license: off
   operation-4xx-response: error
   operation-operationId: error
   operation-summary: error
+apis:
+  public:
+    root: openapi/public-v1.yaml
+  identity-internal:
+    root: openapi/identity-internal.yaml
+    rules: &internal-rules
+      # /healthz, /readyz, JWKS không có lỗi 4xx có nghĩa; các endpoint nghiệp vụ nội bộ vẫn khai 401/404/…
+      operation-4xx-response: off
+  surveillance-internal:
+    root: openapi/surveillance-internal.yaml
+    rules: *internal-rules
+  forecast-internal:
+    root: openapi/forecast-internal.yaml
+    rules: *internal-rules
