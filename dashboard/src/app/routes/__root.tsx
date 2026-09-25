@@ -1,4 +1,10 @@
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
+import { Link, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+
+/** Ngữ cảnh dùng chung cho mọi route (loader/beforeLoad truy cập cache truy vấn). */
+export interface RouterContext {
+  queryClient: QueryClient;
+}
 
 function NotFound() {
   return (
@@ -15,7 +21,7 @@ function NotFound() {
   );
 }
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: Outlet,
   notFoundComponent: NotFound,
 });

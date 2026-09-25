@@ -1,0 +1,1 @@
+export { ModelInfoPage } from "./ModelInfoPage";

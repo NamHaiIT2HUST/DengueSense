@@ -21,6 +21,7 @@
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run depcruise && npm run test"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.103.1",
     "@tanstack/react-router": "^1.170.39",
     "clsx": "^2.1.1",
@@ -30,6 +31,7 @@
     "openapi-fetch": "^0.17.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.88.0",
     "react-leaflet": "^5.0.0",
     "zod": "^4.6.5"
   },
@@ -65,5 +67,10 @@
   },
   "engines": {
     "node": ">=20.19"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

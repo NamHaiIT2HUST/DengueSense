@@ -26,6 +26,8 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.ts"],
     css: false,
+    // Test chạy trong Node nên cần URL API tuyệt đối; chế độ console để không bật banner/tài khoản demo.
+    env: { VITE_API_BASE_URL: "http://localhost/api/v1", VITE_APP_MODE: "console" },
     coverage: {
       provider: "v8",
       include: ["src/shared/**", "src/entities/**", "src/features/**"],

@@ -11,5 +11,7 @@ export {
 export type { ApiClient, ApiClientOptions } from "./client";
 export { qk } from "./query-keys";
 export { session } from "./session";
+export type { SessionState } from "./session";
+export { api, refreshSession } from "./instance";
 export { fetchStaticJson } from "./static";
 export type * from "./types";

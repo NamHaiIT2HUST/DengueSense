@@ -27,6 +27,7 @@ export type Province = Schemas["Province"];
 export type Observation = Schemas["Observation"];
 export type Explanation = Schemas["Explanation"];
 export type ModelCard = Schemas["ModelCard"];
+export type ModelVersion = Schemas["ModelVersion"];
 export type Limitation = Schemas["Limitation"];
 export type User = Schemas["User"];
 export type Job = Schemas["Job"];

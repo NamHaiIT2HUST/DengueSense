@@ -76,8 +76,9 @@ module.exports = {
     {
       name: "no-test-code-in-production",
       severity: "error",
-      comment: "Mã production không được import mocks/, test/ hoặc file *.test.*.",
-      from: { pathNot: "(\\.test\\.tsx?$|^src/(mocks|test)/)" },
+      comment:
+        "Mã production không được import mocks/, test/ hoặc file *.test.*. Ngoại lệ có chủ đích: app/main.tsx tải ĐỘNG máy chủ giả MSW ở chế độ demo (bản Vercel công khai).",
+      from: { pathNot: "(\\.test\\.tsx?$|^src/(mocks|test)/|^src/app/main\\.tsx$)" },
       to: { path: "(\\.test\\.tsx?$|^src/(mocks|test)/)" },
     },
     {

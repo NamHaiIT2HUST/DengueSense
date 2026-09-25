@@ -327,6 +327,11 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * @description Mã tỉnh (34 tỉnh mới) — slug không dấu, khớp `new_province_code` trong ai-service/data/external/province_metadata.csv.
+         * @example ho_chi_minh
+         */
+        ProvinceId: string;
+        /**
          * @description Tháng dạng `YYYY-MM`.
          * @example 2010-03
          */
@@ -382,9 +387,8 @@ export interface components {
             org_id: string;
         };
         Province: {
-            /** @example 01 */
-            province_id: string;
-            /** @example Hà Nội */
+            province_id: components["schemas"]["ProvinceId"];
+            /** @example Hồ Chí Minh */
             name: string;
             region: components["schemas"]["Region"];
             /** @description Dân số tham chiếu; null nếu chưa có. */
@@ -421,7 +425,7 @@ export interface components {
                     [key: string]: unknown;
                 };
                 properties: {
-                    province_id: string;
+                    province_id: components["schemas"]["ProvinceId"];
                 } & {
                     [key: string]: unknown;
                 };
@@ -467,7 +471,7 @@ export interface components {
             imputed: number;
         };
         ForecastItem: {
-            province_id: string;
+            province_id: components["schemas"]["ProvinceId"];
             region: components["schemas"]["Region"];
             target_month: components["schemas"]["YearMonth"];
             horizon: components["schemas"]["Horizon"];
@@ -521,7 +525,7 @@ export interface components {
             label: string;
         };
         RiskMapItem: {
-            province_id: string;
+            province_id: components["schemas"]["ProvinceId"];
             name: string;
             region: components["schemas"]["Region"];
             /** @description null nếu tỉnh không có dự báo trong lượt này. */
@@ -563,7 +567,7 @@ export interface components {
         };
         Explanation: {
             meta: components["schemas"]["Meta"];
-            province_id: string;
+            province_id: components["schemas"]["ProvinceId"];
             horizon: components["schemas"]["Horizon"];
             /**
              * Format: double
@@ -753,8 +757,8 @@ export interface components {
         };
     };
     parameters: {
-        /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15). */
-        ProvinceId: string;
+        /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15) dạng slug không dấu, vd `ho_chi_minh`. */
+        ProvinceId: components["schemas"]["ProvinceId"];
         RunId: string;
         Limit: number;
         /** @description Con trỏ mờ (opaque) lấy từ `next_cursor`. */
@@ -886,7 +890,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15). */
+                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15) dạng slug không dấu, vd `ho_chi_minh`. */
                 province_id: components["parameters"]["ProvinceId"];
             };
             cookie?: never;
@@ -956,7 +960,7 @@ export interface operations {
     listObservations: {
         parameters: {
             query: {
-                province_id: string;
+                province_id: components["schemas"]["ProvinceId"];
                 from?: components["schemas"]["YearMonth"];
                 to?: components["schemas"]["YearMonth"];
                 /** @description Mặc định là bản mới nhất. */
@@ -1106,7 +1110,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15). */
+                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15) dạng slug không dấu, vd `ho_chi_minh`. */
                 province_id: components["parameters"]["ProvinceId"];
             };
             cookie?: never;
@@ -1137,7 +1141,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15). */
+                /** @description Mã tỉnh mới (34 tỉnh, NQ 202/2025/QH15) dạng slug không dấu, vd `ho_chi_minh`. */
                 province_id: components["parameters"]["ProvinceId"];
             };
             cookie?: never;

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import { Activity } from "lucide-react";
 
 const LINKS = [
@@ -40,12 +41,20 @@ export function Navbar() {
           ))}
         </nav>
 
-        <a
-          href="#roadmap"
-          className="rounded-full bg-[var(--accent-solid)] px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98]"
-        >
-          Xem lộ trình
-        </a>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/dang-nhap"
+            className="hidden text-sm font-medium text-[var(--ink-secondary)] transition-colors hover:text-[var(--ink-primary)] sm:inline"
+          >
+            Đăng nhập
+          </Link>
+          <a
+            href="#roadmap"
+            className="rounded-full bg-[var(--accent-solid)] px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98]"
+          >
+            Xem lộ trình
+          </a>
+        </div>
       </div>
     </motion.header>
   );

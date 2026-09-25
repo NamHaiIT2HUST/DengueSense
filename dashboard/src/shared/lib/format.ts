@@ -29,6 +29,29 @@ export function formatCount(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? DASH : countFmt.format(n);
 }
 
+const decimalFmts = new Map<number, Intl.NumberFormat>();
+
+/** Số thực với `digits` chữ số thập phân, dấu phẩy Việt ("0,52"). */
+export function formatDecimal(n: number | null | undefined, digits = 2): string {
+  if (n == null || !Number.isFinite(n)) return DASH;
+  let f = decimalFmts.get(digits);
+  if (!f) {
+    f = new Intl.NumberFormat("vi-VN", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+    decimalFmts.set(digits, f);
+  }
+  return f.format(n);
+}
+
+/** Tỉ lệ ∈ [0,1] → phần trăm với `digits` chữ số thập phân ("22,2%"). Khác formatProbability (nguyên, chặn [0,1]) ở chỗ
+ * dùng cho MỨC CẢI THIỆN/tỉ lệ thống kê có thể cần độ chính xác cao hơn; KHÔNG chặn ngoài [0,1] (cải thiện có thể âm). */
+export function formatPercent(ratio: number | null | undefined, digits = 0): string {
+  if (ratio == null || !Number.isFinite(ratio)) return DASH;
+  return `${formatDecimal(ratio * 100, digits)}%`;
+}
+
 /** Tỉ lệ trên 100.000 dân: 1 chữ số thập phân ("12,3"). */
 export function formatIncidence(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? DASH : oneDecimalFmt.format(n);

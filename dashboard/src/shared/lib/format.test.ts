@@ -4,9 +4,11 @@ import {
   addMonths,
   formatCount,
   formatDateTime,
+  formatDecimal,
   formatHorizon,
   formatIncidence,
   formatMonth,
+  formatPercent,
   formatProbability,
 } from "./format";
 
@@ -79,5 +81,21 @@ describe("formatDateTime", () => {
   it("giá trị thiếu/sai → dấu gạch", () => {
     for (const bad of [null, undefined, "", "không phải ngày"])
       expect(formatDateTime(bad)).toBe("—");
+  });
+});
+
+describe("formatDecimal / formatPercent", () => {
+  it("dấu phẩy Việt, số chữ số cố định", () => {
+    expect(formatDecimal(0.515, 2)).toBe("0,52");
+    expect(formatDecimal(0.5, 3)).toBe("0,500");
+    expect(formatDecimal(1234.5, 1)).toBe("1.234,5");
+    expect(formatDecimal(null)).toBe("—");
+    expect(formatDecimal(Number.NaN)).toBe("—");
+  });
+  it("phần trăm từ tỉ lệ; cải thiện âm không bị chặn", () => {
+    expect(formatPercent(0.222, 1)).toBe("22,2%");
+    expect(formatPercent(0.182)).toBe("18%");
+    expect(formatPercent(-0.05, 1)).toBe("-5,0%");
+    expect(formatPercent(undefined)).toBe("—");
   });
 });

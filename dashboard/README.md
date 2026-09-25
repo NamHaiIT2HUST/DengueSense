@@ -9,9 +9,19 @@ SPA **React + TypeScript + Vite** của DengueSense. Kiến trúc, luật và qu
 | Trang giới thiệu `/` | ✅ Chạy, dữ liệu thật | Bản đồ rủi ro 34 tỉnh + Top 10 từ `public/data/*.json` (tính từ panel ca bệnh — **chưa phải dự báo mô hình**); 72,7% dữ liệu đo thật, phần còn lại gắn nhãn "Ước lượng" |
 | Layer 2 / Layer 3 trên trang giới thiệu | 🔶 Minh hoạ khái niệm | Phân bổ greedy phía client và văn bản mẫu tĩnh — có tag "Minh hoạ khái niệm" ngay trên UI; **không** phải MILP/LLM thật |
 | Nền móng (Đợt 0) | ✅ Xong | Router, client API sinh từ hợp đồng, lỗi problem+json, định dạng số/ngày, i18n, kiểm cấu hình, test, CI |
-| **Console cho cán bộ** (`/app/*`) | ⏳ Đợt 1 | Đăng nhập, bản đồ dự báo M4-R2, chi tiết tỉnh, model card — cần backend Đợt 1 |
+| **Console: đăng nhập + khung + "Mô hình & giới hạn"** (`/dang-nhap`, `/app`, `/app/mo-hinh`) | ✅ Lát cắt 1, **chạy trên máy chủ giả** | Route guard, phiên khôi phục bằng cookie refresh, đăng xuất, `safeRedirect`; 94 test đơn vị + 13 E2E (gồm axe). Bản build mặc định là chế độ **demo** (MSW trong trình duyệt) |
+| Console: bản đồ dự báo M4-R2, chi tiết tỉnh, lượt dự báo | ⏳ Đợt 1 (tiếp) | Cần `surveillance`, `forecast` thật và gateway nối upstream |
 
 Trang giới thiệu **không gọi backend** (có test E2E kiểm điều này).
+
+### Chế độ chạy (`VITE_APP_MODE`)
+
+| Chế độ | Ai trả lời API | Dùng cho |
+|---|---|---|
+| `demo` (mặc định) | máy chủ giả MSW chạy trong trình duyệt, tải động (chunk `browser-*.js`, ngân sách riêng ≤ 200 KB gzip, **không** nằm trong đường khởi động chế độ `console`) | bản Vercel công khai; E2E. Tài khoản demo hiện ngay trên trang đăng nhập (chỉ tồn tại trong mock, không phải tài khoản thật) |
+| `console` | backend thật qua `VITE_API_BASE_URL` (cùng origin qua reverse proxy) | dev với `docker compose`, pilot |
+
+Đổi chế độ khi build: `VITE_APP_MODE=console npm run build`.
 
 ## Chạy local
 
@@ -35,11 +45,11 @@ npm run dev            # http://localhost:5173
 
 ```
 app/        khởi động, providers, router, routes/ (định tuyến theo file) — tầng ghép
-features/   một thư mục / tính năng màn hình (hiện: landing); chỉ export qua index.ts
-entities/   khái niệm miền: hook API + định dạng (Đợt 1)
-shared/     api/ (client, lỗi, khoá query, kiểu), ui/, lib/ (format), i18n/, config/ — không biết nghiệp vụ
-mocks/      handler MSW khớp hợp đồng (test; Đợt 1: chế độ demo)
-test/       thiết lập Vitest
+features/   một thư mục / tính năng màn hình (hiện: landing, auth, model-info); chỉ export qua index.ts
+entities/   khái niệm miền: hook API + định dạng (hiện: user, model)
+shared/     api/ (client, phiên, lỗi, khoá query, kiểu), ui/, lib/ (format), i18n/, config/ — không biết nghiệp vụ
+mocks/      handler MSW khớp hợp đồng: dùng cho test VÀ chế độ demo (kho phiên trong bộ nhớ, "cookie refresh" giả)
+test/       thiết lập Vitest + renderApp (dựng cả router thật trên lịch sử bộ nhớ)
 ```
 
 Chiều phụ thuộc **chỉ đi xuống**: `app → features → entities → shared`. `features/A` không import `features/B`. Bên ngoài chỉ import qua `index.ts` của feature/entity.
@@ -69,6 +79,6 @@ python -m app.data.export_dashboard_data  # xuất dashboard/public/data/risk_su
 
 ## Deploy Vercel (bản công khai, dữ liệu tĩnh)
 
-Root Directory = `dashboard`, framework Vite (Build `npm run build`, Output `dist`). Không cần biến môi trường (mặc định chế độ `demo`). Chi tiết ở README gốc, mục "Deploy prototype".
+Root Directory = `dashboard`, framework Vite (Build `npm run build`, Output `dist`). Không cần biến môi trường (mặc định chế độ `demo`). `vercel.json` rewrite mọi đường dẫn về `index.html` (SPA) trừ `assets/`, `data/`, `mockServiceWorker.js`, `favicon.svg` — nếu thêm thư mục tĩnh mới, thêm vào danh sách loại trừ. Chi tiết ở README gốc, mục "Deploy prototype".
 
 Bản Vercel **không bao giờ** trỏ vào backend pilot (docs/10 §19.3).
