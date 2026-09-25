@@ -4,9 +4,10 @@ Các service **Go** của DengueSense: `gateway`, `identity`, `surveillance`, `w
 (kiến trúc: [docs/09](../docs/09-kien-truc-backend.md), quyết định: [docs/adr](../docs/adr/README.md)).
 
 **Trạng thái:** Đợt 0 xong (thư viện dùng chung `pkg/*`, khung `gateway` xác thực fail-closed). Đợt 1: **`identity` xong**
-(login, refresh xoay vòng + phát hiện tái sử dụng, logout, khoá đăng nhập, JWKS, token dịch vụ; kiểm trên Postgres thật).
-`gateway` vẫn trả `501` cho mọi operation và dùng khoá công khai tĩnh — nối upstream/JWKS là việc kế tiếp; `surveillance`
-và `forecast` thật chưa làm. Các service còn lại dựng theo đợt (docs/09 §18).
+(login, refresh xoay vòng + phát hiện tái sử dụng, logout, khoá đăng nhập, JWKS, token dịch vụ) và **`surveillance` xong**
+(danh mục tỉnh, ranh giới, phiên bản dữ liệu BẤT BIẾN + tải panel, quan sát; đã nhập panel v0.2.0 thật vào Postgres); cả hai
+kiểm trên Postgres thật. `gateway` vẫn trả `501` cho mọi operation và dùng khoá công khai tĩnh — nối upstream/JWKS là việc
+kế tiếp; `forecast` thật chưa làm. Các service còn lại dựng theo đợt (docs/09 §18).
 
 ## Cấu trúc
 
@@ -18,6 +19,7 @@ backend/
 ├── cmd/
 │   ├── gateway/main.go          # điểm vào từng service (mỏng: đọc cấu hình, dựng, chạy)
 │   ├── identity/main.go         #   (+ lệnh con `migrate`, cờ -healthcheck)
+│   ├── surveillance/main.go     #   (+ `migrate`, `seed`, `import-panel`)
 │   └── devtool/main.go          # CHỈ dev: sinh khoá, cấp token thử
 ├── pkg/                         # thư viện dùng chung, KHÔNG chứa nghiệp vụ
 │   ├── configx/                 # cấu hình từ env, fail-fast, không lộ giá trị trong lỗi
@@ -40,6 +42,7 @@ backend/
         ├── migrations/          # golang-migrate, nhúng vào binary (có down)
         ├── repotest/            # BỘ TEST HỢP ĐỒNG repository — chạy trên cả memory lẫn Postgres thật
         └── config/
+    └── surveillance/            # cùng bố cục; domain/panel.go đọc + kiểm Parquet, migration có trigger bất biến
 ```
 
 ## Chạy local
@@ -66,7 +69,7 @@ curl -i http://127.0.0.1:${GATEWAY_HOST_PORT:-8080}/api/v1/provinces            
 | Format | `gofmt -w .` |
 | Lint (gồm depguard) | `go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 run ./...` |
 | Test (race) | `go test ./... -race -count=1` |
-| Test tích hợp DB | Tạo DB thử một lần: `docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/create-test-db.sh`, rồi `TEST_DATABASE_URL="postgres://svc_identity:<mật khẩu>@127.0.0.1:<cổng>/denguesense_test?sslmode=disable" go test ./services/identity/... ./pkg/dbx/...` — bộ test **xoá dữ liệu** nên từ chối chạy nếu tên DB không kết thúc `_test` |
+| Test tích hợp DB | (identity, surveillance) Tạo DB thử một lần: `docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/create-test-db.sh`, rồi `TEST_DATABASE_URL="postgres://svc_identity:<mật khẩu>@127.0.0.1:<cổng>/denguesense_test?sslmode=disable" go test ./services/identity/... ./pkg/dbx/...` (với surveillance: user `svc_surveillance`, `./services/surveillance/...`) — bộ test **xoá dữ liệu** nên từ chối chạy nếu tên DB không kết thúc `_test` |
 | Quét lỗ hổng | `go run golang.org/x/vuln/cmd/govulncheck@latest ./...` |
 
 CI (`ci-backend.yml`) chạy đúng các bước trên, cộng: mã sinh còn đồng bộ, `go mod tidy` gọn, build image + Trivy.
