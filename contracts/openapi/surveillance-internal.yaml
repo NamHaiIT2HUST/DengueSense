@@ -99,7 +99,7 @@ paths:
       summary: Nhập một phiên bản dữ liệu (panel) mới. Yêu cầu vai trò `data_manager`.
       description: |
         Phiên bản dữ liệu BẤT BIẾN: cùng `version` gửi lại với nội dung khác → `409`. Kiểm: đủ cột bắt buộc,
-        34 tỉnh, tháng liên tục, `data_source` hợp lệ, `sha256` khớp (lỗi `surveillance.invalid_panel`);
+        mọi tỉnh thuộc danh mục, không trùng (tỉnh, tháng), số ca hữu hạn ≥ 0, `data_source` hợp lệ, manifest (số dòng, số tỉnh, khoảng tháng, tỉ lệ thật) khớp nội dung, `sha256` khớp (lỗi `surveillance.invalid_panel`);
         trùng `version` khác nội dung → `surveillance.data_version_conflict`. Thành công phát sự kiện
         `surveillance.data_version.published` (contracts/events).
       parameters:
