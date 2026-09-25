@@ -1,0 +1,117 @@
+# DengueSense — hạ tầng dùng chung (docs/09 §3, §16).
+# Đợt 0: Postgres (PostGIS + pgvector) + NATS JetStream + gateway + forecast (khung). Service khác được thêm dần theo từng đợt.
+#
+# Chạy:  docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
+# (chưa có infra/.env thì: cp infra/.env.example infra/.env  rồi đổi mật khẩu)
+name: denguesense
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+    image: denguesense/postgres:16-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?thiếu POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?thiếu POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?thiếu POSTGRES_PASSWORD}
+      SVC_IDENTITY_PASSWORD: ${SVC_IDENTITY_PASSWORD:?thiếu SVC_IDENTITY_PASSWORD}
+      SVC_SURVEILLANCE_PASSWORD: ${SVC_SURVEILLANCE_PASSWORD:?thiếu SVC_SURVEILLANCE_PASSWORD}
+      SVC_FORECAST_PASSWORD: ${SVC_FORECAST_PASSWORD:?thiếu SVC_FORECAST_PASSWORD}
+      SVC_OPTIMIZE_PASSWORD: ${SVC_OPTIMIZE_PASSWORD:?thiếu SVC_OPTIMIZE_PASSWORD}
+      SVC_WORKFLOW_PASSWORD: ${SVC_WORKFLOW_PASSWORD:?thiếu SVC_WORKFLOW_PASSWORD}
+      SVC_GENAI_PASSWORD: ${SVC_GENAI_PASSWORD:?thiếu SVC_GENAI_PASSWORD}
+      SVC_NOTIFICATION_PASSWORD: ${SVC_NOTIFICATION_PASSWORD:?thiếu SVC_NOTIFICATION_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [core]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command: ["-c", "/etc/nats/nats.conf"]
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+      - natsdata:/data
+    networks: [core]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  # Tác vụ chạy 1 lần: tạo stream JetStream (idempotent). Không restart.
+  nats-init:
+    image: natsio/nats-box:0.14.5
+    restart: "no"
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      NATS_URL: nats://nats:4222
+    volumes:
+      - ./nats/init-streams.sh:/init-streams.sh:ro
+    entrypoint: ["/bin/sh", "/init-streams.sh"]
+    networks: [core]
+
+  gateway:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: gateway
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/gateway:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      GATEWAY_LISTEN_ADDR: ":8080"
+      GATEWAY_LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-info}
+      # Đợt 0: khoá công khai nạp tĩnh. Đợt 1: thay bằng JWKS lấy từ `identity`.
+      GATEWAY_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - tạo bằng go run ./cmd/devtool keygen, xem infra/README.md}"
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  forecast:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/forecast:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      FORECAST_LOG_LEVEL: ${FORECAST_LOG_LEVEL:-info}
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8001/readyz', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 5s
+
+networks:
+  core:
+    name: denguesense-core
+
+volumes:
+  pgdata:
+  natsdata:

@@ -1,0 +1,18 @@
+# Override cho máy dev: mở cổng ra localhost để gỡ lỗi (psql, nats CLI).
+# KHÔNG dùng ở pilot/staging — ở đó chỉ reverse proxy được publish cổng (docs/09 §3.3).
+# Chỉ bind 127.0.0.1 để máy khác trong mạng LAN không chạm được.
+# Cổng phía host đổi được qua infra/.env (vd máy đã có Postgres cục bộ, hoặc Windows giữ chỗ dải cổng).
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+  nats:
+    ports:
+      - "127.0.0.1:${NATS_HOST_PORT:-4222}:4222"
+      - "127.0.0.1:${NATS_MONITOR_HOST_PORT:-8222}:8222"
+  gateway:
+    ports:
+      - "127.0.0.1:${GATEWAY_HOST_PORT:-8080}:8080"
+  forecast:
+    ports:
+      - "127.0.0.1:${FORECAST_HOST_PORT:-8001}:8001"
