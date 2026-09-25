@@ -1,0 +1,73 @@
+# golangci-lint v2 — CI chặn nếu fail (CONTRIBUTING §4, docs/09 §14.1, §16.3).
+# Chạy cục bộ:  cd backend && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0 run
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: none
+  enable:
+    - errcheck      # không bỏ qua lỗi trả về
+    - govet
+    - staticcheck
+    - unused
+    - ineffassign
+    - errorlint     # so sánh/ép kiểu lỗi đúng cách (errors.Is/As)
+    - bodyclose     # đóng body HTTP
+    - noctx         # request HTTP phải có context
+    - gosec         # lỗi bảo mật thường gặp
+    - sloglint      # log slog nhất quán
+    - depguard      # LUẬT KIẾN TRÚC: ranh giới giữa các service (docs/09 §14.1, ADR-0007)
+  settings:
+    sloglint:
+      no-mixed-args: true   # không trộn key-value với slog.Attr trong một lời gọi
+      context: scope        # có context trong phạm vi thì phải dùng biến thể *Context
+    depguard:
+      rules:
+        # pkg/* là thư viện dùng chung KHÔNG chứa nghiệp vụ: cấm phụ thuộc ngược vào service/cmd.
+        pkg-is-business-free:
+          files:
+            - "**/pkg/**"
+          deny:
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services
+              desc: "pkg/* không được import services/* (thư viện chung không chứa nghiệp vụ)"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/cmd
+              desc: "pkg/* không được import cmd/*"
+        # services/X không được import services/Y: giao tiếp qua API/sự kiện, không qua import (ADR-0001, ADR-0007).
+        gateway-isolated:
+          files:
+            - "**/services/gateway/**"
+          deny:
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/identity
+              desc: "gateway không import service khác; gọi qua HTTP client"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/surveillance
+              desc: "gateway không import service khác; gọi qua HTTP client"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow
+              desc: "gateway không import service khác; gọi qua HTTP client"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/notification
+              desc: "gateway không import service khác; gọi qua HTTP client"
+        # Khi thêm service mới: thêm rule `<tên>-isolated` tương tự (checklist ở backend/README.md).
+
+  exclusions:
+    generated: lax   # bỏ qua *.gen.go (mã sinh từ hợp đồng)
+    presets:
+      - std-error-handling
+    rules:
+      # Test dùng httptest/net.Listen trực tiếp và khoá giả — các luật noctx/gosec/errcheck chỉ có
+      # giá trị với mã chạy thật.
+      - path: _test\.go
+        linters:
+          - gosec
+          - errcheck
+          - noctx
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/NamHaiIT2HUST/DengueSense

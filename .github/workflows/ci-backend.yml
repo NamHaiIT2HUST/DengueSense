@@ -4,51 +4,86 @@ on:
   pull_request:
     paths:
       - "backend/**"
+      - "contracts/**"
       - ".github/workflows/ci-backend.yml"
   push:
     branches: [main]
     paths:
       - "backend/**"
+      - "contracts/**"
+
+permissions:
+  contents: read
 
 jobs:
-  lint-and-build:
+  lint-test-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check go.mod exists
-        id: check
-        run: |
-          if [ -f "backend/go.mod" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "backend/go.mod chưa tồn tại — bỏ qua CI cho tới khi service được scaffold."
-          fi
-
       - name: Setup Go
-        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-go@v5
         with:
           go-version-file: backend/go.mod
 
+      # Hợp đồng là nguồn sự thật (docs/09 §6.10): mã sinh phải khớp hợp đồng hiện hành.
+      - name: Mã sinh từ hợp đồng còn đồng bộ
+        working-directory: backend
+        run: |
+          go generate ./...
+          git diff --exit-code -- . ':!go.sum' || {
+            echo "::error::Mã sinh (api.gen.go) lệch hợp đồng. Chạy 'go generate ./...' trong backend/ rồi commit."
+            exit 1
+          }
+
+      - name: go.mod / go.sum gọn (go mod tidy)
+        working-directory: backend
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+
+      - name: gofmt
+        working-directory: backend
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo "::error::Có file chưa gofmt"; exit 1; }
+
       - name: go vet
-        if: steps.check.outputs.exists == 'true'
         working-directory: backend
         run: go vet ./...
 
-      - name: golangci-lint
-        if: steps.check.outputs.exists == 'true'
-        uses: golangci/golangci-lint-action@v6
+      - name: golangci-lint (gồm depguard — luật ranh giới service)
+        uses: golangci/golangci-lint-action@v8
         with:
+          version: v2.14.0
           working-directory: backend
 
       - name: Build
-        if: steps.check.outputs.exists == 'true'
         working-directory: backend
         run: go build ./...
 
-      - name: Test
-        if: steps.check.outputs.exists == 'true'
+      - name: Test (race)
         working-directory: backend
-        run: go test ./...
+        run: go test ./... -race -count=1
+
+      - name: govulncheck
+        working-directory: backend
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-test-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image gateway
+        run: |
+          docker build -f backend/build/Dockerfile \
+            --build-arg SERVICE=gateway --build-arg VERSION="${GITHUB_SHA}" \
+            -t denguesense/gateway:ci backend
+
+      - name: Quét lỗ hổng image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: denguesense/gateway:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
