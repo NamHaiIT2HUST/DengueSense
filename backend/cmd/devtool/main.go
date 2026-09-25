@@ -6,15 +6,22 @@
 //
 //	go run ./cmd/devtool token -key <PRIVATE> -sub <id> -roles viewer,analyst -org <org>
 //	    Cấp access token 15 phút để thử gateway bằng curl khi chưa có `identity`.
+//
+//	go run ./cmd/devtool secret
+//	    Sinh client_secret cho một service (SECRET=… đặt ở phía service gọi; SHA256=… đặt vào
+//	    IDENTITY_SERVICE_SECRET_SHA256_<TÊN> của identity). Bí mật gốc KHÔNG được commit.
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/services/identity/config"
 )
 
 func main() {
@@ -28,6 +35,8 @@ func main() {
 		err = keygen()
 	case "token":
 		err = token(os.Args[2:])
+	case "secret":
+		err = secret()
 	default:
 		usage()
 		os.Exit(2)
@@ -39,7 +48,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "dùng: devtool keygen | devtool token -key <PRIVATE> -sub <id> -roles a,b [-org <org>]")
+	fmt.Fprintln(os.Stderr, "dùng: devtool keygen | devtool secret | devtool token -key <PRIVATE> -sub <id> -roles a,b [-org <org>]")
 }
 
 func keygen() error {
@@ -49,6 +58,17 @@ func keygen() error {
 	}
 	fmt.Println("PUBLIC=" + authx.EncodeKey(pub))
 	fmt.Println("PRIVATE=" + authx.EncodeKey(priv))
+	return nil
+}
+
+func secret() error {
+	raw := make([]byte, 32)
+	if _, err := rand.Read(raw); err != nil {
+		return err
+	}
+	plain := base64.RawURLEncoding.EncodeToString(raw)
+	fmt.Println("SECRET=" + plain)
+	fmt.Println("SHA256=" + config.HashSecret(plain))
 	return nil
 }
 

@@ -48,6 +48,18 @@ linters:
               desc: "gateway không import service khác; gọi qua HTTP client"
             - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/notification
               desc: "gateway không import service khác; gọi qua HTTP client"
+        identity-isolated:
+          files:
+            - "**/services/identity/**"
+          deny:
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway
+              desc: "identity không import service khác; giao tiếp qua API"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/surveillance
+              desc: "identity không import service khác; giao tiếp qua API"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow
+              desc: "identity không import service khác; giao tiếp qua API"
+            - pkg: github.com/NamHaiIT2HUST/DengueSense/backend/services/notification
+              desc: "identity không import service khác; giao tiếp qua API"
         # Khi thêm service mới: thêm rule `<tên>-isolated` tương tự (checklist ở backend/README.md).
 
   exclusions:

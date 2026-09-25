@@ -1,0 +1,9 @@
+# Sinh mã Go từ hợp đồng nội bộ (contracts/openapi/identity-internal.yaml). KHÔNG sửa tay api.gen.go.
+# Chạy:  go generate ./services/identity/api/
+# CI kiểm: generate xong mà `git diff --exit-code` khác 0 thì fail (hợp đồng đổi mà quên sinh lại).
+package: api
+output: api.gen.go
+generate:
+  models: true
+  gin-server: true
+  strict-server: true

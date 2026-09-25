@@ -1,8 +1,12 @@
 // Package authx: xác thực JWT (EdDSA) và phân quyền theo vai trò (docs/09 §11, ADR-0005).
 //
-// `identity` dùng Signer để cấp token; mọi service khác dùng Verifier + Middleware để xác minh.
-// Luật cứng: chỉ chấp nhận thuật toán EdDSA (chặn tấn công đổi thuật toán / alg=none), bắt buộc có
-// exp, iss, aud và sub. Token không có vai trò nào bị coi là không hợp lệ.
+// Hai loại token, KHÔNG dùng lẫn được:
+//   - token NGƯỜI DÙNG (access token, 15 phút): có `roles`, `aud` = gateway; cấp bởi `identity` khi đăng nhập;
+//   - token DỊCH VỤ (5 phút): `typ=service`, `sub` = tên service gọi, `aud` = service đích; dùng cho lời gọi nội bộ.
+//
+// `identity` dùng Signer để cấp token; mọi service khác dùng Verifier/ServiceVerifier + Middleware để xác minh.
+// Luật cứng: chỉ chấp nhận thuật toán EdDSA (chặn tấn công đổi thuật toán / alg=none), bắt buộc có exp, iss, aud
+// và sub. Token người dùng không có vai trò nào bị coi là không hợp lệ; token dịch vụ không được là token người dùng.
 package authx
 
 import (
@@ -17,10 +21,16 @@ import (
 	"github.com/google/uuid"
 )
 
-// AccessTokenTTL là hiệu lực access token (docs/09 §11.1).
+// AccessTokenTTL là hiệu lực access token người dùng (docs/09 §11.1).
 const AccessTokenTTL = 15 * time.Minute
 
-const clockLeeway = 5 * time.Second
+// ServiceTokenTTL là hiệu lực token dịch vụ (docs/09 §11.2).
+const ServiceTokenTTL = 5 * time.Minute
+
+const (
+	clockLeeway      = 5 * time.Second
+	tokenTypeService = "service"
+)
 
 // Role khớp enum `Role` trong contracts/openapi/public-v1.yaml.
 type Role string
@@ -38,7 +48,13 @@ var validRoles = map[Role]struct{}{
 	RoleViewer: {}, RoleAnalyst: {}, RoleOfficer: {}, RoleApprover: {}, RoleDataManager: {}, RoleAdmin: {},
 }
 
-// Actor là người dùng (hoặc dịch vụ) đã xác thực.
+// ValidRole báo vai trò có thuộc tập đã định nghĩa không.
+func ValidRole(r Role) bool {
+	_, ok := validRoles[r]
+	return ok
+}
+
+// Actor là người dùng đã xác thực.
 type Actor struct {
 	ID    string
 	Roles []Role
@@ -57,9 +73,15 @@ func (a Actor) Has(roles ...Role) bool {
 	return false
 }
 
+// ServiceIdentity là service đã xác thực bằng token dịch vụ.
+type ServiceIdentity struct {
+	Service string
+}
+
 type claims struct {
-	Roles []string `json:"roles"`
-	OrgID string   `json:"org_id"`
+	Roles []string `json:"roles,omitempty"`
+	OrgID string   `json:"org_id,omitempty"`
+	Typ   string   `json:"typ,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -67,28 +89,107 @@ type claims struct {
 // với bên ngoài để không giúp kẻ tấn công dò (nguyên nhân chi tiết chỉ nằm trong lỗi bọc, dùng cho log).
 var ErrInvalidToken = errors.New("token không hợp lệ")
 
-// Verifier xác minh access token.
-type Verifier interface {
-	Verify(token string) (Actor, error)
+// KeySet tra khoá công khai theo `kid` (hỗ trợ xoay khoá: nhiều khoá cùng hiệu lực).
+type KeySet interface {
+	Key(kid string) (ed25519.PublicKey, bool)
 }
 
-// Ed25519Verifier xác minh token ký EdDSA.
-type Ed25519Verifier struct {
-	key      ed25519.PublicKey
+// StaticKeySet là KeySet cố định trong bộ nhớ.
+type StaticKeySet map[string]ed25519.PublicKey
+
+// Key trả khoá theo kid.
+func (s StaticKeySet) Key(kid string) (ed25519.PublicKey, bool) {
+	k, ok := s[kid]
+	return k, ok
+}
+
+// verifierBase gom phần phân tích/kiểm chữ ký dùng chung cho token người dùng và token dịch vụ.
+type verifierBase struct {
+	keyFunc  jwt.Keyfunc
 	issuer   string
 	audience string
 	now      func() time.Time
 }
 
-// NewEd25519Verifier tạo Verifier; issuer/audience bắt buộc khớp.
-func NewEd25519Verifier(pub ed25519.PublicKey, issuer, audience string) (*Ed25519Verifier, error) {
+func newBase(keyFunc jwt.Keyfunc, issuer, audience string) (verifierBase, error) {
+	if issuer == "" || audience == "" {
+		return verifierBase{}, errors.New("issuer và audience là bắt buộc")
+	}
+	return verifierBase{keyFunc: keyFunc, issuer: issuer, audience: audience, now: time.Now}, nil
+}
+
+func singleKeyFunc(pub ed25519.PublicKey) (jwt.Keyfunc, error) {
 	if len(pub) != ed25519.PublicKeySize {
 		return nil, fmt.Errorf("khoá công khai Ed25519 phải dài %d byte", ed25519.PublicKeySize)
 	}
-	if issuer == "" || audience == "" {
-		return nil, errors.New("issuer và audience là bắt buộc")
+	return func(*jwt.Token) (any, error) { return pub, nil }, nil
+}
+
+// keySetFunc chọn khoá theo `kid` trong header; thiếu/lạ kid → từ chối (không thử mọi khoá).
+func keySetFunc(ks KeySet) jwt.Keyfunc {
+	return func(t *jwt.Token) (any, error) {
+		kid, _ := t.Header["kid"].(string)
+		if kid == "" {
+			return nil, errors.New("thiếu kid")
+		}
+		key, ok := ks.Key(kid)
+		if !ok {
+			return nil, errors.New("kid không có trong tập khoá")
+		}
+		return key, nil
 	}
-	return &Ed25519Verifier{key: pub, issuer: issuer, audience: audience, now: time.Now}, nil
+}
+
+func (b verifierBase) parse(token string) (*claims, error) {
+	parser := jwt.NewParser(
+		jwt.WithValidMethods([]string{jwt.SigningMethodEdDSA.Alg()}),
+		jwt.WithIssuer(b.issuer),
+		jwt.WithAudience(b.audience),
+		jwt.WithExpirationRequired(),
+		jwt.WithIssuedAt(),
+		jwt.WithLeeway(clockLeeway),
+		jwt.WithTimeFunc(b.now),
+	)
+	var c claims
+	if _, err := parser.ParseWithClaims(token, &c, b.keyFunc); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidToken, err)
+	}
+	if c.Subject == "" {
+		return nil, fmt.Errorf("%w: thiếu sub", ErrInvalidToken)
+	}
+	return &c, nil
+}
+
+// Verifier xác minh access token NGƯỜI DÙNG.
+type Verifier interface {
+	Verify(token string) (Actor, error)
+}
+
+// Ed25519Verifier xác minh token người dùng ký EdDSA.
+type Ed25519Verifier struct {
+	verifierBase
+}
+
+// NewEd25519Verifier tạo Verifier với MỘT khoá công khai (bỏ qua kid); issuer/audience bắt buộc khớp.
+func NewEd25519Verifier(pub ed25519.PublicKey, issuer, audience string) (*Ed25519Verifier, error) {
+	kf, err := singleKeyFunc(pub)
+	if err != nil {
+		return nil, err
+	}
+	base, err := newBase(kf, issuer, audience)
+	if err != nil {
+		return nil, err
+	}
+	return &Ed25519Verifier{base}, nil
+}
+
+// NewKeySetVerifier tạo Verifier chọn khoá theo `kid` (dùng với JWKS của identity).
+func NewKeySetVerifier(ks KeySet, issuer, audience string) (*Ed25519Verifier, error) {
+	base, err := newBase(keySetFunc(ks), issuer, audience)
+	if err != nil {
+		return nil, err
+	}
+	return &Ed25519Verifier{base}, nil
 }
 
 // WithClock thay đồng hồ (test).
@@ -98,23 +199,14 @@ func (v *Ed25519Verifier) WithClock(now func() time.Time) *Ed25519Verifier {
 	return &cp
 }
 
-// Verify kiểm chữ ký, thuật toán, exp/iss/aud/sub, vai trò hợp lệ.
+// Verify kiểm chữ ký, thuật toán, exp/iss/aud/sub, vai trò hợp lệ; từ chối token dịch vụ.
 func (v *Ed25519Verifier) Verify(token string) (Actor, error) {
-	parser := jwt.NewParser(
-		jwt.WithValidMethods([]string{jwt.SigningMethodEdDSA.Alg()}),
-		jwt.WithIssuer(v.issuer),
-		jwt.WithAudience(v.audience),
-		jwt.WithExpirationRequired(),
-		jwt.WithIssuedAt(),
-		jwt.WithLeeway(clockLeeway),
-		jwt.WithTimeFunc(v.now),
-	)
-	var c claims
-	if _, err := parser.ParseWithClaims(token, &c, func(*jwt.Token) (any, error) { return v.key, nil }); err != nil {
-		return Actor{}, fmt.Errorf("%w: %w", ErrInvalidToken, err)
+	c, err := v.parse(token)
+	if err != nil {
+		return Actor{}, err
 	}
-	if c.Subject == "" {
-		return Actor{}, fmt.Errorf("%w: thiếu sub", ErrInvalidToken)
+	if c.Typ == tokenTypeService {
+		return Actor{}, fmt.Errorf("%w: token dịch vụ không dùng như token người dùng", ErrInvalidToken)
 	}
 	if len(c.Roles) == 0 {
 		return Actor{}, fmt.Errorf("%w: thiếu vai trò", ErrInvalidToken)
@@ -122,7 +214,7 @@ func (v *Ed25519Verifier) Verify(token string) (Actor, error) {
 	roles := make([]Role, 0, len(c.Roles))
 	for _, r := range c.Roles {
 		role := Role(r)
-		if _, ok := validRoles[role]; !ok {
+		if !ValidRole(role) {
 			return Actor{}, fmt.Errorf("%w: vai trò lạ", ErrInvalidToken)
 		}
 		roles = append(roles, role)
@@ -130,16 +222,50 @@ func (v *Ed25519Verifier) Verify(token string) (Actor, error) {
 	return Actor{ID: c.Subject, Roles: roles, OrgID: c.OrgID}, nil
 }
 
+// ServiceVerifier xác minh token DỊCH VỤ; `audience` là tên service đang chạy (chỉ nhận token gửi cho mình).
+type ServiceVerifier struct {
+	verifierBase
+}
+
+// NewServiceVerifier tạo ServiceVerifier.
+func NewServiceVerifier(ks KeySet, issuer, audience string) (*ServiceVerifier, error) {
+	base, err := newBase(keySetFunc(ks), issuer, audience)
+	if err != nil {
+		return nil, err
+	}
+	return &ServiceVerifier{base}, nil
+}
+
+// WithClock thay đồng hồ (test).
+func (v *ServiceVerifier) WithClock(now func() time.Time) *ServiceVerifier {
+	cp := *v
+	cp.now = now
+	return &cp
+}
+
+// Verify kiểm token dịch vụ: đúng chữ ký/aud/iss/exp, `typ=service`, có `sub`; từ chối token người dùng.
+func (v *ServiceVerifier) Verify(token string) (ServiceIdentity, error) {
+	c, err := v.parse(token)
+	if err != nil {
+		return ServiceIdentity{}, err
+	}
+	if c.Typ != tokenTypeService {
+		return ServiceIdentity{}, fmt.Errorf("%w: không phải token dịch vụ", ErrInvalidToken)
+	}
+	return ServiceIdentity{Service: c.Subject}, nil
+}
+
 // Ed25519Signer cấp token (dùng bởi `identity` và công cụ dev/test).
 type Ed25519Signer struct {
 	key      ed25519.PrivateKey
+	kid      string
 	issuer   string
 	audience string
 	ttl      time.Duration
 	now      func() time.Time
 }
 
-// NewEd25519Signer tạo Signer với TTL mặc định AccessTokenTTL.
+// NewEd25519Signer tạo Signer với TTL mặc định AccessTokenTTL. `audience` là audience của token NGƯỜI DÙNG.
 func NewEd25519Signer(priv ed25519.PrivateKey, issuer, audience string) (*Ed25519Signer, error) {
 	if len(priv) != ed25519.PrivateKeySize {
 		return nil, fmt.Errorf("khoá riêng Ed25519 phải dài %d byte", ed25519.PrivateKeySize)
@@ -157,14 +283,38 @@ func (s *Ed25519Signer) WithClock(now func() time.Time) *Ed25519Signer {
 	return &cp
 }
 
-// WithTTL đổi hiệu lực token (test / token dịch vụ 5 phút).
+// WithTTL đổi hiệu lực token người dùng (test).
 func (s *Ed25519Signer) WithTTL(ttl time.Duration) *Ed25519Signer {
 	cp := *s
 	cp.ttl = ttl
 	return &cp
 }
 
-// Sign cấp token cho actor.
+// WithKeyID đặt `kid` vào header mọi token cấp ra (để verifier chọn đúng khoá khi xoay khoá).
+func (s *Ed25519Signer) WithKeyID(kid string) *Ed25519Signer {
+	cp := *s
+	cp.kid = kid
+	return &cp
+}
+
+// PublicKey trả khoá công khai tương ứng (để công bố qua JWKS).
+func (s *Ed25519Signer) PublicKey() ed25519.PublicKey {
+	pub, _ := s.key.Public().(ed25519.PublicKey)
+	return pub
+}
+
+// KeyID trả kid đang dùng.
+func (s *Ed25519Signer) KeyID() string { return s.kid }
+
+func (s *Ed25519Signer) sign(c claims) (string, error) {
+	tok := jwt.NewWithClaims(jwt.SigningMethodEdDSA, c)
+	if s.kid != "" {
+		tok.Header["kid"] = s.kid
+	}
+	return tok.SignedString(s.key)
+}
+
+// Sign cấp token NGƯỜI DÙNG cho actor.
 func (s *Ed25519Signer) Sign(a Actor) (string, error) {
 	if a.ID == "" || len(a.Roles) == 0 {
 		return "", errors.New("actor phải có ID và ít nhất một vai trò")
@@ -174,7 +324,7 @@ func (s *Ed25519Signer) Sign(a Actor) (string, error) {
 		roles[i] = string(r)
 	}
 	now := s.now().UTC()
-	tok := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims{
+	return s.sign(claims{
 		Roles: roles,
 		OrgID: a.OrgID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -186,7 +336,25 @@ func (s *Ed25519Signer) Sign(a Actor) (string, error) {
 			ID:        uuid.Must(uuid.NewV7()).String(),
 		},
 	})
-	return tok.SignedString(s.key)
+}
+
+// SignService cấp token DỊCH VỤ (5 phút): `sub` = service gọi, `aud` = service đích.
+func (s *Ed25519Signer) SignService(service, audience string) (string, error) {
+	if service == "" || audience == "" {
+		return "", errors.New("service và audience là bắt buộc")
+	}
+	now := s.now().UTC()
+	return s.sign(claims{
+		Typ: tokenTypeService,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   service,
+			Issuer:    s.issuer,
+			Audience:  jwt.ClaimStrings{audience},
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(ServiceTokenTTL)),
+			ID:        uuid.Must(uuid.NewV7()).String(),
+		},
+	})
 }
 
 // GenerateKeyPair sinh cặp khoá Ed25519.
