@@ -1,0 +1,7 @@
+# Allowlist: ngữ cảnh build chỉ gồm những gì image cần. QUAN TRỌNG: data/raw (~4 GB), venv, notebooks, experiments
+# KHÔNG được đưa vào ngữ cảnh build (chậm, phình image, rò rỉ dữ liệu).
+*
+!requirements-serving.txt
+!app/serving
+**/__pycache__
+**/*.pyc

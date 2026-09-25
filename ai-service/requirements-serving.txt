@@ -1,0 +1,8 @@
+# Phụ thuộc TỐI THIỂU cho image service `forecast` (docs/09 §10.4, ADR-0007).
+# Khác requirements.txt (môi trường nghiên cứu: jupyter, mlflow, rpy2…), file này chỉ gồm thứ API cần chạy.
+# Đợt 1: khi endpoint chạy dự báo được thêm, bổ sung gói ML mà app.forecast import (pandas, xgboost, lightgbm…)
+# ĐÚNG khoảng version với requirements.txt và kiểm bằng `docker build`.
+# Ghim theo KHOẢNG (cùng chính sách requirements.txt: pip freeze khoá cứng từng gây lỗi CI đa nền tảng).
+fastapi>=0.115,<0.117
+uvicorn>=0.30,<0.31
+pydantic>=2.9,<3.0

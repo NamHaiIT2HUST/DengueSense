@@ -4,11 +4,13 @@ on:
   pull_request:
     paths:
       - "ai-service/**"
+      - "contracts/**"
       - ".github/workflows/ci-ai-service.yml"
   push:
     branches: [main]
     paths:
       - "ai-service/**"
+      - "contracts/**"
 
 jobs:
   lint-and-test:
@@ -52,7 +54,23 @@ jobs:
         working-directory: ai-service
         run: black --check .
 
+      # Chỉ lớp phục vụ (app/serving) bị ép kiểu nghiêm ngặt — xem ai-service/mypy.ini.
+      - name: mypy --strict (app/serving)
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: mypy
+
+      # Luật kiến trúc (ADR-0007): thư viện nghiên cứu không import lớp phục vụ, common không import API.
+      - name: import-linter
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ai-service
+        run: lint-imports
+
       - name: pytest
         if: steps.check.outputs.exists == 'true'
         working-directory: ai-service
         run: pytest
+
+      - name: Build image forecast
+        if: steps.check.outputs.exists == 'true'
+        run: docker build -f ai-service/Dockerfile --build-arg VERSION="${GITHUB_SHA}" -t denguesense/forecast:ci ai-service

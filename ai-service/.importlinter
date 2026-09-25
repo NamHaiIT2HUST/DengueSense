@@ -1,0 +1,24 @@
+[importlinter]
+root_packages =
+    app
+include_external_packages = False
+
+# Luật kiến trúc (ADR-0007, docs/09 §10.4). Khi thêm optimize_api / genai_api, thêm hợp đồng `independence`
+# cho từng cặp API để chúng không import lẫn nhau.
+
+[importlinter:contract:library-independent-of-serving]
+name = Thư viện nghiên cứu (app.forecast, app.data) không được phụ thuộc lớp phục vụ
+type = forbidden
+source_modules =
+    app.forecast
+    app.data
+forbidden_modules =
+    app.serving
+
+[importlinter:contract:common-independent-of-apis]
+name = app.serving.common là hạ tầng dùng chung, không được import bất kỳ API nào
+type = forbidden
+source_modules =
+    app.serving.common
+forbidden_modules =
+    app.serving.forecast_api
