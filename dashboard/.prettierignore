@@ -1,0 +1,13 @@
+# File sinh tự động / build / dữ liệu — không format
+dist
+node_modules
+coverage
+playwright-report
+test-results
+package-lock.json
+public/data
+src/shared/api/schema.gen.ts
+src/app/routeTree.gen.ts
+
+# Tài liệu Markdown không format tự động (giữ bảng/ghi chú viết tay)
+*.md

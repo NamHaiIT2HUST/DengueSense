@@ -4,47 +4,86 @@ on:
   pull_request:
     paths:
       - "dashboard/**"
+      - "contracts/openapi/public-v1.yaml"
+      - "contracts/errors.md"
       - ".github/workflows/ci-dashboard.yml"
   push:
     branches: [main]
     paths:
       - "dashboard/**"
+      - "contracts/openapi/public-v1.yaml"
+      - "contracts/errors.md"
+
+permissions:
+  contents: read
 
 jobs:
-  lint-and-build:
+  check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check package.json exists
-        id: check
-        run: |
-          if [ -f "dashboard/package.json" ]; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "dashboard/package.json chưa tồn tại — bỏ qua CI cho tới khi service được scaffold."
-          fi
-
       - name: Setup Node
-        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
           cache-dependency-path: dashboard/package-lock.json
 
-      - name: Install deps
-        if: steps.check.outputs.exists == 'true'
-        working-directory: dashboard
+      - name: Cài phụ thuộc
         run: npm ci
 
-      - name: Lint
-        if: steps.check.outputs.exists == 'true'
-        working-directory: dashboard
+      # Hợp đồng là nguồn sự thật (docs/09 §6.10): kiểu TypeScript phải khớp hợp đồng hiện hành.
+      - name: Kiểu API còn đồng bộ với hợp đồng
+        run: |
+          npm run api:gen
+          git diff --exit-code -- src/shared/api/schema.gen.ts || {
+            echo "::error::schema.gen.ts lệch hợp đồng. Chạy 'npm run api:gen' trong dashboard/ rồi commit."
+            exit 1
+          }
+
+      - name: Lint (oxlint)
         run: npm run lint
 
+      - name: Format (prettier)
+        run: npm run format:check
+
+      - name: Luật kiến trúc (dependency-cruiser)
+        run: npm run depcruise
+
+      - name: Unit / component test
+        run: npm run test:coverage
+
+      # tsc -b (nghiêm ngặt) rồi vite build; build cũng sinh lại routeTree.gen.ts.
       - name: Build
-        if: steps.check.outputs.exists == 'true'
-        working-directory: dashboard
         run: npm run build
+
+      - name: Cây route sinh tự động còn đồng bộ
+        run: |
+          git diff --exit-code -- src/app/routeTree.gen.ts || {
+            echo "::error::routeTree.gen.ts lệch thư mục routes. Chạy 'npm run build' trong dashboard/ rồi commit."
+            exit 1
+          }
+
+      - name: Ngân sách kích thước bundle
+        run: npm run size:check
+
+      - name: Cài trình duyệt cho E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E + tiếp cận (Playwright, axe)
+        run: npm run test:e2e
+
+      - name: Lưu báo cáo E2E khi thất bại
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: dashboard/playwright-report
+          retention-days: 7
+
+      - name: Kiểm lỗ hổng phụ thuộc (production)
+        run: npm audit --omit=dev --audit-level=high
