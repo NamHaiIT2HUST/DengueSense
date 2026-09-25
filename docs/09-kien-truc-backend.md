@@ -298,6 +298,7 @@ Tham chiếu chéo service **chỉ bằng ID** (vd `workflow.alert.run_id` là U
 ### 6.4 Phân trang, lọc, sắp xếp
 
 - Danh sách **luôn** phân trang bằng con trỏ: `?limit=50&cursor=<opaque>` → `{ "items": [...], "next_cursor": "..." | null }`. `limit` tối đa 200.
+- **Ngoại lệ duy nhất:** *danh mục đóng, nhỏ, có giới hạn cứng* (34 tỉnh, phiên bản dữ liệu, phiên bản mô hình, danh sách giới hạn) trả đủ `{ "items": [...] }` không phân trang. Hợp đồng ghi rõ "danh mục đóng" ở `summary`; thêm ngoại lệ mới cần lý do trong PR hợp đồng.
 - Lọc bằng tham số tên trường: `?province_id=HN&region=Bắc&from=2009-11&to=2010-06`.
 - Sắp xếp: `?sort=-created_at` (dấu `-` = giảm dần); chỉ trên trường có index, danh sách trường cho phép ghi trong OpenAPI.
 
@@ -630,6 +631,7 @@ Ba service Python là **ba image khác nhau** (entrypoint khác nhau) build từ
 | `admin` | ✅ | ✅ | | | | | ✅ | ✅ |
 
 - Gateway kiểm vai trò thô theo route; **service đích kiểm phạm vi** (`org_id` ↔ tỉnh của hồ sơ) — không tin gateway cho quyết định theo dữ liệu.
+- **Xác thực fail-closed:** mọi route đòi token trừ danh sách công khai tường minh (login, refresh) — route mới quên khai báo thì mặc định bị bảo vệ. Danh sách công khai được test đối chiếu với các operation `security: []` của hợp đồng, và test gọi từng operation của hợp đồng không kèm token (kỳ vọng 401). Xác thực phải chạy **trước** khi mã sinh kiểm tham số.
 - `admin` **không** có quyền duyệt (tách quản trị kỹ thuật khỏi quyết định nghiệp vụ).
 
 ### 11.4 Bí mật & cấu hình nhạy cảm
@@ -804,7 +806,7 @@ app/serving/forecast_api/
 └── settings.py      # pydantic-settings, đọc env
 ```
 
-- Logic ML **không** nằm ở `serving/` — `serving/services` gọi `app/forecast/*` (đã có test 148 cái).
+- Logic ML **không** nằm ở `serving/` — `serving/services` gọi `app/forecast/*` (đã có 148 test riêng).
 - Code async ở tầng API; việc CPU nặng (fit model) chạy trong **process pool / worker riêng**, không trong event loop.
 - Black + ruff (đã có) + **mypy `--strict`** cho `app/serving/` (không áp cho `experiments/`).
 
@@ -951,12 +953,14 @@ Mỗi service có `RUNBOOK.md` ngắn: cách kiểm sống/chết, lỗi thườ
 Kiến trúc chốt đủ 8 service, nhưng **dựng theo đợt** để luôn có thứ chạy được (cổng nghiệm thu mỗi đợt):
 
 ### Đợt 0 — Nền móng (1 tuần) 🤝
-- [ ] `contracts/` với `public-v1.yaml` bản khung (auth, provinces, forecast-runs, risk-map, model-card) + `errors.md`
-- [ ] `infra/docker-compose.yml`: Postgres (PostGIS + pgvector), NATS, caddy; init SQL tạo schema/user
-- [ ] `backend/` scaffold: `go.mod`, `pkg/{httpx,authx,dbx,obsx,configx,eventx}`, Dockerfile, golangci-lint với depguard
-- [ ] `ai-service/app/serving/common` + `forecast_api` với `/healthz`, `/readyz`
-- [ ] 7 ADR ở §17.2
-- **🚪 Cổng:** `docker compose up` → mọi container healthy; CI 4 workflow xanh.
+Trạng thái: **backend + ai-service đã xong (2026-09-25)**; còn phần frontend (docs/10 §20 Đợt 0).
+- [x] `contracts/` với `public-v1.yaml` bản khung (auth, provinces, observations, forecast-runs, risk-map, explanations, model-card) + `errors.md` + schema 3 sự kiện + test hợp đồng (Python) — lint redocly sạch, `oasdiff` chặn thay đổi phá vỡ
+- [x] `infra/docker-compose.yml`: Postgres (PostGIS + pgvector), NATS JetStream + stream `EVENTS`/`DLQ`, gateway; init tạo 7 schema/user; `infra/scripts/check-db-isolation.sh` kiểm cô lập trên Postgres thật. *(Caddy: thêm cùng đợt 1 khi có dashboard cần phục vụ — chưa có gì để proxy.)*
+- [x] `backend/` scaffold: `go.mod`, `pkg/{configx,obsx,httpx,authx,eventx,dbx}`, Dockerfile distroless, golangci-lint với depguard, khung `gateway` (xác thực fail-closed đối chiếu hợp đồng). *(eventx: phong bì + kiểu dữ liệu; **outbox relay + inbox làm cùng service đầu tiên dùng chúng ở Đợt 1** để có DB thật kiểm.)*
+- [x] `ai-service/app/serving/common` (cấu hình, log JSON, problem+json, request-id, health, middleware) + `forecast_api` với `/healthz`, `/readyz`; `mypy --strict` + import-linter; Dockerfile `python:3.13-slim` non-root; image `forecast` build và chạy healthy
+- [x] 7 ADR ở §17.2 → [docs/adr/](adr/README.md)
+- [x] CI: `ci-backend` (mã sinh đồng bộ, tidy, vet, lint, race test, govulncheck, build image + Trivy), `ci-contracts` (redocly + oasdiff), `ci-ai-service` mở rộng theo `contracts/**`
+- **🚪 Cổng:** `docker compose up` → mọi container healthy; CI xanh. *(Đã đạt: postgres, nats, gateway, forecast đều healthy.)*
 
 ### Đợt 1 — Xem rủi ro thật (2–3 tuần) — **đủ cho demo cuộc thi**
 - [ ] `identity`: login/refresh/logout/me, seed user, JWKS

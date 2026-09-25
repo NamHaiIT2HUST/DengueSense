@@ -55,7 +55,7 @@ Theo vùng: **Nam 0.72 · Trung 0.90 · Bắc 1.37 (thua naive)**. Cảnh báo: 
 | `app/forecast/explain.py` | TreeSHAP chính xác (LightGBM `pred_contrib`, XGBoost `pred_contribs`), nhóm đặc trưng. |
 | `experiments/exp_001…016/` | Mỗi thí nghiệm: `config.yaml`, `run.py` (+`analyze.py`), `RESULTS.md`, kết quả thô. **Đọc `RESULTS.md` là nhanh nhất.** |
 | `notebooks/00–04` | Ingest/EDA/tuning (đã chạy). |
-| `tests/` | **148 test** (`pytest -q`, ~10s): nhân quả đặc trưng, hồi quy các bug đã gặp, split, metric, model, ensemble, alerting, explain. |
+| `tests/` | **181 test** (`pytest -q`, ~20s; 148 thuộc thư viện Layer 1/dữ liệu, 33 thuộc hợp đồng `contracts/` và lớp `app/serving`): nhân quả đặc trưng, hồi quy các bug đã gặp, split, metric, model, ensemble, alerting, explain. |
 
 **Cài đặt/chạy:** Python 3.13 (venv `ai-service/venv`), `pip install -r requirements.txt` (+ `optuna`, `rpy2` nếu chạy M3/tuning). `ruff check . && black --check . && pytest -q`
 phải sạch trước khi commit (CI kiểm). Dữ liệu (`data/raw`, `data/interim`, `data/processed`) **không nằm trong git** — sinh lại bằng `run_luong_a`/`build_panel`
