@@ -601,10 +601,16 @@ Khớp với 09 §18.
 - **🚪 Cổng: ĐẠT** — trang giới thiệu chạy như trước (bản đồ 34 tỉnh, xếp hạng, 404); 51 test đơn vị/component + 5 test E2E xanh; `api:gen` chạy với `public-v1.yaml`; dependency-cruiser, oxlint, prettier, `tsc -b` sạch.
 
 ### Đợt 1 — Console xem rủi ro (khớp đợt 1 backend) — **đủ cho demo cuộc thi**
-- [ ] S1 đăng nhập, layout console, guard route
-- [ ] Bộ component trung thực §9.2
-- [ ] S2 bản đồ + bảng, S3 chi tiết tỉnh, S4 lượt dự báo, S5 mô hình & giới hạn
-- [ ] Chế độ `demo` (MSW) cho Vercel
+**Lát cắt 1 — ✅ XONG (2026-09-25):** khung console + đăng nhập + S5, chạy hoàn toàn trên máy chủ giả khớp `public-v1.yaml`.
+- [x] S1 đăng nhập (RHF + Zod, thông báo lỗi CHUNG khi sai tên/mật khẩu, khoá tài khoản có thông báo riêng, lỗi máy chủ không lộ chi tiết), `safeRedirect` chống open-redirect (chỉ nhận đường dẫn nội bộ dưới `/app`), layout console (liên kết bỏ qua điều hướng, landmark, `aria-current`), guard route `/app` (khôi phục phiên bằng cookie refresh khi tải lại trang), đăng xuất (thu hồi phiên phía server, LUÔN xoá phiên và cache cục bộ kể cả khi mất mạng)
+- [x] Mất phiên giữa chừng → tự về đăng nhập kèm đường dẫn cũ và **xoá cache truy vấn** (không để dữ liệu người dùng trước lộ ra cho người dùng sau)
+- [x] Chế độ `demo` (MSW trong trình duyệt, tải động — không nằm trong đường khởi động chế độ `console`); tài khoản demo hiện ngay trên trang đăng nhập; `vercel.json` rewrite SPA (loại `assets/`, `data/`, `mockServiceWorker.js`)
+- [x] S5 mô hình & giới hạn: hiệu năng đo được kèm mức nền (T1), khoảng tin cậy kèm "có thể lạc quan", độ tin cậy theo vùng (điểm yếu song song điểm mạnh), 12 giới hạn; lỗi một khối không làm sập trang
+- Kiểm chứng: **94 test đơn vị/component** (safeRedirect 20, luồng đăng nhập/guard/đăng xuất/mất phiên trên router thật + MSW, S5 gồm trạng thái tải/lỗi/thử lại, luật T8) và **13 test E2E** trên bản build ở chế độ demo, kèm axe trên trang đăng nhập và trang mô hình.
+- **Lỗi thật do test phát hiện (đã sửa, có test hồi quy):** (1) mất phiên khi đang ở trong console làm khung console chuyển hướng lặp, lồng tham số `redirect` vô hạn ("Maximum update depth exceeded") — nay chỉ chuyển khi còn đứng trong `/app`, dùng `replace`, và đăng xuất chủ động về trang đăng nhập trơn; (2) `vercel.json` không phải JSON hợp lệ (escape `\.`) — deploy sẽ hỏng; (3) axe: `<dl>` chứa `<p>` (đã đổi thành `<dd>`).
+- **Ngân sách bundle:** JS khởi đầu 143,7 KB / 250 KB gzip. Worker MSW của chế độ demo (~161 KB gzip) là chunk lazy **chỉ được tải khi `VITE_APP_MODE=demo`**, có ngân sách riêng ≤ 200 KB — không vượt ngân sách chunk route 150 KB vì không phải chunk route và không có trong bản `console`.
+- [ ] Bộ component trung thực §9.2 (mới có Button, TextField, Alert, Skeleton, ErrorState, Card; còn ProbabilityBadge, ProvenanceLabel, DataSourceTag, BaseRateBar…)
+- [ ] S2 bản đồ + bảng, S3 chi tiết tỉnh, S4 lượt dự báo
 - **🚪 Cổng:** chọn origin 03/2010 → bản đồ + chi tiết tỉnh hiện số M4-R2 thật từ API, đạt T1–T10, axe 0 lỗi nghiêm trọng, E2E luồng xem xanh.
 
 ### Đợt 2 — Cảnh báo & phân bổ

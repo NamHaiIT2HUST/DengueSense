@@ -366,17 +366,18 @@ Tham chiếu chéo service **chỉ bằng ID** (vd `workflow.alert.run_id` là U
 ```
 contracts/
 ├── openapi/
-│   ├── public-v1.yaml          # API gateway công khai (frontend đọc file này)
-│   ├── identity-internal.yaml
-│   ├── surveillance-internal.yaml
-│   ├── forecast-internal.yaml
-│   ├── optimize-internal.yaml
-│   ├── workflow-internal.yaml
-│   └── genai-internal.yaml
-├── events/                      # JSON Schema cho từng sự kiện, có version
-│   └── forecast.run.completed.v1.json ...
-└── errors.md                    # danh mục mã lỗi
+│   ├── public-v1.yaml               # API gateway công khai (frontend đọc file này)
+│   ├── identity-internal.yaml       # ✅ Đợt 1
+│   ├── surveillance-internal.yaml   # ✅ Đợt 1
+│   ├── forecast-internal.yaml       # ✅ Đợt 1
+│   └── optimize|workflow|genai-internal.yaml   # thêm ở Đợt 2–3
+├── routing.yaml                     # bản đồ gateway: operation công khai → lời gọi nội bộ + vai trò tối thiểu
+├── events/                          # JSON Schema cho từng sự kiện, có version
+└── errors.md                        # danh mục mã lỗi
 ```
+
+Schema dùng chung giữa các file là **bản sao có chủ đích** (không $ref chéo file); test `test_internal_contracts.py` bảo đảm bản sao
+trùng tên thì giống hệt. `routing.yaml` được test đối chiếu: phủ đúng các operation công khai, mọi upstream trỏ tới operation nội bộ có thật.
 
 - **Go**: sinh interface server + kiểu dữ liệu bằng `oapi-codegen` từ file hợp đồng → code không khớp thì không biên dịch được.
 - **Python**: viết Pydantic/FastAPI, CI xuất `/openapi.json` rồi so với file hợp đồng bằng `oasdiff` — lệch là fail.
@@ -556,7 +557,7 @@ Những luật này biến model card thành **ràng buộc trong code**, để 
 
 ```json
 {
-  "province_id": "01",
+  "province_id": "ho_chi_minh",
   "region": "Bắc",
   "target_month": "2010-06",
   "horizon": 3,
@@ -787,7 +788,7 @@ services/workflow/
 └── wire.go          # dựng dependency thủ công (không DI framework)
 ```
 
-- Truy cập DB: **`sqlc`** (SQL viết tay → sinh code type-safe) + `pgx/v5`. Không ORM.
+- Truy cập DB: `pgx/v5` với SQL viết tay sau interface repository; **`sqlc`** là lựa chọn khi số truy vấn lớn. Service `identity` (đầu tiên) dùng pgx viết tay vì chỉ có vài câu truy vấn; độ đúng được bảo đảm bằng bộ test hợp đồng repository chạy trên Postgres thật. Không ORM.
 - HTTP: **Gin** (đã chốt) + handler sinh từ `oapi-codegen` (strict server).
 - Lỗi: domain trả lỗi kiểu (`ErrInvalidTransition`…), adapter http map sang `code` + HTTP status ở **một chỗ**.
 - `context.Context` là tham số đầu mọi hàm có I/O; không lưu context trong struct.
@@ -963,11 +964,20 @@ Trạng thái: **backend, ai-service và frontend đều xong (2026-09-25)** —
 - **🚪 Cổng:** `docker compose up` → mọi container healthy; CI xanh. *(Đã đạt: postgres, nats, gateway, forecast đều healthy.)*
 
 ### Đợt 1 — Xem rủi ro thật (2–3 tuần) — **đủ cho demo cuộc thi**
-- [ ] `identity`: login/refresh/logout/me, seed user, JWKS
-- [ ] `gateway`: xác minh JWT, định tuyến, `/risk-map` BFF, rate limit
-- [ ] `surveillance`: danh mục tỉnh, GeoJSON, nhập panel v0.2.0 từ `ingest-worker`, `/observations`
-- [ ] `forecast`: forecast run chế độ `backtest` (dùng `app/forecast/m4.py`), lưu kết quả, xác suất P75 + base rate, SHAP top-5, `/model-card`, `/limitations`
-- [ ] Dashboard nối API thật (doc 10 đợt 1)
+**Bước 0 — ✅ hợp đồng (2026-09-25):** `identity/surveillance/forecast-internal.yaml`, `routing.yaml`, mã lỗi mới, 26 test hợp đồng. Từ đây **hai luồng làm song song**, chỉ gặp nhau ở `public-v1.yaml`:
+
+*Luồng A — backend (hiện thực hợp đồng nội bộ + gateway theo `routing.yaml`):*
+- [x] `identity` — ✅ xong (2026-09-25): login/refresh(xoay vòng, **phát hiện tái sử dụng → thu hồi cả họ token**)/logout/user, khoá đăng nhập sau 5 lần sai/15 phút, Argon2id (PHC), JWKS + xoay khoá theo `kid`, token dịch vụ (EdDSA, 5 phút, `aud` = dịch vụ đích), lệnh `identity create-user` (mật khẩu đọc từ biến môi trường, không nhận qua tham số dòng lệnh; **chưa có seed tự động**), migration golang-migrate. **Bộ test hợp đồng repository (`repotest`) chạy trên cả bộ nhớ lẫn Postgres thật** (guard: tên DB phải có hậu tố `_test`); xác thực chéo với gateway trên container thật. Ghi chú lệch so với §14.2: dùng **pgx/v5 viết tay** thay `sqlc` — mỗi service chỉ có vài câu truy vấn nên chưa đáng thêm một bước sinh mã; xem lại khi số truy vấn lớn (ADR-0008 nếu đổi)
+- [ ] `surveillance`: danh mục tỉnh, GeoJSON, quan sát, **phiên bản dữ liệu bất biến** + tải panel Parquet; `ingest-worker` nhập panel v0.2.0
+- [ ] `forecast`: forecast run `backtest` bằng `app/forecast/m4.py` (job, lưu bất biến), xác suất P75 + base rate, SHAP top-5, model card/giới hạn — **số phải khớp exp_016** (test đối chiếu tự động)
+- [ ] `gateway`: thay `NotImplemented` bằng hiện thực gọi upstream; JWKS thay khoá tĩnh; `/risk-map` BFF; cookie refresh; rate limit; Caddy
+- [ ] Outbox relay + inbox (`eventx`), consumer `surveillance.data_version.published`
+
+*Luồng B — frontend (làm trên mock MSW khớp `public-v1.yaml`):*
+- [x] Đăng nhập, layout console, guard route, phiên (refresh khi tải lại trang) — ✅ lát cắt 1 (docs/10 §20)
+- [ ] Bộ component trung thực (docs/10 §9.2) + S2 bản đồ/bảng, S3 chi tiết tỉnh, S4 lượt dự báo; S5 mô hình & giới hạn ✅ xong
+- [x] Chế độ `demo` (MSW) cho Vercel — ✅; nối API thật khi luồng A xong
+
 - **🚪 Cổng:** chọn origin 2010-03 trên dashboard → bản đồ tô màu theo dự báo M4-R2 thật, có base rate, provenance, nhãn giới hạn; số khớp exp_016 cho origin đó (test đối chiếu tự động).
 
 ### Đợt 2 — Cảnh báo & phân bổ (song song Phase 3 Layer 2)
