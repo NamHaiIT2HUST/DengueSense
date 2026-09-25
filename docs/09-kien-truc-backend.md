@@ -562,6 +562,7 @@ Những luật này biến model card thành **ràng buộc trong code**, để 
   "target_month": "2010-06",
   "horizon": 3,
   "cases_pred": 184.2,
+  "incidence_pred_per_100k": 2.4,
   "cases_pred_interval": null,
   "exceed_prob": 0.41,
   "threshold_p75": 152.0,
@@ -572,10 +573,11 @@ Những luật này biến model card thành **ràng buộc trong code**, để 
 }
 ```
 
-- `base_rate` **PHẢI** đi cùng mọi `exceed_prob` (model card §12.1).
+- `base_rate` **PHẢI** đi cùng mọi `exceed_prob` (model card §12.1). Định nghĩa: tỉ lệ (tỉnh, tháng) vượt ngưỡng P75 trong **cửa sổ huấn luyện** của lượt dự báo, ở đúng tầm dự báo (nhân quả — biết được tại tháng neo). Thực tế ở mùa được dự báo có thể cao hơn (dịch chuyển phân phối, L9): trên tái hiện mùa 2010 tỉ lệ nền huấn luyện ≈ 0,22 còn tỉ lệ thực tế ≈ 0,29–0,47 — dữ liệu tái hiện ghi cả hai để giao diện nói thẳng độ lệch.
+- `incidence_pred_per_100k` là đầu ra GỐC của mô hình (M4-R2 dự báo tỉ suất ca / 100.000 dân); `cases_pred` chỉ là quy đổi theo dân số tại tháng neo (dân số là số ước lượng). So sánh giữa các tỉnh dùng tỉ suất.
 - `cases_pred_interval`: hiện **chưa có** khoảng dự báo đã kiểm chứng → trả `null`, không bịa. Việc cần làm của 🧬: khoảng dự báo theo conformal thực nghiệm (phần dư backtest theo horizon × vùng), đánh giá độ phủ trên khung nhiều mùa, rồi mới bật (ROADMAP 0.4 yêu cầu `lower/upper`).
 - `reliability` lấy từ bảng tĩnh trong model version (Trung: cao; Bắc: cao năm thường, thấp năm dịch bất thường; Nam: ≈ B3; cảnh báo Nam: ROC ≈ 0.73 ± 0.09 — model card §12.4).
-- `flags` (danh mục cố định trong hợp đồng): `outbreak_underprediction_risk` (dự báo > ngưỡng hoặc xu hướng tăng mạnh — nhắc model thiên thấp khi bùng dịch), `estimated_inputs` (đầu vào có dữ liệu ước lượng), `stale_data` (data_version quá hạn), `out_of_validated_period` (origin sau 2010).
+- `flags` (danh mục cố định trong hợp đồng): `outbreak_underprediction_risk` (bật khi `exceed_prob` ≥ 0,5 — chính mô hình cho rằng vượt ngưỡng nhiều khả năng hơn không, vùng có độ thiên thấp đo được; **không** dùng "điểm dự báo > ngưỡng" vì ở tỉnh có P75 lịch sử bằng 0 mọi dự báo dương đều vượt, cờ mất nghĩa — 78% so với 24% trên origin 2010-03), `estimated_inputs` (đầu vào có dữ liệu ước lượng), `stale_data` (data_version quá hạn), `out_of_validated_period` (origin sau 2010).
 
 ### 10.3 Việc KHÔNG được làm (chặn ở code/review)
 
@@ -975,7 +977,7 @@ Trạng thái: **backend, ai-service và frontend đều xong (2026-09-25)** —
 
 *Luồng B — frontend (làm trên mock MSW khớp `public-v1.yaml`):*
 - [x] Đăng nhập, layout console, guard route, phiên (refresh khi tải lại trang) — ✅ lát cắt 1 (docs/10 §20)
-- [ ] Bộ component trung thực (docs/10 §9.2) + S2 bản đồ/bảng, S3 chi tiết tỉnh, S4 lượt dự báo; S5 mô hình & giới hạn ✅ xong
+- [x] Bộ component trung thực (docs/10 §9.2) + S2 bản đồ/bảng, S3 chi tiết tỉnh, S4 lượt dự báo, S5 mô hình & giới hạn — ✅ xong trên dữ liệu THẬT của tái hiện exp_016 (8 tháng neo 2009-11…2010-06); còn nối API thật khi luồng A xong
 - [x] Chế độ `demo` (MSW) cho Vercel — ✅; nối API thật khi luồng A xong
 
 - **🚪 Cổng:** chọn origin 2010-03 trên dashboard → bản đồ tô màu theo dự báo M4-R2 thật, có base rate, provenance, nhãn giới hạn; số khớp exp_016 cho origin đó (test đối chiếu tự động).
