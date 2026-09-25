@@ -9,6 +9,12 @@ import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 
+const NAV = [
+  { to: "/app/ban-do", label: vi.nav.map },
+  { to: "/app/luot-du-bao", label: vi.nav.runs },
+  { to: "/app/mo-hinh", label: vi.nav.model },
+] as const;
+
 const NAV_LINK =
   "rounded-full px-3 py-1.5 text-sm text-[var(--ink-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--ink-primary)]";
 
@@ -74,16 +80,19 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[220px_1fr]">
         <nav aria-label={vi.nav.console} className="flex flex-wrap gap-2 lg:flex-col">
-          <Link
-            to="/app/mo-hinh"
-            className={NAV_LINK}
-            activeProps={{
-              "aria-current": "page",
-              className: `${NAV_LINK} bg-[var(--accent-soft)] text-[var(--accent-ink)]`,
-            }}
-          >
-            {vi.nav.model}
-          </Link>
+          {NAV.map((n) => (
+            <Link
+              key={n.to}
+              to={n.to}
+              className={NAV_LINK}
+              activeProps={{
+                "aria-current": "page",
+                className: `${NAV_LINK} bg-[var(--accent-soft)] text-[var(--accent-ink)]`,
+              }}
+            >
+              {n.label}
+            </Link>
+          ))}
           <Link to="/" className={NAV_LINK}>
             {vi.nav.home}
           </Link>

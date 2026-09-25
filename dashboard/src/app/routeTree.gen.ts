@@ -13,7 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as DangNhapRouteImport } from './routes/dang-nhap'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppBanDoRouteImport } from './routes/app/ban-do'
+import { Route as AppLuotDuBaoRouteImport } from './routes/app/luot-du-bao'
 import { Route as AppMoHinhRouteImport } from './routes/app/mo-hinh'
+import { Route as AppTinhProvinceIdRouteImport } from './routes/app/tinh.$provinceId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,9 +38,24 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppBanDoRoute = AppBanDoRouteImport.update({
+  id: '/ban-do',
+  path: '/ban-do',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppLuotDuBaoRoute = AppLuotDuBaoRouteImport.update({
+  id: '/luot-du-bao',
+  path: '/luot-du-bao',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppMoHinhRoute = AppMoHinhRouteImport.update({
   id: '/mo-hinh',
   path: '/mo-hinh',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppTinhProvinceIdRoute = AppTinhProvinceIdRouteImport.update({
+  id: '/tinh/$provinceId',
+  path: '/tinh/$provinceId',
   getParentRoute: () => AppRouteRoute,
 } as any)
 
@@ -45,29 +63,62 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/dang-nhap': typeof DangNhapRoute
+  '/app/ban-do': typeof AppBanDoRoute
+  '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app/': typeof AppIndexRoute
+  '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dang-nhap': typeof DangNhapRoute
+  '/app/ban-do': typeof AppBanDoRoute
+  '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app': typeof AppIndexRoute
+  '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteRouteWithChildren
   '/dang-nhap': typeof DangNhapRoute
+  '/app/ban-do': typeof AppBanDoRoute
+  '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app/': typeof AppIndexRoute
+  '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/dang-nhap' | '/app/mo-hinh' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/dang-nhap'
+    | '/app/ban-do'
+    | '/app/luot-du-bao'
+    | '/app/mo-hinh'
+    | '/app/'
+    | '/app/tinh/$provinceId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dang-nhap' | '/app/mo-hinh' | '/app'
-  id: '__root__' | '/' | '/app' | '/dang-nhap' | '/app/mo-hinh' | '/app/'
+  to:
+    | '/'
+    | '/dang-nhap'
+    | '/app/ban-do'
+    | '/app/luot-du-bao'
+    | '/app/mo-hinh'
+    | '/app'
+    | '/app/tinh/$provinceId'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/dang-nhap'
+    | '/app/ban-do'
+    | '/app/luot-du-bao'
+    | '/app/mo-hinh'
+    | '/app/'
+    | '/app/tinh/$provinceId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +157,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/ban-do': {
+      id: '/app/ban-do'
+      path: '/ban-do'
+      fullPath: '/app/ban-do'
+      preLoaderRoute: typeof AppBanDoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/luot-du-bao': {
+      id: '/app/luot-du-bao'
+      path: '/luot-du-bao'
+      fullPath: '/app/luot-du-bao'
+      preLoaderRoute: typeof AppLuotDuBaoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/mo-hinh': {
       id: '/app/mo-hinh'
       path: '/mo-hinh'
@@ -113,17 +178,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMoHinhRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/tinh/$provinceId': {
+      id: '/app/tinh/$provinceId'
+      path: '/tinh/$provinceId'
+      fullPath: '/app/tinh/$provinceId'
+      preLoaderRoute: typeof AppTinhProvinceIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
 interface AppRouteRouteChildren {
+  AppBanDoRoute: typeof AppBanDoRoute
+  AppLuotDuBaoRoute: typeof AppLuotDuBaoRoute
   AppMoHinhRoute: typeof AppMoHinhRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppTinhProvinceIdRoute: typeof AppTinhProvinceIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppBanDoRoute: AppBanDoRoute,
+  AppLuotDuBaoRoute: AppLuotDuBaoRoute,
   AppMoHinhRoute: AppMoHinhRoute,
   AppIndexRoute: AppIndexRoute,
+  AppTinhProvinceIdRoute: AppTinhProvinceIdRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

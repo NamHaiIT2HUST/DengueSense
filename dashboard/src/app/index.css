@@ -37,6 +37,15 @@
   --risk-7: #cb181d;
   --risk-8: #99000d;
 
+  /* Lớp rời rạc của CONSOLE (docs/10 §11.1): 5 lớp tuần tự vàng→đỏ (ColorBrewer "YlOrRd", an toàn cho mù màu).
+     Ngưỡng lớp cố định/do máy chủ trả — không co giãn theo dữ liệu. Luôn kèm nhãn chữ (WCAG 1.4.1). */
+  --risk-class-1: #ffffb2;
+  --risk-class-2: #fecc5c;
+  --risk-class-3: #fd8d3c;
+  --risk-class-4: #f03b20;
+  --risk-class-5: #bd0026;
+  --risk-class-none: #3a3a37; /* không có dự báo */
+
   /* Status — cố định, không dùng cho series khác */
   --status-good: #0ca30c;
   --status-warning: #fab219;

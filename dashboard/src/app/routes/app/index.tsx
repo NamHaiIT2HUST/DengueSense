@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Trang đầu của console: hiện chỉ có "Mô hình & giới hạn"; bản đồ rủi ro thêm khi backend forecast sẵn sàng (Đợt 1).
+// Trang đầu của console: bản đồ rủi ro.
 export const Route = createFileRoute("/app/")({
   beforeLoad: () => {
-    throw redirect({ to: "/app/mo-hinh" });
+    throw redirect({ to: "/app/ban-do" });
   },
 });

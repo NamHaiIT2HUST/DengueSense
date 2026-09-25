@@ -60,6 +60,8 @@ export const vi = {
   nav: {
     skipToContent: "Bỏ qua điều hướng, tới nội dung chính",
     console: "Điều hướng chính",
+    map: "Bản đồ rủi ro",
+    runs: "Lượt dự báo",
     model: "Mô hình & giới hạn",
     home: "Trang giới thiệu",
   },
@@ -136,6 +138,235 @@ export const vi = {
     limitationsLead:
       "Mỗi giới hạn đều có số đo và nguồn thí nghiệm. Đây là các điểm cần chú ý khi diễn giải kết quả.",
     evidence: "Nguồn",
+  },
+
+  forecast: {
+    modes: { backtest: "Tái hiện lịch sử", live_experimental: "Thử nghiệm trực tiếp" } as Record<
+      string,
+      string
+    >,
+    statuses: {
+      queued: "Đang chờ",
+      running: "Đang chạy",
+      completed: "Hoàn tất",
+      failed: "Thất bại",
+      interrupted: "Bị gián đoạn",
+      cancelled: "Đã huỷ",
+    } as Record<string, string>,
+    backtestBanner: (origin: string) =>
+      `Tái hiện lịch sử: dự báo từ tháng neo ${origin} bằng dữ liệu đo thật. Kết quả sau tháng neo chỉ để đối chiếu với thực tế — không phải dự báo cho hiện tại.`,
+    liveBanner:
+      "Thử nghiệm trực tiếp: đầu vào có thể là dữ liệu ước lượng và/hoặc ngoài giai đoạn đã kiểm chứng (đến 2010). Không dùng làm dự báo chính thức.",
+    provenance: {
+      label: "Nguồn gốc số liệu",
+      mode: "Chế độ",
+      origin: "Tháng neo",
+      model: "Mô hình",
+      data: "Phiên bản dữ liệu",
+      generated: "Tạo lúc",
+      limitsLink: "Giới hạn của mô hình",
+    },
+    baseRate: {
+      label: "Mức nền",
+      help: "Tỉ lệ tháng vượt ngưỡng trong dữ liệu huấn luyện (nhân quả — biết được tại tháng neo). Mức nền đổi theo năm nên thực tế có thể lệch.",
+      ratio: (times: string) => `≈ ${times} lần mức nền`,
+      ariaLabel: (p: string, base: string) => `Xác suất vượt ngưỡng ${p}, mức nền ${base}`,
+    },
+    flagsLabel: "Cờ của dự báo",
+    exceedProb: "Xác suất vượt ngưỡng",
+    exceedProbHelp:
+      "Xác suất số ca tháng đích vượt ngưỡng P75 của chính tỉnh, cùng tháng dương lịch.",
+    casesPred: "Số ca dự báo",
+    incidencePred: "Tỉ suất dự báo",
+    per100k: "/ 100.000 dân",
+    threshold: "Ngưỡng P75",
+    noInterval:
+      "Chưa có khoảng dự báo đã kiểm chứng độ phủ — hệ thống không vẽ khoảng khi chưa có.",
+    noForecast: "Không có dự báo",
+    horizon: (h: number) => `sau ${h} tháng`,
+    horizonTarget: (h: number, month: string) => `sau ${h} tháng (${month})`,
+    flags: {
+      outbreak_underprediction_risk: {
+        label: "Có thể dự báo thấp hơn thực tế",
+        note: "Mô hình có xu hướng dự báo thấp khi bùng dịch — cần chuyên môn xem xét.",
+      },
+      estimated_inputs: {
+        label: "Đầu vào ước lượng",
+        note: "Một phần dữ liệu đầu vào là số ước lượng, không phải số đo trực tiếp.",
+      },
+      stale_data: {
+        label: "Dữ liệu quá hạn",
+        note: "Phiên bản dữ liệu đã quá hạn so với thời điểm dự báo.",
+      },
+      out_of_validated_period: {
+        label: "Ngoài giai đoạn đã kiểm chứng",
+        note: "Tháng neo sau giai đoạn đã kiểm chứng (đến 2010) — độ tin cậy chưa được đo.",
+      },
+    } as Record<string, { label: string; note: string }>,
+    inputSources: {
+      label: "Nguồn dữ liệu đầu vào",
+      real: "đo thật",
+      estimated: "ước lượng",
+      imputed: "điền khuyết",
+    },
+    dataSource: {
+      real: "Dữ liệu thật",
+      estimated: "Ước lượng",
+      imputed: "Điền khuyết",
+      simulated: "Giả lập",
+    } as Record<string, string>,
+  },
+
+  map: {
+    title: "Bản đồ rủi ro",
+    lead: "Dự báo 34 tỉnh cho một lượt và một tầm dự báo. Bảng bên dưới có cùng dữ liệu với bản đồ.",
+    controls: {
+      run: "Lượt dự báo",
+      horizon: "Tầm dự báo",
+      metric: "Tô màu theo",
+      region: "Vùng",
+      allRegions: "Cả nước",
+    },
+    metrics: {
+      exceed_prob: "Xác suất vượt ngưỡng",
+      incidence: "Tỉ suất ca dự báo / 100.000 dân",
+    },
+    legendTitle: {
+      exceed_prob: "Xác suất vượt ngưỡng P75",
+      incidence: "Ca dự báo / 100.000 dân",
+    },
+    legendNote:
+      "Ngưỡng các lớp màu cố định (xác suất) hoặc do máy chủ tính từ phân vị lịch sử (tỉ suất) — không co giãn theo dữ liệu đang xem.",
+    estimatedOutline: "Viền nét đứt: tỉnh có đầu vào ước lượng",
+    noForecastColor: "Xám: không có dự báo",
+    mapLabel:
+      "Bản đồ 34 tỉnh tô màu theo dự báo. Dùng bảng dữ liệu bên dưới để đọc bằng bàn phím hoặc trình đọc màn hình.",
+    tableTitle: "Bảng xếp hạng tỉnh",
+    columns: {
+      rank: "Hạng",
+      province: "Tỉnh",
+      region: "Vùng",
+      exceed: "Xác suất vượt ngưỡng",
+      incidence: "Tỉ suất / 100k",
+      cases: "Số ca dự báo",
+      flags: "Cờ",
+    },
+    sortBy: (col: string) => `Sắp xếp theo ${col}`,
+    openProvince: (name: string) => `Xem chi tiết ${name}`,
+    warnings: "Lưu ý về dữ liệu",
+    empty: "Chưa có lượt dự báo nào hoàn tất.",
+    hoverHint: "Rê chuột vào một tỉnh (hoặc dùng bảng) để xem chi tiết",
+  },
+
+  province: {
+    back: "Về bản đồ",
+    backtestCompare:
+      "Phần sau đường “tháng neo” là số đo thật chỉ có trong tái hiện lịch sử — dùng để đối chiếu, không phải thứ mô hình đã biết lúc dự báo.",
+    chart: {
+      title: "Ca bệnh hàng tháng và dự báo",
+      yAxis: "Số ca / tháng",
+      observed: "Số ca đo thật",
+      observedEstimated: "Số ca ước lượng",
+      forecast: "Dự báo",
+      threshold: "Ngưỡng P75 (theo tháng)",
+      origin: "Tháng neo",
+      ariaLabel: (name: string) =>
+        `Biểu đồ số ca bệnh hàng tháng của ${name} cùng 4 điểm dự báo. Bảng dữ liệu tương đương nằm ngay bên dưới.`,
+      tableSummary: "Bảng dữ liệu của biểu đồ",
+      month: "Tháng",
+      cases: "Số ca",
+      source: "Nguồn",
+      kind: "Loại",
+      kindObserved: "Quan sát",
+      kindForecast: "Dự báo",
+    },
+    horizons: "Dự báo theo tầm",
+    explanation: {
+      title: "Yếu tố ảnh hưởng đến dự báo",
+      lead: "Năm yếu tố đóng góp nhiều nhất vào dự báo số ca. Đây là giải thích của mô hình, không phải quan hệ nhân quả.",
+      component:
+        "Giải thích này là của thành phần LightGBM chuẩn — chỉ một phần của mô hình tổ hợp. Các phần còn lại (XGBoost, hồi quy tuyến tính, biến thể riêng của miền Bắc và bước pha với dự báo theo mùa ở miền Nam) không nằm trong giải thích.",
+      up: (pct: string) => `làm dự báo tăng khoảng ${pct}`,
+      down: (pct: string) => `làm dự báo giảm khoảng ${pct}`,
+      inputValue: "Giá trị đầu vào",
+      pick: "Tầm dự báo",
+      families: {
+        recent_cases: "Ca bệnh gần đây",
+        seasonal_norm: "Mức mùa vụ",
+        climate: "Khí hậu",
+        other: "Khác",
+      } as Record<string, string>,
+    },
+    reliability: "Độ tin cậy",
+    inputs: "Đầu vào của dự báo",
+    notFound: "Không tìm thấy tỉnh này.",
+  },
+
+  features: {
+    sin_month: "Thời điểm trong năm (mùa vụ), thành phần 1",
+    cos_month: "Thời điểm trong năm (mùa vụ), thành phần 2",
+    temp_mean_lag_1: "Nhiệt độ trung bình tháng trước",
+    temp_mean_lag_2: "Nhiệt độ trung bình 2 tháng trước",
+    precip_total_lag_1: "Lượng mưa tháng trước",
+    precip_total_lag_2: "Lượng mưa 2 tháng trước",
+    humidity_mean_lag_1: "Độ ẩm trung bình tháng trước",
+    temp_mean_roll_mean_3: "Nhiệt độ trung bình 3 tháng gần nhất",
+    precip_total_roll_mean_3: "Lượng mưa trung bình 3 tháng gần nhất",
+    incidence_per_100k_lag_2: "Tỉ suất ca 2 tháng trước",
+    incidence_per_100k_lag_3: "Tỉ suất ca 3 tháng trước",
+    momentum: "Đà tăng/giảm của ca bệnh",
+    acceleration: "Gia tốc của ca bệnh",
+    oni_lag_3: "Chỉ số El Niño (ONI) 3 tháng trước",
+    oni_lag_6: "Chỉ số El Niño (ONI) 6 tháng trước",
+    incidence_per_100k_same_month_last_year: "Tỉ suất ca cùng tháng năm ngoái",
+    incidence_per_100k_deviation_from_median: "Độ lệch so với mức trung vị của tháng này",
+  } as Record<string, string>,
+
+  /** Đơn vị hiển thị cạnh giá trị đầu vào của yếu tố (chỉ khi chắc chắn về đơn vị). */
+  featureUnits: {
+    incidence_per_100k_lag_2: "ca / 100.000 dân",
+    incidence_per_100k_lag_3: "ca / 100.000 dân",
+    incidence_per_100k_same_month_last_year: "ca / 100.000 dân",
+    incidence_per_100k_deviation_from_median: "ca / 100.000 dân",
+    momentum: "ca / 100.000 dân",
+    acceleration: "ca / 100.000 dân",
+    temp_mean_lag_1: "°C",
+    temp_mean_lag_2: "°C",
+    temp_mean_roll_mean_3: "°C",
+  } as Record<string, string>,
+  /** Yếu tố mà giá trị thô không có ý nghĩa với người đọc (chỉ là mã hoá tuần hoàn của tháng). */
+  featureHideValue: ["sin_month", "cos_month"] as readonly string[],
+
+  runs: {
+    title: "Lượt dự báo",
+    lead: "Mỗi lượt là một kết quả bất biến: tháng neo, phiên bản mô hình và dữ liệu được ghi cố định.",
+    columns: {
+      origin: "Tháng neo",
+      mode: "Chế độ",
+      status: "Trạng thái",
+      model: "Mô hình",
+      data: "Dữ liệu",
+      created: "Tạo lúc",
+      open: "Mở",
+    },
+    open: (origin: string) => `Mở bản đồ của lượt tháng neo ${origin}`,
+    create: {
+      title: "Tạo lượt dự báo tái hiện lịch sử",
+      lead: "Chạy nền và có thể mất vài phút. Chỉ tháng neo đến 06/2010 (giai đoạn có dữ liệu thật) được chấp nhận.",
+      origin: "Tháng neo",
+      submit: "Tạo lượt",
+      submitting: "Đang gửi…",
+      analystOnly:
+        "Chỉ vai trò phân tích trở lên được tạo lượt dự báo. Bạn vẫn xem được danh sách.",
+      demoNote: "Bản demo chỉ có sẵn 8 tháng neo từ 11/2009 đến 06/2010; tháng khác sẽ bị từ chối.",
+      invalid: "Nhập tháng dạng năm-tháng (ví dụ 2010-03).",
+      accepted: "Đã nhận, đang chạy nền.",
+      progress: (pct: string) => `Tiến độ ${pct}`,
+      done: "Hoàn tất.",
+      openResult: "Mở kết quả",
+      failed: "Lượt dự báo thất bại.",
+    },
+    empty: "Chưa có lượt dự báo nào.",
   },
 
   common: {

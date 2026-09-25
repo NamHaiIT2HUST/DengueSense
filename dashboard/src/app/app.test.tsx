@@ -20,6 +20,12 @@ async function fillAndSubmit(
   await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
 }
 
+async function expectMapPage() {
+  expect(
+    await screen.findByRole("heading", { level: 1, name: "Bản đồ rủi ro" })
+  ).toBeInTheDocument();
+}
+
 async function expectModelPage() {
   expect(
     await screen.findByRole("heading", { level: 1, name: "Mô hình & giới hạn" })
@@ -44,12 +50,12 @@ describe("cổng vào console", () => {
     expect(session.getState().user?.username).toBe(VIEWER.username);
   });
 
-  it("/app tự chuyển tới trang đầu của console", async () => {
+  it("/app tự chuyển tới trang đầu của console (bản đồ rủi ro)", async () => {
     const store = memoryStore();
     store.set(VIEWER.username);
     const { router } = renderApp("/app", { store });
-    await expectModelPage();
-    expect(router.state.location.pathname).toBe("/app/mo-hinh");
+    await expectMapPage();
+    expect(router.state.location.pathname).toBe("/app/ban-do");
   });
 
   it("đã đăng nhập mà vào /dang-nhap → chuyển vào console", async () => {
@@ -61,8 +67,8 @@ describe("cổng vào console", () => {
       org_id: "o",
     });
     const { router } = renderApp("/dang-nhap");
-    await expectModelPage();
-    expect(router.state.location.pathname).toBe("/app/mo-hinh");
+    await expectMapPage();
+    expect(router.state.location.pathname).toBe("/app/ban-do");
   });
 });
 
@@ -175,13 +181,13 @@ describe("đăng nhập", () => {
     ["URL tuyệt đối", "https://ke-xau.example/app"],
     ["giao thức tương đối", "//ke-xau.example"],
     ["ngoài console", "/"],
-  ])("tham số redirect độc hại (%s) bị bỏ qua → vào /app/mo-hinh", async (_n, target) => {
+  ])("tham số redirect độc hại (%s) bị bỏ qua → vào trang đầu của console", async (_n, target) => {
     const user = userEvent.setup();
     const { router } = renderApp(`/dang-nhap?redirect=${encodeURIComponent(target)}`);
     await screen.findByRole("heading", { level: 1, name: "Đăng nhập" });
     await fillAndSubmit(user, VIEWER.username, VIEWER.password);
-    await expectModelPage();
-    expect(router.state.location.pathname).toBe("/app/mo-hinh");
+    await expectMapPage();
+    expect(router.state.location.pathname).toBe("/app/ban-do");
     expect(router.state.location.href).not.toContain("ke-xau");
   });
 

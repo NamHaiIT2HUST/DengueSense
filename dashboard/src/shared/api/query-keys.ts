@@ -20,4 +20,6 @@ export const qk = {
   observations: (provinceId: string, range: { from?: string; to?: string } = {}) =>
     ["observations", provinceId, range] as const,
   job: (jobId: string) => ["job", jobId] as const,
+  geometry: () => ["geo", "provinces"] as const,
+  dataVersions: () => ["data-versions"] as const,
 };

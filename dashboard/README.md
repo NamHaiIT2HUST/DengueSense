@@ -9,8 +9,8 @@ SPA **React + TypeScript + Vite** của DengueSense. Kiến trúc, luật và qu
 | Trang giới thiệu `/` | ✅ Chạy, dữ liệu thật | Bản đồ rủi ro 34 tỉnh + Top 10 từ `public/data/*.json` (tính từ panel ca bệnh — **chưa phải dự báo mô hình**); 72,7% dữ liệu đo thật, phần còn lại gắn nhãn "Ước lượng" |
 | Layer 2 / Layer 3 trên trang giới thiệu | 🔶 Minh hoạ khái niệm | Phân bổ greedy phía client và văn bản mẫu tĩnh — có tag "Minh hoạ khái niệm" ngay trên UI; **không** phải MILP/LLM thật |
 | Nền móng (Đợt 0) | ✅ Xong | Router, client API sinh từ hợp đồng, lỗi problem+json, định dạng số/ngày, i18n, kiểm cấu hình, test, CI |
-| **Console: đăng nhập + khung + "Mô hình & giới hạn"** (`/dang-nhap`, `/app`, `/app/mo-hinh`) | ✅ Lát cắt 1, **chạy trên máy chủ giả** | Route guard, phiên khôi phục bằng cookie refresh, đăng xuất, `safeRedirect`; 94 test đơn vị + 13 E2E (gồm axe). Bản build mặc định là chế độ **demo** (MSW trong trình duyệt) |
-| Console: bản đồ dự báo M4-R2, chi tiết tỉnh, lượt dự báo | ⏳ Đợt 1 (tiếp) | Cần `surveillance`, `forecast` thật và gateway nối upstream |
+| **Console** (`/dang-nhap`, `/app/ban-do`, `/app/tinh/:id`, `/app/luot-du-bao`, `/app/mo-hinh`) | ✅ Đợt 1 phía frontend, **chạy trên máy chủ giả với SỐ THẬT** | Đăng nhập + route guard; bản đồ rủi ro 34 tỉnh; chi tiết tỉnh (dự báo 4 tầm, biểu đồ, SHAP); lượt dự báo; mô hình & giới hạn. Số dự báo là kết quả tái hiện mùa 2010 của exp_016 (8 tháng neo 11/2009–06/2010), KHÔNG phải dự báo cho hiện tại. 144 test đơn vị + 22 E2E (gồm axe) |
+| Nối backend thật | ⏳ | Cần `surveillance`, `forecast` thật và gateway nối upstream; đổi `VITE_APP_MODE=console` |
 
 Trang giới thiệu **không gọi backend** (có test E2E kiểm điều này).
 
@@ -22,6 +22,18 @@ Trang giới thiệu **không gọi backend** (có test E2E kiểm điều này)
 | `console` | backend thật qua `VITE_API_BASE_URL` (cùng origin qua reverse proxy) | dev với `docker compose`, pilot |
 
 Đổi chế độ khi build: `VITE_APP_MODE=console npm run build`.
+
+### Dữ liệu demo (số thật)
+
+`public/demo/*.json` (`index.json`, `observations.json`, `run-YYYY-MM.json`) do Python sinh từ kết quả đã công bố của exp_016; **không sửa tay**. Sinh lại (từ `ai-service/`, cần môi trường đã cài `requirements.txt`):
+
+```bash
+python -m app.serving.forecast_api.replay --out ../dashboard/public/demo
+```
+
+`pytest tests/test_serving` đối chiếu từng con số với `experiments/exp_016_multiseason/results.json` và kiểm hợp đồng `public-v1.yaml`. Các bất biến trung thực (mức nền kèm xác suất, không khoảng dự báo, cờ, độ tin cậy) do `app/serving/forecast_api/policy.py` quyết định — cùng bản service `forecast` thật sẽ dùng.
+
+Thử nhanh: `npm run dev` → http://localhost:5173/dang-nhap → tài khoản demo hiện sẵn trên trang (bấm "Điền sẵn"). Tài khoản `demo.phan-tich` còn tạo được lượt dự báo.
 
 ## Chạy local
 
@@ -45,8 +57,8 @@ npm run dev            # http://localhost:5173
 
 ```
 app/        khởi động, providers, router, routes/ (định tuyến theo file) — tầng ghép
-features/   một thư mục / tính năng màn hình (hiện: landing, auth, model-info); chỉ export qua index.ts
-entities/   khái niệm miền: hook API + định dạng (hiện: user, model)
+features/   một thư mục / tính năng màn hình (landing, auth, model-info, risk-map, province-detail, forecast-runs); chỉ export qua index.ts
+entities/   khái niệm miền: hook API (user, model, forecast)
 shared/     api/ (client, phiên, lỗi, khoá query, kiểu), ui/, lib/ (format), i18n/, config/ — không biết nghiệp vụ
 mocks/      handler MSW khớp hợp đồng: dùng cho test VÀ chế độ demo (kho phiên trong bộ nhớ, "cookie refresh" giả)
 test/       thiết lập Vitest + renderApp (dựng cả router thật trên lịch sử bộ nhớ)
@@ -79,6 +91,6 @@ python -m app.data.export_dashboard_data  # xuất dashboard/public/data/risk_su
 
 ## Deploy Vercel (bản công khai, dữ liệu tĩnh)
 
-Root Directory = `dashboard`, framework Vite (Build `npm run build`, Output `dist`). Không cần biến môi trường (mặc định chế độ `demo`). `vercel.json` rewrite mọi đường dẫn về `index.html` (SPA) trừ `assets/`, `data/`, `mockServiceWorker.js`, `favicon.svg` — nếu thêm thư mục tĩnh mới, thêm vào danh sách loại trừ. Chi tiết ở README gốc, mục "Deploy prototype".
+Root Directory = `dashboard`, framework Vite (Build `npm run build`, Output `dist`). Không cần biến môi trường (mặc định chế độ `demo`). `vercel.json` rewrite mọi đường dẫn về `index.html` (SPA) trừ `assets/`, `data/`, `demo/`, `mockServiceWorker.js`, `favicon.svg` — nếu thêm thư mục tĩnh mới, thêm vào danh sách loại trừ. Chi tiết ở README gốc, mục "Deploy prototype".
 
 Bản Vercel **không bao giờ** trỏ vào backend pilot (docs/10 §19.3).
