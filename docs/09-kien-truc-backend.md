@@ -953,7 +953,7 @@ Mỗi service có `RUNBOOK.md` ngắn: cách kiểm sống/chết, lỗi thườ
 Kiến trúc chốt đủ 8 service, nhưng **dựng theo đợt** để luôn có thứ chạy được (cổng nghiệm thu mỗi đợt):
 
 ### Đợt 0 — Nền móng (1 tuần) 🤝
-Trạng thái: **backend + ai-service đã xong (2026-09-25)**; còn phần frontend (docs/10 §20 Đợt 0).
+Trạng thái: **backend, ai-service và frontend đều xong (2026-09-25)** — frontend xem docs/10 §20 Đợt 0.
 - [x] `contracts/` với `public-v1.yaml` bản khung (auth, provinces, observations, forecast-runs, risk-map, explanations, model-card) + `errors.md` + schema 3 sự kiện + test hợp đồng (Python) — lint redocly sạch, `oasdiff` chặn thay đổi phá vỡ
 - [x] `infra/docker-compose.yml`: Postgres (PostGIS + pgvector), NATS JetStream + stream `EVENTS`/`DLQ`, gateway; init tạo 7 schema/user; `infra/scripts/check-db-isolation.sh` kiểm cô lập trên Postgres thật. *(Caddy: thêm cùng đợt 1 khi có dashboard cần phục vụ — chưa có gì để proxy.)*
 - [x] `backend/` scaffold: `go.mod`, `pkg/{configx,obsx,httpx,authx,eventx,dbx}`, Dockerfile distroless, golangci-lint với depguard, khung `gateway` (xác thực fail-closed đối chiếu hợp đồng). *(eventx: phong bì + kiểu dữ liệu; **outbox relay + inbox làm cùng service đầu tiên dùng chúng ở Đợt 1** để có DB thật kiểm.)*

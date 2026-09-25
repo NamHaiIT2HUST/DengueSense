@@ -65,25 +65,26 @@ Frontend là nơi **người ra quyết định nhìn thấy mô hình**. Một 
 
 | Mảng | Chọn | Ghi chú / lý do |
 |---|---|---|
-| Ngôn ngữ | **TypeScript** (bản đang dùng), `strict: true` | + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
+| Ngôn ngữ | **TypeScript 6**, `strict: true` | + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride` — đã bật, `tsc -b` sạch |
 | Framework | **React 19** | đã có |
 | Build | **Vite** | đã có |
-| Router | **TanStack Router** | route và **search params có kiểu** (lọc theo run/horizon/vùng nằm trên URL, được validate), code-split theo route |
+| Router | **TanStack Router** (định tuyến theo file, `@tanstack/router-plugin`) | route và **search params có kiểu** (lọc theo run/horizon/vùng nằm trên URL, được validate), tách chunk theo route tự động. ✅ Đợt 0 |
 | Server state | **TanStack Query v5** | đã có; cache, retry, invalidation |
-| Client state | **Zustand** | chỉ cho trạng thái UI toàn cục nhỏ (xem §6) |
-| API client | **openapi-typescript** + **openapi-fetch** | type sinh từ hợp đồng, client mỏng (~6 KB) |
-| Form | **React Hook Form** + **Zod** | validate phía client (UX), server vẫn validate lại |
+| Client state | **Zustand** | chỉ cho trạng thái UI toàn cục nhỏ (xem §6). ⏳ *Thêm khi có state UI đầu tiên (Đợt 1)*; token truy cập hiện nằm ở `shared/api/session.ts` (bộ nhớ thuần) |
+| API client | **openapi-typescript** + **openapi-fetch** | type sinh từ hợp đồng, client mỏng. ✅ Đợt 0. *Lưu ý:* `openapi-typescript` 7.x khai peer `typescript@^5` nên `package.json` có `overrides` trỏ về TS 6 của dự án (đã kiểm sinh mã đúng và ổn định) |
+| Form | **React Hook Form** + **Zod** | validate phía client (UX), server vẫn validate lại. Zod ✅ đã dùng (kiểm biến môi trường); ⏳ RHF thêm cùng form đầu tiên (đăng nhập, Đợt 1) |
 | Styling | **Tailwind CSS v4** | đã có; token trong `@theme` (§10) |
-| Component nền | **Radix UI Primitives** (dialog, dropdown, tabs, tooltip, toast…) | có sẵn a11y (focus trap, ARIA); tự style bằng Tailwind |
+| Component nền | **Radix UI Primitives** (dialog, dropdown, tabs, tooltip, toast…) | có sẵn a11y (focus trap, ARIA); tự style bằng Tailwind. ⏳ *Thêm từng gói khi component đầu tiên cần (Dialog cho `ConfirmDialog`…)* |
 | Bản đồ | **Leaflet + react-leaflet** | đã có |
-| Biểu đồ | **Recharts** | đủ cho chuỗi thời gian, dải khoảng, cột; nhẹ hơn ECharts |
+| Biểu đồ | **Recharts** | đủ cho chuỗi thời gian, dải khoảng, cột; nhẹ hơn ECharts. ⏳ *Thêm cùng màn hình S3 (Đợt 1)* |
 | Icon | lucide-react | đã có |
 | Animation | Framer Motion (tên mới `motion`) | chỉ cho trang giới thiệu; console hạn chế animation (§10.5) |
 | Ngày tháng | `Intl.DateTimeFormat` + tiện ích nhỏ tự viết cho `"YYYY-MM"` | không thêm thư viện ngày |
 | Markdown dự thảo | `react-markdown` + `rehype-sanitize` | hiển thị dự thảo văn bản an toàn |
-| Lint | **oxlint** (đã có) + **Prettier** | CONTRIBUTING ghi ESLint — cập nhật thành oxlint (nhanh, đã cấu hình) |
-| Ranh giới import | **dependency-cruiser** | kiểm luật §5.2 trong CI |
-| Test | **Vitest** + **Testing Library** + **MSW** + **Playwright** + `@axe-core/playwright` | §16 |
+| Lint | **oxlint** + **Prettier** | ✅ Đợt 0. Ngoài luật chuẩn: cấm `any`, `console`, **`fetch` ngoài `shared/api`**, `import/no-cycle`. CONTRIBUTING đã cập nhật từ ESLint sang oxlint |
+| Ranh giới import | **dependency-cruiser** | ✅ Đợt 0 — kiểm luật §5.2 trong CI (10 luật, đã kiểm bằng cách cố ý vi phạm) |
+| Test | **Vitest** + **Testing Library** + **MSW** + **Playwright** + `@axe-core/playwright` | §16. ✅ Đợt 0 |
+| Ngân sách bundle | script `scripts/check-bundle-size.mjs` (gzip từng chunk) | không thêm thư viện `size-limit`; ngân sách ở §15 |
 
 Thêm thư viện mới **PHẢI** nêu trong PR: lý do, kích thước gzip (bundlephobia), giấy phép, có thay được bằng thứ đã có không.
 
@@ -354,13 +355,19 @@ Tất cả qua `shared/lib/format.ts` — không gọi `toFixed`/`toLocaleString
 
 ## 10. Design system & giao diện
 
-### 10.1 Token (Tailwind v4 `@theme` trong `src/index.css`)
+### 10.1 Token (biến CSS trong `src/app/index.css`)
 
-- **Màu ngữ nghĩa**, không dùng màu thô trong component: `--color-surface`, `--color-surface-raised`, `--color-text`, `--color-text-muted`, `--color-border`, `--color-accent`, `--color-danger`, `--color-warning`, `--color-success`, `--color-info`.
-- **Thang rủi ro** (5 lớp, tuần tự, an toàn mù màu — họ `YlOrRd` của ColorBrewer, đã dùng ở prototype): `--color-risk-1` … `--color-risk-5`.
-- **Nguồn dữ liệu**: `--color-src-real`, `--color-src-estimated` (+ hoa văn gạch chéo trên bản đồ).
-- Khoảng cách theo bội số 4 px; bo góc `sm/md/lg`; 1 bộ font (Be Vietnam Pro hoặc Inter — hỗ trợ tiếng Việt đầy đủ), cỡ chữ nền 16 px.
-- Chế độ tối: **NÊN** hỗ trợ bằng redefine token; không bắt buộc ở đợt 1.
+Giữ nguyên **ngôn ngữ thiết kế của prototype** (tối là mặc định, kính mờ tiết chế) thay vì đổi tên hàng loạt — token
+đã mang nghĩa (không phải màu thô). Tên thực tế:
+
+- **Nền / chữ / viền:** `--bg-page`, `--bg-surface`, `--bg-surface-2`, `--bg-surface-hover`; `--ink-primary`, `--ink-secondary`, `--ink-muted`; `--border-hairline`, `--border-strong`.
+- **Thương hiệu:** `--accent` (chữ/viền/biểu tượng trên nền tối), **`--accent-solid`** (nền đặc của nút/liên kết chữ trắng — `#3987e5` chỉ đạt 3,6:1, `#2a6fd0` đạt 4,9:1), `--accent-soft`, `--accent-ink`.
+- **Trạng thái cố định:** `--status-good/warning/serious/critical` — không dùng cho series dữ liệu khác.
+- **Thang rủi ro:** `--risk-1` … `--risk-8` (tuần tự đỏ, ColorBrewer `Reds`) cho trang giới thiệu. Console dùng **lớp rời rạc có ngưỡng cố định** (§11.1): khi làm S2, thêm `--risk-class-1..5` (chọn từ thang trên hoặc `YlOrRd`) — không co giãn theo min/max từng lần.
+- **Nguồn dữ liệu:** thêm `--src-real`, `--src-estimated` (+ hoa văn gạch chéo trên bản đồ) khi làm S2.
+- Font: **Inter** (thân) + **Space Grotesk** (tiêu đề), hỗ trợ tiếng Việt đầy đủ; cỡ chữ nền 16 px.
+- **Luật tương phản (đã có test axe):** chữ ≥ 4,5:1 trên MỌI nền bề mặt kể cả `--accent-soft`; đổi giá trị token phải chạy lại `npm run test:e2e`. `--ink-muted` đã được nâng lên `#9a9891` vì `#898781` chỉ đạt 4,4:1 trên nền accent-soft.
+- Chế độ sáng: **NÊN** hỗ trợ bằng redefine token; không bắt buộc ở Đợt 1.
 
 ### 10.2 Thư viện component `shared/ui`
 
@@ -454,7 +461,7 @@ Job chạy nền (forecast run, phương án lớn): hiển thị tiến độ b
 
 ## 14. Bảo mật phía client
 
-- **Access token chỉ trong bộ nhớ** (Zustand, không persist). Refresh token là cookie `HttpOnly` do backend đặt — JS không đọc được. **Cấm** lưu token vào `localStorage`/`sessionStorage`.
+- **Access token chỉ trong bộ nhớ** (`shared/api/session.ts`; Đợt 1 có thể bọc bằng Zustand, không persist). Refresh token là cookie `HttpOnly` do backend đặt — JS không đọc được. **Cấm** lưu token vào `localStorage`/`sessionStorage`.
 - Tải lại trang → gọi `/auth/refresh` để lấy access token mới (cookie tự gửi).
 - Không bao giờ dùng `dangerouslySetInnerHTML`; nội dung dự thảo render qua `react-markdown` + `rehype-sanitize`.
 - **CSP** (đặt ở caddy/nginx): `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; connect-src 'self'; frame-ancestors 'none'`.
@@ -584,13 +591,14 @@ Kích hoạt khi đổi `dashboard/**` hoặc `contracts/openapi/public-v1.yaml`
 
 Khớp với 09 §18.
 
-### Đợt 0 — Nền móng (1 tuần)
-- [ ] Thêm TanStack Router, openapi-fetch, RHF + Zod, Radix, Recharts, Prettier, dependency-cruiser, Vitest, MSW, Playwright
-- [ ] Bật `strict` + các cờ §3; alias `@/`
-- [ ] Dựng cấu trúc §5; chuyển prototype vào `features/landing` (trang `/` vẫn chạy như cũ)
-- [ ] `shared/api/client.ts` (auth, request-id, idempotency, problem+json), `format.ts`, `vi.ts`, token `@theme`
-- [ ] CI `ci-dashboard.yml` đầy đủ §16.2
-- **🚪 Cổng:** trang giới thiệu chạy như trước; CI xanh; `api:gen` chạy được với `public-v1.yaml` bản khung.
+### Đợt 0 — Nền móng (1 tuần) — ✅ XONG (2026-09-25)
+- [x] Thêm TanStack Router, openapi-fetch/typescript, Zod, Prettier, dependency-cruiser, Vitest + Testing Library + MSW, Playwright + axe. *(RHF, Radix, Recharts, Zustand: thêm khi component/màn hình đầu tiên cần — không thêm phụ thuộc chưa dùng.)*
+- [x] Bật `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`; alias `@/`
+- [x] Dựng cấu trúc §5; prototype chuyển vào `features/landing` (trang `/` chạy như cũ; tách 3 chunk: khởi đầu 122 KB, route giới thiệu 52 KB, bản đồ Leaflet 45 KB tải lazy ngay sau khi có dữ liệu. **Tổng JS tăng 172 → ~219 KB gzip** do thêm router, Zod, openapi-fetch — vẫn trong ngân sách §15; lợi ích của tách chunk là khung trang hiện sớm hơn, không phải tải ít hơn)
+- [x] `shared/api` (client: auth, request-id, **Idempotency-Key bắt buộc cho thao tác ghi**, refresh 401 một lần, problem+json → `ApiError`), `shared/lib/format.ts`, `shared/i18n/vi.ts` (đồng bộ tự động với `contracts/errors.md`), `shared/config/env.ts` (Zod)
+- [x] CI `ci-dashboard.yml` đầy đủ §16.2 (kèm kiểm `api:gen` và `routeTree` còn đồng bộ, ngân sách bundle, `npm audit`)
+- [x] **Tiếp cận trang giới thiệu (WCAG AA, axe): 0 critical/serious.** Đo lần đầu trên prototype cho thấy lỗi thật, đã sửa: ô trượt ngân sách thiếu nhãn (critical); tương phản chữ ở 77 phần tử (serious; 3 nguyên nhân: chữ `--ink-muted`, nút chữ trắng trên `--accent`, hàng tỉnh bị làm mờ bằng opacity). Thêm hỗ trợ `prefers-reduced-motion`.
+- **🚪 Cổng: ĐẠT** — trang giới thiệu chạy như trước (bản đồ 34 tỉnh, xếp hạng, 404); 51 test đơn vị/component + 5 test E2E xanh; `api:gen` chạy với `public-v1.yaml`; dependency-cruiser, oxlint, prettier, `tsc -b` sạch.
 
 ### Đợt 1 — Console xem rủi ro (khớp đợt 1 backend) — **đủ cho demo cuộc thi**
 - [ ] S1 đăng nhập, layout console, guard route
