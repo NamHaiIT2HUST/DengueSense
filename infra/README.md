@@ -11,7 +11,7 @@ Hạ tầng dùng chung: Docker Compose cho dev/pilot (docs/09 §3, §16).
 | `identity-migrate` → `identity` | Xác thực (Go): người dùng, phiên, JWKS, token dịch vụ | Migration chạy xong (thoát) rồi `identity` mới khởi động; cần `IDENTITY_JWT_PRIVATE_KEY`, `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY` |
 | `surveillance-migrate` → `surveillance` | Danh mục tỉnh, ranh giới, phiên bản dữ liệu bất biến, quan sát (Go) | Kiểm token dịch vụ bằng khoá công khai `GATEWAY_JWT_PUBLIC_KEY` (dev). Dữ liệu nạp bằng `bash infra/scripts/seed-surveillance.sh` (idempotent; cần `ai-service/data/processed/v0.2.0/`) |
 | `forecast-migrate` → `forecast` | Chạy dự báo M4-R2 thật (Python/FastAPI), lưu kết quả bất biến | Cần `FORECAST_SERVICE_CLIENT_SECRET` + `IDENTITY_SERVICE_SECRET_SHA256_FORECAST` (cặp sinh bằng `go run ./cmd/devtool secret`, xem `.env.example`). Image ~1 GB (thư viện ML); một lượt backtest ~20 giây; cần `surveillance` đã nạp dữ liệu |
-| `gateway` | Cửa vào duy nhất (Go) | Chỉ chạy được khi đã đặt `GATEWAY_JWT_PUBLIC_KEY` (Đợt 0: khoá tĩnh, cặp với khoá riêng của `identity`) |
+| `gateway` | Cửa vào duy nhất (Go, cổng 8080): xác thực, chuyển tiếp, ghép `/risk-map`, cookie refresh HttpOnly, giới hạn đăng nhập theo IP | Lấy JWKS từ `identity`; cần `GATEWAY_SERVICE_CLIENT_SECRET` (+ băm ở `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY`); khởi động sau `identity`, `surveillance`, `forecast` |
 
 Redis **chưa thêm** — chỉ khi có số đo chứng minh cần (ADR-0003). Các service còn lại được thêm theo đợt (docs/09 §18).
 
@@ -28,7 +28,7 @@ cd backend && go run ./cmd/devtool keygen
 ```
 
 - Dán dòng `PUBLIC=...` vào `infra/.env` (biến `GATEWAY_JWT_PUBLIC_KEY`) và dòng `PRIVATE=...` vào `IDENTITY_JWT_PRIVATE_KEY` (dev dùng chung một cặp để gateway kiểm được token do `identity` ký).
-- `cd backend && go run ./cmd/devtool secret` in `SECRET=...` (giữ phía gateway) và `SHA256=...` (vào `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY`).
+- `cd backend && go run ./cmd/devtool secret` in `SECRET=...` (vào `GATEWAY_SERVICE_CLIENT_SECRET`) và `SHA256=...` (vào `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY`).
 - Lưu dòng `PRIVATE=...` vào `infra/.env.devtool` dưới dạng `DEV_JWT_PRIVATE_KEY=...` (file này bị `.gitignore`; **không commit, không dán vào chat/issue**).
 
 Rồi chạy stack:
@@ -40,6 +40,18 @@ docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml ps
 
 `docker-compose.dev.yml` chỉ mở cổng ra `127.0.0.1` (Postgres 5432, NATS 4222/8222, gateway 8080). Cổng bị chiếm hoặc bị Windows giữ chỗ →
 đặt `POSTGRES_HOST_PORT`, `NATS_HOST_PORT`, `NATS_MONITOR_HOST_PORT`, `GATEWAY_HOST_PORT`, `IDENTITY_HOST_PORT`, `SURVEILLANCE_HOST_PORT` trong `infra/.env`.
+
+## Chạy console trên backend thật
+
+```bash
+# 1. Stack đang chạy + đã nạp dữ liệu (bash infra/scripts/seed-surveillance.sh) — xem trên.
+# 2. Tạo tài khoản dev (mật khẩu sinh ngẫu nhiên, ghi vào infra/.env.devtool — file bị .gitignore, KHÔNG commit):
+#    docker compose ... exec -T -e IDENTITY_NEW_PASSWORD=<mk> identity /service create-user -username dev-analyst -display-name "Dev analyst" -org cdc-dev -roles analyst
+# 3. Trỏ dev server tới gateway rồi chạy:
+echo "DEV_API_PROXY=http://127.0.0.1:${GATEWAY_HOST_PORT:-8080}" > dashboard/.env.console.local   # bị .gitignore
+cd dashboard && npm run dev:console        # http://127.0.0.1:5173 (Vite proxy /api → gateway, cùng origin để cookie refresh hoạt động)
+E2E_ANALYST_PASSWORD=… E2E_VIEWER_PASSWORD=… npm run test:e2e:real   # 6 E2E trên stack thật
+```
 
 ## Kiểm tra sau khi dựng
 

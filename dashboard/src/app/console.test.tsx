@@ -22,7 +22,8 @@ function signedIn(username = VIEWER.username) {
 }
 
 async function mapTable() {
-  return await screen.findByRole("table", { name: "Bảng xếp hạng tỉnh" });
+  // Lần đầu trong tiến trình còn phải nạp chunk route (lazy) + Leaflet: 1 s mặc định quá sát khi máy đang bận.
+  return await screen.findByRole("table", { name: "Bảng xếp hạng tỉnh" }, { timeout: 10_000 });
 }
 
 function dataRows(table: HTMLElement) {

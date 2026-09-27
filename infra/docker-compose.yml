@@ -73,8 +73,20 @@ services:
     environment:
       GATEWAY_LISTEN_ADDR: ":8080"
       GATEWAY_LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-info}
-      # Đợt 0: khoá công khai nạp tĩnh. Đợt 1: thay bằng JWKS lấy từ `identity`.
-      GATEWAY_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - tạo bằng go run ./cmd/devtool keygen, xem infra/README.md}"
+      # Khoá xác minh access token lấy từ JWKS của identity; bí mật RIÊNG của gateway để xin token dịch vụ.
+      GATEWAY_IDENTITY_URL: "http://identity:8081"
+      GATEWAY_SURVEILLANCE_URL: "http://surveillance:8082"
+      GATEWAY_FORECAST_URL: "http://forecast:8001"
+      GATEWAY_SERVICE_CLIENT_SECRET: "${GATEWAY_SERVICE_CLIENT_SECRET:?thiếu GATEWAY_SERVICE_CLIENT_SECRET - xem infra/README.md}"
+      # Cookie refresh luôn có cờ Secure trừ khi tắt tường minh (chỉ dev qua http với tên miền khác localhost).
+      GATEWAY_COOKIE_SECURE: "${GATEWAY_COOKIE_SECURE:-true}"
+    depends_on:
+      identity:
+        condition: service_healthy
+      surveillance:
+        condition: service_healthy
+      forecast:
+        condition: service_healthy
     networks: [core]
     read_only: true
     cap_drop: [ALL]

@@ -47,7 +47,12 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Đăng xuất (thu hồi refresh token) */
+        /**
+         * Đăng xuất (thu hồi refresh token trong cookie)
+         * @description Công khai có chủ đích: phiên được xác định bằng cookie refresh, KHÔNG bằng access token — access token hết hạn
+         *     (vd người dùng rời máy 15 phút) không được chặn đăng xuất, nếu không cookie vẫn sống và phiên tự khôi phục.
+         *     Idempotent: không có cookie hoặc token đã thu hồi vẫn trả 204. `SameSite=Strict` chặn đăng xuất từ trang khác.
+         */
         post: operations["logout"];
         delete?: never;
         options?: never;
@@ -845,14 +850,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Đã đăng xuất */
+            /** @description Đã đăng xuất; cookie refresh bị xoá. */
             204: {
                 headers: {
+                    /** @description Xoá cookie refresh (`Max-Age=0`). */
+                    "Set-Cookie"?: string;
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            401: components["responses"]["Unauthorized"];
+            429: components["responses"]["TooManyRequests"];
         };
     };
     getMe: {
