@@ -3,5 +3,6 @@
 *
 !requirements-serving.txt
 !app/serving
+!app/forecast
 **/__pycache__
 **/*.pyc

@@ -123,6 +123,7 @@ services:
       IDENTITY_JWT_PRIVATE_KEY: "${IDENTITY_JWT_PRIVATE_KEY:?thiếu IDENTITY_JWT_PRIVATE_KEY - xem infra/README.md}"
       # SHA-256 của client_secret từng service (bí mật gốc nằm ở phía service gọi, không ở đây).
       IDENTITY_SERVICE_SECRET_SHA256_GATEWAY: "${IDENTITY_SERVICE_SECRET_SHA256_GATEWAY:-}"
+      IDENTITY_SERVICE_SECRET_SHA256_FORECAST: "${IDENTITY_SERVICE_SECRET_SHA256_FORECAST:-}"
     depends_on:
       identity-migrate:
         condition: service_completed_successfully
@@ -208,6 +209,26 @@ services:
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
 
+  # Áp migration lên schema `forecast` rồi thoát (docs/09 §9.3).
+  forecast-migrate:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/forecast:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["python", "-m", "app.serving.forecast_api.migrate"]
+    environment:
+      FORECAST_DB_URL: postgresql://svc_forecast:${SVC_FORECAST_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   forecast:
     build:
       context: ../ai-service
@@ -218,6 +239,15 @@ services:
     restart: unless-stopped
     environment:
       FORECAST_LOG_LEVEL: ${FORECAST_LOG_LEVEL:-info}
+      FORECAST_DB_URL: postgresql://svc_forecast:${SVC_FORECAST_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Khoá CÔNG KHAI của identity để kiểm token dịch vụ (dev: cùng cặp khoá với gateway).
+      FORECAST_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - xem infra/README.md}"
+      FORECAST_SURVEILLANCE_URL: http://surveillance:8082
+      FORECAST_IDENTITY_URL: http://identity:8081
+      FORECAST_SERVICE_CLIENT_SECRET: "${FORECAST_SERVICE_CLIENT_SECRET:?thiếu FORECAST_SERVICE_CLIENT_SECRET - xem infra/README.md}"
+    depends_on:
+      forecast-migrate:
+        condition: service_completed_successfully
     networks: [core]
     read_only: true
     cap_drop: [ALL]

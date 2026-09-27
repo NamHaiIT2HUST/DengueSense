@@ -11,8 +11,13 @@ WORKDIR /srv
 
 # Tách bước cài phụ thuộc để tận dụng cache khi chỉ đổi mã nguồn.
 COPY requirements-serving.txt .
-RUN pip install -r requirements-serving.txt
+# libgomp1: thời gian chạy OpenMP của LightGBM/XGBoost (image slim không có sẵn).
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install -r requirements-serving.txt
 
+# Thư viện nghiên cứu (mô hình, đặc trưng — CHỈ mã Python, không notebook/data/experiments) + lớp phục vụ.
+COPY app/forecast ./app/forecast
 COPY app/serving ./app/serving
 
 ARG VERSION=dev

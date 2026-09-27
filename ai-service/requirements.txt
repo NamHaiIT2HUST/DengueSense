@@ -61,3 +61,7 @@ import-linter>=2.0,<3.0
 # Kiểm thử hợp đồng (contracts/): schema sự kiện + OpenAPI
 jsonschema>=4.23,<5.0
 pyyaml>=6.0,<7.0
+# Lớp phục vụ `forecast` (app/serving): kho Postgres, kiểm token dịch vụ, gọi surveillance/identity, TestClient
+psycopg[binary,pool]>=3.3,<4.0
+cryptography>=50.0,<51.0
+httpx>=0.28,<0.29

@@ -10,6 +10,7 @@ Hạ tầng dùng chung: Docker Compose cho dev/pilot (docs/09 §3, §16).
 | `nats` (+ `nats-init`) | NATS JetStream | `nats-init` tạo stream `EVENTS` (giữ 30 ngày) và `DLQ` (90 ngày), chạy 1 lần, idempotent |
 | `identity-migrate` → `identity` | Xác thực (Go): người dùng, phiên, JWKS, token dịch vụ | Migration chạy xong (thoát) rồi `identity` mới khởi động; cần `IDENTITY_JWT_PRIVATE_KEY`, `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY` |
 | `surveillance-migrate` → `surveillance` | Danh mục tỉnh, ranh giới, phiên bản dữ liệu bất biến, quan sát (Go) | Kiểm token dịch vụ bằng khoá công khai `GATEWAY_JWT_PUBLIC_KEY` (dev). Dữ liệu nạp bằng `bash infra/scripts/seed-surveillance.sh` (idempotent; cần `ai-service/data/processed/v0.2.0/`) |
+| `forecast-migrate` → `forecast` | Chạy dự báo M4-R2 thật (Python/FastAPI), lưu kết quả bất biến | Cần `FORECAST_SERVICE_CLIENT_SECRET` + `IDENTITY_SERVICE_SECRET_SHA256_FORECAST` (cặp sinh bằng `go run ./cmd/devtool secret`, xem `.env.example`). Image ~1 GB (thư viện ML); một lượt backtest ~20 giây; cần `surveillance` đã nạp dữ liệu |
 | `gateway` | Cửa vào duy nhất (Go) | Chỉ chạy được khi đã đặt `GATEWAY_JWT_PUBLIC_KEY` (Đợt 0: khoá tĩnh, cặp với khoá riêng của `identity`) |
 
 Redis **chưa thêm** — chỉ khi có số đo chứng minh cần (ADR-0003). Các service còn lại được thêm theo đợt (docs/09 §18).
