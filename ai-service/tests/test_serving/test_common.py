@@ -300,7 +300,31 @@ def test_settings_errors_name_variables_but_never_values():
 def test_create_app_from_env_fails_fast_on_bad_config():
     with pytest.raises(SettingsError):
         create_app_from_env({"FORECAST_LOG_LEVEL": "verbose"})
-    assert create_app_from_env({}) is not None
+    # Thiếu cấu hình bắt buộc (khoá xác thực, bí mật dịch vụ, DB) → KHÔNG khởi động; lỗi chỉ nêu TÊN biến.
+    with pytest.raises(SettingsError) as e:
+        create_app_from_env({})
+    for name in (
+        "FORECAST_JWT_PUBLIC_KEY",
+        "FORECAST_SERVICE_CLIENT_SECRET",
+        "FORECAST_DB_URL",
+    ):
+        assert name in str(e.value)
+    with pytest.raises(SettingsError) as e2:
+        create_app_from_env({"FORECAST_STORE": "gia-tri-bi-mat"})
+    assert "gia-tri-bi-mat" not in str(e2.value)
+
+
+def test_create_app_from_env_builds_with_valid_config():
+    from tests.test_serving.jwt_helpers import Signer
+
+    env = {
+        "FORECAST_STORE": "memory",
+        "FORECAST_JWT_PUBLIC_KEY": Signer().public_b64,
+        "FORECAST_SERVICE_CLIENT_SECRET": "bi-mat-thu-nghiem",
+    }
+    assert create_app_from_env(env) is not None
+    with pytest.raises(ValueError):  # khoá công khai sai định dạng
+        create_app_from_env({**env, "FORECAST_JWT_PUBLIC_KEY": "khong-phai-khoa"})
 
 
 # ---------- hợp đồng mã lỗi ----------

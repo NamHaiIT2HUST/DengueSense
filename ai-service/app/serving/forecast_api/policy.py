@@ -7,6 +7,7 @@ Hàm THUẦN (không đọc dữ liệu, không fit mô hình) để kiểm th�
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Sequence
 from itertools import pairwise
 from typing import Final, TypedDict
@@ -74,6 +75,14 @@ def feature_family(feature: str) -> str:
     if any(feature.startswith(k) for k in _CLIMATE):
         return "climate"
     return "other"
+
+
+_YEAR_MONTH = re.compile(r"^[0-9]{4}-(0[1-9]|1[0-2])$")
+
+
+def is_year_month(value: str) -> bool:
+    """Tháng dạng `YYYY-MM` hợp lệ (khớp `YearMonth` của hợp đồng)."""
+    return bool(_YEAR_MONTH.match(value))
 
 
 def is_after_validated_period(origin_month: str) -> bool:
