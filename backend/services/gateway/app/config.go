@@ -2,12 +2,10 @@
 package app
 
 import (
-	"crypto/ed25519"
 	"log/slog"
 	"net"
 	"time"
 
-	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/configx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/obsx"
 )
@@ -28,11 +26,24 @@ type Config struct {
 	ShutdownTimeout time.Duration
 	MaxBodyBytes    int64
 
-	// Khoá công khai Ed25519 để xác minh access token. Đợt 0: nạp tĩnh từ biến môi trường.
-	// Đợt 1: thay bằng JWKS lấy từ `identity` (khi service này có).
-	JWTPublicKey ed25519.PublicKey
-	JWTIssuer    string
-	JWTAudience  string
+	// Khoá xác minh access token lấy từ JWKS của `identity` (làm mới định kỳ, hỗ trợ xoay khoá).
+	JWTIssuer   string
+	JWTAudience string
+	JWKSRefresh time.Duration
+
+	// Service phía sau. ServiceClientSecret là bí mật RIÊNG của gateway để xin token dịch vụ (không log).
+	IdentityURL         string
+	SurveillanceURL     string
+	ForecastURL         string
+	ServiceClientSecret string
+	UpstreamTimeout     time.Duration
+
+	// Cookie refresh: Secure bật mặc định; chỉ tắt khi chạy dev qua http.
+	CookieSecure bool
+
+	// Giới hạn đăng nhập/làm mới theo IP: tối đa AuthRateLimit lần mỗi AuthRateWindow.
+	AuthRateLimit  int
+	AuthRateWindow time.Duration
 }
 
 // LoadConfig đọc cấu hình; thiếu/sai biến bắt buộc → lỗi liệt kê đủ tên biến (không lộ giá trị).
@@ -44,6 +55,17 @@ func LoadConfig(lookup func(string) (string, bool)) (Config, error) {
 		MaxBodyBytes:    int64(l.Int("MAX_BODY_BYTES", defaultMaxBody)),
 		JWTIssuer:       l.String("JWT_ISSUER", defaultIssuer),
 		JWTAudience:     l.String("JWT_AUDIENCE", defaultAudience),
+		JWKSRefresh:     l.Duration("JWKS_REFRESH", 5*time.Minute),
+
+		IdentityURL:         l.RequiredString("IDENTITY_URL"),
+		SurveillanceURL:     l.RequiredString("SURVEILLANCE_URL"),
+		ForecastURL:         l.RequiredString("FORECAST_URL"),
+		ServiceClientSecret: l.RequiredString("SERVICE_CLIENT_SECRET"),
+		UpstreamTimeout:     l.Duration("UPSTREAM_TIMEOUT", 5*time.Second),
+
+		CookieSecure:   l.Bool("COOKIE_SECURE", true),
+		AuthRateLimit:  l.Int("AUTH_RATE_LIMIT", 30),
+		AuthRateWindow: l.Duration("AUTH_RATE_WINDOW", time.Minute),
 	}
 
 	level, err := obsx.ParseLevel(l.String("LOG_LEVEL", "info"))
@@ -52,15 +74,9 @@ func LoadConfig(lookup func(string) (string, bool)) (Config, error) {
 	}
 	cfg.LogLevel = level
 
-	keyB64 := l.RequiredString("JWT_PUBLIC_KEY")
 	if err := l.Err(); err != nil {
 		return Config{}, err
 	}
-	key, err := authx.ParsePublicKey(keyB64)
-	if err != nil {
-		return Config{}, err // lỗi của ParsePublicKey không chứa giá trị khoá
-	}
-	cfg.JWTPublicKey = key
 	return cfg, nil
 }
 

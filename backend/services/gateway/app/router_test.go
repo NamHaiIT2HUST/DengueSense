@@ -23,7 +23,6 @@ import (
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/obsx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway/app"
-	"github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway/handler"
 )
 
 const (
@@ -97,7 +96,7 @@ func newFixture(t *testing.T) fixture {
 	t.Helper()
 	pub, priv, err := authx.GenerateKeyPair()
 	require.NoError(t, err)
-	return fixtureWith(t, pub, priv, handler.NotImplemented{})
+	return fixtureWith(t, pub, priv, notImplemented{})
 }
 
 func fixtureWith(t *testing.T, pub ed25519.PublicKey, priv ed25519.PrivateKey, srv handlerServer) fixture {
@@ -162,7 +161,7 @@ func TestPublicRoutes_MatchContract(t *testing.T) {
 		assert.True(t, app.IsPublic(method, path), "hợp đồng đánh dấu công khai nhưng code chưa miễn: %s", key)
 	}
 	// … và code không được miễn thêm route nào ngoài hợp đồng.
-	assert.Equal(t, []string{"POST /api/v1/auth/login", "POST /api/v1/auth/refresh"}, fromContract,
+	assert.Equal(t, []string{"POST /api/v1/auth/login", "POST /api/v1/auth/logout", "POST /api/v1/auth/refresh"}, fromContract,
 		"tập route công khai thay đổi: rà soát bảo mật rồi cập nhật cả hợp đồng lẫn publicRoutes")
 }
 
@@ -254,7 +253,7 @@ func TestTokenSignedByAnotherKeyIsRejected(t *testing.T) {
 
 func TestExpiredTokenIsRejected(t *testing.T) {
 	pub, priv, _ := authx.GenerateKeyPair()
-	f := fixtureWith(t, pub, priv, handler.NotImplemented{})
+	f := fixtureWith(t, pub, priv, notImplemented{})
 	old, _ := authx.NewEd25519Signer(priv, iss, aud)
 	tok, err := old.WithClock(func() time.Time { return time.Now().Add(-time.Hour) }).
 		Sign(authx.Actor{ID: "u", Roles: []authx.Role{authx.RoleViewer}})
@@ -265,7 +264,7 @@ func TestExpiredTokenIsRejected(t *testing.T) {
 // ---------- Actor xuống tới handler ----------
 
 type spyServer struct {
-	handler.NotImplemented
+	notImplemented
 	sawActor authx.Actor
 	sawOK    bool
 }
@@ -289,13 +288,13 @@ func TestActorReachesHandlerAndRequireRolesForbids(t *testing.T) {
 	assert.Equal(t, "common.forbidden", problem(t, w).Code)
 }
 
-type panicServer struct{ handler.NotImplemented }
+type panicServer struct{ notImplemented }
 
 func (panicServer) GetMe(contextT, getMeReq) (getMeResp, error) {
 	panic("SECRET_DB_PASSWORD=abc")
 }
 
-type errServer struct{ handler.NotImplemented }
+type errServer struct{ notImplemented }
 
 func (errServer) GetMe(contextT, getMeReq) (getMeResp, error) {
 	return nil, assert.AnError

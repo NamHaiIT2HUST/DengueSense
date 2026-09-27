@@ -19,6 +19,7 @@ const BasePath = "/api/v1"
 var publicRoutes = map[string]struct{}{
 	"POST " + BasePath + "/auth/login":   {},
 	"POST " + BasePath + "/auth/refresh": {},
+	"POST " + BasePath + "/auth/logout":  {},
 }
 
 // IsPublic báo route (method + mẫu đường dẫn đã khớp) có thuộc danh sách công khai không.
@@ -34,6 +35,7 @@ type Deps struct {
 	Server   api.StrictServerInterface
 	Ready    httpx.ReadyFunc
 	MaxBody  int64
+	Limiter  *AuthLimiter
 }
 
 // NewRouter dựng gin.Engine của gateway:
@@ -45,6 +47,8 @@ type Deps struct {
 // nhận 400 (lộ thông tin validation) thay vì 401. Vì vậy middleware gắn ở NHÓM ROUTE, không ở options.
 func NewRouter(d Deps) *gin.Engine {
 	r := httpx.NewEngine(d.Log, d.MaxBody)
+	// Không tin X-Forwarded-For: ClientIP = địa chỉ kết nối trực tiếp (giới hạn tần suất không bị lách bằng header).
+	_ = r.SetTrustedProxies(nil)
 	httpx.RegisterHealth(r, d.Ready)
 
 	handler := api.NewStrictHandlerWithOptions(d.Server, nil, api.StrictGinServerOptions{
@@ -52,7 +56,7 @@ func NewRouter(d Deps) *gin.Engine {
 		HandlerErrorFunc:         httpx.HandlerErrorHandler(d.Log),
 		ResponseErrorHandlerFunc: httpx.ResponseErrorHandler(d.Log),
 	})
-	group := r.Group(BasePath, authx.Middleware(d.Verifier, IsPublic))
+	group := r.Group(BasePath, d.Limiter.Middleware(), authx.Middleware(d.Verifier, IsPublic))
 	api.RegisterHandlersWithOptions(group, handler, api.GinServerOptions{
 		ErrorHandler: httpx.ParamErrorHandler(),
 	})

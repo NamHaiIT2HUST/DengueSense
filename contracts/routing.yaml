@@ -23,9 +23,9 @@ operations:
     upstream: [identity.refreshToken]
     notes: "Đọc refresh_token từ cookie, gọi identity, đặt cookie mới (xoay vòng)."
   logout:
-    min_role: viewer
+    min_role: public
     upstream: [identity.logout]
-    notes: "Đọc refresh_token từ cookie, thu hồi, xoá cookie."
+    notes: "Công khai: phiên xác định bằng cookie refresh (access token hết hạn không được chặn đăng xuất). Đọc refresh_token từ cookie, thu hồi, xoá cookie; idempotent."
   getMe:
     min_role: viewer
     upstream: [identity.getUser]

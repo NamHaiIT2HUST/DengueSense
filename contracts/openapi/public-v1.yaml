@@ -77,10 +77,20 @@ paths:
     post:
       tags: [auth]
       operationId: logout
-      summary: Đăng xuất (thu hồi refresh token)
+      summary: Đăng xuất (thu hồi refresh token trong cookie)
+      description: |
+        Công khai có chủ đích: phiên được xác định bằng cookie refresh, KHÔNG bằng access token — access token hết hạn
+        (vd người dùng rời máy 15 phút) không được chặn đăng xuất, nếu không cookie vẫn sống và phiên tự khôi phục.
+        Idempotent: không có cookie hoặc token đã thu hồi vẫn trả 204. `SameSite=Strict` chặn đăng xuất từ trang khác.
+      security: []
       responses:
-        "204": { description: Đã đăng xuất }
-        "401": { $ref: "#/components/responses/Unauthorized" }
+        "204":
+          description: Đã đăng xuất; cookie refresh bị xoá.
+          headers:
+            Set-Cookie:
+              description: Xoá cookie refresh (`Max-Age=0`).
+              schema: { type: string }
+        "429": { $ref: "#/components/responses/TooManyRequests" }
 
   /me:
     get:

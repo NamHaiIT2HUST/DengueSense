@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +14,7 @@ import (
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/obsx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway/app"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway/handler"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/services/gateway/upstream"
 )
 
 // version được gán lúc build: -ldflags "-X main.version=<git sha>".
@@ -33,22 +35,34 @@ func run() int {
 	}
 	log := obsx.NewLogger(os.Stdout, "gateway", version, cfg.LogLevel)
 
-	verifier, err := authx.NewEd25519Verifier(cfg.JWTPublicKey, cfg.JWTIssuer, cfg.JWTAudience)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	httpClient := &http.Client{Timeout: cfg.UpstreamTimeout}
+	keys := upstream.NewRemoteKeySet(cfg.IdentityURL, httpClient, log)
+	go keys.Run(ctx, cfg.JWKSRefresh)
+
+	verifier, err := authx.NewKeySetVerifier(keys, cfg.JWTIssuer, cfg.JWTAudience)
 	if err != nil {
 		log.Error("khởi tạo verifier thất bại", "error", err.Error())
 		return 2
 	}
+	tokens := upstream.NewTokenSource(cfg.IdentityURL, cfg.ServiceClientSecret, httpClient)
+	client := upstream.NewClient(map[string]string{
+		upstream.Identity:     cfg.IdentityURL,
+		upstream.Surveillance: cfg.SurveillanceURL,
+		upstream.Forecast:     cfg.ForecastURL,
+	}, tokens, httpClient, log)
 
 	router := app.NewRouter(app.Deps{
 		Log:      log,
 		Verifier: verifier,
-		Server:   handler.NotImplemented{}, // Đợt 1: thay bằng hiện thực gọi surveillance/forecast/identity
-		Ready:    nil,                      // Đợt 1: kiểm kết nối tới các service phía sau
+		Server:   &handler.Gateway{Up: client, CookieSecure: cfg.CookieSecure},
+		Ready:    keys.Ready, // sẵn sàng khi đã nạp được JWKS (không có khoá thì mọi request có token đều 401)
 		MaxBody:  cfg.MaxBodyBytes,
+		Limiter:  app.NewAuthLimiter(cfg.AuthRateLimit, cfg.AuthRateWindow),
 	})
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 	if err := httpx.Run(ctx, cfg.ListenAddr, router, cfg.ShutdownTimeout, log); err != nil {
 		log.Error("server dừng bất thường", "error", err.Error())
 		return 1
