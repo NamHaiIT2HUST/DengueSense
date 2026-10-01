@@ -184,10 +184,13 @@ services:
       SURVEILLANCE_LISTEN_ADDR: ":8082"
       SURVEILLANCE_LOG_LEVEL: ${SURVEILLANCE_LOG_LEVEL:-info}
       SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      SURVEILLANCE_NATS_URL: nats://nats:4222
       # Khoá CÔNG KHAI của identity để kiểm token dịch vụ (dev: cùng cặp khoá với gateway; sau này lấy từ JWKS).
       SURVEILLANCE_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - xem infra/README.md}"
     depends_on:
       surveillance-migrate:
+        condition: service_completed_successfully
+      nats-init:
         condition: service_completed_successfully
     networks: [core]
     read_only: true

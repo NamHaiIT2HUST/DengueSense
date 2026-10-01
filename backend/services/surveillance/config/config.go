@@ -28,6 +28,9 @@ type Config struct {
 	MaxBodyBytes    int64
 	DatabaseURL     string
 
+	// NATS JetStream URL để phát sự kiện từ outbox (tuỳ chọn — nếu rỗng thì không bật outbox relay).
+	NATSURL string
+
 	// Khoá CÔNG KHAI của `identity` để kiểm token dịch vụ (Đợt 1: nạp tĩnh; sau chuyển sang JWKS).
 	JWTPublicKey ed25519.PublicKey
 	KeyID        string
@@ -49,6 +52,7 @@ func Load(lookup func(string) (string, bool)) (Config, error) {
 		ShutdownTimeout: l.Duration("SHUTDOWN_TIMEOUT", defaultShutdown),
 		MaxBodyBytes:    int64(l.Int("MAX_BODY_BYTES", defaultMaxBody)),
 		DatabaseURL:     l.RequiredString("DB_URL"),
+		NATSURL:         l.String("NATS_URL", ""),
 		KeyID:           l.String("JWT_KEY_ID", "k1"),
 		Issuer:          l.String("JWT_ISSUER", "denguesense-identity"),
 	}

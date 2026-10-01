@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-10-01 — Hoàn thiện hạ tầng sự kiện: Outbox Relay, Idempotent Inbox & Consumer (`pkg/eventx`)
+
+**Làm:**
+- `backend/pkg/eventx/publisher.go`: `Publisher` interface, `JetStreamPublisher` (NATS JetStream với `nats.MsgId` chống trùng 2 phút theo ADR-0003, hỗ trợ `PublishToSubject`), `InMemoryPublisher` cho kiểm thử.
+- `backend/pkg/eventx/outbox.go`: `OutboxStore` (hiện thực `PgxOutboxStore` dùng `FOR UPDATE SKIP LOCKED` tránh tranh chấp worker và `InMemoryOutboxStore`), `OutboxRelay` (tiến trình nền quét sự kiện chưa phát, hỗ trợ `Notify` đánh thức tức thì không phải chờ poll interval).
+- `backend/pkg/eventx/inbox.go`: `InboxStore` (hiện thực `PgxInboxStore` và `InMemoryInboxStore`) lưu bản ghi `inbox(event_id, event_type, processed_at)` đảm bảo xử lý Idempotent khi bus giao lại.
+- `backend/pkg/eventx/consumer.go`: `Consumer` điều phối nhận sự kiện, kiểm tra Idempotency, thử lại tự động theo exponential backoff (1s, 5s, 30s, 2m, 10m - tối đa 5 lần), tự động chuyển tiếp sang stream `DLQ.<type>` khi vượt ngưỡng thử để chống kẹt poison pill.
+- `backend/cmd/surveillance/main.go` & `infra/docker-compose.yml`: Thêm biến cấu hình `SURVEILLANCE_NATS_URL`, tự động kích hoạt `OutboxRelay` nền khi khởi động service `surveillance`.
+- **Kiểm thử:** 100% test đơn vị và kiểm thử an toàn đa luồng (`go test -race ./pkg/eventx/...`, `go vet ./...`) đạt kết quả xanh.
+
+---
+
 ## 2026-09-26 — exp_016: đánh giá NHIỀU MÙA (2005–2010) — headline cũ là mùa KHÓ NHẤT; định tuyến vùng khái quát
 
 **Làm:** `app/forecast/multiseason.py` (`season_splits`, bootstrap theo origin, kiểm định dấu; 6 test), `app/forecast/alert_classifier.py` (classifier cảnh báo dùng lại; 3 test),

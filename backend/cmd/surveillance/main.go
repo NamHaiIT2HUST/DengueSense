@@ -19,9 +19,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/dbx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/obsx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/surveillance/adapters/httpapi"
@@ -251,6 +253,27 @@ func serve() int {
 		return 1
 	}
 	defer pool.Close()
+
+	if cfg.NATSURL != "" {
+		pub, err := eventx.NewJetStreamPublisher(cfg.NATSURL)
+		if err != nil {
+			log.Warn("khởi tạo NATS publisher thất bại — outbox relay chưa được bật", "error", err.Error())
+		} else {
+			defer pub.Close()
+			outboxStore := eventx.NewPgxOutboxStore(pool, "outbox")
+			relay := eventx.NewRelay(outboxStore, pub, eventx.RelayOptions{
+				BatchSize:    50,
+				PollInterval: 500 * time.Millisecond,
+				Logger:       log,
+			})
+			go func() {
+				if err := relay.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+					log.Error("outbox relay dừng với lỗi", "error", err.Error())
+				}
+			}()
+			log.Info("đã khởi động outbox relay", "nats_url", cfg.NATSURL)
+		}
+	}
 
 	router := httpapi.NewRouter(httpapi.Deps{
 		Log:      log,
