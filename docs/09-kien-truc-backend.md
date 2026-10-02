@@ -987,9 +987,9 @@ Trạng thái: **backend, ai-service và frontend đều xong (2026-09-25)** —
 - **🚪 Cổng:** chọn origin 2010-03 trên dashboard → bản đồ tô màu theo dự báo M4-R2 thật, có base rate, provenance, nhãn giới hạn; số khớp exp_016 cho origin đó (test đối chiếu tự động).
 
 ### Đợt 2 — Cảnh báo & phân bổ (song song Phase 3 Layer 2)
-- [ ] `workflow`: Alert từ `forecast.run.completed`, Case, xác nhận cảnh báo
-- [ ] `optimize`: P1/P2 theo docs/04 + giải thích
-- [ ] Observability stack
+- [x] `workflow`: Alert từ `forecast.run.completed`, Case, xác nhận cảnh báo
+- [x] `optimize`: P1/P2 theo docs/04 + giải thích (Scaffold OpenAPI & API)
+- [x] Observability stack
 - **🚪 Cổng:** forecast run → cảnh báo tự sinh → officer mở hồ sơ → tạo phương án có giải thích.
 
 ### Đợt 3 — Dự thảo, duyệt, gửi (song song Phase 4 Layer 3)
