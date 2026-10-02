@@ -19,8 +19,6 @@ import (
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 )
 
-
-
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {

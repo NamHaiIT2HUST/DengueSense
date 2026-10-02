@@ -33,7 +33,7 @@ type AlertRepository interface {
 	CreateAlert(ctx context.Context, alert *Alert) error
 	GetAlertByID(ctx context.Context, id uuid.UUID) (*Alert, error)
 	ListAlerts(ctx context.Context, status string, runID *uuid.UUID) ([]Alert, error)
-	
+
 	CreateCase(ctx context.Context, c *Case) error
 	UpdateAlertStatus(ctx context.Context, id uuid.UUID, status AlertStatus) error
 }

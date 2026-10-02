@@ -279,15 +279,15 @@ func (g *Gateway) GetRiskMap(ctx context.Context, req api.GetRiskMapRequestObjec
 	}
 
 	var (
-		wg                             sync.WaitGroup
-		fcResp, prResp, wfResp         *upstream.Response
-		fcErr, prErr, wfErr            error
-		horizon                        = strconv.Itoa(int(req.Params.Horizon))
-		forecastsPath                  = internalBase + "/forecast-runs/" + run + "/forecasts"
-		provincesPath                  = internalBase + "/provinces"
-		alertsPath                     = internalBase + "/workflow/alerts"
-		forecastsQueries               = url.Values{"horizon": {horizon}}
-		alertsQueries                  = url.Values{"status": {"open"}, "run_id": {run}}
+		wg                     sync.WaitGroup
+		fcResp, prResp, wfResp *upstream.Response
+		fcErr, prErr, wfErr    error
+		horizon                = strconv.Itoa(int(req.Params.Horizon))
+		forecastsPath          = internalBase + "/forecast-runs/" + run + "/forecasts"
+		provincesPath          = internalBase + "/provinces"
+		alertsPath             = internalBase + "/workflow/alerts"
+		forecastsQueries       = url.Values{"horizon": {horizon}}
+		alertsQueries          = url.Values{"status": {"open"}, "run_id": {run}}
 	)
 	wg.Add(3)
 	go func() {
