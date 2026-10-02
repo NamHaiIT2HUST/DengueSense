@@ -193,7 +193,7 @@ python experiments/exp_005_m4_ensemble/run.py                 # M4 ensemble
 python experiments/exp_008_outbreak_north/verify_m4_equivalence.py   # predict_m4 khớp exp_008
 python experiments/exp_010_robustness/run.py && python experiments/exp_010_robustness/analyze.py
 python experiments/exp_011_alerting/run.py && python experiments/exp_011_alerting/analyze.py
-pytest -q                                                     # 148 test
+pytest -q                                                     # 181 test (148 thư viện Layer 1 + 33 hợp đồng/serving)
 ```
 
 Seed cố định 42. Mỗi experiment có `config.yaml`, `RESULTS.md`, `results.json`/`predictions.json`, `analysis_output.txt`. Không có bước nào

@@ -80,6 +80,8 @@ Merge bằng **Squash and merge**, xoá branch sau khi merge.
 
 ### `backend` (Go)
 
+- Kiến trúc service, hợp đồng API, luật dữ liệu/bảo mật: [docs/09-kien-truc-backend.md](docs/09-kien-truc-backend.md) — đọc trước PR backend đầu tiên.
+
 - Bắt buộc chạy `gofmt` trước khi commit (tốt nhất qua pre-commit hook, xem mục 5).
 - Lint bằng `golangci-lint run` — CI sẽ chặn nếu fail.
 - Không log secret / token ra console hoặc log file.
@@ -96,7 +98,7 @@ Merge bằng **Squash and merge**, xoá branch sau khi merge.
 
 ### `dashboard` (React + TypeScript)
 
-- Lint bằng ESLint + format bằng Prettier — CI sẽ chặn nếu fail.
+- Lint bằng oxlint + format bằng Prettier — CI sẽ chặn nếu fail. Kiến trúc, luật phụ thuộc và luật trình bày số liệu: [docs/10-kien-truc-frontend.md](docs/10-kien-truc-frontend.md).
 - `strict: true` trong `tsconfig.json`, không dùng `any` trừ khi có comment giải thích lý do.
 - Gọi API qua 1 lớp service/client tập trung (không fetch rải rác trong component) để đổi API dễ hơn.
 

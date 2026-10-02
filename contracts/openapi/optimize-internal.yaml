@@ -1,0 +1,70 @@
+openapi: 3.1.0
+info:
+  title: DengueSense optimize — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Service `optimize` (Layer 2, Python/FastAPI): Tính toán phương án phân bổ nguồn lực (Knapsack, Lợi ích cận biên).
+servers:
+  - url: http://optimize:8001
+    description: Mạng nội bộ compose
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/optimize/allocate:
+    post:
+      operationId: allocateResources
+      summary: Chạy thuật toán phân bổ P1/P2
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllocateRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllocateResponse"
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+
+  schemas:
+    AllocateRequest:
+      type: object
+      required: [budget, items]
+      properties:
+        budget:
+          type: number
+          format: double
+        items:
+          type: array
+          items:
+            type: object
+            required: [province_id, cases_pred, cost]
+            properties:
+              province_id: { type: string }
+              cases_pred: { type: number, format: double }
+              cost: { type: number, format: double }
+
+    AllocateResponse:
+      type: object
+      required: [allocations, total_cost, estimated_cases_prevented]
+      properties:
+        total_cost: { type: number, format: double }
+        estimated_cases_prevented: { type: number, format: double }
+        allocations:
+          type: array
+          items:
+            type: object
+            required: [province_id, amount, explanation]
+            properties:
+              province_id: { type: string }
+              amount: { type: number, format: double }
+              explanation: { type: string }

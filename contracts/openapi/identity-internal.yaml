@@ -1,0 +1,423 @@
+openapi: 3.1.0
+info:
+  title: DengueSense identity — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Hợp đồng NỘI BỘ (service ↔ service), tiền tố `/internal/v1`. Gateway KHÔNG định tuyến `/internal` ra ngoài.
+
+    Quy ước (docs/09 §6): JSON `snake_case`; lỗi `application/problem+json` với `code` ở `contracts/errors.md`;
+    xác thực bằng token dịch vụ (`serviceToken`); danh tính người dùng gốc đi kèm qua header `X-Actor-*`
+    (chỉ tin khi có token dịch vụ hợp lệ); mọi POST có tác dụng phụ nhận `Idempotency-Key`.
+
+    Các schema dùng chung với `public-v1.yaml` là BẢN SAO có chủ đích (không dùng $ref chéo file để mã sinh
+    Go/Python đơn giản); test `test_internal_contracts.py` bảo đảm các bản sao KHÔNG lệch nhau.
+
+    Service `identity` (Go): người dùng, vai trò, đăng nhập, cấp token người dùng (EdDSA 15 phút) và token dịch vụ (5 phút).
+    Người gọi chính: `gateway` (đăng nhập/làm mới/`/me`, tải JWKS); mọi service (xin token dịch vụ).
+servers:
+  - url: http://identity:8081
+    description: Mạng nội bộ compose — KHÔNG publish ra ngoài (docs/09 §3.3)
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/auth/login:
+    post:
+      operationId: login
+      summary: Đăng nhập (gateway gọi). Trả cả refresh token để GATEWAY đặt cookie HttpOnly.
+      description: |
+        Identity KHÔNG biết cookie: refresh token trả trong thân, gateway bỏ nó khỏi phản hồi công khai và đặt vào
+        cookie `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth` (ADR-0005). Sai mật khẩu và tài khoản không
+        tồn tại cho CÙNG một lỗi `auth.invalid_credentials` (không giúp kẻ dò tài khoản); khoá tạm sau 5 lần sai
+        (`auth.account_locked`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InternalTokenResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/auth/refresh:
+    post:
+      operationId: refreshToken
+      summary: Đổi refresh token lấy cặp token mới (XOAY VÒNG)
+      description: |
+        Refresh token dùng một lần: mỗi lần dùng cấp token mới và vô hiệu token cũ. Dùng LẠI một token đã xoay vòng
+        bị coi là bị đánh cắp → thu hồi cả chuỗi phiên. Lỗi: `auth.refresh_invalid`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InternalTokenResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/auth/logout:
+    post:
+      operationId: logout
+      summary: Thu hồi refresh token (đăng xuất)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RefreshRequest" }
+      responses:
+        "204": { description: Đã thu hồi (idempotent — token không tồn tại cũng trả 204) }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/users/{user_id}:
+    get:
+      operationId: getUser
+      summary: Thông tin người dùng (gateway dùng cho `GET /me`)
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/.well-known/jwks.json:
+    get:
+      operationId: getJwks
+      summary: Khoá công khai (JWKS, Ed25519) để xác minh access token người dùng
+      description: Chỉ chứa khoá CÔNG KHAI. Gateway cache và làm mới định kỳ; hỗ trợ nhiều khoá (`kid`) để xoay khoá.
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Jwks" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+  /internal/v1/service-tokens:
+    post:
+      operationId: issueServiceToken
+      summary: Cấp token DỊCH VỤ (5 phút) cho một service gọi service khác
+      description: |
+        Xác thực bằng `client_secret` RIÊNG của từng service (không dùng chung). Token có `aud` = service đích nên
+        không dùng được để gọi service khác (docs/09 §11.2). Sai bí mật → `auth.invalid_service_credentials`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceTokenRequest" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceTokenResponse" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+        "503": { $ref: "#/components/responses/Unavailable" }
+  /healthz:
+    get:
+      operationId: healthz
+      summary: Tiến trình còn sống (không kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+        "500": { $ref: "#/components/responses/Unavailable" }
+  /readyz:
+    get:
+      operationId: readyz
+      summary: Sẵn sàng nhận tải (đã kiểm phụ thuộc)
+      security: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ready }
+        "503": { $ref: "#/components/responses/Unavailable" }
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token DỊCH VỤ (EdDSA, 5 phút, `aud` = service đích) do `identity` cấp qua `POST /internal/v1/service-tokens`
+        (docs/09 §11.2). Service đích từ chối lời gọi thiếu/sai token. Không nhầm với access token của người dùng.
+
+  responses:
+    ValidationError:
+      description: Đầu vào không hợp lệ (`code` = `common.validation_error`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthenticated:
+      description: Thiếu / sai / hết hạn token dịch vụ (`common.unauthenticated`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Không tìm thấy.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unavailable:
+      description: Phụ thuộc (DB, NATS…) không khả dụng (`common.dependency_unavailable`).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Role:
+      type: string
+      enum:
+      - viewer
+      - analyst
+      - officer
+      - approver
+      - data_manager
+      - admin
+    User:
+      type: object
+      required:
+      - id
+      - username
+      - display_name
+      - roles
+      - org_id
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        display_name:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        org_id:
+          type: string
+          description: Đơn vị trực thuộc (CDC tỉnh / bệnh viện) — quyết định phạm vi dữ liệu được xử lý.
+    Problem:
+      type: object
+      description: RFC 9457 problem details (docs/09 §6.3).
+      required:
+      - type
+      - title
+      - status
+      - code
+      - request_id
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+          examples:
+          - common.validation_error
+        detail:
+          type: string
+        instance:
+          type: string
+        request_id:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - username
+      - password
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 128
+        password:
+          type: string
+          minLength: 1
+          maxLength: 256
+          writeOnly: true
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          minLength: 20
+          maxLength: 512
+          writeOnly: true
+    InternalTokenResponse:
+      type: object
+      required:
+      - access_token
+      - token_type
+      - expires_in
+      - refresh_token
+      - refresh_expires_in
+      - user
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          examples:
+          - 900
+          description: Giây hiệu lực của access token.
+        refresh_token:
+          type: string
+          description: Chuỗi ngẫu nhiên 256-bit; identity chỉ lưu HASH.
+        refresh_expires_in:
+          type: integer
+          examples:
+          - 604800
+        user:
+          $ref: '#/components/schemas/User'
+    Jwk:
+      type: object
+      required:
+      - kty
+      - crv
+      - x
+      - kid
+      - use
+      - alg
+      properties:
+        kty:
+          type: string
+          const: OKP
+        crv:
+          type: string
+          const: Ed25519
+        x:
+          type: string
+          description: Khoá công khai, base64url.
+        kid:
+          type: string
+        use:
+          type: string
+          const: sig
+        alg:
+          type: string
+          const: EdDSA
+    Jwks:
+      type: object
+      required:
+      - keys
+      properties:
+        keys:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Jwk'
+    ServiceTokenRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - service
+      - audience
+      - client_secret
+      properties:
+        service:
+          type: string
+          enum:
+          - gateway
+          - surveillance
+          - forecast
+          - optimize
+          - workflow
+          - genai
+          - notification
+          - ingest-worker
+        audience:
+          type: string
+          enum:
+          - identity
+          - surveillance
+          - forecast
+          - optimize
+          - workflow
+          - genai
+          - notification
+        client_secret:
+          type: string
+          minLength: 16
+          writeOnly: true
+    ServiceTokenResponse:
+      type: object
+      required:
+      - access_token
+      - token_type
+      - expires_in
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: integer
+          examples:
+          - 300

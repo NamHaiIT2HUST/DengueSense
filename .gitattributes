@@ -1,0 +1,13 @@
+# Ép kết thúc dòng LF cho file chạy trong container Linux hoặc do công cụ Go/SQL đọc.
+# Máy dev Windows thường bật core.autocrlf=true → checkout ra CRLF làm hỏng script .sh trong container
+# ("bad interpreter: /bin/bash^M") và làm `gofmt` báo lệch. Chỉ liệt kê loại file MỚI cần LF,
+# không dùng `* text=auto` để không đụng tới các file đã có.
+*.sh            text eol=lf
+Dockerfile*     text eol=lf
+*.dockerfile    text eol=lf
+Caddyfile       text eol=lf
+*.conf          text eol=lf
+*.sql           text eol=lf
+*.go            text eol=lf
+go.mod          text eol=lf
+go.sum          text eol=lf

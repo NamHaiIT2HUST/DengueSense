@@ -1,0 +1,322 @@
+# DengueSense — hạ tầng dùng chung (docs/09 §3, §16).
+# Đợt 0: Postgres (PostGIS + pgvector) + NATS JetStream + identity + gateway + forecast. Service khác được thêm dần theo từng đợt.
+#
+# Chạy:  docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
+# (chưa có infra/.env thì: cp infra/.env.example infra/.env  rồi đổi mật khẩu)
+name: denguesense
+
+services:
+  postgres:
+    build:
+      context: ./postgres
+    image: denguesense/postgres:16-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?thiếu POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?thiếu POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?thiếu POSTGRES_PASSWORD}
+      SVC_IDENTITY_PASSWORD: ${SVC_IDENTITY_PASSWORD:?thiếu SVC_IDENTITY_PASSWORD}
+      SVC_SURVEILLANCE_PASSWORD: ${SVC_SURVEILLANCE_PASSWORD:?thiếu SVC_SURVEILLANCE_PASSWORD}
+      SVC_FORECAST_PASSWORD: ${SVC_FORECAST_PASSWORD:?thiếu SVC_FORECAST_PASSWORD}
+      SVC_OPTIMIZE_PASSWORD: ${SVC_OPTIMIZE_PASSWORD:?thiếu SVC_OPTIMIZE_PASSWORD}
+      SVC_WORKFLOW_PASSWORD: ${SVC_WORKFLOW_PASSWORD:?thiếu SVC_WORKFLOW_PASSWORD}
+      SVC_GENAI_PASSWORD: ${SVC_GENAI_PASSWORD:?thiếu SVC_GENAI_PASSWORD}
+      SVC_NOTIFICATION_PASSWORD: ${SVC_NOTIFICATION_PASSWORD:?thiếu SVC_NOTIFICATION_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [core]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  nats:
+    image: nats:2.10-alpine
+    restart: unless-stopped
+    command: ["-c", "/etc/nats/nats.conf"]
+    volumes:
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+      - natsdata:/data
+    networks: [core]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8222/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  # Tác vụ chạy 1 lần: tạo stream JetStream (idempotent). Không restart.
+  nats-init:
+    image: natsio/nats-box:0.14.5
+    restart: "no"
+    depends_on:
+      nats:
+        condition: service_healthy
+    environment:
+      NATS_URL: nats://nats:4222
+    volumes:
+      - ./nats/init-streams.sh:/init-streams.sh:ro
+    entrypoint: ["/bin/sh", "/init-streams.sh"]
+    networks: [core]
+
+  gateway:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: gateway
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/gateway:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      GATEWAY_LISTEN_ADDR: ":8080"
+      GATEWAY_LOG_LEVEL: ${GATEWAY_LOG_LEVEL:-info}
+      # Khoá xác minh access token lấy từ JWKS của identity; bí mật RIÊNG của gateway để xin token dịch vụ.
+      GATEWAY_IDENTITY_URL: "http://identity:8081"
+      GATEWAY_SURVEILLANCE_URL: "http://surveillance:8082"
+      GATEWAY_FORECAST_URL: "http://forecast:8001"
+      GATEWAY_WORKFLOW_URL: "http://workflow:8001"
+      GATEWAY_SERVICE_CLIENT_SECRET: "${GATEWAY_SERVICE_CLIENT_SECRET:?thiếu GATEWAY_SERVICE_CLIENT_SECRET - xem infra/README.md}"
+      # Cookie refresh luôn có cờ Secure trừ khi tắt tường minh (chỉ dev qua http với tên miền khác localhost).
+      GATEWAY_COOKIE_SECURE: "${GATEWAY_COOKIE_SECURE:-true}"
+    depends_on:
+      identity:
+        condition: service_healthy
+      surveillance:
+        condition: service_healthy
+      forecast:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  # Áp migration lên schema `identity` rồi thoát; `identity` chỉ khởi động sau khi migration xong (docs/09 §9.3).
+  identity-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: identity
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/identity:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["migrate"]
+    environment:
+      IDENTITY_DB_URL: postgres://svc_identity:${SVC_IDENTITY_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  identity:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: identity
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/identity:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      IDENTITY_LISTEN_ADDR: ":8081"
+      IDENTITY_LOG_LEVEL: ${IDENTITY_LOG_LEVEL:-info}
+      IDENTITY_DB_URL: postgres://svc_identity:${SVC_IDENTITY_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      IDENTITY_JWT_PRIVATE_KEY: "${IDENTITY_JWT_PRIVATE_KEY:?thiếu IDENTITY_JWT_PRIVATE_KEY - xem infra/README.md}"
+      # SHA-256 của client_secret từng service (bí mật gốc nằm ở phía service gọi, không ở đây).
+      IDENTITY_SERVICE_SECRET_SHA256_GATEWAY: "${IDENTITY_SERVICE_SECRET_SHA256_GATEWAY:-}"
+      IDENTITY_SERVICE_SECRET_SHA256_FORECAST: "${IDENTITY_SERVICE_SECRET_SHA256_FORECAST:-}"
+    depends_on:
+      identity-migrate:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  # Áp migration lên schema `surveillance` rồi thoát (docs/09 §9.3).
+  surveillance-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: surveillance
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["migrate"]
+    environment:
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  surveillance:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: surveillance
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      SURVEILLANCE_LISTEN_ADDR: ":8082"
+      SURVEILLANCE_LOG_LEVEL: ${SURVEILLANCE_LOG_LEVEL:-info}
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      SURVEILLANCE_NATS_URL: nats://nats:4222
+      # Khoá CÔNG KHAI của identity để kiểm token dịch vụ (dev: cùng cặp khoá với gateway; sau này lấy từ JWKS).
+      SURVEILLANCE_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - xem infra/README.md}"
+    depends_on:
+      surveillance-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  # Công cụ một lần (KHÔNG chạy cùng `up`): nạp danh mục tỉnh, ranh giới, nhập panel. Dùng qua
+  # infra/scripts/seed-surveillance.sh hoặc `docker compose --profile tools run --rm surveillance-cli <lệnh> ...`.
+  surveillance-cli:
+    image: denguesense/surveillance:${BUILD_VERSION:-dev}
+    profiles: [tools]
+    restart: "no"
+    environment:
+      SURVEILLANCE_DB_URL: postgres://svc_surveillance:${SVC_SURVEILLANCE_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    volumes:
+      # Dữ liệu tham chiếu nằm trong repo; chỉ đọc.
+      - ../ai-service/data/external/province_metadata.csv:/data/province_metadata.csv:ro
+      - ../dashboard/public/data/provinces.geojson:/data/provinces.geojson:ro
+      - ../ai-service/data/processed:/data/processed:ro
+    depends_on:
+      surveillance-migrate:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  # Áp migration lên schema `forecast` rồi thoát (docs/09 §9.3).
+  forecast-migrate:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/forecast:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["python", "-m", "app.serving.forecast_api.migrate"]
+    environment:
+      FORECAST_DB_URL: postgresql://svc_forecast:${SVC_FORECAST_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  forecast:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/forecast:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      FORECAST_LOG_LEVEL: ${FORECAST_LOG_LEVEL:-info}
+      FORECAST_DB_URL: postgresql://svc_forecast:${SVC_FORECAST_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Khoá CÔNG KHAI của identity để kiểm token dịch vụ (dev: cùng cặp khoá với gateway).
+      FORECAST_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY - xem infra/README.md}"
+      FORECAST_SURVEILLANCE_URL: http://surveillance:8082
+      FORECAST_IDENTITY_URL: http://identity:8081
+      FORECAST_SERVICE_CLIENT_SECRET: "${FORECAST_SERVICE_CLIENT_SECRET:?thiếu FORECAST_SERVICE_CLIENT_SECRET - xem infra/README.md}"
+    depends_on:
+      forecast-migrate:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8001/readyz', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 5s
+
+networks:
+  core:
+    name: denguesense-core
+
+volumes:
+  pgdata:
+  natsdata:
+
+  workflow-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: workflow
+        VERSION: 
+    image: denguesense/workflow:
+    restart: "no"
+    command: ["/service", "-migrate"]
+    environment:
+      DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+
+  workflow:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: workflow
+        VERSION: 
+    image: denguesense/workflow:
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NATS_URL: nats://nats:4222
+      FORECAST_API_URL: http://forecast:8001/internal/v1
+    depends_on:
+      workflow-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]

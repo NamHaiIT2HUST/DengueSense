@@ -1,0 +1,11 @@
+# Giữ ngữ cảnh build nhỏ và không đưa bí mật/file rác vào image.
+.git
+.env
+.env.*
+bin/
+*.exe
+*.test
+*.out
+**/*_test.go
+build/
+README.md

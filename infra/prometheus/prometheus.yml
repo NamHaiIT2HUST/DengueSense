@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'denguesense-services'
+    static_configs:
+      - targets:
+        - 'gateway:8080'
+        - 'surveillance:8001'
+        - 'forecast:8001'
+        - 'identity:8001'

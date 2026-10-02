@@ -1,0 +1,95 @@
+openapi: 3.1.0
+info:
+  title: DengueSense workflow — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Hợp đồng NỘI BỘ (service ↔ service), tiền tố `/internal/v1/workflow`.
+    Service `workflow` (Layer 2, Go): Xử lý cảnh báo (Alert) từ forecast, và Hồ sơ (Case).
+servers:
+  - url: http://workflow:8001
+    description: Mạng nội bộ compose
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/workflow/alerts:
+    get:
+      operationId: listAlerts
+      summary: Danh sách cảnh báo
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, all]
+          description: Lọc theo trạng thái
+        - name: run_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Lọc theo lượt dự báo
+      responses:
+        "200":
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /internal/v1/workflow/alerts/{alert_id}/confirm:
+    post:
+      operationId: confirmAlert
+      summary: Xác nhận cảnh báo để mở hồ sơ
+      parameters:
+        - name: alert_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Xác nhận thành công
+
+  /internal/v1/workflow/cases:
+    get:
+      operationId: listCases
+      summary: Danh sách hồ sơ
+      responses:
+        "200":
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Case"
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+      description: Dùng JWT service-to-service lấy từ identity.
+
+  schemas:
+    Alert:
+      type: object
+      required: [id, run_id, province_id, created_at, status]
+      properties:
+        id: { type: string, format: uuid }
+        run_id: { type: string, format: uuid }
+        province_id: { type: string }
+        created_at: { type: string, format: date-time }
+        status: { type: string, enum: [open, closed] }
+
+    Case:
+      type: object
+      required: [id, alert_id, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        alert_id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }

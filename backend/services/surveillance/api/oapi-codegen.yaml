@@ -1,0 +1,8 @@
+# Sinh mã Go từ hợp đồng nội bộ (contracts/openapi/surveillance-internal.yaml). KHÔNG sửa tay api.gen.go.
+# Chạy:  go generate ./services/surveillance/api/
+package: api
+output: api.gen.go
+generate:
+  models: true
+  gin-server: true
+  strict-server: true

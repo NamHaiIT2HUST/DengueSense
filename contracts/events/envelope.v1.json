@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denguesense.vn/contracts/events/envelope.v1.json",
+  "title": "Phong bì sự kiện (CloudEvents 1.0, JSON)",
+  "description": "Mọi sự kiện đi qua NATS đều có phong bì này. `data` được kiểm theo schema riêng của từng `type` (cùng thư mục). docs/09 §7.2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["specversion", "id", "source", "type", "dataschema", "time", "data"],
+  "properties": {
+    "specversion": { "const": "1.0" },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID duy nhất của sự kiện; consumer dùng làm khoá chống xử lý trùng (bảng inbox)."
+    },
+    "source": {
+      "type": "string",
+      "pattern": "^denguesense/[a-z]+$",
+      "examples": ["denguesense/forecast"]
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z]+(\\.[a-z_]+){2,}$",
+      "description": "<service>.<thực_thể>.<động_từ_quá_khứ>. Cũng là subject NATS.",
+      "examples": ["forecast.run.completed"]
+    },
+    "dataschema": {
+      "type": "string",
+      "pattern": "^contracts/events/[a-z_.]+\\.v[0-9]+\\.json$",
+      "examples": ["contracts/events/forecast.run.completed.v1.json"]
+    },
+    "time": { "type": "string", "format": "date-time" },
+    "subject": { "type": "string", "examples": ["run/0192f3a1-0000-7000-8000-000000000001"] },
+    "traceparent": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+      "description": "W3C Trace Context để nối trace qua sự kiện."
+    },
+    "data": { "type": "object" }
+  }
+}

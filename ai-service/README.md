@@ -10,8 +10,25 @@ Service **Python (FastAPI)** chứa toàn bộ 3 lớp AI của DengueSense. `ba
 
 ## Trạng thái hiện tại
 
-- ✅ **`app/data/`** — pipeline dữ liệu đã code + test (34 test pass), xem bên dưới.
-- ⏳ `app/forecast/`, `app/optimize/`, `app/genai_rag/`, `app/main.py` — chưa scaffold, xem [ROADMAP.md](../ROADMAP.md) Phase 0/2/3.
+- ✅ **`app/data/`** — pipeline dữ liệu đã code + test, xem bên dưới.
+- ✅ **`app/forecast/`** — thư viện Layer 1 (M4-R2, cảnh báo P75, SHAP…) + 16 thí nghiệm ở `experiments/`; đọc [docs/07 (model card)](../docs/07-model-card.md) và [docs/08 (bàn giao)](../docs/08-ban-giao-layer1.md).
+- ✅ **`app/serving/`** — lớp phục vụ (Đợt 0): hạ tầng dùng chung (`common/`) + khung API `forecast_api` (health, lỗi problem+json, log JSON). Xem [docs/09 §10.4](../docs/09-kien-truc-backend.md#104-tách-thư-viện-nghiên-cứu-và-serving-trong-ai-service). Endpoint dự báo thêm ở Đợt 1 sau khi có hợp đồng nội bộ.
+- ⏳ `app/optimize/` (Layer 2), `app/genai_rag/` (Layer 3) — chưa scaffold, xem [ROADMAP.md](../ROADMAP.md) Phase 3/4.
+
+### Chạy khung API `forecast`
+
+```bash
+uvicorn app.serving.forecast_api.main:create_app_from_env --factory --port 8001
+```
+
+Kiểm tra chất lượng lớp phục vụ (ngoài ruff/black/pytest chung):
+
+```bash
+mypy            # --strict, chỉ áp cho app/serving (xem mypy.ini)
+lint-imports    # luật kiến trúc: thư viện nghiên cứu không import serving (xem .importlinter)
+```
+
+Image: `docker build -f ai-service/Dockerfile --build-arg VERSION=$(git rev-parse HEAD) ai-service` (ngữ cảnh build dùng allowlist trong `.dockerignore` — dữ liệu thô, venv, notebook KHÔNG vào image).
 
 ## Pipeline dữ liệu (`app/data/`) — đã chạy được thật
 
