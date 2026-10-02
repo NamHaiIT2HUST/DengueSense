@@ -19,6 +19,7 @@ func baseEnv() map[string]string {
 		"GATEWAY_IDENTITY_URL":          "http://identity:8081",
 		"GATEWAY_SURVEILLANCE_URL":      "http://surveillance:8082",
 		"GATEWAY_FORECAST_URL":          "http://forecast:8001",
+		"GATEWAY_WORKFLOW_URL":          "http://workflow:8001",
 		"GATEWAY_SERVICE_CLIENT_SECRET": "bi-mat-thu-nghiem-dai-hon-16",
 	}
 }

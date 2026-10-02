@@ -52,6 +52,7 @@ func run() int {
 		upstream.Identity:     cfg.IdentityURL,
 		upstream.Surveillance: cfg.SurveillanceURL,
 		upstream.Forecast:     cfg.ForecastURL,
+		upstream.Workflow:     cfg.WorkflowURL,
 	}, tokens, httpClient, log)
 
 	router := app.NewRouter(app.Deps{

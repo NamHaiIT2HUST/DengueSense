@@ -29,7 +29,7 @@ func (s *Server) ListAlerts(c *gin.Context, params api.ListAlertsParams) {
 		status = string(*params.Status)
 	}
 
-	alerts, err := s.repo.ListAlerts(c.Request.Context(), status)
+	alerts, err := s.repo.ListAlerts(c.Request.Context(), status, params.RunId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

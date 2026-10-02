@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -35,13 +36,21 @@ func (r *Repo) GetAlertByID(ctx context.Context, id uuid.UUID) (*domain.Alert, e
 	return &alert, nil
 }
 
-func (r *Repo) ListAlerts(ctx context.Context, status string) ([]domain.Alert, error) {
-	query := `SELECT id, run_id, province_id, created_at, status FROM alerts`
+func (r *Repo) ListAlerts(ctx context.Context, status string, runID *uuid.UUID) ([]domain.Alert, error) {
+	query := `SELECT id, run_id, province_id, created_at, status FROM alerts WHERE 1=1`
 	args := []any{}
+	paramIdx := 1
 
 	if status != "all" && status != "" {
-		query += ` WHERE status = $1`
+		query += fmt.Sprintf(` AND status = $%d`, paramIdx)
 		args = append(args, status)
+		paramIdx++
+	}
+
+	if runID != nil {
+		query += fmt.Sprintf(` AND run_id = $%d`, paramIdx)
+		args = append(args, *runID)
+		paramIdx++
 	}
 
 	rows, err := r.db.Query(ctx, query, args...)

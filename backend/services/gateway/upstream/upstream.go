@@ -24,6 +24,7 @@ const (
 	Identity     = "identity"
 	Surveillance = "surveillance"
 	Forecast     = "forecast"
+	Workflow     = "workflow"
 )
 
 const (

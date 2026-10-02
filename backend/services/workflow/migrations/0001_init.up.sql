@@ -1,8 +1,7 @@
--- Bảng alerts lưu trữ cảnh báo tự động sinh từ kết quả dự báo
 CREATE TABLE alerts (
     id UUID PRIMARY KEY,
     run_id UUID NOT NULL,
-    province_id INT NOT NULL,
+    province_id VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     status VARCHAR(50) NOT NULL DEFAULT 'open'
 );

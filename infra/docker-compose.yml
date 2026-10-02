@@ -77,6 +77,7 @@ services:
       GATEWAY_IDENTITY_URL: "http://identity:8081"
       GATEWAY_SURVEILLANCE_URL: "http://surveillance:8082"
       GATEWAY_FORECAST_URL: "http://forecast:8001"
+      GATEWAY_WORKFLOW_URL: "http://workflow:8001"
       GATEWAY_SERVICE_CLIENT_SECRET: "${GATEWAY_SERVICE_CLIENT_SECRET:?thiếu GATEWAY_SERVICE_CLIENT_SECRET - xem infra/README.md}"
       # Cookie refresh luôn có cờ Secure trừ khi tắt tường minh (chỉ dev qua http với tên miền khác localhost).
       GATEWAY_COOKIE_SECURE: "${GATEWAY_COOKIE_SECURE:-true}"
@@ -282,3 +283,40 @@ networks:
 volumes:
   pgdata:
   natsdata:
+
+  workflow-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: workflow
+        VERSION: 
+    image: denguesense/workflow:
+    restart: "no"
+    command: ["/service", "-migrate"]
+    environment:
+      DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+
+  workflow:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: workflow
+        VERSION: 
+    image: denguesense/workflow:
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NATS_URL: nats://nats:4222
+      FORECAST_API_URL: http://forecast:8001/internal/v1
+    depends_on:
+      workflow-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]

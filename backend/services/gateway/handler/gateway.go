@@ -279,20 +279,23 @@ func (g *Gateway) GetRiskMap(ctx context.Context, req api.GetRiskMapRequestObjec
 	}
 
 	var (
-		wg               sync.WaitGroup
-		fcResp, prResp   *upstream.Response
-		fcErr, prErr     error
-		horizon          = strconv.Itoa(int(req.Params.Horizon))
-		forecastsPath    = internalBase + "/forecast-runs/" + run + "/forecasts"
-		provincesPath    = internalBase + "/provinces"
-		forecastsQueries = url.Values{"horizon": {horizon}}
+		wg                             sync.WaitGroup
+		fcResp, prResp, wfResp         *upstream.Response
+		fcErr, prErr, wfErr            error
+		horizon                        = strconv.Itoa(int(req.Params.Horizon))
+		forecastsPath                  = internalBase + "/forecast-runs/" + run + "/forecasts"
+		provincesPath                  = internalBase + "/provinces"
+		alertsPath                     = internalBase + "/workflow/alerts"
+		forecastsQueries               = url.Values{"horizon": {horizon}}
+		alertsQueries                  = url.Values{"status": {"open"}, "run_id": {run}}
 	)
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
 		defer wg.Done()
 		fcResp, fcErr = g.get(ctx, upstream.Forecast, forecastsPath, forecastsQueries)
 	}()
 	go func() { defer wg.Done(); prResp, prErr = g.get(ctx, upstream.Surveillance, provincesPath, nil) }()
+	go func() { defer wg.Done(); wfResp, wfErr = g.get(ctx, upstream.Workflow, alertsPath, alertsQueries) }()
 	wg.Wait()
 	if fcErr != nil {
 		return nil, fail(fcErr)
@@ -334,6 +337,23 @@ func (g *Gateway) GetRiskMap(ctx context.Context, req api.GetRiskMapRequestObjec
 		byProvince[head.ProvinceID] = raw
 	}
 
+	var alerts []struct {
+		ProvinceID string `json:"province_id"`
+	}
+	var warnings []any
+	if wfErr == nil && wfResp != nil && wfResp.Status == http.StatusOK {
+		if json.Unmarshal(wfResp.Body, &alerts) != nil {
+			warnings = append(warnings, map[string]string{"code": "gateway.alerts_unavailable", "message": "Lỗi dữ liệu từ workflow"})
+		}
+	} else {
+		warnings = append(warnings, map[string]string{"code": "gateway.alerts_unavailable", "message": "Không thể lấy cảnh báo"})
+	}
+
+	alertCountByProv := make(map[string]int)
+	for _, a := range alerts {
+		alertCountByProv[a.ProvinceID]++
+	}
+
 	type item struct {
 		ProvinceID     string          `json:"province_id"`
 		Name           string          `json:"name"`
@@ -347,14 +367,20 @@ func (g *Gateway) GetRiskMap(ctx context.Context, req api.GetRiskMapRequestObjec
 		if !ok {
 			f = json.RawMessage("null")
 		}
-		items = append(items, item{ProvinceID: p.ProvinceID, Name: p.Name, Region: p.Region, Forecast: f})
+		items = append(items, item{
+			ProvinceID:     p.ProvinceID,
+			Name:           p.Name,
+			Region:         p.Region,
+			Forecast:       f,
+			OpenAlertCount: alertCountByProv[p.ProvinceID],
+		})
 	}
 	return jsonRaw(http.StatusOK, map[string]any{
 		"meta":     fc.Meta,
 		"horizon":  fc.Horizon,
 		"legend":   fc.Legend,
 		"items":    items,
-		"warnings": []any{},
+		"warnings": warnings,
 	})
 }
 

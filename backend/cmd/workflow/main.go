@@ -7,25 +7,19 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/forecastclient"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/httpapi"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/postgres"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 )
 
-// Dummy client cho Demo. Thực tế sẽ dùng thư viện HTTP client gọi nội bộ sang `forecast`
-type dummyForecastClient struct{}
 
-func (d *dummyForecastClient) CheckRunAlerts(ctx context.Context, runID uuid.UUID) ([]int, error) {
-	// Giả lập logic: Trả về provinceID 1 và 2 nếu có cảnh báo.
-	return []int{1, 2}, nil
-}
 
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
@@ -48,7 +42,16 @@ func main() {
 	repo := postgres.NewRepo(db)
 
 	// Init Service
-	svc := app.NewWorkflowService(repo, &dummyForecastClient{})
+	forecastURL := os.Getenv("FORECAST_API_URL")
+	if forecastURL == "" {
+		forecastURL = "http://localhost:8001/internal/v1"
+	}
+	forecastAdapter, err := forecastclient.NewAdapter(forecastURL, http.DefaultClient)
+	if err != nil {
+		slog.Error("Không thể init forecast client", "err", err)
+		os.Exit(1)
+	}
+	svc := app.NewWorkflowService(repo, forecastAdapter)
 
 	// Init NATS
 	nc, err := nats.Connect(natsURL)

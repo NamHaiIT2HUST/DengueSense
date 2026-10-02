@@ -59,7 +59,7 @@ func (e ListAlertsParamsStatus) Valid() bool {
 type Alert struct {
 	CreatedAt  time.Time          `json:"created_at"`
 	Id         openapi_types.UUID `json:"id"`
-	ProvinceId int                `json:"province_id"`
+	ProvinceId string             `json:"province_id"`
 	RunId      openapi_types.UUID `json:"run_id"`
 	Status     AlertStatus        `json:"status"`
 }
@@ -78,6 +78,9 @@ type Case struct {
 type ListAlertsParams struct {
 	// Status Lọc theo trạng thái
 	Status *ListAlertsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// RunId Lọc theo lượt dự báo
+	RunId *openapi_types.UUID `form:"run_id,omitempty" json:"run_id,omitempty"`
 }
 
 // ListAlertsParamsStatus defines parameters for ListAlerts.
@@ -119,6 +122,14 @@ func (siw *ServerInterfaceWrapper) ListAlerts(c *gin.Context) {
 	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", c.Request.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "run_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "run_id", c.Request.URL.Query(), &params.RunId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter run_id: %w", err), http.StatusBadRequest)
 		return
 	}
 

@@ -23,6 +23,12 @@ paths:
             type: string
             enum: [open, closed, all]
           description: Lọc theo trạng thái
+        - name: run_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Lọc theo lượt dự báo
       responses:
         "200":
           description: Thành công
@@ -76,7 +82,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         run_id: { type: string, format: uuid }
-        province_id: { type: integer }
+        province_id: { type: string }
         created_at: { type: string, format: date-time }
         status: { type: string, enum: [open, closed] }
 

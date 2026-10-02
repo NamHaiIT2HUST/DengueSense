@@ -15,7 +15,7 @@ import (
 
 // TODO: Define a struct for ForecastClient to fetch actual forecasts and check exceed_prob
 type ForecastClient interface {
-	CheckRunAlerts(ctx context.Context, runID uuid.UUID) ([]int, error) // Returns list of provinceIDs that triggered alerts
+	CheckRunAlerts(ctx context.Context, runID uuid.UUID) ([]string, error) // Returns list of provinceIDs that triggered alerts
 }
 
 type WorkflowService struct {
@@ -54,7 +54,7 @@ func (s *WorkflowService) HandleForecastRunCompleted(ctx context.Context, env ev
 			Status:     domain.AlertStatusOpen,
 		}
 		if err := s.repo.CreateAlert(ctx, alert); err != nil {
-			return fmt.Errorf("lỗi khi lưu alert (province=%d): %w", pid, err)
+			return fmt.Errorf("lỗi khi lưu alert (province=%s): %w", pid, err)
 		}
 		slog.Info("Đã tạo cảnh báo tự động", "alert_id", alert.ID, "province_id", pid)
 	}

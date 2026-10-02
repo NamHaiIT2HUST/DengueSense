@@ -35,6 +35,7 @@ type Config struct {
 	IdentityURL         string
 	SurveillanceURL     string
 	ForecastURL         string
+	WorkflowURL         string
 	ServiceClientSecret string
 	UpstreamTimeout     time.Duration
 
@@ -60,6 +61,7 @@ func LoadConfig(lookup func(string) (string, bool)) (Config, error) {
 		IdentityURL:         l.RequiredString("IDENTITY_URL"),
 		SurveillanceURL:     l.RequiredString("SURVEILLANCE_URL"),
 		ForecastURL:         l.RequiredString("FORECAST_URL"),
+		WorkflowURL:         l.RequiredString("WORKFLOW_URL"),
 		ServiceClientSecret: l.RequiredString("SERVICE_CLIENT_SECRET"),
 		UpstreamTimeout:     l.Duration("UPSTREAM_TIMEOUT", 5*time.Second),
 
