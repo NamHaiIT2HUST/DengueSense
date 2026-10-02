@@ -12,5 +12,5 @@ app.include_router(router, prefix="/internal/v1/optimize")
 
 
 @app.get("/healthz")
-def healthz():
+def healthz() -> dict[str, str]:
     return {"status": "ok"}

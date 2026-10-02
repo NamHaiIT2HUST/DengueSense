@@ -28,7 +28,7 @@ class AllocateResponse(BaseModel):
 
 
 @router.post("/allocate", response_model=AllocateResponse)
-def allocate_resources(req: AllocateRequest):
+def allocate_resources(req: AllocateRequest) -> AllocateResponse:
     # Dummy implementation for Đợt 2 - AI layer sẽ thay thế bằng CP-SAT/MILP
     allocs = []
     total_cost = 0.0
