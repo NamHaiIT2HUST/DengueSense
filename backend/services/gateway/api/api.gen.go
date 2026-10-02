@@ -991,7 +991,7 @@ type ServerInterface interface {
 	// Login Đăng nhập
 	// (POST /auth/login)
 	Login(c *gin.Context)
-	// Logout Đăng xuất (thu hồi refresh token)
+	// Logout Đăng xuất (thu hồi refresh token trong cookie)
 	// (POST /auth/logout)
 	Logout(c *gin.Context)
 	// RefreshToken Cấp access token mới bằng refresh token trong cookie (xoay vòng)
@@ -1692,26 +1692,37 @@ type LogoutResponseObject interface {
 	VisitLogoutResponse(w http.ResponseWriter) error
 }
 
+type Logout204ResponseHeaders struct {
+	SetCookie *string
+}
+
 type Logout204Response struct {
+	Headers Logout204ResponseHeaders
 }
 
 func (response Logout204Response) VisitLogoutResponse(w http.ResponseWriter) error {
+	if response.Headers.SetCookie != nil {
+		w.Header().Set("Set-Cookie", fmt.Sprint(*response.Headers.SetCookie))
+	}
 	w.WriteHeader(204)
 	return nil
 }
 
-type Logout401ApplicationProblemPlusJSONResponse struct {
-	UnauthorizedApplicationProblemPlusJSONResponse
+type Logout429ApplicationProblemPlusJSONResponse struct {
+	TooManyRequestsApplicationProblemPlusJSONResponse
 }
 
-func (response Logout401ApplicationProblemPlusJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
+func (response Logout429ApplicationProblemPlusJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
-	w.WriteHeader(401)
+	if response.Headers.RetryAfter != nil {
+		w.Header().Set("Retry-After", fmt.Sprint(*response.Headers.RetryAfter))
+	}
+	w.WriteHeader(429)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -2585,7 +2596,7 @@ type StrictServerInterface interface {
 	// Login Đăng nhập
 	// (POST /auth/login)
 	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
-	// Logout Đăng xuất (thu hồi refresh token)
+	// Logout Đăng xuất (thu hồi refresh token trong cookie)
 	// (POST /auth/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
 	// RefreshToken Cấp access token mới bằng refresh token trong cookie (xoay vòng)
