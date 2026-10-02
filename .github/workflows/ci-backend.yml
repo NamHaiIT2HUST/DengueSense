@@ -82,7 +82,7 @@ jobs:
         run: docker build -f backend/build/Dockerfile --build-arg SERVICE=${{ matrix.service }} --build-arg VERSION="${GITHUB_SHA}" -t denguesense/${{ matrix.service }}:ci backend
 
       - name: Quét lỗ hổng image (Trivy)
-        uses: aquasecurity/trivy-action@0.32.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: denguesense/${{ matrix.service }}:ci
           severity: HIGH,CRITICAL
