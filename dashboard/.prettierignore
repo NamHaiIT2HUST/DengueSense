@@ -1,4 +1,4 @@
-# File sinh tự động / build / dữ liệu — không format
+﻿# File sinh tự động / build / dữ liệu — không format
 dist
 node_modules
 coverage
@@ -11,3 +11,4 @@ src/app/routeTree.gen.ts
 
 # Tài liệu Markdown không format tự động (giữ bảng/ghi chú viết tay)
 *.md
+public/mockServiceWorker.js
