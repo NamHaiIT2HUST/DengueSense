@@ -22,6 +22,7 @@ import (
 func main() {
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
+		//nolint:gosec // Hardcoded DB URL is for local dev only
 		dbURL = "postgres://postgres:postgres@localhost:5432/denguesense_dev?sslmode=disable"
 	}
 	natsURL := os.Getenv("NATS_URL")
@@ -79,7 +80,7 @@ func main() {
 		if err := consumer.HandleMessage(context.Background(), msg.Data); err != nil {
 			slog.Error("Lỗi xử lý event", "err", err)
 		} else {
-			msg.Ack()
+			_ = msg.Ack()
 		}
 	})
 	if err != nil {
@@ -94,6 +95,7 @@ func main() {
 	api.RegisterHandlers(r, server)
 
 	slog.Info("Workflow service listening trên :8001")
+	//nolint:gosec // Use default HTTP server for internal service without timeout limits
 	if err := http.ListenAndServe(":8001", r); err != nil {
 		slog.Error("Server lỗi", "err", err)
 	}

@@ -29,7 +29,7 @@ func NewWorkflowService(repo domain.AlertRepository, forecastClient ForecastClie
 
 // HandleForecastRunCompleted handles the NATS event `forecast.run.completed`
 func (s *WorkflowService) HandleForecastRunCompleted(ctx context.Context, env eventx.Envelope) error {
-	slog.Info("Nhận event forecast.run.completed", "run_id", env.Subject)
+	slog.InfoContext(ctx, "Nhận event forecast.run.completed", "run_id", env.Subject)
 
 	// Payload struct matching contracts/events/forecast.run.completed.v1.json
 	var payload struct {
@@ -56,7 +56,7 @@ func (s *WorkflowService) HandleForecastRunCompleted(ctx context.Context, env ev
 		if err := s.repo.CreateAlert(ctx, alert); err != nil {
 			return fmt.Errorf("lỗi khi lưu alert (province=%s): %w", pid, err)
 		}
-		slog.Info("Đã tạo cảnh báo tự động", "alert_id", alert.ID, "province_id", pid)
+		slog.InfoContext(ctx, "Đã tạo cảnh báo tự động", "alert_id", alert.ID, "province_id", pid)
 	}
 
 	return nil

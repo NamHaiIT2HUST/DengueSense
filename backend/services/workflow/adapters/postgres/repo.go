@@ -50,7 +50,6 @@ func (r *Repo) ListAlerts(ctx context.Context, status string, runID *uuid.UUID) 
 	if runID != nil {
 		query += fmt.Sprintf(` AND run_id = $%d`, paramIdx)
 		args = append(args, *runID)
-		paramIdx++
 	}
 
 	rows, err := r.db.Query(ctx, query, args...)
