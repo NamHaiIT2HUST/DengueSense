@@ -902,6 +902,12 @@ export interface components {
         Case: {
             /** Format: uuid */
             id: string;
+            /**
+             * Format: uuid
+             * @deprecated
+             * @description ID cảnh báo liên kết chính (giữ để tương thích ngược)
+             */
+            alert_id: string;
             title: string;
             /** @enum {string} */
             status: "open" | "completed" | "archived";

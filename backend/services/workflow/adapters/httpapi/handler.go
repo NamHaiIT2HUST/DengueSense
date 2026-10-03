@@ -135,8 +135,13 @@ func (s *Server) ListCases(c *gin.Context, params api.ListCasesParams) {
 
 	var res []api.Case
 	for _, cs := range cases {
+		var alertID uuid.UUID
+		if len(cs.AlertIDs) > 0 {
+			alertID = cs.AlertIDs[0]
+		}
 		res = append(res, api.Case{
 			Id:        cs.ID,
+			AlertId:   alertID,
 			Title:     cs.Title,
 			Status:    api.CaseStatus(cs.Status),
 			CreatedBy: cs.CreatedBy,
@@ -176,8 +181,14 @@ func (s *Server) CreateCase(c *gin.Context) {
 		return
 	}
 
+	var firstAlertID uuid.UUID
+	if len(alertIDs) > 0 {
+		firstAlertID = alertIDs[0]
+	}
+
 	c.JSON(http.StatusCreated, api.Case{
 		Id:        newCase.ID,
+		AlertId:   firstAlertID,
 		Title:     newCase.Title,
 		Status:    api.CaseStatus(newCase.Status),
 		CreatedBy: newCase.CreatedBy,
@@ -194,8 +205,14 @@ func (s *Server) GetCase(c *gin.Context, caseId uuid.UUID) {
 		return
 	}
 
+	var alertID uuid.UUID
+	if len(cs.AlertIDs) > 0 {
+		alertID = cs.AlertIDs[0]
+	}
+
 	detail := api.CaseDetail{
 		Id:        cs.ID,
+		AlertId:   alertID,
 		Title:     cs.Title,
 		Status:    api.CaseDetailStatus(cs.Status),
 		CreatedBy: cs.CreatedBy,

@@ -645,6 +645,9 @@ type AllocationPlan struct {
 
 // Case defines model for Case.
 type Case struct {
+	// AlertId ID cảnh báo liên kết chính (giữ để tương thích ngược)
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	AlertId   openapi_types.UUID `json:"alert_id"`
 	CreatedAt time.Time          `json:"created_at"`
 	CreatedBy string             `json:"created_by"`
 	Id        openapi_types.UUID `json:"id"`
@@ -657,6 +660,9 @@ type CaseStatus string
 
 // CaseDetail defines model for CaseDetail.
 type CaseDetail struct {
+	// AlertId ID cảnh báo liên kết chính (giữ để tương thích ngược)
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	AlertId       openapi_types.UUID    `json:"alert_id"`
 	AlertIds      *[]openapi_types.UUID `json:"alert_ids,omitempty"`
 	CreatedAt     time.Time             `json:"created_at"`
 	CreatedBy     string                `json:"created_by"`

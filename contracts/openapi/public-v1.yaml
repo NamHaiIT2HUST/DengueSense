@@ -1327,9 +1327,14 @@ components:
 
     Case:
       type: object
-      required: [id, title, status, created_by, created_at]
+      required: [id, alert_id, title, status, created_by, created_at]
       properties:
         id: { type: string, format: uuid }
+        alert_id:
+          type: string
+          format: uuid
+          description: ID cảnh báo liên kết chính (giữ để tương thích ngược)
+          deprecated: true
         title: { type: string }
         status: { type: string, enum: [open, completed, archived] }
         created_by: { type: string }
