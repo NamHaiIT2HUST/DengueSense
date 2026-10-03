@@ -993,9 +993,10 @@ Trạng thái: **backend, ai-service và frontend đều xong (2026-09-25)** —
 - **🚪 Cổng:** forecast run → cảnh báo tự sinh → officer mở hồ sơ → tạo phương án có giải thích.
 
 ### Đợt 3 — Dự thảo, duyệt, gửi (song song Phase 4 Layer 3)
-- [ ] `genai`: B2B trước, guardrail G1–G6, kho tri thức
-- [ ] `workflow`: máy trạng thái §8.4 đầy đủ, 4 mắt, diff sửa
-- [ ] `notification`: email adapter, retry, trạng thái giao
+- [x] `genai`: Hợp đồng OpenAPI nội bộ (`genai-internal.yaml`) với B2B/B2G & Guardrail G1–G6
+- [x] `workflow`: máy trạng thái §8.4 đầy đủ, quy tắc 4 mắt, content_hash bất biến, unit tests xanh 100%
+- [x] `notification`: service Go, NATS consumer `workflow.order.approved`, email adapter, lưu trạng thái giao
+- [x] `gateway`: Expose toàn bộ API Workflow (Alerts, Cases, Plans, Drafts, Reviews, Dispatch) ra public API theo RBAC; kiểm quyền 4 mắt; đồng bộ mã sinh Go và TypeScript Frontend (`schema.gen.ts`)
 - **🚪 Cổng:** luồng đủ từ cảnh báo → dự thảo → duyệt → email tới hộp thư test; test bất biến HITL xanh; E2E nightly xanh.
 
 ### Đợt 4 — Sẵn sàng pilot (Phase 5)

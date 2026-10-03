@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: DengueSense genai — API nội bộ
+  version: 1.0.0-draft.1
+  description: |
+    Service `genai` (Layer 3, Python/FastAPI): RAG sinh dự thảo văn bản chỉ đạo/báo cáo y tế và bộ kiểm soát Guardrails G1-G6.
+servers:
+  - url: http://genai:8001
+    description: Mạng nội bộ compose
+security:
+  - serviceToken: []
+
+paths:
+  /internal/v1/genai/draft:
+    post:
+      operationId: generateDraft
+      summary: Sinh dự thảo văn bản (B2B hoặc B2G) kèm kiểm tra Guardrails G1-G6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDraftRequest"
+      responses:
+        "200":
+          description: Dự thảo được sinh thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateDraftResponse"
+
+components:
+  securitySchemes:
+    serviceToken:
+      type: http
+      scheme: bearer
+
+  schemas:
+    GenerateDraftRequest:
+      type: object
+      required: [draft_type, slots]
+      properties:
+        draft_type:
+          type: string
+          enum: [b2b, b2g]
+          description: |
+            b2b: Báo cáo chuyên môn y tế / dịch tễ nội bộ.
+            b2g: Công điện / văn bản chỉ đạo điều hành gửi lãnh đạo, cơ quan ban ngành.
+        title:
+          type: string
+          description: Tiêu đề gợi ý (nếu có)
+        slots:
+          type: object
+          description: Các slot số liệu đã khóa từ Layer 1 (Dự báo) và Layer 2 (Phân bổ)
+          required: [province_ids, run_id]
+          properties:
+            run_id:
+              type: string
+              format: uuid
+            province_ids:
+              type: array
+              items:
+                type: string
+            origin_month:
+              type: string
+              example: "2010-03"
+            cases_predicted_total:
+              type: number
+            budget_allocated:
+              type: number
+            summary_points:
+              type: array
+              items:
+                type: string
+        extra_instructions:
+          type: string
+          description: Ghi chú bổ sung từ Officer soạn thảo
+
+    GuardrailCheck:
+      type: object
+      required: [code, name, passed, detail]
+      properties:
+        code:
+          type: string
+          enum: [G1, G2, G3, G4, G5, G6]
+          description: |
+            G1: Không chẩn đoán bệnh cá nhân.
+            G2: Khớp số liệu định lượng với Layer 1 & 2.
+            G3: Kiểm soát giọng văn, không gây hoang mang dư luận.
+            G4: Trích dẫn quy chuẩn Bộ Y tế / căn cứ pháp lý.
+            G5: Không bịa đặt chính sách / ảo giác chính sách.
+            G6: Bảo vệ bí mật thông tin cá nhân (PII).
+        name:
+          type: string
+        passed:
+          type: boolean
+        detail:
+          type: string
+
+    GenerateDraftResponse:
+      type: object
+      required: [title, content, all_guardrails_passed, guardrails]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+          description: Văn bản dự thảo hoàn chỉnh
+        all_guardrails_passed:
+          type: boolean
+        guardrails:
+          type: array
+          items:
+            $ref: "#/components/schemas/GuardrailCheck"

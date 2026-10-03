@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [gateway, identity, surveillance]
+        service: [gateway, identity, surveillance, workflow, notification]
     steps:
       - uses: actions/checkout@v4
 

@@ -16,6 +16,84 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AlertStatus.
+const (
+	AlertStatusClosed AlertStatus = "closed"
+	AlertStatusOpen   AlertStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the AlertStatus enum.
+func (e AlertStatus) Valid() bool {
+	switch e {
+	case AlertStatusClosed:
+		return true
+	case AlertStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CaseStatus.
+const (
+	CaseStatusArchived  CaseStatus = "archived"
+	CaseStatusCompleted CaseStatus = "completed"
+	CaseStatusOpen      CaseStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the CaseStatus enum.
+func (e CaseStatus) Valid() bool {
+	switch e {
+	case CaseStatusArchived:
+		return true
+	case CaseStatusCompleted:
+		return true
+	case CaseStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CaseDetailStatus.
+const (
+	CaseDetailStatusArchived  CaseDetailStatus = "archived"
+	CaseDetailStatusCompleted CaseDetailStatus = "completed"
+	CaseDetailStatusOpen      CaseDetailStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the CaseDetailStatus enum.
+func (e CaseDetailStatus) Valid() bool {
+	switch e {
+	case CaseDetailStatusArchived:
+		return true
+	case CaseDetailStatusCompleted:
+		return true
+	case CaseDetailStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateDraftRequestDraftType.
+const (
+	CreateDraftRequestDraftTypeB2b CreateDraftRequestDraftType = "b2b"
+	CreateDraftRequestDraftTypeB2g CreateDraftRequestDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the CreateDraftRequestDraftType enum.
+func (e CreateDraftRequestDraftType) Valid() bool {
+	switch e {
+	case CreateDraftRequestDraftTypeB2b:
+		return true
+	case CreateDraftRequestDraftTypeB2g:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DataSource.
 const (
 	Estimated DataSource = "estimated"
@@ -34,6 +112,75 @@ func (e DataSource) Valid() bool {
 	case Real:
 		return true
 	case Simulated:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DispatchDraftDraftType.
+const (
+	DispatchDraftDraftTypeB2b DispatchDraftDraftType = "b2b"
+	DispatchDraftDraftTypeB2g DispatchDraftDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the DispatchDraftDraftType enum.
+func (e DispatchDraftDraftType) Valid() bool {
+	switch e {
+	case DispatchDraftDraftTypeB2b:
+		return true
+	case DispatchDraftDraftTypeB2g:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DispatchDraftStatus.
+const (
+	APPROVED         DispatchDraftStatus = "APPROVED"
+	CHANGESREQUESTED DispatchDraftStatus = "CHANGES_REQUESTED"
+	DRAFT            DispatchDraftStatus = "DRAFT"
+	PENDINGREVIEW    DispatchDraftStatus = "PENDING_REVIEW"
+	REJECTED         DispatchDraftStatus = "REJECTED"
+)
+
+// Valid indicates whether the value is a known member of the DispatchDraftStatus enum.
+func (e DispatchDraftStatus) Valid() bool {
+	switch e {
+	case APPROVED:
+		return true
+	case CHANGESREQUESTED:
+		return true
+	case DRAFT:
+		return true
+	case PENDINGREVIEW:
+		return true
+	case REJECTED:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DispatchOrderStatus.
+const (
+	DELIVERYFAILED DispatchOrderStatus = "DELIVERY_FAILED"
+	PENDING        DispatchOrderStatus = "PENDING"
+	SENDING        DispatchOrderStatus = "SENDING"
+	SENT           DispatchOrderStatus = "SENT"
+)
+
+// Valid indicates whether the value is a known member of the DispatchOrderStatus enum.
+func (e DispatchOrderStatus) Valid() bool {
+	switch e {
+	case DELIVERYFAILED:
+		return true
+	case PENDING:
+		return true
+	case SENDING:
+		return true
+	case SENT:
 		return true
 	default:
 		return false
@@ -82,6 +229,24 @@ func (e ForecastFlag) Valid() bool {
 	case OutbreakUnderpredictionRisk:
 		return true
 	case StaleData:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GenerateDraftCaseRequestDraftType.
+const (
+	GenerateDraftCaseRequestDraftTypeB2b GenerateDraftCaseRequestDraftType = "b2b"
+	GenerateDraftCaseRequestDraftTypeB2g GenerateDraftCaseRequestDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the GenerateDraftCaseRequestDraftType enum.
+func (e GenerateDraftCaseRequestDraftType) Valid() bool {
+	switch e {
+	case GenerateDraftCaseRequestDraftTypeB2b:
+		return true
+	case GenerateDraftCaseRequestDraftTypeB2g:
 		return true
 	default:
 		return false
@@ -271,6 +436,27 @@ func (e ReliabilityRegionLevel) Valid() bool {
 	}
 }
 
+// Defines values for ReviewResultAction.
+const (
+	ReviewResultActionApprove        ReviewResultAction = "approve"
+	ReviewResultActionReject         ReviewResultAction = "reject"
+	ReviewResultActionRequestChanges ReviewResultAction = "request_changes"
+)
+
+// Valid indicates whether the value is a known member of the ReviewResultAction enum.
+func (e ReviewResultAction) Valid() bool {
+	switch e {
+	case ReviewResultActionApprove:
+		return true
+	case ReviewResultActionReject:
+		return true
+	case ReviewResultActionRequestChanges:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Role.
 const (
 	Admin       Role = "admin"
@@ -349,6 +535,27 @@ func (e RunStatus) Valid() bool {
 	}
 }
 
+// Defines values for SubmitReviewRequestAction.
+const (
+	SubmitReviewRequestActionApprove        SubmitReviewRequestAction = "approve"
+	SubmitReviewRequestActionReject         SubmitReviewRequestAction = "reject"
+	SubmitReviewRequestActionRequestChanges SubmitReviewRequestAction = "request_changes"
+)
+
+// Valid indicates whether the value is a known member of the SubmitReviewRequestAction enum.
+func (e SubmitReviewRequestAction) Valid() bool {
+	switch e {
+	case SubmitReviewRequestActionApprove:
+		return true
+	case SubmitReviewRequestActionReject:
+		return true
+	case SubmitReviewRequestActionRequestChanges:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for TokenResponseTokenType.
 const (
 	Bearer TokenResponseTokenType = "Bearer"
@@ -363,6 +570,139 @@ func (e TokenResponseTokenType) Valid() bool {
 		return false
 	}
 }
+
+// Defines values for ListAlertsParamsStatus.
+const (
+	ListAlertsParamsStatusAll    ListAlertsParamsStatus = "all"
+	ListAlertsParamsStatusClosed ListAlertsParamsStatus = "closed"
+	ListAlertsParamsStatusOpen   ListAlertsParamsStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the ListAlertsParamsStatus enum.
+func (e ListAlertsParamsStatus) Valid() bool {
+	switch e {
+	case ListAlertsParamsStatusAll:
+		return true
+	case ListAlertsParamsStatusClosed:
+		return true
+	case ListAlertsParamsStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListCasesParamsStatus.
+const (
+	ListCasesParamsStatusAll       ListCasesParamsStatus = "all"
+	ListCasesParamsStatusArchived  ListCasesParamsStatus = "archived"
+	ListCasesParamsStatusCompleted ListCasesParamsStatus = "completed"
+	ListCasesParamsStatusOpen      ListCasesParamsStatus = "open"
+)
+
+// Valid indicates whether the value is a known member of the ListCasesParamsStatus enum.
+func (e ListCasesParamsStatus) Valid() bool {
+	switch e {
+	case ListCasesParamsStatusAll:
+		return true
+	case ListCasesParamsStatusArchived:
+		return true
+	case ListCasesParamsStatusCompleted:
+		return true
+	case ListCasesParamsStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Alert defines model for Alert.
+type Alert struct {
+	CreatedAt  time.Time          `json:"created_at"`
+	Id         openapi_types.UUID `json:"id"`
+	ProvinceId string             `json:"province_id"`
+	RunId      openapi_types.UUID `json:"run_id"`
+	Status     AlertStatus        `json:"status"`
+}
+
+// AlertStatus defines model for Alert.Status.
+type AlertStatus string
+
+// AllocationPlan defines model for AllocationPlan.
+type AllocationPlan struct {
+	Allocations []struct {
+		Amount      float64 `json:"amount"`
+		Explanation string  `json:"explanation"`
+		ProvinceId  string  `json:"province_id"`
+	} `json:"allocations"`
+	Budget                  float64            `json:"budget"`
+	CaseId                  openapi_types.UUID `json:"case_id"`
+	CreatedAt               time.Time          `json:"created_at"`
+	EstimatedCasesPrevented float64            `json:"estimated_cases_prevented"`
+	Id                      openapi_types.UUID `json:"id"`
+	TotalCost               float64            `json:"total_cost"`
+}
+
+// Case defines model for Case.
+type Case struct {
+	// AlertId ID cảnh báo liên kết chính (giữ để tương thích ngược)
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	AlertId   openapi_types.UUID `json:"alert_id"`
+	CreatedAt time.Time          `json:"created_at"`
+	CreatedBy string             `json:"created_by"`
+	Id        openapi_types.UUID `json:"id"`
+	Status    CaseStatus         `json:"status"`
+	Title     string             `json:"title"`
+}
+
+// CaseStatus defines model for Case.Status.
+type CaseStatus string
+
+// CaseDetail defines model for CaseDetail.
+type CaseDetail struct {
+	// AlertId ID cảnh báo liên kết chính (giữ để tương thích ngược)
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	AlertId       openapi_types.UUID    `json:"alert_id"`
+	AlertIds      *[]openapi_types.UUID `json:"alert_ids,omitempty"`
+	CreatedAt     time.Time             `json:"created_at"`
+	CreatedBy     string                `json:"created_by"`
+	Id            openapi_types.UUID    `json:"id"`
+	LatestDraftId *openapi_types.UUID   `json:"latest_draft_id,omitempty"`
+	LatestPlanId  *openapi_types.UUID   `json:"latest_plan_id,omitempty"`
+	Status        CaseDetailStatus      `json:"status"`
+	Title         string                `json:"title"`
+}
+
+// CaseDetailStatus defines model for CaseDetail.Status.
+type CaseDetailStatus string
+
+// CreateAllocationPlanRequest defines model for CreateAllocationPlanRequest.
+type CreateAllocationPlanRequest struct {
+	Budget float64 `json:"budget"`
+	Items  []struct {
+		CasesPred  float64 `json:"cases_pred"`
+		Cost       float64 `json:"cost"`
+		ProvinceId string  `json:"province_id"`
+	} `json:"items"`
+}
+
+// CreateCaseRequest defines model for CreateCaseRequest.
+type CreateCaseRequest struct {
+	AlertIds  *[]openapi_types.UUID `json:"alert_ids,omitempty"`
+	CreatedBy string                `json:"created_by"`
+	Title     string                `json:"title"`
+}
+
+// CreateDraftRequest defines model for CreateDraftRequest.
+type CreateDraftRequest struct {
+	Content   string                      `json:"content"`
+	CreatedBy string                      `json:"created_by"`
+	DraftType CreateDraftRequestDraftType `json:"draft_type"`
+	Title     string                      `json:"title"`
+}
+
+// CreateDraftRequestDraftType defines model for CreateDraftRequest.DraftType.
+type CreateDraftRequestDraftType string
 
 // CreateForecastRunRequest defines model for CreateForecastRunRequest.
 type CreateForecastRunRequest struct {
@@ -401,6 +741,48 @@ type DataVersion struct {
 
 	// Version Examples: v0.2.0
 	Version string `json:"version"`
+}
+
+// DispatchDraft defines model for DispatchDraft.
+type DispatchDraft struct {
+	CaseId      openapi_types.UUID     `json:"case_id"`
+	Content     string                 `json:"content"`
+	ContentHash string                 `json:"content_hash"`
+	CreatedAt   time.Time              `json:"created_at"`
+	CreatedBy   string                 `json:"created_by"`
+	DraftType   DispatchDraftDraftType `json:"draft_type"`
+	Id          openapi_types.UUID     `json:"id"`
+	Status      DispatchDraftStatus    `json:"status"`
+	Title       string                 `json:"title"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+	Version     int                    `json:"version"`
+}
+
+// DispatchDraftDraftType defines model for DispatchDraft.DraftType.
+type DispatchDraftDraftType string
+
+// DispatchDraftStatus defines model for DispatchDraft.Status.
+type DispatchDraftStatus string
+
+// DispatchOrder defines model for DispatchOrder.
+type DispatchOrder struct {
+	CaseId      openapi_types.UUID  `json:"case_id"`
+	Content     string              `json:"content"`
+	ContentHash string              `json:"content_hash"`
+	CreatedAt   time.Time           `json:"created_at"`
+	DraftId     openapi_types.UUID  `json:"draft_id"`
+	Id          openapi_types.UUID  `json:"id"`
+	Recipient   string              `json:"recipient"`
+	Status      DispatchOrderStatus `json:"status"`
+}
+
+// DispatchOrderStatus defines model for DispatchOrder.Status.
+type DispatchOrderStatus string
+
+// DispatchOrderRequest defines model for DispatchOrderRequest.
+type DispatchOrderRequest struct {
+	DispatchedBy string `json:"dispatched_by"`
+	Recipient    string `json:"recipient"`
 }
 
 // Explanation defines model for Explanation.
@@ -513,6 +895,16 @@ type ForecastRun struct {
 	RunMode     RunMode            `json:"run_mode"`
 	Status      RunStatus          `json:"status"`
 }
+
+// GenerateDraftCaseRequest defines model for GenerateDraftCaseRequest.
+type GenerateDraftCaseRequest struct {
+	DraftType         GenerateDraftCaseRequestDraftType `json:"draft_type"`
+	ExtraInstructions *string                           `json:"extra_instructions,omitempty"`
+	Title             *string                           `json:"title,omitempty"`
+}
+
+// GenerateDraftCaseRequestDraftType defines model for GenerateDraftCaseRequest.DraftType.
+type GenerateDraftCaseRequestDraftType string
 
 // GeoJsonFeatureCollection defines model for GeoJsonFeatureCollection.
 type GeoJsonFeatureCollection struct {
@@ -754,6 +1146,21 @@ type Reliability struct {
 // ReliabilityRegionLevel defines model for Reliability.RegionLevel.
 type ReliabilityRegionLevel string
 
+// ReviewResult defines model for ReviewResult.
+type ReviewResult struct {
+	Action       ReviewResultAction `json:"action"`
+	DraftId      openapi_types.UUID `json:"draft_id"`
+	DraftStatus  string             `json:"draft_status"`
+	DraftVersion int                `json:"draft_version"`
+	Id           openapi_types.UUID `json:"id"`
+	Note         *string            `json:"note,omitempty"`
+	ReviewedAt   time.Time          `json:"reviewed_at"`
+	ReviewerId   string             `json:"reviewer_id"`
+}
+
+// ReviewResultAction defines model for ReviewResult.Action.
+type ReviewResultAction string
+
 // RiskMap defines model for RiskMap.
 type RiskMap struct {
 	// Horizon Tầm dự báo — số tháng tính từ tháng neo (`origin_month`).
@@ -796,6 +1203,17 @@ type RunMode string
 // RunStatus defines model for RunStatus.
 type RunStatus string
 
+// SubmitReviewRequest defines model for SubmitReviewRequest.
+type SubmitReviewRequest struct {
+	Action       SubmitReviewRequestAction `json:"action"`
+	DraftVersion int                       `json:"draft_version"`
+	Note         *string                   `json:"note,omitempty"`
+	ReviewerId   string                    `json:"reviewer_id"`
+}
+
+// SubmitReviewRequestAction defines model for SubmitReviewRequest.Action.
+type SubmitReviewRequestAction string
+
 // TokenResponse defines model for TokenResponse.
 type TokenResponse struct {
 	AccessToken string `json:"access_token"`
@@ -810,6 +1228,13 @@ type TokenResponse struct {
 
 // TokenResponseTokenType defines model for TokenResponse.TokenType.
 type TokenResponseTokenType string
+
+// UpdateDraftRequest defines model for UpdateDraftRequest.
+type UpdateDraftRequest struct {
+	Content   string  `json:"content"`
+	Title     *string `json:"title,omitempty"`
+	UpdatedBy string  `json:"updated_by"`
+}
 
 // User defines model for User.
 type User struct {
@@ -864,6 +1289,27 @@ type Unauthorized = Problem
 // ValidationError RFC 9457 problem details (docs/09 §6.3).
 type ValidationError = Problem
 
+// ListAlertsParams defines parameters for ListAlerts.
+type ListAlertsParams struct {
+	// Status Lọc theo trạng thái cảnh báo.
+	Status *ListAlertsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// RunId Lọc theo lượt dự báo.
+	RunId *openapi_types.UUID `form:"run_id,omitempty" json:"run_id,omitempty"`
+}
+
+// ListAlertsParamsStatus defines parameters for ListAlerts.
+type ListAlertsParamsStatus string
+
+// ListCasesParams defines parameters for ListCases.
+type ListCasesParams struct {
+	// Status Lọc theo trạng thái hồ sơ.
+	Status *ListCasesParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListCasesParamsStatus defines parameters for ListCases.
+type ListCasesParamsStatus string
+
 // ListForecastRunsParams defines parameters for ListForecastRuns.
 type ListForecastRunsParams struct {
 	Mode   *RunMode   `form:"mode,omitempty" json:"mode,omitempty"`
@@ -916,6 +1362,27 @@ type GetRiskMapParams struct {
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = LoginRequest
+
+// CreateCaseJSONRequestBody defines body for CreateCase for application/json ContentType.
+type CreateCaseJSONRequestBody = CreateCaseRequest
+
+// CreateAllocationPlanJSONRequestBody defines body for CreateAllocationPlan for application/json ContentType.
+type CreateAllocationPlanJSONRequestBody = CreateAllocationPlanRequest
+
+// CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
+type CreateDraftJSONRequestBody = CreateDraftRequest
+
+// GenerateDraftForCaseJSONRequestBody defines body for GenerateDraftForCase for application/json ContentType.
+type GenerateDraftForCaseJSONRequestBody = GenerateDraftCaseRequest
+
+// UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
+type UpdateDraftJSONRequestBody = UpdateDraftRequest
+
+// DispatchApprovedOrderJSONRequestBody defines body for DispatchApprovedOrder for application/json ContentType.
+type DispatchApprovedOrderJSONRequestBody = DispatchOrderRequest
+
+// SubmitReviewJSONRequestBody defines body for SubmitReview for application/json ContentType.
+type SubmitReviewJSONRequestBody = SubmitReviewRequest
 
 // CreateForecastRunJSONRequestBody defines body for CreateForecastRun for application/json ContentType.
 type CreateForecastRunJSONRequestBody = CreateForecastRunRequest
@@ -988,6 +1455,12 @@ func (a GeoJsonFeatureCollection_Features_Properties) MarshalJSON() ([]byte, err
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// ListAlerts Danh sách cảnh báo dịch
+	// (GET /alerts)
+	ListAlerts(c *gin.Context, params ListAlertsParams)
+	// ConfirmAlert Xác nhận cảnh báo và tự động mở hồ sơ xử lý
+	// (POST /alerts/{alert_id}/confirm)
+	ConfirmAlert(c *gin.Context, alertId openapi_types.UUID)
 	// Login Đăng nhập
 	// (POST /auth/login)
 	Login(c *gin.Context)
@@ -997,9 +1470,39 @@ type ServerInterface interface {
 	// RefreshToken Cấp access token mới bằng refresh token trong cookie (xoay vòng)
 	// (POST /auth/refresh)
 	RefreshToken(c *gin.Context)
+	// ListCases Danh sách hồ sơ xử lý dịch
+	// (GET /cases)
+	ListCases(c *gin.Context, params ListCasesParams)
+	// CreateCase Tạo hồ sơ xử lý dịch mới
+	// (POST /cases)
+	CreateCase(c *gin.Context)
+	// GetCase Chi tiết hồ sơ xử lý dịch
+	// (GET /cases/{case_id})
+	GetCase(c *gin.Context, caseId openapi_types.UUID)
+	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /cases/{case_id}/allocation-plans)
+	CreateAllocationPlan(c *gin.Context, caseId openapi_types.UUID)
+	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
+	// (POST /cases/{case_id}/drafts)
+	CreateDraft(c *gin.Context, caseId openapi_types.UUID)
+	// GenerateDraftForCase Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+	// (POST /cases/{case_id}/drafts/generate)
+	GenerateDraftForCase(c *gin.Context, caseId openapi_types.UUID)
 	// ListDataVersions Các phiên bản dữ liệu (panel) đã công bố
 	// (GET /data-versions)
 	ListDataVersions(c *gin.Context)
+	// GetDraft Chi tiết dự thảo văn bản
+	// (GET /drafts/{draft_id})
+	GetDraft(c *gin.Context, draftId openapi_types.UUID)
+	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// (PATCH /drafts/{draft_id})
+	UpdateDraft(c *gin.Context, draftId openapi_types.UUID)
+	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
+	// (POST /drafts/{draft_id}/dispatch)
+	DispatchApprovedOrder(c *gin.Context, draftId openapi_types.UUID)
+	// SubmitReview Phê duyệt / Từ chối / Yêu cầu sửa dự thảo (Áp dụng quy tắc 4 mắt)
+	// (POST /drafts/{draft_id}/reviews)
+	SubmitReview(c *gin.Context, draftId openapi_types.UUID)
 	// ListForecastRuns Danh sách lượt dự báo
 	// (GET /forecast-runs)
 	ListForecastRuns(c *gin.Context, params ListForecastRunsParams)
@@ -1056,6 +1559,66 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(c *gin.Context)
 
+// ListAlerts operation middleware
+func (siw *ServerInterfaceWrapper) ListAlerts(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAlertsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", c.Request.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "run_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "run_id", c.Request.URL.Query(), &params.RunId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter run_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListAlerts(c, params)
+}
+
+// ConfirmAlert operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmAlert(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "alert_id" -------------
+	var alertId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "alert_id", c.Param("alert_id"), &alertId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter alert_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ConfirmAlert(c, alertId)
+}
+
 // Login operation middleware
 func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
 
@@ -1095,6 +1658,146 @@ func (siw *ServerInterfaceWrapper) RefreshToken(c *gin.Context) {
 	siw.Handler.RefreshToken(c)
 }
 
+// ListCases operation middleware
+func (siw *ServerInterfaceWrapper) ListCases(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListCasesParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", c.Request.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCases(c, params)
+}
+
+// CreateCase operation middleware
+func (siw *ServerInterfaceWrapper) CreateCase(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateCase(c)
+}
+
+// GetCase operation middleware
+func (siw *ServerInterfaceWrapper) GetCase(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCase(c, caseId)
+}
+
+// CreateAllocationPlan operation middleware
+func (siw *ServerInterfaceWrapper) CreateAllocationPlan(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateAllocationPlan(c, caseId)
+}
+
+// CreateDraft operation middleware
+func (siw *ServerInterfaceWrapper) CreateDraft(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateDraft(c, caseId)
+}
+
+// GenerateDraftForCase operation middleware
+func (siw *ServerInterfaceWrapper) GenerateDraftForCase(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GenerateDraftForCase(c, caseId)
+}
+
 // ListDataVersions operation middleware
 func (siw *ServerInterfaceWrapper) ListDataVersions(c *gin.Context) {
 
@@ -1106,6 +1809,106 @@ func (siw *ServerInterfaceWrapper) ListDataVersions(c *gin.Context) {
 	}
 
 	siw.Handler.ListDataVersions(c)
+}
+
+// GetDraft operation middleware
+func (siw *ServerInterfaceWrapper) GetDraft(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "draft_id" -------------
+	var draftId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "draft_id", c.Param("draft_id"), &draftId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter draft_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetDraft(c, draftId)
+}
+
+// UpdateDraft operation middleware
+func (siw *ServerInterfaceWrapper) UpdateDraft(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "draft_id" -------------
+	var draftId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "draft_id", c.Param("draft_id"), &draftId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter draft_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateDraft(c, draftId)
+}
+
+// DispatchApprovedOrder operation middleware
+func (siw *ServerInterfaceWrapper) DispatchApprovedOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "draft_id" -------------
+	var draftId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "draft_id", c.Param("draft_id"), &draftId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter draft_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DispatchApprovedOrder(c, draftId)
+}
+
+// SubmitReview operation middleware
+func (siw *ServerInterfaceWrapper) SubmitReview(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "draft_id" -------------
+	var draftId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "draft_id", c.Param("draft_id"), &draftId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter draft_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SubmitReview(c, draftId)
 }
 
 // ListForecastRuns operation middleware
@@ -1581,6 +2384,18 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/model-card/limitations", wrapper.ListLimitations)
 	router.GET(options.BaseURL+"/model-versions", wrapper.ListModelVersions)
 	router.GET(options.BaseURL+"/jobs/:job_id", wrapper.GetJob)
+	router.GET(options.BaseURL+"/alerts", wrapper.ListAlerts)
+	router.POST(options.BaseURL+"/alerts/:alert_id/confirm", wrapper.ConfirmAlert)
+	router.GET(options.BaseURL+"/cases", wrapper.ListCases)
+	router.POST(options.BaseURL+"/cases", wrapper.CreateCase)
+	router.GET(options.BaseURL+"/cases/:case_id", wrapper.GetCase)
+	router.POST(options.BaseURL+"/cases/:case_id/allocation-plans", wrapper.CreateAllocationPlan)
+	router.POST(options.BaseURL+"/cases/:case_id/drafts", wrapper.CreateDraft)
+	router.POST(options.BaseURL+"/cases/:case_id/drafts/generate", wrapper.GenerateDraftForCase)
+	router.GET(options.BaseURL+"/drafts/:draft_id", wrapper.GetDraft)
+	router.PATCH(options.BaseURL+"/drafts/:draft_id", wrapper.UpdateDraft)
+	router.POST(options.BaseURL+"/drafts/:draft_id/reviews", wrapper.SubmitReview)
+	router.POST(options.BaseURL+"/drafts/:draft_id/dispatch", wrapper.DispatchApprovedOrder)
 }
 
 type ConflictApplicationProblemPlusJSONResponse Problem
@@ -1601,6 +2416,124 @@ type TooManyRequestsApplicationProblemPlusJSONResponse struct {
 type UnauthorizedApplicationProblemPlusJSONResponse Problem
 
 type ValidationErrorApplicationProblemPlusJSONResponse Problem
+
+type ListAlertsRequestObject struct {
+	Params ListAlertsParams
+}
+
+type ListAlertsResponseObject interface {
+	VisitListAlertsResponse(w http.ResponseWriter) error
+}
+
+type ListAlerts200JSONResponse []Alert
+
+func (response ListAlerts200JSONResponse) VisitListAlertsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAlerts401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ListAlerts401ApplicationProblemPlusJSONResponse) VisitListAlertsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAlerts403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response ListAlerts403ApplicationProblemPlusJSONResponse) VisitListAlertsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAlertRequestObject struct {
+	AlertId openapi_types.UUID `json:"alert_id"`
+}
+
+type ConfirmAlertResponseObject interface {
+	VisitConfirmAlertResponse(w http.ResponseWriter) error
+}
+
+type ConfirmAlert204Response struct {
+}
+
+func (response ConfirmAlert204Response) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type ConfirmAlert401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAlert401ApplicationProblemPlusJSONResponse) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAlert403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAlert403ApplicationProblemPlusJSONResponse) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAlert404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAlert404ApplicationProblemPlusJSONResponse) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type LoginRequestObject struct {
 	Body *LoginJSONRequestBody
@@ -1764,6 +2697,461 @@ func (response RefreshToken401ApplicationProblemPlusJSONResponse) VisitRefreshTo
 	return err
 }
 
+type ListCasesRequestObject struct {
+	Params ListCasesParams
+}
+
+type ListCasesResponseObject interface {
+	VisitListCasesResponse(w http.ResponseWriter) error
+}
+
+type ListCases200JSONResponse []Case
+
+func (response ListCases200JSONResponse) VisitListCasesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCases401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ListCases401ApplicationProblemPlusJSONResponse) VisitListCasesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCases403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response ListCases403ApplicationProblemPlusJSONResponse) VisitListCasesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCaseRequestObject struct {
+	Body *CreateCaseJSONRequestBody
+}
+
+type CreateCaseResponseObject interface {
+	VisitCreateCaseResponse(w http.ResponseWriter) error
+}
+
+type CreateCase201JSONResponse Case
+
+func (response CreateCase201JSONResponse) VisitCreateCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCase400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response CreateCase400ApplicationProblemPlusJSONResponse) VisitCreateCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCase401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response CreateCase401ApplicationProblemPlusJSONResponse) VisitCreateCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCase403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response CreateCase403ApplicationProblemPlusJSONResponse) VisitCreateCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCaseRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+}
+
+type GetCaseResponseObject interface {
+	VisitGetCaseResponse(w http.ResponseWriter) error
+}
+
+type GetCase200JSONResponse CaseDetail
+
+func (response GetCase200JSONResponse) VisitGetCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCase401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetCase401ApplicationProblemPlusJSONResponse) VisitGetCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCase403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetCase403ApplicationProblemPlusJSONResponse) VisitGetCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCase404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetCase404ApplicationProblemPlusJSONResponse) VisitGetCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAllocationPlanRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	Body   *CreateAllocationPlanJSONRequestBody
+}
+
+type CreateAllocationPlanResponseObject interface {
+	VisitCreateAllocationPlanResponse(w http.ResponseWriter) error
+}
+
+type CreateAllocationPlan201JSONResponse AllocationPlan
+
+func (response CreateAllocationPlan201JSONResponse) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAllocationPlan400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response CreateAllocationPlan400ApplicationProblemPlusJSONResponse) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAllocationPlan401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response CreateAllocationPlan401ApplicationProblemPlusJSONResponse) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAllocationPlan403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response CreateAllocationPlan403ApplicationProblemPlusJSONResponse) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAllocationPlan404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response CreateAllocationPlan404ApplicationProblemPlusJSONResponse) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDraftRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	Body   *CreateDraftJSONRequestBody
+}
+
+type CreateDraftResponseObject interface {
+	VisitCreateDraftResponse(w http.ResponseWriter) error
+}
+
+type CreateDraft201JSONResponse DispatchDraft
+
+func (response CreateDraft201JSONResponse) VisitCreateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDraft400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response CreateDraft400ApplicationProblemPlusJSONResponse) VisitCreateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDraft401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response CreateDraft401ApplicationProblemPlusJSONResponse) VisitCreateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDraft403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response CreateDraft403ApplicationProblemPlusJSONResponse) VisitCreateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateDraft404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response CreateDraft404ApplicationProblemPlusJSONResponse) VisitCreateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCaseRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	Body   *GenerateDraftForCaseJSONRequestBody
+}
+
+type GenerateDraftForCaseResponseObject interface {
+	VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error
+}
+
+type GenerateDraftForCase201JSONResponse DispatchDraft
+
+func (response GenerateDraftForCase201JSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response GenerateDraftForCase400ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GenerateDraftForCase401ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GenerateDraftForCase403ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GenerateDraftForCase404ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListDataVersionsRequestObject struct {
 }
 
@@ -1799,6 +3187,337 @@ func (response ListDataVersions401ApplicationProblemPlusJSONResponse) VisitListD
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDraftRequestObject struct {
+	DraftId openapi_types.UUID `json:"draft_id"`
+}
+
+type GetDraftResponseObject interface {
+	VisitGetDraftResponse(w http.ResponseWriter) error
+}
+
+type GetDraft200JSONResponse DispatchDraft
+
+func (response GetDraft200JSONResponse) VisitGetDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDraft401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response GetDraft401ApplicationProblemPlusJSONResponse) VisitGetDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDraft403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response GetDraft403ApplicationProblemPlusJSONResponse) VisitGetDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetDraft404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response GetDraft404ApplicationProblemPlusJSONResponse) VisitGetDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDraftRequestObject struct {
+	DraftId openapi_types.UUID `json:"draft_id"`
+	Body    *UpdateDraftJSONRequestBody
+}
+
+type UpdateDraftResponseObject interface {
+	VisitUpdateDraftResponse(w http.ResponseWriter) error
+}
+
+type UpdateDraft200JSONResponse DispatchDraft
+
+func (response UpdateDraft200JSONResponse) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDraft400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateDraft400ApplicationProblemPlusJSONResponse) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDraft401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateDraft401ApplicationProblemPlusJSONResponse) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDraft403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateDraft403ApplicationProblemPlusJSONResponse) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateDraft404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateDraft404ApplicationProblemPlusJSONResponse) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DispatchApprovedOrderRequestObject struct {
+	DraftId openapi_types.UUID `json:"draft_id"`
+	Body    *DispatchApprovedOrderJSONRequestBody
+}
+
+type DispatchApprovedOrderResponseObject interface {
+	VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error
+}
+
+type DispatchApprovedOrder201JSONResponse DispatchOrder
+
+func (response DispatchApprovedOrder201JSONResponse) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DispatchApprovedOrder400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response DispatchApprovedOrder400ApplicationProblemPlusJSONResponse) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DispatchApprovedOrder401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response DispatchApprovedOrder401ApplicationProblemPlusJSONResponse) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DispatchApprovedOrder403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response DispatchApprovedOrder403ApplicationProblemPlusJSONResponse) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DispatchApprovedOrder404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response DispatchApprovedOrder404ApplicationProblemPlusJSONResponse) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReviewRequestObject struct {
+	DraftId openapi_types.UUID `json:"draft_id"`
+	Body    *SubmitReviewJSONRequestBody
+}
+
+type SubmitReviewResponseObject interface {
+	VisitSubmitReviewResponse(w http.ResponseWriter) error
+}
+
+type SubmitReview200JSONResponse ReviewResult
+
+func (response SubmitReview200JSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReview400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview400ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReview401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview401ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReview403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview403ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReview404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview404ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -2593,6 +4312,12 @@ func (response GetRiskMap404ApplicationProblemPlusJSONResponse) VisitGetRiskMapR
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// ListAlerts Danh sách cảnh báo dịch
+	// (GET /alerts)
+	ListAlerts(ctx context.Context, request ListAlertsRequestObject) (ListAlertsResponseObject, error)
+	// ConfirmAlert Xác nhận cảnh báo và tự động mở hồ sơ xử lý
+	// (POST /alerts/{alert_id}/confirm)
+	ConfirmAlert(ctx context.Context, request ConfirmAlertRequestObject) (ConfirmAlertResponseObject, error)
 	// Login Đăng nhập
 	// (POST /auth/login)
 	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
@@ -2602,9 +4327,39 @@ type StrictServerInterface interface {
 	// RefreshToken Cấp access token mới bằng refresh token trong cookie (xoay vòng)
 	// (POST /auth/refresh)
 	RefreshToken(ctx context.Context, request RefreshTokenRequestObject) (RefreshTokenResponseObject, error)
+	// ListCases Danh sách hồ sơ xử lý dịch
+	// (GET /cases)
+	ListCases(ctx context.Context, request ListCasesRequestObject) (ListCasesResponseObject, error)
+	// CreateCase Tạo hồ sơ xử lý dịch mới
+	// (POST /cases)
+	CreateCase(ctx context.Context, request CreateCaseRequestObject) (CreateCaseResponseObject, error)
+	// GetCase Chi tiết hồ sơ xử lý dịch
+	// (GET /cases/{case_id})
+	GetCase(ctx context.Context, request GetCaseRequestObject) (GetCaseResponseObject, error)
+	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /cases/{case_id}/allocation-plans)
+	CreateAllocationPlan(ctx context.Context, request CreateAllocationPlanRequestObject) (CreateAllocationPlanResponseObject, error)
+	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
+	// (POST /cases/{case_id}/drafts)
+	CreateDraft(ctx context.Context, request CreateDraftRequestObject) (CreateDraftResponseObject, error)
+	// GenerateDraftForCase Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+	// (POST /cases/{case_id}/drafts/generate)
+	GenerateDraftForCase(ctx context.Context, request GenerateDraftForCaseRequestObject) (GenerateDraftForCaseResponseObject, error)
 	// ListDataVersions Các phiên bản dữ liệu (panel) đã công bố
 	// (GET /data-versions)
 	ListDataVersions(ctx context.Context, request ListDataVersionsRequestObject) (ListDataVersionsResponseObject, error)
+	// GetDraft Chi tiết dự thảo văn bản
+	// (GET /drafts/{draft_id})
+	GetDraft(ctx context.Context, request GetDraftRequestObject) (GetDraftResponseObject, error)
+	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// (PATCH /drafts/{draft_id})
+	UpdateDraft(ctx context.Context, request UpdateDraftRequestObject) (UpdateDraftResponseObject, error)
+	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
+	// (POST /drafts/{draft_id}/dispatch)
+	DispatchApprovedOrder(ctx context.Context, request DispatchApprovedOrderRequestObject) (DispatchApprovedOrderResponseObject, error)
+	// SubmitReview Phê duyệt / Từ chối / Yêu cầu sửa dự thảo (Áp dụng quy tắc 4 mắt)
+	// (POST /drafts/{draft_id}/reviews)
+	SubmitReview(ctx context.Context, request SubmitReviewRequestObject) (SubmitReviewResponseObject, error)
 	// ListForecastRuns Danh sách lượt dự báo
 	// (GET /forecast-runs)
 	ListForecastRuns(ctx context.Context, request ListForecastRunsRequestObject) (ListForecastRunsResponseObject, error)
@@ -2709,6 +4464,58 @@ type strictHandler struct {
 	options     StrictGinServerOptions
 }
 
+// ListAlerts operation middleware
+func (sh *strictHandler) ListAlerts(ctx *gin.Context, params ListAlertsParams) {
+	var request ListAlertsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAlerts(ctx, request.(ListAlertsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAlerts")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListAlertsResponseObject); ok {
+		if err := validResponse.VisitListAlertsResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ConfirmAlert operation middleware
+func (sh *strictHandler) ConfirmAlert(ctx *gin.Context, alertId openapi_types.UUID) {
+	var request ConfirmAlertRequestObject
+
+	request.AlertId = alertId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ConfirmAlert(ctx, request.(ConfirmAlertRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ConfirmAlert")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ConfirmAlertResponseObject); ok {
+		if err := validResponse.VisitConfirmAlertResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Login operation middleware
 func (sh *strictHandler) Login(ctx *gin.Context) {
 	var request LoginRequestObject
@@ -2788,6 +4595,188 @@ func (sh *strictHandler) RefreshToken(ctx *gin.Context) {
 	}
 }
 
+// ListCases operation middleware
+func (sh *strictHandler) ListCases(ctx *gin.Context, params ListCasesParams) {
+	var request ListCasesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCases(ctx, request.(ListCasesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCases")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListCasesResponseObject); ok {
+		if err := validResponse.VisitListCasesResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCase operation middleware
+func (sh *strictHandler) CreateCase(ctx *gin.Context) {
+	var request CreateCaseRequestObject
+
+	var body CreateCaseJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCase(ctx, request.(CreateCaseRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCase")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CreateCaseResponseObject); ok {
+		if err := validResponse.VisitCreateCaseResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCase operation middleware
+func (sh *strictHandler) GetCase(ctx *gin.Context, caseId openapi_types.UUID) {
+	var request GetCaseRequestObject
+
+	request.CaseId = caseId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCase(ctx, request.(GetCaseRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCase")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetCaseResponseObject); ok {
+		if err := validResponse.VisitGetCaseResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateAllocationPlan operation middleware
+func (sh *strictHandler) CreateAllocationPlan(ctx *gin.Context, caseId openapi_types.UUID) {
+	var request CreateAllocationPlanRequestObject
+
+	request.CaseId = caseId
+
+	var body CreateAllocationPlanJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateAllocationPlan(ctx, request.(CreateAllocationPlanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateAllocationPlan")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CreateAllocationPlanResponseObject); ok {
+		if err := validResponse.VisitCreateAllocationPlanResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDraft operation middleware
+func (sh *strictHandler) CreateDraft(ctx *gin.Context, caseId openapi_types.UUID) {
+	var request CreateDraftRequestObject
+
+	request.CaseId = caseId
+
+	var body CreateDraftJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateDraft(ctx, request.(CreateDraftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateDraft")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CreateDraftResponseObject); ok {
+		if err := validResponse.VisitCreateDraftResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GenerateDraftForCase operation middleware
+func (sh *strictHandler) GenerateDraftForCase(ctx *gin.Context, caseId openapi_types.UUID) {
+	var request GenerateDraftForCaseRequestObject
+
+	request.CaseId = caseId
+
+	var body GenerateDraftForCaseJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GenerateDraftForCase(ctx, request.(GenerateDraftForCaseRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GenerateDraftForCase")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GenerateDraftForCaseResponseObject); ok {
+		if err := validResponse.VisitGenerateDraftForCaseResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListDataVersions operation middleware
 func (sh *strictHandler) ListDataVersions(ctx *gin.Context) {
 	var request ListDataVersionsRequestObject
@@ -2805,6 +4794,131 @@ func (sh *strictHandler) ListDataVersions(ctx *gin.Context) {
 		sh.options.HandlerErrorFunc(ctx, err)
 	} else if validResponse, ok := response.(ListDataVersionsResponseObject); ok {
 		if err := validResponse.VisitListDataVersionsResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetDraft operation middleware
+func (sh *strictHandler) GetDraft(ctx *gin.Context, draftId openapi_types.UUID) {
+	var request GetDraftRequestObject
+
+	request.DraftId = draftId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetDraft(ctx, request.(GetDraftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetDraft")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetDraftResponseObject); ok {
+		if err := validResponse.VisitGetDraftResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateDraft operation middleware
+func (sh *strictHandler) UpdateDraft(ctx *gin.Context, draftId openapi_types.UUID) {
+	var request UpdateDraftRequestObject
+
+	request.DraftId = draftId
+
+	var body UpdateDraftJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateDraft(ctx, request.(UpdateDraftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateDraft")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateDraftResponseObject); ok {
+		if err := validResponse.VisitUpdateDraftResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DispatchApprovedOrder operation middleware
+func (sh *strictHandler) DispatchApprovedOrder(ctx *gin.Context, draftId openapi_types.UUID) {
+	var request DispatchApprovedOrderRequestObject
+
+	request.DraftId = draftId
+
+	var body DispatchApprovedOrderJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DispatchApprovedOrder(ctx, request.(DispatchApprovedOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DispatchApprovedOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(DispatchApprovedOrderResponseObject); ok {
+		if err := validResponse.VisitDispatchApprovedOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SubmitReview operation middleware
+func (sh *strictHandler) SubmitReview(ctx *gin.Context, draftId openapi_types.UUID) {
+	var request SubmitReviewRequestObject
+
+	request.DraftId = draftId
+
+	var body SubmitReviewJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.SubmitReview(ctx, request.(SubmitReviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SubmitReview")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(SubmitReviewResponseObject); ok {
+		if err := validResponse.VisitSubmitReviewResponse(ctx.Writer); err != nil {
 			sh.options.ResponseErrorHandlerFunc(ctx, err)
 		}
 	} else if response != nil {

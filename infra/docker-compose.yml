@@ -276,22 +276,14 @@ services:
       retries: 10
       start_period: 5s
 
-networks:
-  core:
-    name: denguesense-core
-
-volumes:
-  pgdata:
-  natsdata:
-
   workflow-migrate:
     build:
       context: ../backend
       dockerfile: build/Dockerfile
       args:
         SERVICE: workflow
-        VERSION: 
-    image: denguesense/workflow:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/workflow:${BUILD_VERSION:-dev}
     restart: "no"
     command: ["/service", "-migrate"]
     environment:
@@ -307,16 +299,122 @@ volumes:
       dockerfile: build/Dockerfile
       args:
         SERVICE: workflow
-        VERSION: 
-    image: denguesense/workflow:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/workflow:${BUILD_VERSION:-dev}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NATS_URL: nats://nats:4222
       FORECAST_API_URL: http://forecast:8001/internal/v1
+      GENAI_API_URL: http://genai:8001/internal/v1
+      OPTIMIZE_API_URL: http://optimize:8001/internal/v1
     depends_on:
       workflow-migrate:
         condition: service_completed_successfully
       nats-init:
         condition: service_completed_successfully
     networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  notification-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: notification
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/notification:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["/service", "-migrate"]
+    environment:
+      DATABASE_URL: postgresql://svc_notification:${SVC_NOTIFICATION_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+
+  notification:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: notification
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/notification:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://svc_notification:${SVC_NOTIFICATION_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB}
+      NATS_URL: nats://nats:4222
+    depends_on:
+      notification-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "/service", "-healthcheck"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 3s
+
+  optimize:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/optimize:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    command: ["uvicorn", "app.serving.optimize_api.main:app", "--host", "0.0.0.0", "--port", "8001", "--no-access-log"]
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8001/healthz', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 5s
+
+  genai:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/genai:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    command: ["uvicorn", "app.serving.genai_api.main:app", "--host", "0.0.0.0", "--port", "8001", "--no-access-log"]
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: [/tmp]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8001/healthz', timeout=3).status == 200 else 1)"]
+      interval: 5s
+      timeout: 4s
+      retries: 10
+      start_period: 5s
+
+networks:
+  core:
+    name: denguesense-core
+
+volumes:
+  pgdata:
+  natsdata:

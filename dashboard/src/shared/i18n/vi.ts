@@ -50,6 +50,15 @@ export const vi = {
       "surveillance.data_version_conflict": "Phiên bản dữ liệu này đã tồn tại.",
       "surveillance.geometry_version_not_found": "Không tìm thấy phiên bản bản đồ.",
       "gateway.alerts_unavailable": "Không tải được cảnh báo.",
+      "workflow.case_not_found": "Không tìm thấy hồ sơ xử lý.",
+      "workflow.alert_not_found": "Không tìm thấy cảnh báo.",
+      "workflow.draft_not_found": "Không tìm thấy dự thảo văn bản.",
+      "workflow.order_not_found": "Không tìm thấy lệnh điều phối.",
+      "workflow.four_eyes_violation":
+        "Vi phạm quy tắc 4 mắt: người soạn văn bản B2G không được tự duyệt.",
+      "workflow.draft_not_approved": "Dự thảo chưa được phê duyệt nên không thể ban hành lệnh.",
+      "workflow.content_tampered": "Nội dung văn bản đã bị sửa đổi sau khi duyệt.",
+      "workflow.invalid_state_transition": "Thao tác không hợp lệ đối với trạng thái hiện tại.",
       // Mã phía client (không có trong hợp đồng)
       "client.unexpected_response": "Máy chủ trả về phản hồi không hợp lệ. Vui lòng thử lại.",
       "client.empty_response": "Máy chủ trả về phản hồi trống. Vui lòng thử lại.",

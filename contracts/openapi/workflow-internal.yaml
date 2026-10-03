@@ -1,10 +1,10 @@
 openapi: 3.1.0
 info:
   title: DengueSense workflow — API nội bộ
-  version: 1.0.0-draft.1
+  version: 1.0.0-draft.2
   description: |
     Hợp đồng NỘI BỘ (service ↔ service), tiền tố `/internal/v1/workflow`.
-    Service `workflow` (Layer 2, Go): Xử lý cảnh báo (Alert) từ forecast, và Hồ sơ (Case).
+    Service `workflow` (Layer 2, Go): Xử lý Cảnh báo (Alert), Hồ sơ (Case), Phân bổ nguồn lực, Dự thảo văn bản (Draft), Phê duyệt (Review - 4 mắt) và Lệnh điều phối (Dispatch Order).
 servers:
   - url: http://workflow:8001
     description: Mạng nội bộ compose
@@ -42,7 +42,7 @@ paths:
   /internal/v1/workflow/alerts/{alert_id}/confirm:
     post:
       operationId: confirmAlert
-      summary: Xác nhận cảnh báo để mở hồ sơ
+      summary: Xác nhận cảnh báo
       parameters:
         - name: alert_id
           in: path
@@ -58,6 +58,12 @@ paths:
     get:
       operationId: listCases
       summary: Danh sách hồ sơ
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, completed, archived, all]
       responses:
         "200":
           description: Thành công
@@ -67,6 +73,214 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Case"
+    post:
+      operationId: createCase
+      summary: Tạo hồ sơ xử lý dịch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCaseRequest"
+      responses:
+        "201":
+          description: Tạo hồ sơ thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Case"
+
+  /internal/v1/workflow/cases/{case_id}:
+    get:
+      operationId: getCase
+      summary: Lấy chi tiết hồ sơ
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CaseDetail"
+        "404":
+          description: Không tìm thấy hồ sơ
+
+  /internal/v1/workflow/cases/{case_id}/allocation-plans:
+    post:
+      operationId: createAllocationPlan
+      summary: Tạo phương án phân bổ nguồn lực cho hồ sơ
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAllocationPlanRequest"
+      responses:
+        "201":
+          description: Tạo phương án thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllocationPlan"
+
+  /internal/v1/workflow/cases/{case_id}/drafts:
+    post:
+      operationId: createDraft
+      summary: Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDraftRequest"
+      responses:
+        "201":
+          description: Tạo dự thảo thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchDraft"
+
+  /internal/v1/workflow/cases/{case_id}/drafts/generate:
+    post:
+      operationId: generateDraftForCase
+      summary: Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateDraftCaseRequest"
+      responses:
+        "201":
+          description: Sinh dự thảo thành công và lưu vào hồ sơ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchDraft"
+
+  /internal/v1/workflow/drafts/{draft_id}:
+    get:
+      operationId: getDraft
+      summary: Lấy thông tin dự thảo
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchDraft"
+    patch:
+      operationId: updateDraft
+      summary: Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDraftRequest"
+      responses:
+        "200":
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchDraft"
+
+  /internal/v1/workflow/drafts/{draft_id}/reviews:
+    post:
+      operationId: submitReview
+      summary: Phê duyệt / Từ chối / Yêu cầu sửa dự thảo (Áp dụng quy tắc 4 mắt)
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitReviewRequest"
+      responses:
+        "200":
+          description: Phê duyệt thành công
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewResult"
+        "400":
+          description: Vi phạm quy tắc 4 mắt hoặc trạng thái không hợp lệ
+
+  /internal/v1/workflow/drafts/{draft_id}/dispatch:
+    post:
+      operationId: dispatchApprovedOrder
+      summary: Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
+      parameters:
+        - name: draft_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DispatchOrderRequest"
+      responses:
+        "201":
+          description: Ban hành lệnh thành công, chuyển sang outbox
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchOrder"
+        "400":
+          description: Dự thảo chưa được duyệt hoặc content_hash không khớp
 
 components:
   securitySchemes:
@@ -88,8 +302,166 @@ components:
 
     Case:
       type: object
-      required: [id, alert_id, created_at]
+      required: [id, alert_id, title, status, created_by, created_at]
       properties:
         id: { type: string, format: uuid }
-        alert_id: { type: string, format: uuid }
+        alert_id:
+          type: string
+          format: uuid
+          description: ID cảnh báo liên kết chính (giữ để tương thích ngược)
+          deprecated: true
+        title: { type: string }
+        status: { type: string, enum: [open, completed, archived] }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+
+    CaseDetail:
+      allOf:
+        - $ref: "#/components/schemas/Case"
+        - type: object
+          properties:
+            alert_ids:
+              type: array
+              items: { type: string, format: uuid }
+            latest_plan_id:
+              type: string
+              format: uuid
+            latest_draft_id:
+              type: string
+              format: uuid
+
+    CreateCaseRequest:
+      type: object
+      required: [title, created_by]
+      properties:
+        title: { type: string }
+        alert_ids:
+          type: array
+          items: { type: string, format: uuid }
+        created_by: { type: string }
+
+    CreateAllocationPlanRequest:
+      type: object
+      required: [budget, items]
+      properties:
+        budget: { type: number, format: double }
+        items:
+          type: array
+          items:
+            type: object
+            required: [province_id, cases_pred, cost]
+            properties:
+              province_id: { type: string }
+              cases_pred: { type: number, format: double }
+              cost: { type: number, format: double }
+
+    AllocationPlan:
+      type: object
+      required: [id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        case_id: { type: string, format: uuid }
+        budget: { type: number, format: double }
+        total_cost: { type: number, format: double }
+        estimated_cases_prevented: { type: number, format: double }
+        allocations:
+          type: array
+          items:
+            type: object
+            required: [province_id, amount, explanation]
+            properties:
+              province_id: { type: string }
+              amount: { type: number, format: double }
+              explanation: { type: string }
+        created_at: { type: string, format: date-time }
+
+    DispatchDraft:
+      type: object
+      required: [id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        case_id: { type: string, format: uuid }
+        version: { type: integer }
+        draft_type: { type: string, enum: [b2b, b2g] }
+        title: { type: string }
+        content: { type: string }
+        content_hash: { type: string }
+        status:
+          type: string
+          enum: [DRAFT, PENDING_REVIEW, CHANGES_REQUESTED, APPROVED, REJECTED]
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateDraftRequest:
+      type: object
+      required: [draft_type, title, content, created_by]
+      properties:
+        draft_type: { type: string, enum: [b2b, b2g] }
+        title: { type: string }
+        content: { type: string }
+        created_by: { type: string }
+
+    GenerateDraftCaseRequest:
+      type: object
+      required: [draft_type]
+      properties:
+        draft_type:
+          type: string
+          enum: [b2b, b2g]
+        title:
+          type: string
+        extra_instructions:
+          type: string
+
+    UpdateDraftRequest:
+      type: object
+      required: [content, updated_by]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        updated_by: { type: string }
+
+    SubmitReviewRequest:
+      type: object
+      required: [reviewer_id, action, draft_version]
+      properties:
+        reviewer_id: { type: string }
+        draft_version: { type: integer }
+        action:
+          type: string
+          enum: [approve, reject, request_changes]
+        note: { type: string }
+
+    ReviewResult:
+      type: object
+      required: [id, draft_id, draft_version, reviewer_id, action, reviewed_at, draft_status]
+      properties:
+        id: { type: string, format: uuid }
+        draft_id: { type: string, format: uuid }
+        draft_version: { type: integer }
+        reviewer_id: { type: string }
+        action: { type: string, enum: [approve, reject, request_changes] }
+        note: { type: string }
+        reviewed_at: { type: string, format: date-time }
+        draft_status: { type: string }
+
+    DispatchOrderRequest:
+      type: object
+      required: [recipient, dispatched_by]
+      properties:
+        recipient: { type: string }
+        dispatched_by: { type: string }
+
+    DispatchOrder:
+      type: object
+      required: [id, case_id, draft_id, recipient, content, content_hash, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        case_id: { type: string, format: uuid }
+        draft_id: { type: string, format: uuid }
+        recipient: { type: string }
+        content: { type: string }
+        content_hash: { type: string }
+        status: { type: string, enum: [PENDING, SENDING, SENT, DELIVERY_FAILED] }
         created_at: { type: string, format: date-time }

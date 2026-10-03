@@ -340,7 +340,7 @@ func (g *Gateway) GetRiskMap(ctx context.Context, req api.GetRiskMapRequestObjec
 	var alerts []struct {
 		ProvinceID string `json:"province_id"`
 	}
-	var warnings []any
+	warnings := make([]any, 0)
 	if wfErr == nil && wfResp != nil && wfResp.Status == http.StatusOK {
 		if json.Unmarshal(wfResp.Body, &alerts) != nil {
 			warnings = append(warnings, map[string]string{"code": "gateway.alerts_unavailable", "message": "Lỗi dữ liệu từ workflow"})
@@ -487,4 +487,162 @@ func (g *Gateway) GetMe(ctx context.Context, _ api.GetMeRequestObject) (api.GetM
 		return nil, fail(err)
 	}
 	return toRaw(resp), nil
+}
+
+// ---------- quy trình nghiệp vụ & điều phối (workflow) ----------
+
+func (g *Gateway) workflowReq(ctx context.Context, method, path string, query url.Values, body any) (Raw, error) {
+	var bodyBytes []byte
+	if body != nil {
+		var err error
+		bodyBytes, err = json.Marshal(body)
+		if err != nil {
+			return Raw{}, httpx.ValidationError("thân yêu cầu không hợp lệ")
+		}
+	}
+	var q string
+	if query != nil {
+		q = query.Encode()
+	}
+	resp, err := g.Up.Do(ctx, upstream.Request{
+		Service: upstream.Workflow,
+		Method:  method,
+		Path:    internalBase + "/workflow" + path,
+		Query:   q,
+		Body:    bodyBytes,
+		Actor:   actorOf(ctx),
+	})
+	if err != nil {
+		return Raw{}, fail(err)
+	}
+	return toRaw(resp), nil
+}
+
+func (g *Gateway) ListAlerts(ctx context.Context, req api.ListAlertsRequestObject) (api.ListAlertsResponseObject, error) {
+	q := url.Values{}
+	if req.Params.Status != nil {
+		q.Set("status", string(*req.Params.Status))
+	}
+	if req.Params.RunId != nil {
+		q.Set("run_id", req.Params.RunId.String())
+	}
+	return g.workflowReq(ctx, http.MethodGet, "/alerts", q, nil)
+}
+
+func (g *Gateway) ConfirmAlert(ctx context.Context, req api.ConfirmAlertRequestObject) (api.ConfirmAlertResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/alerts/"+req.AlertId.String()+"/confirm", nil, nil)
+}
+
+func (g *Gateway) ListCases(ctx context.Context, req api.ListCasesRequestObject) (api.ListCasesResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover, authx.RoleAdmin); err != nil {
+		return nil, err
+	}
+	q := url.Values{}
+	if req.Params.Status != nil {
+		q.Set("status", string(*req.Params.Status))
+	}
+	return g.workflowReq(ctx, http.MethodGet, "/cases", q, nil)
+}
+
+func (g *Gateway) CreateCase(ctx context.Context, req api.CreateCaseRequestObject) (api.CreateCaseResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	if a := actorOf(ctx); a != nil && req.Body.CreatedBy == "" {
+		req.Body.CreatedBy = a.ID
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases", nil, req.Body)
+}
+
+func (g *Gateway) GetCase(ctx context.Context, req api.GetCaseRequestObject) (api.GetCaseResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover, authx.RoleAdmin); err != nil {
+		return nil, err
+	}
+	return g.workflowReq(ctx, http.MethodGet, "/cases/"+req.CaseId.String(), nil, nil)
+}
+
+func (g *Gateway) CreateAllocationPlan(ctx context.Context, req api.CreateAllocationPlanRequestObject) (api.CreateAllocationPlanResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/allocation-plans", nil, req.Body)
+}
+
+func (g *Gateway) CreateDraft(ctx context.Context, req api.CreateDraftRequestObject) (api.CreateDraftResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	if a := actorOf(ctx); a != nil && req.Body.CreatedBy == "" {
+		req.Body.CreatedBy = a.ID
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/drafts", nil, req.Body)
+}
+
+func (g *Gateway) GetDraft(ctx context.Context, req api.GetDraftRequestObject) (api.GetDraftResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover, authx.RoleAdmin); err != nil {
+		return nil, err
+	}
+	return g.workflowReq(ctx, http.MethodGet, "/drafts/"+req.DraftId.String(), nil, nil)
+}
+
+func (g *Gateway) UpdateDraft(ctx context.Context, req api.UpdateDraftRequestObject) (api.UpdateDraftResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	if a := actorOf(ctx); a != nil && req.Body.UpdatedBy == "" {
+		req.Body.UpdatedBy = a.ID
+	}
+	return g.workflowReq(ctx, http.MethodPatch, "/drafts/"+req.DraftId.String(), nil, req.Body)
+}
+
+func (g *Gateway) SubmitReview(ctx context.Context, req api.SubmitReviewRequestObject) (api.SubmitReviewResponseObject, error) {
+	// Quy tắc 4 mắt & RBAC: chỉ người có vai trò approver mới được duyệt (admin và officer bị chặn)
+	if err := authx.RequireRoles(ctx, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	if a := actorOf(ctx); a != nil && req.Body.ReviewerId == "" {
+		req.Body.ReviewerId = a.ID
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/drafts/"+req.DraftId.String()+"/reviews", nil, req.Body)
+}
+
+func (g *Gateway) DispatchApprovedOrder(ctx context.Context, req api.DispatchApprovedOrderRequestObject) (api.DispatchApprovedOrderResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleApprover, authx.RoleOfficer); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	if a := actorOf(ctx); a != nil && req.Body.DispatchedBy == "" {
+		req.Body.DispatchedBy = a.ID
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/drafts/"+req.DraftId.String()+"/dispatch", nil, req.Body)
+}
+
+func (g *Gateway) GenerateDraftForCase(ctx context.Context, req api.GenerateDraftForCaseRequestObject) (api.GenerateDraftForCaseResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/drafts/generate", nil, req.Body)
 }
