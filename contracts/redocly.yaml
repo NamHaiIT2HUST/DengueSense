@@ -23,3 +23,12 @@ apis:
   forecast-internal:
     root: openapi/forecast-internal.yaml
     rules: *internal-rules
+  workflow-internal:
+    root: openapi/workflow-internal.yaml
+    rules: *internal-rules
+  optimize-internal:
+    root: openapi/optimize-internal.yaml
+    rules: *internal-rules
+  genai-internal:
+    root: openapi/genai-internal.yaml
+    rules: *internal-rules

@@ -1,4 +1,4 @@
-# DengueSense — hạ tầng dùng chung (docs/09 §3, §16).
+﻿# DengueSense — hạ tầng dùng chung (docs/09 §3, §16).
 # Đợt 0: Postgres (PostGIS + pgvector) + NATS JetStream + identity + gateway + forecast. Service khác được thêm dần theo từng đợt.
 #
 # Chạy:  docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
@@ -276,22 +276,14 @@ services:
       retries: 10
       start_period: 5s
 
-networks:
-  core:
-    name: denguesense-core
-
-volumes:
-  pgdata:
-  natsdata:
-
   workflow-migrate:
     build:
       context: ../backend
       dockerfile: build/Dockerfile
       args:
         SERVICE: workflow
-        VERSION: 
-    image: denguesense/workflow:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/workflow:${BUILD_VERSION:-dev}
     restart: "no"
     command: ["/service", "-migrate"]
     environment:
@@ -307,8 +299,8 @@ volumes:
       dockerfile: build/Dockerfile
       args:
         SERVICE: workflow
-        VERSION: 
-    image: denguesense/workflow:
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/workflow:${BUILD_VERSION:-dev}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
@@ -320,3 +312,47 @@ volumes:
       nats-init:
         condition: service_completed_successfully
     networks: [core]
+
+  notification-migrate:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: notification
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/notification:${BUILD_VERSION:-dev}
+    restart: "no"
+    command: ["/service", "-migrate"]
+    environment:
+      DATABASE_URL: postgresql://svc_notification:${SVC_NOTIFICATION_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [core]
+
+  notification:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: notification
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/notification:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://svc_notification:${SVC_NOTIFICATION_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB}
+      NATS_URL: nats://nats:4222
+    depends_on:
+      notification-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]
+
+networks:
+  core:
+    name: denguesense-core
+
+volumes:
+  pgdata:
+  natsdata:
