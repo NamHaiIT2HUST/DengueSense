@@ -430,6 +430,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cases/{case_id}/drafts/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ */
+        post: operations["generateDraftForCase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/drafts/{draft_id}": {
         parameters: {
             query?: never;
@@ -960,6 +977,12 @@ export interface components {
             title: string;
             content: string;
             created_by: string;
+        };
+        GenerateDraftCaseRequest: {
+            /** @enum {string} */
+            draft_type: "b2b" | "b2g";
+            title?: string;
+            extra_instructions?: string;
         };
         UpdateDraftRequest: {
             title?: string;
@@ -1737,6 +1760,36 @@ export interface operations {
         };
         responses: {
             /** @description Tạo dự thảo thành công. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchDraft"];
+                };
+            };
+            400: components["responses"]["ValidationError"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    generateDraftForCase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateDraftCaseRequest"];
+            };
+        };
+        responses: {
+            /** @description Sinh dự thảo thành công và lưu vào hồ sơ. */
             201: {
                 headers: {
                     [name: string]: unknown;

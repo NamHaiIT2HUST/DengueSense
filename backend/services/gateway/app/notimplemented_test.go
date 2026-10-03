@@ -132,3 +132,7 @@ func (notImplemented) SubmitReview(context.Context, api.SubmitReviewRequestObjec
 func (notImplemented) DispatchApprovedOrder(context.Context, api.DispatchApprovedOrderRequestObject) (api.DispatchApprovedOrderResponseObject, error) {
 	return nil, httpx.NotImplemented()
 }
+
+func (notImplemented) GenerateDraftForCase(context.Context, api.GenerateDraftForCaseRequestObject) (api.GenerateDraftForCaseResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}

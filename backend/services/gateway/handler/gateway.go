@@ -636,3 +636,14 @@ func (g *Gateway) DispatchApprovedOrder(ctx context.Context, req api.DispatchApp
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/drafts/"+req.DraftId.String()+"/dispatch", nil, req.Body)
 }
+
+func (g *Gateway) GenerateDraftForCase(ctx context.Context, req api.GenerateDraftForCaseRequestObject) (api.GenerateDraftForCaseResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	if req.Body == nil {
+		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/drafts/generate", nil, req.Body)
+}
+

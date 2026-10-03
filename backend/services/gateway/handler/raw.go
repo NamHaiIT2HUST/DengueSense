@@ -84,3 +84,5 @@ func (r Raw) VisitUpdateDraftResponse(w http.ResponseWriter) error { return r.wr
 func (r Raw) VisitSubmitReviewResponse(w http.ResponseWriter) error { return r.write(w) }
 
 func (r Raw) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error { return r.write(w) }

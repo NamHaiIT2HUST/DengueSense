@@ -16,6 +16,7 @@ import (
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/adapters/email"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/adapters/postgres"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/app"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/domain"
 )
 
 func main() {
@@ -58,7 +59,21 @@ func main() {
 	defer nc.Close()
 
 	repo := postgres.NewRepo(db)
-	sender := email.NewMockSender()
+	var sender domain.EmailSender
+	smtpHost := os.Getenv("SMTP_HOST")
+	if smtpHost != "" {
+		slog.Info("Khởi động notification với SMTPSender", "host", smtpHost)
+		sender = email.NewSMTPSender(email.SMTPOptions{
+			Host:     smtpHost,
+			Port:     os.Getenv("SMTP_PORT"),
+			Username: os.Getenv("SMTP_USER"),
+			Password: os.Getenv("SMTP_PASS"),
+			From:     os.Getenv("SMTP_FROM"),
+		})
+	} else {
+		slog.Info("Khởi động notification với MockSender (chưa cấu hình SMTP_HOST)")
+		sender = email.NewMockSender()
+	}
 	svc := app.NewNotificationService(repo, sender)
 
 	inbox := eventx.NewPgxInboxStore(db, "inbox")

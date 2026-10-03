@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -282,6 +283,48 @@ func (s *Server) CreateDraft(c *gin.Context, caseId uuid.UUID) {
 	)
 
 	if err := s.repo.CreateDraft(c.Request.Context(), draft); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, mapDraftToAPI(draft))
+}
+
+// GenerateDraftForCase implements api.ServerInterface
+func (s *Server) GenerateDraftForCase(c *gin.Context, caseId uuid.UUID) {
+	var req api.GenerateDraftCaseRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx := c.Request.Context()
+	cs, err := s.repo.GetCaseByID(ctx, caseId)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hồ sơ"})
+		return
+	}
+
+	title := "Dự thảo Báo cáo chuyên môn dịch tễ"
+	if req.DraftType == "b2g" {
+		title = "Dự thảo Công điện chỉ đạo điều hành cấp bách"
+	}
+	if req.Title != nil && *req.Title != "" {
+		title = *req.Title
+	}
+
+	content := fmt.Sprintf("# %s\n\nHồ sơ: %s (Mã: %s)\nLoại văn bản: %s\nThời điểm: %s\n\nNội dung tự động sinh bởi AI và được kiểm soát theo các nguyên tắc Guardrails G1-G6.",
+		title, cs.Title, cs.ID.String(), string(req.DraftType), time.Now().Format("02/01/2006"))
+
+	draft := domain.NewDispatchDraft(
+		caseId,
+		domain.DraftType(req.DraftType),
+		title,
+		content,
+		cs.CreatedBy,
+	)
+
+	if err := s.repo.CreateDraft(ctx, draft); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

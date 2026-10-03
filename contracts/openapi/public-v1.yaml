@@ -619,6 +619,34 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /cases/{case_id}/drafts/generate:
+    post:
+      tags: [drafts]
+      operationId: generateDraftForCase
+      summary: Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerateDraftCaseRequest" }
+      responses:
+        "201":
+          description: Sinh dự thảo thành công và lưu vào hồ sơ.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DispatchDraft" }
+        "400": { $ref: "#/components/responses/ValidationError" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /drafts/{draft_id}:
     get:
       tags: [drafts]
@@ -1393,6 +1421,18 @@ components:
         title: { type: string }
         content: { type: string }
         created_by: { type: string }
+
+    GenerateDraftCaseRequest:
+      type: object
+      required: [draft_type]
+      properties:
+        draft_type:
+          type: string
+          enum: [b2b, b2g]
+        title:
+          type: string
+        extra_instructions:
+          type: string
 
     UpdateDraftRequest:
       type: object

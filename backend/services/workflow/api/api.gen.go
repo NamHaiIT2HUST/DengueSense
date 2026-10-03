@@ -163,6 +163,24 @@ func (e DispatchOrderStatus) Valid() bool {
 	}
 }
 
+// Defines values for GenerateDraftCaseRequestDraftType.
+const (
+	GenerateDraftCaseRequestDraftTypeB2b GenerateDraftCaseRequestDraftType = "b2b"
+	GenerateDraftCaseRequestDraftTypeB2g GenerateDraftCaseRequestDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the GenerateDraftCaseRequestDraftType enum.
+func (e GenerateDraftCaseRequestDraftType) Valid() bool {
+	switch e {
+	case GenerateDraftCaseRequestDraftTypeB2b:
+		return true
+	case GenerateDraftCaseRequestDraftTypeB2g:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ReviewResultAction.
 const (
 	ReviewResultActionApprove        ReviewResultAction = "approve"
@@ -374,6 +392,16 @@ type DispatchOrderRequest struct {
 	Recipient    string `json:"recipient"`
 }
 
+// GenerateDraftCaseRequest defines model for GenerateDraftCaseRequest.
+type GenerateDraftCaseRequest struct {
+	DraftType         GenerateDraftCaseRequestDraftType `json:"draft_type"`
+	ExtraInstructions *string                           `json:"extra_instructions,omitempty"`
+	Title             *string                           `json:"title,omitempty"`
+}
+
+// GenerateDraftCaseRequestDraftType defines model for GenerateDraftCaseRequest.DraftType.
+type GenerateDraftCaseRequestDraftType string
+
 // ReviewResult defines model for ReviewResult.
 type ReviewResult struct {
 	Action       ReviewResultAction `json:"action"`
@@ -436,6 +464,9 @@ type CreateAllocationPlanJSONRequestBody = CreateAllocationPlanRequest
 // CreateDraftJSONRequestBody defines body for CreateDraft for application/json ContentType.
 type CreateDraftJSONRequestBody = CreateDraftRequest
 
+// GenerateDraftForCaseJSONRequestBody defines body for GenerateDraftForCase for application/json ContentType.
+type GenerateDraftForCaseJSONRequestBody = GenerateDraftCaseRequest
+
 // UpdateDraftJSONRequestBody defines body for UpdateDraft for application/json ContentType.
 type UpdateDraftJSONRequestBody = UpdateDraftRequest
 
@@ -468,6 +499,9 @@ type ServerInterface interface {
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /internal/v1/workflow/cases/{case_id}/drafts)
 	CreateDraft(c *gin.Context, caseId openapi_types.UUID)
+	// GenerateDraftForCase Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+	// (POST /internal/v1/workflow/cases/{case_id}/drafts/generate)
+	GenerateDraftForCase(c *gin.Context, caseId openapi_types.UUID)
 	// GetDraft Lấy thông tin dự thảo
 	// (GET /internal/v1/workflow/drafts/{draft_id})
 	GetDraft(c *gin.Context, draftId openapi_types.UUID)
@@ -666,6 +700,31 @@ func (siw *ServerInterfaceWrapper) CreateDraft(c *gin.Context) {
 	siw.Handler.CreateDraft(c, caseId)
 }
 
+// GenerateDraftForCase operation middleware
+func (siw *ServerInterfaceWrapper) GenerateDraftForCase(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GenerateDraftForCase(c, caseId)
+}
+
 // GetDraft operation middleware
 func (siw *ServerInterfaceWrapper) GetDraft(c *gin.Context) {
 
@@ -800,6 +859,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/internal/v1/workflow/cases/:case_id", wrapper.GetCase)
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/allocation-plans", wrapper.CreateAllocationPlan)
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/drafts", wrapper.CreateDraft)
+	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/drafts/generate", wrapper.GenerateDraftForCase)
 	router.GET(options.BaseURL+"/internal/v1/workflow/drafts/:draft_id", wrapper.GetDraft)
 	router.PATCH(options.BaseURL+"/internal/v1/workflow/drafts/:draft_id", wrapper.UpdateDraft)
 	router.POST(options.BaseURL+"/internal/v1/workflow/drafts/:draft_id/reviews", wrapper.SubmitReview)
@@ -964,6 +1024,29 @@ func (response CreateDraft201JSONResponse) VisitCreateDraftResponse(w http.Respo
 	return err
 }
 
+type GenerateDraftForCaseRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	Body   *GenerateDraftForCaseJSONRequestBody
+}
+
+type GenerateDraftForCaseResponseObject interface {
+	VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error
+}
+
+type GenerateDraftForCase201JSONResponse DispatchDraft
+
+func (response GenerateDraftForCase201JSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetDraftRequestObject struct {
 	DraftId openapi_types.UUID `json:"draft_id"`
 }
@@ -1094,6 +1177,9 @@ type StrictServerInterface interface {
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /internal/v1/workflow/cases/{case_id}/drafts)
 	CreateDraft(ctx context.Context, request CreateDraftRequestObject) (CreateDraftResponseObject, error)
+	// GenerateDraftForCase Dùng AI sinh dự thảo văn bản (B2B hoặc B2G) cho hồ sơ
+	// (POST /internal/v1/workflow/cases/{case_id}/drafts/generate)
+	GenerateDraftForCase(ctx context.Context, request GenerateDraftForCaseRequestObject) (GenerateDraftForCaseResponseObject, error)
 	// GetDraft Lấy thông tin dự thảo
 	// (GET /internal/v1/workflow/drafts/{draft_id})
 	GetDraft(ctx context.Context, request GetDraftRequestObject) (GetDraftResponseObject, error)
@@ -1359,6 +1445,39 @@ func (sh *strictHandler) CreateDraft(ctx *gin.Context, caseId openapi_types.UUID
 		sh.options.HandlerErrorFunc(ctx, err)
 	} else if validResponse, ok := response.(CreateDraftResponseObject); ok {
 		if err := validResponse.VisitCreateDraftResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GenerateDraftForCase operation middleware
+func (sh *strictHandler) GenerateDraftForCase(ctx *gin.Context, caseId openapi_types.UUID) {
+	var request GenerateDraftForCaseRequestObject
+
+	request.CaseId = caseId
+
+	var body GenerateDraftForCaseJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GenerateDraftForCase(ctx, request.(GenerateDraftForCaseRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GenerateDraftForCase")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GenerateDraftForCaseResponseObject); ok {
+		if err := validResponse.VisitGenerateDraftForCaseResponse(ctx.Writer); err != nil {
 			sh.options.ResponseErrorHandlerFunc(ctx, err)
 		}
 	} else if response != nil {

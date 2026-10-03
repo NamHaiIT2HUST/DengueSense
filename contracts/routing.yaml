@@ -115,6 +115,9 @@ operations:
   createDraft:
     min_role: officer
     upstream: [workflow.createDraft]
+  generateDraftForCase:
+    min_role: officer
+    upstream: [workflow.generateDraftForCase]
   getDraft:
     min_role: officer
     upstream: [workflow.getDraft]
