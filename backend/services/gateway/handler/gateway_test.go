@@ -204,6 +204,31 @@ func (b *backends) forecastHandler() http.Handler {
 	return mux
 }
 
+func (b *backends) workflowHandler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /internal/v1/workflow/alerts", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		writeJSON(w, 200, `[]`)
+	})
+	mux.HandleFunc("POST /internal/v1/workflow/alerts/{id}/confirm", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		w.WriteHeader(204)
+	})
+	mux.HandleFunc("GET /internal/v1/workflow/cases", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		writeJSON(w, 200, `[]`)
+	})
+	mux.HandleFunc("POST /internal/v1/workflow/cases", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		writeJSON(w, 201, `{"id":"`+runID+`","title":"Case 1","status":"open","created_by":"`+userID+`","created_at":"2026-10-01T00:00:00Z"}`)
+	})
+	mux.HandleFunc("POST /internal/v1/workflow/drafts/{id}/reviews", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		writeJSON(w, 200, `{"id":"`+runID+`","draft_id":"`+runID+`","draft_version":1,"reviewer_id":"`+userID+`","action":"approve","reviewed_at":"2026-10-01T00:00:00Z","draft_status":"APPROVED"}`)
+	})
+	return mux
+}
+
 type env struct {
 	skew    *atomic.Int64 // độ lệch đồng hồ của bộ nạp JWKS (nanô giây)
 	b       *backends
@@ -224,9 +249,11 @@ func newEnv(t *testing.T, mutate func(*backends)) *env {
 	idSrv := httptest.NewServer(b.identity())
 	survSrv := httptest.NewServer(b.surveillanceHandler())
 	fcSrv := httptest.NewServer(b.forecastHandler())
+	wfSrv := httptest.NewServer(b.workflowHandler())
 	t.Cleanup(idSrv.Close)
 	t.Cleanup(survSrv.Close)
 	t.Cleanup(fcSrv.Close)
+	t.Cleanup(wfSrv.Close)
 
 	log := slog.New(slog.DiscardHandler)
 	client := &http.Client{Timeout: 3 * time.Second}
@@ -238,7 +265,7 @@ func newEnv(t *testing.T, mutate func(*backends)) *env {
 	verifier, err := authx.NewKeySetVerifier(keys, "denguesense-identity", "denguesense-gateway")
 	require.NoError(t, err)
 	up := upstream.NewClient(map[string]string{
-		upstream.Identity: idSrv.URL, upstream.Surveillance: survSrv.URL, upstream.Forecast: fcSrv.URL,
+		upstream.Identity: idSrv.URL, upstream.Surveillance: survSrv.URL, upstream.Forecast: fcSrv.URL, upstream.Workflow: wfSrv.URL,
 	}, upstream.NewTokenSource(idSrv.URL, "bi-mat-thu-nghiem-dai-hon-16", client), client, log)
 
 	signer, err := authx.NewEd25519Signer(priv, "denguesense-identity", "denguesense-gateway")
@@ -603,4 +630,39 @@ func TestLogout_WithoutCookieIsIdempotent204(t *testing.T) {
 	assert.Empty(t, e.b.callsTo("/internal/v1/auth/logout"), "không có cookie thì không cần gọi identity")
 	require.Len(t, w.Result().Cookies(), 1)
 	assert.Equal(t, -1, w.Result().Cookies()[0].MaxAge)
+}
+
+func TestWorkflow_ListAlertsAndConfirmRBAC(t *testing.T) {
+	e := newEnv(t, nil)
+	// Viewer xem được danh sách cảnh báo
+	w := e.do("GET", "/api/v1/alerts", e.user(t, authx.RoleViewer), "")
+	require.Equal(t, 200, w.Code)
+	assert.Len(t, e.b.callsTo("/internal/v1/workflow/alerts"), 1)
+
+	// Viewer không thể xác nhận cảnh báo (403)
+	w = e.do("POST", "/api/v1/alerts/"+runID+"/confirm", e.user(t, authx.RoleViewer), "")
+	require.Equal(t, 403, w.Code)
+
+	// Officer xác nhận cảnh báo thành công (204)
+	w = e.do("POST", "/api/v1/alerts/"+runID+"/confirm", e.user(t, authx.RoleOfficer), "")
+	require.Equal(t, 204, w.Code)
+	assert.Len(t, e.b.callsTo("/internal/v1/workflow/alerts/"+runID+"/confirm"), 1)
+}
+
+func TestWorkflow_ReviewRequiresApproverRole(t *testing.T) {
+	e := newEnv(t, nil)
+	body := `{"draft_version":1,"action":"approve","note":"dong y"}`
+
+	// Officer không thể duyệt (403)
+	w := e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleOfficer), body)
+	require.Equal(t, 403, w.Code)
+
+	// Admin không thể duyệt (403 - tách quản trị khỏi quyết định nghiệp vụ)
+	w = e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleAdmin), body)
+	require.Equal(t, 403, w.Code)
+
+	// Approver duyệt thành công (200)
+	w = e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleApprover), body)
+	require.Equal(t, 200, w.Code)
+	assert.Len(t, e.b.callsTo("/internal/v1/workflow/drafts/"+runID+"/reviews"), 1)
 }

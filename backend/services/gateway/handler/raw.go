@@ -62,3 +62,25 @@ func (r Raw) VisitLoginResponse(w http.ResponseWriter) error { return r.write(w)
 func (r Raw) VisitLogoutResponse(w http.ResponseWriter) error { return r.write(w) }
 
 func (r Raw) VisitRefreshTokenResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitListAlertsResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitConfirmAlertResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitListCasesResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitCreateCaseResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitGetCaseResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitCreateDraftResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitGetDraftResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitUpdateDraftResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitSubmitReviewResponse(w http.ResponseWriter) error { return r.write(w) }
+
+func (r Raw) VisitDispatchApprovedOrderResponse(w http.ResponseWriter) error { return r.write(w) }

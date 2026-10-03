@@ -229,8 +229,15 @@ def test_routing_covers_exactly_the_public_operations(public, routing):
     ), f"thiếu định tuyến: {sorted(public_ops - routed)}; định tuyến thừa: {sorted(routed - public_ops)}"
 
 
+ROUTED_INTERNAL = {
+    **INTERNAL,
+    "workflow": "workflow-internal.yaml",
+}
+
+
 def test_routing_upstreams_point_to_real_internal_operations(internal, routing):
-    ops = {svc: _operations(spec) for svc, spec in internal.items()}
+    all_specs = {**internal, "workflow": _load("workflow-internal.yaml")}
+    ops = {svc: _operations(spec) for svc, spec in all_specs.items()}
     for public_op, entry in routing["operations"].items():
         assert entry["upstream"], f"{public_op} không có upstream"
         for ref in entry["upstream"]:
@@ -238,7 +245,7 @@ def test_routing_upstreams_point_to_real_internal_operations(internal, routing):
             assert svc in ops, f"{public_op}: service lạ trong {ref}"
             assert (
                 opid in ops[svc]
-            ), f"{public_op}: {ref} không tồn tại trong {INTERNAL[svc]}"
+            ), f"{public_op}: {ref} không tồn tại trong {ROUTED_INTERNAL[svc]}"
 
 
 def test_routing_roles_match_public_security_and_known_roles(public, routing):

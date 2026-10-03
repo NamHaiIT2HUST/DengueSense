@@ -42,3 +42,11 @@ Nguồn sự thật cho trường `code` trong `application/problem+json` (docs/
 | `surveillance.data_version_conflict` | 409 | `version` đã tồn tại với nội dung khác (phiên bản dữ liệu bất biến) | Phiên bản dữ liệu này đã tồn tại |
 | `surveillance.geometry_version_not_found` | 404 | Phiên bản ranh giới không tồn tại | Không tìm thấy phiên bản bản đồ |
 | `gateway.alerts_unavailable` | — | `warnings[].code` khi nguồn cảnh báo lỗi (BFF vẫn trả phần còn lại) | Không tải được cảnh báo |
+| `workflow.case_not_found` | 404 | `case_id` không tồn tại | Không tìm thấy hồ sơ xử lý |
+| `workflow.alert_not_found` | 404 | `alert_id` không tồn tại | Không tìm thấy cảnh báo |
+| `workflow.draft_not_found` | 404 | `draft_id` không tồn tại | Không tìm thấy dự thảo văn bản |
+| `workflow.order_not_found` | 404 | `order_id` không tồn tại | Không tìm thấy lệnh điều phối |
+| `workflow.four_eyes_violation` | 400 | Người tạo dự thảo B2G không được tự phê duyệt | Vi phạm quy tắc 4 mắt: người soạn văn bản B2G không được tự duyệt |
+| `workflow.draft_not_approved` | 400 | Dự thảo chưa được phê duyệt nên không thể ban hành lệnh | Dự thảo chưa được phê duyệt |
+| `workflow.content_tampered` | 400 | Nội dung không khớp với mã băm (content_hash) đã được phê duyệt | Nội dung văn bản đã bị sửa đổi sau khi duyệt |
+| `workflow.invalid_state_transition` | 400 | Thao tác không hợp lệ đối với trạng thái hiện tại | Thao tác không hợp lệ với trạng thái hiện tại |

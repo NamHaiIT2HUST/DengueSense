@@ -88,3 +88,47 @@ func (notImplemented) GetProvinceForecasts(context.Context, api.GetProvinceForec
 func (notImplemented) GetRiskMap(context.Context, api.GetRiskMapRequestObject) (api.GetRiskMapResponseObject, error) {
 	return nil, httpx.NotImplemented()
 }
+
+func (notImplemented) ListAlerts(context.Context, api.ListAlertsRequestObject) (api.ListAlertsResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) ConfirmAlert(context.Context, api.ConfirmAlertRequestObject) (api.ConfirmAlertResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) ListCases(context.Context, api.ListCasesRequestObject) (api.ListCasesResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) CreateCase(context.Context, api.CreateCaseRequestObject) (api.CreateCaseResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) GetCase(context.Context, api.GetCaseRequestObject) (api.GetCaseResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) CreateAllocationPlan(context.Context, api.CreateAllocationPlanRequestObject) (api.CreateAllocationPlanResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) CreateDraft(context.Context, api.CreateDraftRequestObject) (api.CreateDraftResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) GetDraft(context.Context, api.GetDraftRequestObject) (api.GetDraftResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) UpdateDraft(context.Context, api.UpdateDraftRequestObject) (api.UpdateDraftResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) SubmitReview(context.Context, api.SubmitReviewRequestObject) (api.SubmitReviewResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
+func (notImplemented) DispatchApprovedOrder(context.Context, api.DispatchApprovedOrderRequestObject) (api.DispatchApprovedOrderResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}

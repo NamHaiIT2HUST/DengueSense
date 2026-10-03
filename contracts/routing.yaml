@@ -92,3 +92,39 @@ operations:
   listModelVersions:
     min_role: viewer
     upstream: [forecast.listModelVersions]
+
+  # ---- Cảnh báo, Hồ sơ & Điều phối (workflow) ----
+  listAlerts:
+    min_role: viewer
+    upstream: [workflow.listAlerts]
+  confirmAlert:
+    min_role: officer
+    upstream: [workflow.confirmAlert]
+  listCases:
+    min_role: officer
+    upstream: [workflow.listCases]
+  createCase:
+    min_role: officer
+    upstream: [workflow.createCase]
+  getCase:
+    min_role: officer
+    upstream: [workflow.getCase]
+  createAllocationPlan:
+    min_role: officer
+    upstream: [workflow.createAllocationPlan]
+  createDraft:
+    min_role: officer
+    upstream: [workflow.createDraft]
+  getDraft:
+    min_role: officer
+    upstream: [workflow.getDraft]
+  updateDraft:
+    min_role: officer
+    upstream: [workflow.updateDraft]
+  submitReview:
+    min_role: approver
+    upstream: [workflow.submitReview]
+    notes: "Quy tắc 4 mắt: chỉ approver mới có quyền duyệt; người tạo draft B2G không được tự duyệt."
+  dispatchApprovedOrder:
+    min_role: approver
+    upstream: [workflow.dispatchApprovedOrder]
