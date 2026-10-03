@@ -646,4 +646,3 @@ func (g *Gateway) GenerateDraftForCase(ctx context.Context, req api.GenerateDraf
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/drafts/generate", nil, req.Body)
 }
-

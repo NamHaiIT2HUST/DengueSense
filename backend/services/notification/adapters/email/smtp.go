@@ -43,7 +43,7 @@ func (s *SMTPSender) SendEmail(ctx context.Context, recipient, subject, content 
 
 	var msgBuilder strings.Builder
 	for k, v := range header {
-		msgBuilder.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
+		fmt.Fprintf(&msgBuilder, "%s: %s\r\n", k, v)
 	}
 	msgBuilder.WriteString("\r\n")
 	msgBuilder.WriteString(content)

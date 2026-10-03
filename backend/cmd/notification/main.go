@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"github.com/nats-io/nats.go"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/adapters/email"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/adapters/postgres"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/notification/app"
@@ -20,22 +20,29 @@ import (
 )
 
 func main() {
-	migrateFlag := flag.Bool("migrate", false, "Chạy migrations rồi thoát")
-	flag.Parse()
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "migrate", "-migrate":
+			dbURL := os.Getenv("DATABASE_URL")
+			if dbURL == "" {
+				//nolint:gosec // DB URL cho môi trường dev
+				dbURL = "postgres://postgres:postgres@localhost:5432/denguesense_dev?sslmode=disable"
+			}
+			if err := postgres.MigrateUp(dbURL); err != nil {
+				slog.Error("Migration notification thất bại", "error", err)
+				os.Exit(1)
+			}
+			slog.Info("Migration notification thành công")
+			return
+		case "-healthcheck":
+			os.Exit(httpx.HealthcheckMain("http://127.0.0.1:8001/healthz"))
+		}
+	}
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		//nolint:gosec // DB URL cho môi trường dev
 		dbURL = "postgres://postgres:postgres@localhost:5432/denguesense_dev?sslmode=disable"
-	}
-
-	if *migrateFlag {
-		if err := postgres.MigrateUp(dbURL); err != nil {
-			slog.Error("Migration notification thất bại", "error", err)
-			os.Exit(1)
-		}
-		slog.Info("Migration notification thành công")
-		return
 	}
 
 	natsURL := os.Getenv("NATS_URL")
@@ -99,9 +106,7 @@ func main() {
 	}
 
 	r := gin.Default()
-	r.GET("/healthz", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	httpx.RegisterHealth(r, db.Ping)
 
 	slog.Info("Notification service listening trên :8001")
 	//nolint:gosec // Internal notification service

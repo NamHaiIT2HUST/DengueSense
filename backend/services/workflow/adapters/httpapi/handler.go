@@ -1,9 +1,12 @@
 package httpapi
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,12 +24,37 @@ type WorkflowRepo interface {
 }
 
 type Server struct {
-	svc  *app.WorkflowService
-	repo WorkflowRepo
+	svc         *app.WorkflowService
+	repo        WorkflowRepo
+	genaiURL    string
+	optimizeURL string
+	httpClient  *http.Client
 }
 
-func NewServer(svc *app.WorkflowService, repo WorkflowRepo) *Server {
-	return &Server{svc: svc, repo: repo}
+type ServerOption func(*Server)
+
+func WithGenAIURL(u string) ServerOption {
+	return func(s *Server) { s.genaiURL = u }
+}
+
+func WithOptimizeURL(u string) ServerOption {
+	return func(s *Server) { s.optimizeURL = u }
+}
+
+func WithHTTPClient(client *http.Client) ServerOption {
+	return func(s *Server) { s.httpClient = client }
+}
+
+func NewServer(svc *app.WorkflowService, repo WorkflowRepo, opts ...ServerOption) *Server {
+	s := &Server{
+		svc:        svc,
+		repo:       repo,
+		httpClient: &http.Client{Timeout: 5 * time.Second},
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }
 
 // ---------------------------------------------------------------------
@@ -202,20 +230,80 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 		return
 	}
 
-	// Tạm thời tính toán phân bổ greedy cho tới khi AI service CP-SAT hoàn thiện
 	var allocItems []domain.AllocationItem
 	totalCost := 0.0
 	prevented := 0.0
 
-	for _, it := range req.Items {
-		if totalCost+it.Cost <= req.Budget {
-			allocItems = append(allocItems, domain.AllocationItem{
-				ProvinceID:  it.ProvinceId,
-				Amount:      1.0,
-				Explanation: "Phân bổ tối ưu rủi ro dịch",
+	calledOptimize := false
+	if s.optimizeURL != "" {
+		optReq := struct {
+			Budget float64 `json:"budget"`
+			Items  []struct {
+				ProvinceID string  `json:"province_id"`
+				CasesPred  float64 `json:"cases_pred"`
+				Cost       float64 `json:"cost"`
+			} `json:"items"`
+		}{
+			Budget: req.Budget,
+		}
+		for _, it := range req.Items {
+			optReq.Items = append(optReq.Items, struct {
+				ProvinceID string  `json:"province_id"`
+				CasesPred  float64 `json:"cases_pred"`
+				Cost       float64 `json:"cost"`
+			}{
+				ProvinceID: it.ProvinceId,
+				CasesPred:  it.CasesPred,
+				Cost:       it.Cost,
 			})
-			totalCost += it.Cost
-			prevented += it.CasesPred * 0.2
+		}
+
+		bodyBytes, err := json.Marshal(optReq)
+		if err == nil {
+			targetURL := strings.TrimRight(s.optimizeURL, "/") + "/allocate"
+			httpReq, err := http.NewRequestWithContext(c.Request.Context(), http.MethodPost, targetURL, bytes.NewReader(bodyBytes))
+			if err == nil {
+				httpReq.Header.Set("Content-Type", "application/json")
+				resp, err := s.httpClient.Do(httpReq)
+				if err == nil && resp.StatusCode == http.StatusOK {
+					var optResp struct {
+						TotalCost               float64 `json:"total_cost"`
+						EstimatedCasesPrevented float64 `json:"estimated_cases_prevented"`
+						Allocations             []struct {
+							ProvinceID  string  `json:"province_id"`
+							Amount      float64 `json:"amount"`
+							Explanation string  `json:"explanation"`
+						} `json:"allocations"`
+					}
+					if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil {
+						totalCost = optResp.TotalCost
+						prevented = optResp.EstimatedCasesPrevented
+						for _, a := range optResp.Allocations {
+							allocItems = append(allocItems, domain.AllocationItem{
+								ProvinceID:  a.ProvinceID,
+								Amount:      a.Amount,
+								Explanation: a.Explanation,
+							})
+						}
+						calledOptimize = true
+					}
+					_ = resp.Body.Close()
+				}
+			}
+		}
+	}
+
+	if !calledOptimize {
+		for _, it := range req.Items {
+			if totalCost+it.Cost <= req.Budget {
+				allocItems = append(allocItems, domain.AllocationItem{
+					ProvinceID:  it.ProvinceId,
+					Amount:      1.0,
+					Explanation: "Phân bổ tối ưu rủi ro dịch",
+				})
+				totalCost += it.Cost
+				prevented += it.CasesPred * 0.2
+			}
 		}
 	}
 
@@ -315,6 +403,44 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseId uuid.UUID) {
 
 	content := fmt.Sprintf("# %s\n\nHồ sơ: %s (Mã: %s)\nLoại văn bản: %s\nThời điểm: %s\n\nNội dung tự động sinh bởi AI và được kiểm soát theo các nguyên tắc Guardrails G1-G6.",
 		title, cs.Title, cs.ID.String(), string(req.DraftType), time.Now().Format("02/01/2006"))
+
+	if s.genaiURL != "" {
+		gReq := struct {
+			DraftType   string         `json:"draft_type"`
+			CaseID      string         `json:"case_id"`
+			Title       string         `json:"title,omitempty"`
+			ContextData map[string]any `json:"context_data"`
+		}{
+			DraftType: string(req.DraftType),
+			CaseID:    caseId.String(),
+			Title:     title,
+			ContextData: map[string]any{
+				"case_title": cs.Title,
+				"status":     string(cs.Status),
+			},
+		}
+		bodyBytes, err := json.Marshal(gReq)
+		if err == nil {
+			targetURL := strings.TrimRight(s.genaiURL, "/") + "/draft"
+			httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, targetURL, bytes.NewReader(bodyBytes))
+			if err == nil {
+				httpReq.Header.Set("Content-Type", "application/json")
+				resp, err := s.httpClient.Do(httpReq)
+				if err == nil && resp.StatusCode == http.StatusOK {
+					var gResp struct {
+						Content        string   `json:"content"`
+						ContentHash    string   `json:"content_hash"`
+						Citations      []string `json:"citations"`
+						GuardrailFlags []string `json:"guardrail_flags"`
+					}
+					if err := json.NewDecoder(resp.Body).Decode(&gResp); err == nil && gResp.Content != "" {
+						content = gResp.Content
+					}
+					_ = resp.Body.Close()
+				}
+			}
+		}
+	}
 
 	draft := domain.NewDispatchDraft(
 		caseId,

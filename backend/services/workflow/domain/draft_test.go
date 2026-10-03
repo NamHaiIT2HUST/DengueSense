@@ -1,6 +1,7 @@
 package domain_test
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -26,7 +27,7 @@ func TestFourEyesRuleForB2G(t *testing.T) {
 	if err == nil {
 		t.Fatalf("kỳ vọng lỗi ErrFourEyesViolation nhưng lại thành công")
 	}
-	if err != domain.ErrFourEyesViolation {
+	if !errors.Is(err, domain.ErrFourEyesViolation) {
 		t.Fatalf("kỳ vọng ErrFourEyesViolation, nhận được: %v", err)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/forecastclient"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/httpapi"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/postgres"
@@ -20,6 +21,25 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "migrate", "-migrate":
+			dbURL := os.Getenv("DATABASE_URL")
+			if dbURL == "" {
+				//nolint:gosec // Hardcoded DB URL is for local dev only
+				dbURL = "postgres://postgres:postgres@localhost:5432/denguesense_dev?sslmode=disable"
+			}
+			if err := postgres.MigrateUp(dbURL); err != nil {
+				slog.Error("Migration workflow thất bại", "error", err)
+				os.Exit(1)
+			}
+			slog.Info("Migration workflow thành công")
+			return
+		case "-healthcheck":
+			os.Exit(httpx.HealthcheckMain("http://127.0.0.1:8001/healthz"))
+		}
+	}
+
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		//nolint:gosec // Hardcoded DB URL is for local dev only
@@ -91,7 +111,17 @@ func main() {
 
 	// HTTP Server
 	r := gin.Default()
-	server := httpapi.NewServer(svc, repo)
+	httpx.RegisterHealth(r, db.Ping)
+
+	var opts []httpapi.ServerOption
+	if genaiURL := os.Getenv("GENAI_API_URL"); genaiURL != "" {
+		opts = append(opts, httpapi.WithGenAIURL(genaiURL))
+	}
+	if optimizeURL := os.Getenv("OPTIMIZE_API_URL"); optimizeURL != "" {
+		opts = append(opts, httpapi.WithOptimizeURL(optimizeURL))
+	}
+
+	server := httpapi.NewServer(svc, repo, opts...)
 	api.RegisterHandlers(r, server)
 
 	slog.Info("Workflow service listening trên :8001")

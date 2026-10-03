@@ -22,3 +22,15 @@ services:
   surveillance:
     ports:
       - "127.0.0.1:${SURVEILLANCE_HOST_PORT:-8082}:8082"
+  workflow:
+    ports:
+      - "127.0.0.1:${WORKFLOW_HOST_PORT:-8085}:8001"
+  notification:
+    ports:
+      - "127.0.0.1:${NOTIFICATION_HOST_PORT:-8086}:8001"
+  optimize:
+    ports:
+      - "127.0.0.1:${OPTIMIZE_HOST_PORT:-8004}:8001"
+  genai:
+    ports:
+      - "127.0.0.1:${GENAI_HOST_PORT:-8003}:8001"

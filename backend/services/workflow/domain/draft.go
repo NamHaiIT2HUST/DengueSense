@@ -114,10 +114,8 @@ func NewDispatchDraft(caseID uuid.UUID, draftType DraftType, title, content, cre
 }
 
 // UpdateContent chỉnh sửa nội dung dự thảo: tăng version, tính lại content_hash và chuyển về PENDING_REVIEW.
+// Sửa dự thảo đã duyệt bắt buộc phải duyệt lại từ đầu (trạng thái chuyển về DraftStatusPendingReview).
 func (d *DispatchDraft) UpdateContent(title, content string) error {
-	if d.Status == DraftStatusApproved {
-		// Sửa dự thảo đã duyệt bắt buộc phải duyệt lại từ đầu
-	}
 	d.Version++
 	if title != "" {
 		d.Title = title
