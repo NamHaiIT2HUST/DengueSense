@@ -92,9 +92,14 @@ func (r *Repo) CreateCase(ctx context.Context, c *domain.Case) error {
 	}
 	defer tx.Rollback(ctx) //nolint:errcheck
 
-	query := `INSERT INTO cases (id, title, status, created_by, created_at, updated_at) 
-	          VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err = tx.Exec(ctx, query, c.ID, c.Title, c.Status, c.CreatedBy, c.CreatedAt, c.UpdatedAt)
+	var legacyAlertID *uuid.UUID
+	if len(c.AlertIDs) > 0 {
+		legacyAlertID = &c.AlertIDs[0]
+	}
+
+	query := `INSERT INTO cases (id, alert_id, title, status, created_by, created_at, updated_at) 
+	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err = tx.Exec(ctx, query, c.ID, legacyAlertID, c.Title, c.Status, c.CreatedBy, c.CreatedAt, c.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -155,7 +160,32 @@ func (r *Repo) ListCases(ctx context.Context, status string) ([]domain.Case, err
 		}
 		cases = append(cases, c)
 	}
-	return cases, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if len(cases) > 0 {
+		caseIDs := make([]uuid.UUID, len(cases))
+		caseMap := make(map[uuid.UUID]*domain.Case, len(cases))
+		for i := range cases {
+			caseIDs[i] = cases[i].ID
+			caseMap[cases[i].ID] = &cases[i]
+		}
+		alertRows, err := r.db.Query(ctx, `SELECT case_id, alert_id FROM case_alerts WHERE case_id = ANY($1)`, caseIDs)
+		if err == nil {
+			defer alertRows.Close()
+			for alertRows.Next() {
+				var cid, aid uuid.UUID
+				if err := alertRows.Scan(&cid, &aid); err == nil {
+					if cs, ok := caseMap[cid]; ok {
+						cs.AlertIDs = append(cs.AlertIDs, aid)
+					}
+				}
+			}
+		}
+	}
+
+	return cases, nil
 }
 
 func (r *Repo) AddAlertToCase(ctx context.Context, caseID, alertID uuid.UUID) error {
