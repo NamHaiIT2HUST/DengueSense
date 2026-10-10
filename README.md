@@ -90,20 +90,45 @@ DengueSense/
 
 Mỗi thư mục service có README riêng mô tả cách chạy local — xem [backend/README.md](backend/README.md), [ai-service/README.md](ai-service/README.md), [dashboard/README.md](dashboard/README.md).
 
-## 5. Bắt đầu nhanh
+## 5. Bắt đầu nhanh (Khởi chạy & Kiểm thử MVP v1.0)
 
-Repo mới khởi tạo cấu trúc, code từng service sẽ được scaffold khi bắt đầu implement:
+Toàn bộ hệ thống Backend, Database, Message Bus và Web Console Frontend đã được đóng gói Docker hoàn chỉnh.
 
-```bash
-git clone <repo-url>
-cd DengueSense
-```
-
-Sau khi mỗi service có manifest (`go.mod`, `requirements.txt`, `package.json`), chạy toàn bộ stack bằng:
+### Bước 1: Khởi động toàn bộ cụm dịch vụ
 
 ```bash
-docker compose -f infra/docker-compose.yml up
+# 1. Chuẩn bị file cấu hình môi trường nếu chạy lần đầu
+cp infra/.env.example infra/.env
+
+# 2. Khởi chạy toàn bộ 11 container (Postgres, NATS, Gateway, Identity, Surveillance, Forecast, Workflow, Notification, Optimize, GenAI, Dashboard)
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
 ```
+
+### Bước 2: Nạp tài khoản kiểm thử (Idempotent)
+
+```bash
+# Trên Linux / macOS / Git Bash:
+bash infra/scripts/seed-users.sh
+
+# Trên Windows PowerShell:
+powershell -ExecutionPolicy Bypass -File infra/scripts/seed-users.ps1
+```
+
+### Bước 3: Truy cập & Trải nghiệm
+
+- **Web Console (Docker):** [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- **Hoặc chạy Frontend trực tiếp (HMR Dev Mode):**
+  ```bash
+  cd dashboard
+  npm run dev   # Mở http://127.0.0.1:5173
+  ```
+
+| Vai trò | Tên đăng nhập | Mật khẩu | Chức năng thử nghiệm |
+|---|---|---|---|
+| **Cán bộ điều hành (Officer)** | `officer` | `officer123456` | Tiếp nhận cảnh báo, tạo hồ sơ, phân bổ nguồn lực (L2), sinh dự thảo AI (L3) |
+| **Lãnh đạo phê duyệt (Approver)** | `approver` | `approver123456` | Thẩm định 4 mắt (Four-eyes check), phê duyệt/từ chối văn bản, ban hành điều phối |
+| **Chuyên viên phân tích (Analyst)** | `dev-analyst` | `ujMOTLmI2sRHa7X-oN7L9oky` | Xem & kích hoạt mô hình dự báo M4-R2 |
+| **Người xem (Viewer)** | `dev-viewer` | `a6BlIE3BM_whDmzRPxIbMK6O` | Xem bản đồ rủi ro & số liệu dịch tễ |
 
 ## 5b. Deploy prototype (Vercel)
 

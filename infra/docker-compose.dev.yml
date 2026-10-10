@@ -34,3 +34,6 @@ services:
   genai:
     ports:
       - "127.0.0.1:${GENAI_HOST_PORT:-8003}:8001"
+  dashboard:
+    ports:
+      - "127.0.0.1:${DASHBOARD_HOST_PORT:-3000}:80"

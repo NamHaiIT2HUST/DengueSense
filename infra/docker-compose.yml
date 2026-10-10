@@ -411,6 +411,17 @@ services:
       retries: 10
       start_period: 5s
 
+  dashboard:
+    build:
+      context: ../dashboard
+      dockerfile: Dockerfile
+    image: denguesense/dashboard:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks: [core]
+
 networks:
   core:
     name: denguesense-core
