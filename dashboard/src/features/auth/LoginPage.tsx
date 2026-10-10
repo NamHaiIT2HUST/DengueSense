@@ -88,9 +88,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                     className="flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-[var(--bg-surface)] px-3 py-2 text-xs"
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium text-[var(--ink-primary)] capitalize">
-                        {a.roles[0]}
-                      </span>
+                      <span className="font-medium text-[var(--ink-primary)]">{a.displayName}</span>
                       <span className="text-[11px] text-[var(--ink-muted)]">
                         <code>{a.username}</code> / <code>{a.password}</code>
                       </span>
