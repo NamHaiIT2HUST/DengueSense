@@ -22,8 +22,9 @@ export const qk = {
   job: (jobId: string) => ["job", jobId] as const,
   geometry: () => ["geo", "provinces"] as const,
   dataVersions: () => ["data-versions"] as const,
-  alerts: (filter: { run_id?: string; province_id?: string; status?: "open" | "closed" } = {}) =>
-    ["alerts", filter] as const,
+  alerts: (
+    filter: { run_id?: string; province_id?: string; status?: "open" | "closed" | "all" } = {}
+  ) => ["alerts", filter] as const,
   cases: (filter: { status?: string; limit?: number; offset?: number } = {}) =>
     ["cases", filter] as const,
   case: (caseId: string) => ["case", caseId] as const,

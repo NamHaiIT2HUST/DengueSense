@@ -522,7 +522,7 @@ export function createHandlers(
           (!provinceId || a.province_id === provinceId) &&
           (!status || a.status === status)
       );
-      return HttpResponse.json({ items: filtered });
+      return HttpResponse.json(filtered);
     }),
     http.post(`${base}/alerts/:alertId/confirm`, ({ request, params }) => {
       if (!authed(request)) return unauthenticated();

@@ -11,6 +11,7 @@ import { Button } from "@/shared/ui/Button";
 
 const NAV = [
   { to: "/app/ban-do", label: vi.nav.map },
+  { to: "/app/canh-bao", label: vi.nav.alerts },
   { to: "/app/luot-du-bao", label: vi.nav.runs },
   { to: "/app/mo-hinh", label: vi.nav.model },
 ] as const;

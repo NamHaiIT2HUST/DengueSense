@@ -14,8 +14,12 @@ import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as DangNhapRouteImport } from './routes/dang-nhap'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppBanDoRouteImport } from './routes/app/ban-do'
+import { Route as AppCanhBaoRouteImport } from './routes/app/canh-bao'
+import { Route as AppHoSoRouteImport } from './routes/app/ho-so'
 import { Route as AppLuotDuBaoRouteImport } from './routes/app/luot-du-bao'
 import { Route as AppMoHinhRouteImport } from './routes/app/mo-hinh'
+import { Route as AppDuThaoDraftIdRouteImport } from './routes/app/du-thao.$draftId'
+import { Route as AppHoSoCaseIdRouteImport } from './routes/app/ho-so.$caseId'
 import { Route as AppTinhProvinceIdRouteImport } from './routes/app/tinh.$provinceId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +47,16 @@ const AppBanDoRoute = AppBanDoRouteImport.update({
   path: '/ban-do',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppCanhBaoRoute = AppCanhBaoRouteImport.update({
+  id: '/canh-bao',
+  path: '/canh-bao',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppHoSoRoute = AppHoSoRouteImport.update({
+  id: '/ho-so',
+  path: '/ho-so',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppLuotDuBaoRoute = AppLuotDuBaoRouteImport.update({
   id: '/luot-du-bao',
   path: '/luot-du-bao',
@@ -52,6 +66,16 @@ const AppMoHinhRoute = AppMoHinhRouteImport.update({
   id: '/mo-hinh',
   path: '/mo-hinh',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDuThaoDraftIdRoute = AppDuThaoDraftIdRouteImport.update({
+  id: '/du-thao/$draftId',
+  path: '/du-thao/$draftId',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppHoSoCaseIdRoute = AppHoSoCaseIdRouteImport.update({
+  id: '/$caseId',
+  path: '/$caseId',
+  getParentRoute: () => AppHoSoRoute,
 } as any)
 const AppTinhProvinceIdRoute = AppTinhProvinceIdRouteImport.update({
   id: '/tinh/$provinceId',
@@ -64,18 +88,26 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteRouteWithChildren
   '/dang-nhap': typeof DangNhapRoute
   '/app/ban-do': typeof AppBanDoRoute
+  '/app/canh-bao': typeof AppCanhBaoRoute
+  '/app/ho-so': typeof AppHoSoRouteWithChildren
   '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app/': typeof AppIndexRoute
+  '/app/du-thao/$draftId': typeof AppDuThaoDraftIdRoute
+  '/app/ho-so/$caseId': typeof AppHoSoCaseIdRoute
   '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dang-nhap': typeof DangNhapRoute
   '/app/ban-do': typeof AppBanDoRoute
+  '/app/canh-bao': typeof AppCanhBaoRoute
+  '/app/ho-so': typeof AppHoSoRouteWithChildren
   '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app': typeof AppIndexRoute
+  '/app/du-thao/$draftId': typeof AppDuThaoDraftIdRoute
+  '/app/ho-so/$caseId': typeof AppHoSoCaseIdRoute
   '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRoutesById {
@@ -84,9 +116,13 @@ export interface FileRoutesById {
   '/app': typeof AppRouteRouteWithChildren
   '/dang-nhap': typeof DangNhapRoute
   '/app/ban-do': typeof AppBanDoRoute
+  '/app/canh-bao': typeof AppCanhBaoRoute
+  '/app/ho-so': typeof AppHoSoRouteWithChildren
   '/app/luot-du-bao': typeof AppLuotDuBaoRoute
   '/app/mo-hinh': typeof AppMoHinhRoute
   '/app/': typeof AppIndexRoute
+  '/app/du-thao/$draftId': typeof AppDuThaoDraftIdRoute
+  '/app/ho-so/$caseId': typeof AppHoSoCaseIdRoute
   '/app/tinh/$provinceId': typeof AppTinhProvinceIdRoute
 }
 export interface FileRouteTypes {
@@ -96,18 +132,26 @@ export interface FileRouteTypes {
     | '/app'
     | '/dang-nhap'
     | '/app/ban-do'
+    | '/app/canh-bao'
+    | '/app/ho-so'
     | '/app/luot-du-bao'
     | '/app/mo-hinh'
     | '/app/'
+    | '/app/du-thao/$draftId'
+    | '/app/ho-so/$caseId'
     | '/app/tinh/$provinceId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dang-nhap'
     | '/app/ban-do'
+    | '/app/canh-bao'
+    | '/app/ho-so'
     | '/app/luot-du-bao'
     | '/app/mo-hinh'
     | '/app'
+    | '/app/du-thao/$draftId'
+    | '/app/ho-so/$caseId'
     | '/app/tinh/$provinceId'
   id:
     | '__root__'
@@ -115,9 +159,13 @@ export interface FileRouteTypes {
     | '/app'
     | '/dang-nhap'
     | '/app/ban-do'
+    | '/app/canh-bao'
+    | '/app/ho-so'
     | '/app/luot-du-bao'
     | '/app/mo-hinh'
     | '/app/'
+    | '/app/du-thao/$draftId'
+    | '/app/ho-so/$caseId'
     | '/app/tinh/$provinceId'
   fileRoutesById: FileRoutesById
 }
@@ -164,6 +212,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBanDoRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/canh-bao': {
+      id: '/app/canh-bao'
+      path: '/canh-bao'
+      fullPath: '/app/canh-bao'
+      preLoaderRoute: typeof AppCanhBaoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/ho-so': {
+      id: '/app/ho-so'
+      path: '/ho-so'
+      fullPath: '/app/ho-so'
+      preLoaderRoute: typeof AppHoSoRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/luot-du-bao': {
       id: '/app/luot-du-bao'
       path: '/luot-du-bao'
@@ -178,6 +240,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMoHinhRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/app/du-thao/$draftId': {
+      id: '/app/du-thao/$draftId'
+      path: '/du-thao/$draftId'
+      fullPath: '/app/du-thao/$draftId'
+      preLoaderRoute: typeof AppDuThaoDraftIdRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/ho-so/$caseId': {
+      id: '/app/ho-so/$caseId'
+      path: '/$caseId'
+      fullPath: '/app/ho-so/$caseId'
+      preLoaderRoute: typeof AppHoSoCaseIdRouteImport
+      parentRoute: typeof AppHoSoRoute
+    }
     '/app/tinh/$provinceId': {
       id: '/app/tinh/$provinceId'
       path: '/tinh/$provinceId'
@@ -188,19 +264,36 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppHoSoRouteChildren {
+  AppHoSoCaseIdRoute: typeof AppHoSoCaseIdRoute
+}
+
+const AppHoSoRouteChildren: AppHoSoRouteChildren = {
+  AppHoSoCaseIdRoute: AppHoSoCaseIdRoute,
+}
+
+const AppHoSoRouteWithChildren =
+  AppHoSoRoute._addFileChildren(AppHoSoRouteChildren)
+
 interface AppRouteRouteChildren {
   AppBanDoRoute: typeof AppBanDoRoute
+  AppCanhBaoRoute: typeof AppCanhBaoRoute
+  AppHoSoRoute: typeof AppHoSoRouteWithChildren
   AppLuotDuBaoRoute: typeof AppLuotDuBaoRoute
   AppMoHinhRoute: typeof AppMoHinhRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppDuThaoDraftIdRoute: typeof AppDuThaoDraftIdRoute
   AppTinhProvinceIdRoute: typeof AppTinhProvinceIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBanDoRoute: AppBanDoRoute,
+  AppCanhBaoRoute: AppCanhBaoRoute,
+  AppHoSoRoute: AppHoSoRouteWithChildren,
   AppLuotDuBaoRoute: AppLuotDuBaoRoute,
   AppMoHinhRoute: AppMoHinhRoute,
   AppIndexRoute: AppIndexRoute,
+  AppDuThaoDraftIdRoute: AppDuThaoDraftIdRoute,
   AppTinhProvinceIdRoute: AppTinhProvinceIdRoute,
 }
 
