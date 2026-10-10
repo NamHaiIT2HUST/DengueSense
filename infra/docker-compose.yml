@@ -285,7 +285,7 @@ services:
         VERSION: ${BUILD_VERSION:-dev}
     image: denguesense/workflow:${BUILD_VERSION:-dev}
     restart: "no"
-    command: ["/service", "-migrate"]
+    command: ["migrate"]
     environment:
       DATABASE_URL: postgresql://svc_workflow:${SVC_WORKFLOW_PASSWORD}@postgres:5432/${POSTGRES_DB}
     depends_on:
@@ -333,7 +333,7 @@ services:
         VERSION: ${BUILD_VERSION:-dev}
     image: denguesense/notification:${BUILD_VERSION:-dev}
     restart: "no"
-    command: ["/service", "-migrate"]
+    command: ["migrate"]
     environment:
       DATABASE_URL: postgresql://svc_notification:${SVC_NOTIFICATION_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB}
     depends_on:

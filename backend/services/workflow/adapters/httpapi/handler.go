@@ -74,7 +74,7 @@ func (s *Server) ListAlerts(c *gin.Context, params api.ListAlertsParams) {
 		return
 	}
 
-	var res []api.Alert
+	res := make([]api.Alert, 0)
 	for _, a := range alerts {
 		res = append(res, api.Alert{
 			Id:         a.ID,
@@ -133,7 +133,7 @@ func (s *Server) ListCases(c *gin.Context, params api.ListCasesParams) {
 		return
 	}
 
-	var res []api.Case
+	res := make([]api.Case, 0)
 	for _, cs := range cases {
 		var alertID uuid.UUID
 		if len(cs.AlertIDs) > 0 {
