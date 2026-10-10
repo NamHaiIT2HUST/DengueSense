@@ -547,7 +547,7 @@ export function createHandlers(
           created_by: c.created_by,
           created_at: c.created_at,
         }));
-      return HttpResponse.json({ items: filtered });
+      return HttpResponse.json(filtered);
     }),
     http.post(`${base}/cases`, async ({ request }) => {
       if (!authed(request)) return unauthenticated();
