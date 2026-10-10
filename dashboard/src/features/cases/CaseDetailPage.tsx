@@ -155,6 +155,53 @@ export function CaseDetailPage() {
         </div>
       </div>
 
+      {/* Workflow Stepper: Tiến trình ra quyết định dịch tễ 4 bước */}
+      <div className="glass-panel rounded-2xl p-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500 text-white font-bold text-xs">
+              1
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-blue-400">Tiếp nhận cảnh báo</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">
+                {attachedAlerts.length} tỉnh đính kèm
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500 text-white font-bold text-xs">
+              2
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-indigo-400">Tối ưu phân bổ</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Layer 2 Optimize</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500 text-white font-bold text-xs">
+              3
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-purple-400">Soạn thảo GenAI</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Layer 3 Guardrails</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-white font-bold text-xs">
+              4
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-emerald-400">Duyệt & Ban hành</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Quy tắc 4 mắt</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* SECTION 1: Cảnh báo đính kèm */}
       <Card>
         <h2 className="text-base font-semibold text-[var(--ink-primary)] mb-3 flex items-center gap-2">

@@ -235,8 +235,23 @@ export function DraftPage() {
                 </div>
               </div>
             ) : (
-              <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans bg-[var(--bg-surface-2)] p-4 rounded-xl border border-[var(--border-hairline)]">
-                {draft.content}
+              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-6 shadow-inner">
+                {/* Tiêu ngữ công văn hành chính */}
+                <div className="mb-6 border-b border-white/10 pb-4 text-center">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-secondary)]">
+                    CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                  </p>
+                  <p className="text-[11px] font-medium text-[var(--ink-muted)]">
+                    Độc lập - Tự do - Hạnh phúc
+                  </p>
+                  <div className="mx-auto my-2 h-[1px] w-24 bg-white/20" />
+                  <p className="text-xs text-[var(--ink-muted)] font-mono">
+                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)}
+                  </p>
+                </div>
+                <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans">
+                  {draft.content}
+                </div>
               </div>
             )}
           </Card>

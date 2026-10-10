@@ -88,14 +88,65 @@ export function AlertsPage() {
     setCaseTitle(`Hồ sơ ứng phó dịch SXH — ${prov}`);
   }
 
+  const openAlertsCount = rawAlerts.filter((a) => a.status === "open").length;
+  const confirmedAlertsCount = rawAlerts.filter((a) => a.status !== "open").length;
+  const affectedProvincesCount = new Set(rawAlerts.map((a) => a.province_id)).size;
+
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="font-display text-3xl font-semibold">{vi.alerts.title}</h1>
+        <h1 className="font-display text-3xl font-semibold text-white">{vi.alerts.title}</h1>
         <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.alerts.lead}</p>
       </header>
 
       {!canAct ? <UiAlert tone="info">{vi.alerts.officerOnly}</UiAlert> : null}
+
+      {/* KPI Stat Cards */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Tổng số cảnh báo</span>
+            <p className="text-xl font-bold text-white tabular-nums">{rawAlerts.length}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">
+            <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Đang mở (Cần xử lý)</span>
+            <p className="text-xl font-bold text-red-400 tabular-nums">{openAlertsCount}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Đã tiếp nhận</span>
+            <p className="text-xl font-bold text-emerald-400 tabular-nums">
+              {confirmedAlertsCount}
+            </p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <FolderPlus className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Địa bàn ảnh hưởng</span>
+            <p className="text-xl font-bold text-amber-400 tabular-nums">
+              {affectedProvincesCount} tỉnh
+            </p>
+          </div>
+        </div>
+      </div>
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">

@@ -53,11 +53,15 @@ export function CaseListPage() {
     { value: "archived", label: vi.cases.statuses["archived"] ?? "Lưu trữ" },
   ];
 
+  const openCasesCount = cases.filter((c) => c.status === "open").length;
+  const completedCasesCount = cases.filter((c) => c.status === "completed").length;
+  const archivedCasesCount = cases.filter((c) => c.status === "archived").length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold">{vi.cases.title}</h1>
+          <h1 className="font-display text-3xl font-semibold text-white">{vi.cases.title}</h1>
           <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.cases.lead}</p>
         </div>
         {canCreate ? (
@@ -73,6 +77,49 @@ export function CaseListPage() {
             {vi.cases.createBtn}
           </Button>
         ) : null}
+      </div>
+
+      {/* KPI Stats */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+            <Folder className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Tổng số hồ sơ</span>
+            <p className="text-xl font-bold text-white tabular-nums">{cases.length}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <FolderPlus className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Đang mở (Đang xử lý)</span>
+            <p className="text-xl font-bold text-amber-400 tabular-nums">{openCasesCount}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <Folder className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Đã hoàn tất</span>
+            <p className="text-xl font-bold text-emerald-400 tabular-nums">{completedCasesCount}</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-500/10 border border-zinc-500/20 text-zinc-400">
+            <Folder className="h-5 w-5" aria-hidden="true" />
+          </div>
+          <div>
+            <span className="text-xs text-[var(--ink-secondary)]">Lưu trữ</span>
+            <p className="text-xl font-bold text-zinc-400 tabular-nums">{archivedCasesCount}</p>
+          </div>
+        </div>
       </div>
 
       <Card>
