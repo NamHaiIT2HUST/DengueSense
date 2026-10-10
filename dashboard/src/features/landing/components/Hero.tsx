@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText } from "lucide-react";
 
@@ -69,12 +70,18 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.18 }}
           className="mt-9 flex flex-wrap items-center justify-center gap-3"
         >
+          <Link
+            to="/app"
+            className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-solid)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-transform hover:scale-[1.03] active:scale-[0.98]"
+          >
+            Vào bảng điều khiển Console
+            <ArrowRight size={16} />
+          </Link>
           <a
             href="#map"
-            className="inline-flex items-center gap-2 rounded-full bg-[var(--accent-solid)] px-6 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98]"
+            className="rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] px-6 py-3 text-sm font-semibold text-[var(--ink-secondary)] transition-colors hover:border-[var(--ink-secondary)] hover:text-[var(--ink-primary)]"
           >
             Xem bản đồ rủi ro thật
-            <ArrowRight size={16} />
           </a>
           <a
             href="https://github.com/NamHaiIT2HUST/DengueSense"
