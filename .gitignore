@@ -19,6 +19,7 @@ ai-service/__pycache__/
 ai-service/**/__pycache__/
 *.py[cod]
 ai-service/.venv/
+ai-service/ai-service/
 ai-service/venv/
 ai-service/.pytest_cache/
 ai-service/.mypy_cache/
@@ -49,6 +50,10 @@ pnpm-debug.log*
 
 # --- Docker / infra ---
 infra/*.local.yml
+
+# --- Local agent tooling ---
+/.codegraph/
+/.codex-log/
 
 # --- OS / Editor ---
 .DS_Store

@@ -1,0 +1,231 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "DengueSense · Luồng xử lý staffing M1",
+    "quality_profile": "showcase",
+    "output": "diagram/staffing-m1-workflow.html"
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "M1 · Luồng chính offline"
+    },
+    {
+      "id": "exception",
+      "label": "Nhánh dừng hoặc bỏ qua phase 2",
+      "variant": "exception"
+    }
+  ],
+  "mainPath": [
+    "config",
+    "scenario",
+    "validate",
+    "health",
+    "cost",
+    "report"
+  ],
+  "nodes": [
+    {
+      "id": "config",
+      "lane": "main",
+      "col": 0,
+      "type": "database",
+      "label": "Config YAML",
+      "sublabel": "seed · budget · profile",
+      "width": 132,
+      "height": 64
+    },
+    {
+      "id": "scenario",
+      "lane": "main",
+      "col": 1,
+      "type": "backend",
+      "label": "Sinh scenario",
+      "sublabel": "Fixture → simulated",
+      "width": 132,
+      "height": 64
+    },
+    {
+      "id": "validate",
+      "lane": "main",
+      "col": 2,
+      "type": "security",
+      "label": "Validate + model",
+      "sublabel": "Strict int · hard rules",
+      "width": 132,
+      "height": 64
+    },
+    {
+      "id": "health",
+      "lane": "main",
+      "col": 3,
+      "type": "backend",
+      "label": "Phase 1",
+      "sublabel": "Giảm thiếu giờ ưu tiên",
+      "width": 132,
+      "height": 64,
+      "tag": "Evaluator kiểm nghiệm"
+    },
+    {
+      "id": "cost",
+      "lane": "main",
+      "col": 4,
+      "type": "backend",
+      "label": "Phase 2",
+      "sublabel": "Khóa health · giảm cost",
+      "width": 132,
+      "height": 64,
+      "tag": "Chung deadline"
+    },
+    {
+      "id": "no_plan",
+      "lane": "exception",
+      "col": 3,
+      "type": "security",
+      "label": "Bỏ qua phase 2",
+      "sublabel": "Hết giờ / no plan / lỗi",
+      "width": 132,
+      "height": 64,
+      "tag": "Giữ incumbent nếu có"
+    },
+    {
+      "id": "invalid",
+      "lane": "exception",
+      "col": 0,
+      "type": "external",
+      "label": "CLI exit 2",
+      "sublabel": "Input hoặc I/O sai",
+      "width": 132,
+      "height": 64
+    },
+    {
+      "id": "report",
+      "lane": "main",
+      "col": 5,
+      "type": "database",
+      "label": "SolveResult → JSON",
+      "sublabel": "Status · proof · hash",
+      "width": 132,
+      "height": 64
+    }
+  ],
+  "edges": [
+    {
+      "id": "config-scenario",
+      "from": "config",
+      "to": "scenario"
+    },
+    {
+      "id": "scenario-validate",
+      "from": "scenario",
+      "to": "validate"
+    },
+    {
+      "id": "validate-health",
+      "from": "validate",
+      "to": "health",
+      "label": "Đạt"
+    },
+    {
+      "id": "health-cost",
+      "from": "health",
+      "to": "cost",
+      "label": "Nghiệm + giờ",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cost-report",
+      "from": "cost",
+      "to": "report"
+    },
+    {
+      "id": "config-invalid",
+      "from": "config",
+      "to": "invalid",
+      "label": "Sai input",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "scenario-invalid",
+      "from": "scenario",
+      "to": "invalid",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "validate-invalid",
+      "from": "validate",
+      "to": "invalid",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "right"
+    },
+    {
+      "id": "validate-stop",
+      "from": "validate",
+      "to": "no_plan",
+      "label": "Model sai",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "health-stop",
+      "from": "health",
+      "to": "no_plan",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "stop-report",
+      "from": "no_plan",
+      "to": "report",
+      "label": "Mọi status",
+      "fromSide": "right",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Evaluator kiểm chứng mọi nghiệm",
+      "items": [
+        "Callback và final return đều kiểm supply, qualification/tuyến, budget, floor/cap và lock exact (kể cả 0).",
+        "Objective: weighted unmet-hours trước, incremental VND sau. Chỉ thay incumbent bằng nghiệm hợp lệ tốt hơn."
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Deadline và proof",
+      "items": [
+        "Một deadline cho validation, build, hai phase và final evaluation; hết giờ không mở phase mới.",
+        "OPTIMAL cần proof cả hai phase. FEASIBLE giữ incumbent; INFEASIBLE chỉ khi đã chứng minh.",
+        "Phase 2 INFEASIBLE sau incumbent hợp lệ là ERROR. CLI exit 1 cho ERROR/MODEL_INVALID; UNKNOWN/INFEASIBLE vẫn xuất report.",
+        "Input sai: exit 2. Khi phase 1 chưa có nghiệm hoặc có lỗi, phase 2 NOT_RUN; không sinh plan giả."
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Plan sau M1",
+      "items": [
+        "M2: SCIP, SA/Tabu và benchmark — chưa triển khai trong luồng này.",
+        "API/web, Layer 3 và shadow pilot có plan riêng; coverage chưa chứng minh giảm ca bệnh."
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "Nguồn và phạm vi",
+      "items": [
+        "Working tree chưa commit; manifest ghi hash nguồn tại thời điểm vẽ, không chứng thực bằng HEAD.",
+        "Plan staffing 2026-10-09; code app/optimize và experiments/exp_017_staffing_mvp.",
+        "Một scope, một kỳ, một budget owner; dữ liệu mô phỏng. Thanh công cụ viewer dùng tiếng Anh.",
+        "Nguồn theo node và hash: staffing-m1-workflow.sources.json (working tree)."
+      ]
+    }
+  ]
+}

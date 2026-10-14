@@ -7,11 +7,12 @@ include_external_packages = False
 # cho từng cặp API để chúng không import lẫn nhau.
 
 [importlinter:contract:library-independent-of-serving]
-name = Thư viện nghiên cứu (app.forecast, app.data) không được phụ thuộc lớp phục vụ
+name = Thư viện nghiên cứu (app.forecast, app.data, app.optimize) không được phụ thuộc lớp phục vụ
 type = forbidden
 source_modules =
     app.forecast
     app.data
+    app.optimize
 forbidden_modules =
     app.serving
 

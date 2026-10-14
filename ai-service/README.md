@@ -13,7 +13,8 @@ Service **Python (FastAPI)** chứa toàn bộ 3 lớp AI của DengueSense. `ba
 - ✅ **`app/data/`** — pipeline dữ liệu đã code + test, xem bên dưới.
 - ✅ **`app/forecast/`** — thư viện Layer 1 (M4-R2, cảnh báo P75, SHAP…) + 16 thí nghiệm ở `experiments/`; đọc [docs/07 (model card)](../docs/07-model-card.md) và [docs/08 (bàn giao)](../docs/08-ban-giao-layer1.md).
 - ✅ **`app/serving/`** — lớp phục vụ (Đợt 0): hạ tầng dùng chung (`common/`) + khung API `forecast_api` (health, lỗi problem+json, log JSON). Xem [docs/09 §10.4](../docs/09-kien-truc-backend.md#104-tách-thư-viện-nghiên-cứu-và-serving-trong-ai-service). Endpoint dự báo thêm ở Đợt 1 sau khi có hợp đồng nội bộ.
-- ⏳ `app/optimize/` (Layer 2), `app/genai_rag/` (Layer 3) — chưa scaffold, xem [ROADMAP.md](../ROADMAP.md) Phase 3/4.
+- `app/optimize/` — staffing M1 offline với dữ liệu mô phỏng, CP-SAT và evaluator/oracle; xem mục Staffing M1. API `/allocate` legacy chưa dùng solver này.
+- ⏳ `app/genai_rag/` (Layer 3) — chưa scaffold, xem [ROADMAP.md](../ROADMAP.md) Phase 4.
 
 ### Chạy khung API `forecast`
 
@@ -29,6 +30,36 @@ lint-imports    # luật kiến trúc: thư viện nghiên cứu không import s
 ```
 
 Image: `docker build -f ai-service/Dockerfile --build-arg VERSION=$(git rev-parse HEAD) ai-service` (ngữ cảnh build dùng allowlist trong `.dockerignore` — dữ liệu thô, venv, notebook KHÔNG vào image).
+
+## Staffing M1 — offline, dữ liệu mô phỏng
+
+Python mới ở `app/optimize`, tests ở `tests/test_optimize` và CLI ở
+`experiments/exp_017_staffing_mvp`. Giữ namespace `app`/`experiments`; không
+di chuyển code Layer 1. Venv Python 3.13 có tên `ai-service`, ở `ai-service/ai-service`
+tính từ repo root. Chọn interpreter `ai-service/ai-service/bin/python` trong IDE.
+
+Từ thư mục `ai-service/`:
+
+```bash
+source ai-service/bin/activate
+python -m pytest tests/test_optimize -q
+ruff check app/optimize tests/test_optimize experiments/exp_017_staffing_mvp
+black --check app/optimize tests/test_optimize experiments/exp_017_staffing_mvp
+lint-imports
+python -m experiments.exp_017_staffing_mvp.run --config experiments/exp_017_staffing_mvp/config.yaml --out data/processed/staffing-mvp
+```
+
+CP-SAT tối ưu weighted unmet-hours trước, incremental VND sau, giữ supply sau
+commitment/reserve, qualification/tuyến, budget, floor/cap và lock bằng chính xác.
+Evaluator độc lập kiểm mọi phương án; oracle nhỏ kiểm objective trong tests.
+Report có scenario/hash/seed/version, status/proof/bound/gap từng phase và timing.
+`ERROR`/`MODEL_INVALID` trả exit nonzero, dù còn incumbent phục vụ chẩn đoán;
+`INFEASIBLE`/`UNKNOWN` được lưu đúng nhãn, không tạo plan thay thế.
+
+Chỉ có M1 CP-SAT; chưa chạy benchmark M2, SCIP/SA/Tabu hoặc nối HTTP/Layer 3.
+Nguồn và giả định: [staffing.md](docs/data-sources/staffing.md).
+Aggregate feasible chưa chứng minh roster cá nhân khả thi. Coverage chưa đo
+hiệu lực phòng dịch; không suy ra số ca tránh được hoặc dùng để điều phối thật.
 
 ## Pipeline dữ liệu (`app/data/`) — đã chạy được thật
 

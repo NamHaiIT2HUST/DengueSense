@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b0e616e1-ac83-4dc4-9ee2-bee42710aae0",
+  "status": "current",
+  "command": "deliver",
+  "type": "workflow",
+  "input": "/Users/mercedes/work/project/DengueSense/diagram/staffing-m1-workflow.candidate.json",
+  "output": "/Users/mercedes/work/project/DengueSense/diagram/staffing-m1-workflow.html",
+  "specification": {
+    "sha256": "25605c533ef322d918c8f445eb0b07c53d3bb8314409ed89667f1e0e18c6094d",
+    "bytes": 5852
+  },
+  "artifact": {
+    "sha256": "6ea02a4c06028c2f467b30ce6a32c4826ac0fb928c307376c2aaa0aab7f25ca5",
+    "bytes": 758831
+  }
+}
