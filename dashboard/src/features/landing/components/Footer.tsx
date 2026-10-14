@@ -30,7 +30,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-xs font-medium text-slate-400">
+          <div className="flex flex-wrap items-center gap-6 text-xs font-medium text-slate-300">
             <Link to="/app" className="hover:text-white transition-colors">
               Bản đồ Dịch tễ
             </Link>
@@ -52,12 +52,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <div>
-            Đội thi <strong className="text-slate-300">MedSentinel</strong> · Cuộc thi Sáng tạo Trẻ
+            Đội thi <strong className="text-white">MedSentinel</strong> · Cuộc thi Sáng tạo Trẻ
             2026.
           </div>
-          <div className="flex items-center gap-1 text-[11px]">
+          <div className="flex items-center gap-1 text-[11px] text-slate-300">
             <ShieldCheck size={13} className="text-cyan-400" />
             <span>Tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT</span>
           </div>

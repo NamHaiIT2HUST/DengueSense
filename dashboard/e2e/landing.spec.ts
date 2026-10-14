@@ -10,16 +10,21 @@ test.describe("trang giới thiệu (bản build)", () => {
 
     await page.goto("/");
     await expect(page).toHaveTitle(/DengueSense/);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("hành động thực địa");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "đón đầu dịch sốt xuất huyết"
+    );
 
+    await expect(
+      page.getByRole("heading", { name: "Hệ sinh thái AI 3 Tầng Khép Kín", exact: true })
+    ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Bản đồ rủi ro theo 34 tỉnh thành", exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Tối ưu phân bổ nguồn lực", exact: true })
+      page.getByRole("heading", { name: "Tại sao chọn DengueSense?", exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "GenAI soạn lệnh điều phối", exact: true })
+      page.getByRole("heading", { name: "Giải đáp thắc mắc thường gặp", exact: true })
     ).toBeVisible();
 
     // Bản đồ là chunk lazy: cuộn tới khu bản đồ rồi chờ đủ 34 tỉnh.
