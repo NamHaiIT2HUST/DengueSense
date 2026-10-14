@@ -1,0 +1,45 @@
+{
+  "schema_version": "1",
+  "scenario_id": "zero_cost",
+  "scope_id": "unit-test",
+  "period_id": "test-period",
+  "budget_vnd": 0,
+  "groups": [
+    {
+      "group_id": "G1",
+      "source_site_id": "source-G1",
+      "skills": [
+        "vector_control"
+      ],
+      "total_people": 1,
+      "committed_people": 0,
+      "reserve_people": 0,
+      "hours_per_person": 8
+    }
+  ],
+  "needs": [
+    {
+      "need_id": "N1",
+      "site_id": "site-N1",
+      "role_id": "vector_control",
+      "demand_hours": 8,
+      "priority": 1,
+      "min_people": 0,
+      "max_people": 1
+    }
+  ],
+  "arcs": [
+    {
+      "group_id": "G1",
+      "need_id": "N1",
+      "cost_vnd": 0
+    }
+  ],
+  "locked_allocations": [],
+  "data_source": "simulated",
+  "policy_verified": false,
+  "assumption_ids": [
+    "unit-test-fixture"
+  ],
+  "source_refs": []
+}

@@ -1,0 +1,13 @@
+# M1 smoke only. M2 replicas/time-budget/seed grid is not executed here.
+solver: cp_sat
+seed: 42
+count: 1
+time_limit_s: 5.0
+profile:
+  base_fixture: ../../tests/test_optimize/fixtures/priority_trap.json
+  replicas: 1
+  demand_percent_choices: [100]
+  budget_percent_choices: [100]
+  available_percent_choices: [100]
+  source_refs: [D08]
+  assumption_ids: [stress-v1]
