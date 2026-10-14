@@ -52,8 +52,16 @@
   --status-serious: #ec835a;
   --status-critical: #d03b3b;
 
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Space Grotesk", var(--font-sans);
+  /* Brand Colors từ Logo DengueSense & Slide Đề án */
+  --brand-navy: #0a192f;
+  --brand-blue: #2563eb;
+  --brand-blue-hover: #1d4ed8;
+  --brand-cyan: #0ea5e9;
+  --brand-coral: #ef4444;
+  --brand-coral-hover: #dc2626;
+
+  --font-sans: "Be Vietnam Pro", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Be Vietnam Pro", sans-serif;
 }
 
 * {
@@ -162,6 +170,27 @@ body {
 }
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
+}
+
+.bg-grid-pattern {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 100% 80%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    48px 48px,
+    48px 48px;
+}
+
+.glow-blue {
+  box-shadow: 0 0 50px -10px rgba(37, 99, 235, 0.35);
+}
+
+.glow-coral {
+  box-shadow: 0 0 50px -10px rgba(239, 68, 68, 0.35);
 }
 
 @media print {

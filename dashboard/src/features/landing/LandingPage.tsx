@@ -5,10 +5,12 @@ import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatTiles } from "./components/StatTiles";
 import { ProvinceRanking } from "./components/ProvinceRanking";
-import { OptimizationPreview } from "./components/OptimizationPreview";
-import { DispatchPreview } from "./components/DispatchPreview";
+import { InteractiveLayers } from "./components/InteractiveLayers";
+import { ComparisonSection } from "./components/ComparisonSection";
+import { FaqSection } from "./components/FaqSection";
 import { RoadmapStrip } from "./components/RoadmapStrip";
 import { SectionHeader } from "./components/SectionHeader";
+import { CtaBanner } from "./components/CtaBanner";
 import { Footer } from "./components/Footer";
 import { useRiskSummary } from "./model/useRiskSummary";
 
@@ -50,8 +52,6 @@ export function LandingPage() {
   if (isLoading) return <LoadingScreen />;
   if (isError || !data) return <ErrorScreen message="Không tải được dữ liệu rủi ro." />;
 
-  const top = [...data.provinces].sort((a, b) => b.risk_score - a.risk_score)[0];
-
   return (
     <>
       <Navbar />
@@ -61,6 +61,8 @@ export function LandingPage() {
         <section>
           <StatTiles provinces={data.provinces} />
         </section>
+
+        <InteractiveLayers />
 
         <section id="map">
           <SectionHeader
@@ -76,23 +78,9 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section id="optimize">
-          <SectionHeader
-            eyebrow="Layer 2"
-            title="Tối ưu phân bổ nguồn lực"
-            desc="Không xếp hạng theo rủi ro thuần — tối ưu số ca giảm được dưới ràng buộc ngân sách."
-          />
-          <OptimizationPreview provinces={data.provinces} />
-        </section>
+        <ComparisonSection />
 
-        <section id="dispatch">
-          <SectionHeader
-            eyebrow="Layer 3"
-            title="GenAI soạn lệnh điều phối"
-            desc="Con người luôn duyệt cuối — không có đường nào ban hành mà không qua phê duyệt."
-          />
-          {top ? <DispatchPreview top={top} /> : null}
-        </section>
+        <FaqSection />
 
         <section id="roadmap">
           <SectionHeader
@@ -102,6 +90,8 @@ export function LandingPage() {
           />
           <RoadmapStrip />
         </section>
+
+        <CtaBanner />
       </main>
 
       <Footer />
