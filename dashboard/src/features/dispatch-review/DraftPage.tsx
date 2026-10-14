@@ -6,6 +6,7 @@ import {
   FileCheck2,
   FileEdit,
   History,
+  Printer,
   Send,
   ShieldCheck,
   XCircle,
@@ -182,37 +183,47 @@ export function DraftPage() {
                 <FileEdit size={18} className="text-[var(--accent)]" />
                 {vi.drafts.editorTitle}
               </h2>
-              {isOfficer && draft.status !== "APPROVED" && (
-                <div>
-                  {isEditing ? (
-                    <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5 print:hidden"
+                  onClick={() => window.print()}
+                >
+                  <Printer size={14} />
+                  In / Xuất PDF
+                </Button>
+                {isOfficer && draft.status !== "APPROVED" && (
+                  <div>
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="secondary"
+                          className="px-3 py-1 text-xs"
+                          onClick={() => setIsEditing(false)}
+                        >
+                          Huỷ
+                        </Button>
+                        <Button
+                          variant="primary"
+                          className="px-3 py-1 text-xs"
+                          loading={updateDraftMutation.isPending}
+                          onClick={() => void handleSaveDraft()}
+                        >
+                          {vi.drafts.saveBtn}
+                        </Button>
+                      </div>
+                    ) : (
                       <Button
                         variant="secondary"
                         className="px-3 py-1 text-xs"
-                        onClick={() => setIsEditing(false)}
+                        onClick={startEditing}
                       >
-                        Huỷ
+                        {vi.drafts.editBtn}
                       </Button>
-                      <Button
-                        variant="primary"
-                        className="px-3 py-1 text-xs"
-                        loading={updateDraftMutation.isPending}
-                        onClick={() => void handleSaveDraft()}
-                      >
-                        {vi.drafts.saveBtn}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="secondary"
-                      className="px-3 py-1 text-xs"
-                      onClick={startEditing}
-                    >
-                      {vi.drafts.editBtn}
-                    </Button>
-                  )}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {isEditing ? (

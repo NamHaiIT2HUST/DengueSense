@@ -163,3 +163,27 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+  .glass-panel,
+  .glass-panel-elevated,
+  .rounded-2xl,
+  .rounded-xl {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    color: #111827 !important;
+  }
+  .prose {
+    color: #111827 !important;
+  }
+}

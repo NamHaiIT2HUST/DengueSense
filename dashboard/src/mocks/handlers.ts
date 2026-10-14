@@ -607,11 +607,17 @@ export function createHandlers(
         budget: body.budget,
         total_cost: totalCost,
         estimated_cases_prevented: estPrevented,
-        allocations: items.map((it, idx) => ({
-          province_id: it.province_id,
-          amount: Math.round(totalCost / Math.max(1, items.length)),
-          explanation: `Ước tính số ca dự báo ${it.cases_pred}, ưu tiên can thiệp điểm nóng thứ ${idx + 1}.`,
-        })),
+        allocations: items.map((it, idx) => {
+          const costShare = Math.round(totalCost / Math.max(1, items.length));
+          const beds = Math.max(10, Math.round(costShare / 12_500_000));
+          const chemicals = Math.max(50, Math.round(costShare / 2_000_000));
+          const teams = Math.max(2, Math.round(costShare / 100_000_000));
+          return {
+            province_id: it.province_id,
+            amount: costShare,
+            explanation: `Ưu tiên điểm nóng thứ ${idx + 1} (dự kiến ${it.cases_pred} ca). Phân bổ: ${beds} giường dã chiến, ${chemicals}L Cloramin B, ${teams} đội cơ động.`,
+          };
+        }),
         created_at: new Date().toISOString(),
       };
       plans.set(planId, newPlan);
@@ -658,9 +664,12 @@ export function createHandlers(
       const title =
         body?.title ||
         (draftType === "b2g"
-          ? "Công điện chỉ đạo khẩn cấp phòng chống dịch"
-          : "Báo cáo giám sát dịch tễ chuyên môn");
-      const generatedContent = `## ${title.toUpperCase()}\n\n**Kính gửi:** Ban Chỉ đạo Phòng chống Dịch bệnh các tỉnh trọng điểm.\n\nCăn cứ vào dữ liệu dự báo dịch tễ chuỗi thời gian M4-R2 và kết quả tối ưu hoá nguồn lực hồ sơ ${found.title}:\n\n1. Kích hoạt toàn bộ hệ thống giám sát véc-tơ truyền bệnh tại các ổ dịch.\n2. Phân bổ nguồn lực hỗ trợ phun hoá chất và huy động lực lượng y tế dự phòng.\n3. Định kỳ báo cáo ca bệnh hàng ngày về Trung tâm Kiểm soát Bệnh tật.\n\n${body?.extra_instructions ? `*Lưu ý bổ sung:* ${body.extra_instructions}\n\n` : ""}Yêu cầu các đơn vị khẩn trương thực hiện nghiêm túc.`;
+          ? "Công điện chỉ đạo khẩn cấp phòng chống dịch Sốt xuất huyết"
+          : "Thông báo dịch tễ & Khuyến nghị thu dung điều trị bệnh viện");
+      const generatedContent =
+        draftType === "b2g"
+          ? `## CÔNG ĐIỆN KHẨN CHỈ ĐẠO PHÒNG CHỐNG DỊCH SỐT XUẤT HUYẾT\n\n**Kính gửi:** Ban Chỉ đạo Phòng chống Dịch bệnh các tỉnh, thành phố và Trung tâm Kiểm soát Bệnh tật (CDC).\n\nCăn cứ vào kết quả dự báo AI Lớp 1 (XGBoost + Random Forest, ERA5) và phương án tối ưu hoá phân bổ nguồn lực Lớp 2 (MILP) thuộc hồ sơ "${found.title}":\n\n1. **Kích hoạt phản ứng khẩn cấp:** Huy động đội cơ động phản ứng nhanh và bố trí cơ số giường bệnh thu dung dự phòng tại các cơ sở điều trị.\n2. **Tiếp nhận & cấp phát vật tư:** Khẩn trương tiếp nhận và phân bổ hóa chất Cloramin B, máy phun ULV theo định mức tối ưu đã phê duyệt cho các ổ dịch trọng điểm.\n3. **Giám sát & báo cáo dịch tễ:** Định kỳ tổng hợp, báo cáo ca mắc hàng ngày theo quy định tại Quyết định số 02/2016/QĐ-BYT của Bộ Y tế.\n\n${body?.extra_instructions ? `*Lưu ý chỉ đạo bổ sung:* ${body.extra_instructions}\n\n` : ""}Yêu cầu các đơn vị khẩn trương triển khai thực hiện nghiêm túc.`
+          : `## THÔNG BÁO DỊCH TỄ & KHUYẾN NGHỊ THU DUNG ĐIỀU TRỊ\n\n**Kính gửi:** Ban Giám đốc các Bệnh viện Đa khoa và Bệnh viện Tư nhân trên địa bàn.\n\nCăn cứ vào cảnh báo sớm nguy cơ bùng phát dịch Sốt xuất huyết từ hệ thống DengueSense (chu kỳ dự báo sớm 1–6 tháng):\n\n1. **Chủ động công tác thu dung:** Chuẩn bị sẵn cơ số giường bệnh nội trú, dịch truyền chống sốc và thuốc thiết yếu theo phác đồ điều trị sốt xuất huyết của Bộ Y tế.\n2. **Thiết lập phân luồng:** Bố trí khu vực sàng lọc riêng tại khoa Khám bệnh để phát hiện sớm các dấu hiệu cảnh báo chuyển nặng.\n3. **Liên thông số liệu:** Thực hiện báo cáo ca bệnh nội trú qua hệ thống thông tin giám sát bệnh truyền nhiễm.\n\n${body?.extra_instructions ? `*Khuyến nghị đặc biệt:* ${body.extra_instructions}\n\n` : ""}Trân trọng thông báo đến các cơ sở y tế phối hợp thực hiện.`;
       const newDraft: DispatchDraft = {
         id: draftId,
         case_id: found.id,
