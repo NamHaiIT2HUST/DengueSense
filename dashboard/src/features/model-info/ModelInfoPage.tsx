@@ -122,38 +122,55 @@ function LimitationItem({ item }: { item: Limitation }) {
 function Explainability() {
   return (
     <Card>
-      <h2 className="text-xl font-semibold">Khả năng giải thích mô hình (Explainability & SHAP Values)</h2>
+      <h2 className="text-xl font-semibold">
+        Khả năng giải thích mô hình (Explainability & SHAP Values)
+      </h2>
       <p className="mt-2 text-sm text-[var(--ink-secondary)]">
-        Mô hình tổ hợp M4-R2 áp dụng TreeSHAP (Tree-based Shapley Additive exPlanations) để lượng hóa tỷ trọng đóng góp của từng nhóm đặc trưng vào quyết định dự báo, tăng cường tính minh bạch và khả năng kiểm chứng trong y tế công cộng.
+        Mô hình tổ hợp M4-R2 áp dụng TreeSHAP (Tree-based Shapley Additive exPlanations) để lượng
+        hóa tỷ trọng đóng góp của từng nhóm đặc trưng vào quyết định dự báo, tăng cường tính minh
+        bạch và khả năng kiểm chứng trong y tế công cộng.
       </p>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="rounded-xl bg-[var(--bg-surface-2)] p-4">
-          <h3 className="font-medium text-[var(--ink-primary)]">Tỷ trọng đóng góp theo nhóm tín hiệu (TreeSHAP)</h3>
+          <h3 className="font-medium text-[var(--ink-primary)]">
+            Tỷ trọng đóng góp theo nhóm tín hiệu (TreeSHAP)
+          </h3>
           <ul className="mt-3 space-y-2 text-sm text-[var(--ink-secondary)]">
             <li className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
               <span>Khí hậu viễn thám ERA5 (Nhiệt độ, lượng mưa, độ ẩm)</span>
-              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">22,6% – 27,9%</span>
+              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">
+                22,6% – 27,9%
+              </span>
             </li>
             <li className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
               <span>Ca bệnh gần đây (Lags dịch tễ & đà tăng tốc)</span>
-              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">25,5% – 39,1%</span>
+              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">
+                25,5% – 39,1%
+              </span>
             </li>
             <li className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
               <span>Chuẩn mùa vụ lịch sử tỉnh (Cùng tháng năm trước)</span>
-              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">12,1% – 28,1%</span>
+              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">
+                12,1% – 28,1%
+              </span>
             </li>
             <li className="flex justify-between border-b border-[var(--border-subtle)] pb-1.5">
               <span>Chu kỳ năm (Biến thiên sin/cos theo tháng)</span>
-              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">8,7% – 20,8%</span>
+              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">
+                8,7% – 20,8%
+              </span>
             </li>
             <li className="flex justify-between pb-1">
               <span>Chỉ số dao động khí hậu toàn cầu ONI (El Niño)</span>
-              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">4,4% – 15,0%</span>
+              <span className="font-semibold text-[var(--accent-ink)] tabular-nums">
+                4,4% – 15,0%
+              </span>
             </li>
           </ul>
           <p className="mt-3 text-xs text-[var(--ink-muted)]">
-            * Dữ liệu định lượng trích xuất từ thực nghiệm kiểm chứng <code>exp_014_shap</code> (8 origin outer, 34 tỉnh, horizon 1–6 tháng).
+            * Dữ liệu định lượng trích xuất từ thực nghiệm kiểm chứng <code>exp_014_shap</code> (8
+            origin outer, 34 tỉnh, horizon 1–6 tháng).
           </p>
         </div>
         <div className="flex flex-col items-center justify-center rounded-xl bg-[var(--bg-surface-2)] p-4">
@@ -217,7 +234,6 @@ export function ModelInfoPage() {
           <Reliability card={card.data} />
         </>
       )}
-
 
       <Card>
         <h2 className="text-xl font-semibold">{vi.model.limitations}</h2>
