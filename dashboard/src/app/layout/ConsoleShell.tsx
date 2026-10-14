@@ -1,6 +1,16 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, type ReactNode } from "react";
+import {
+  Activity,
+  AlertTriangle,
+  FolderKanban,
+  Home,
+  LogOut,
+  Map,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
 
 import { useSession } from "@/entities/user";
 import { logout } from "@/features/auth";
@@ -9,14 +19,25 @@ import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 
-const NAV = [
-  { to: "/app/ban-do", label: vi.nav.map },
-  { to: "/app/luot-du-bao", label: vi.nav.runs },
-  { to: "/app/mo-hinh", label: vi.nav.model },
-] as const;
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof Map;
+  category: "operations" | "system";
+}
 
-const NAV_LINK =
-  "rounded-full px-3 py-1.5 text-sm text-[var(--ink-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--ink-primary)]";
+const NAV_ITEMS: readonly NavItem[] = [
+  { to: "/app/ban-do", label: vi.nav.map, icon: Map, category: "operations" },
+  { to: "/app/canh-bao", label: vi.nav.alerts, icon: AlertTriangle, category: "operations" },
+  { to: "/app/ho-so", label: vi.nav.cases, icon: FolderKanban, category: "operations" },
+  { to: "/app/luot-du-bao", label: vi.nav.runs, icon: TrendingUp, category: "system" },
+  { to: "/app/mo-hinh", label: vi.nav.model, icon: ShieldCheck, category: "system" },
+];
+
+const NAV_LINK_BASE =
+  "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 text-[var(--ink-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--ink-primary)]";
+const NAV_LINK_ACTIVE =
+  "bg-gradient-to-r from-[var(--accent-soft)] to-transparent text-[var(--accent-ink)] border-l-2 border-[var(--accent)] font-semibold shadow-sm";
 
 /**
  * Khung console: liên kết bỏ qua điều hướng, thanh trên (tên người dùng, đăng xuất), điều hướng chính, nội dung.
@@ -48,6 +69,19 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     await router.navigate({ to: "/dang-nhap", replace: true });
   }
 
+  const primaryRole = user?.roles?.[0];
+  const roleName = primaryRole
+    ? primaryRole === "officer"
+      ? "Cán bộ điều hành"
+      : primaryRole === "approver"
+        ? "Lãnh đạo phê duyệt"
+        : primaryRole === "analyst"
+          ? "Chuyên viên phân tích"
+          : primaryRole === "admin"
+            ? "Quản trị viên"
+            : "Người dùng"
+    : "Người dùng";
+
   return (
     <div className="min-h-screen">
       <a
@@ -57,46 +91,132 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         {vi.nav.skipToContent}
       </a>
 
-      <header className="glass-panel sticky top-0 z-40 flex items-center justify-between gap-4 border-x-0 border-t-0 px-6 py-3">
-        <Link to="/app" className="font-display text-lg font-semibold">
-          {vi.appName}
-        </Link>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="hidden text-[var(--ink-secondary)] sm:inline">
-            {vi.auth.signedInAs}:{" "}
-            <strong className="text-[var(--ink-primary)]">{user?.display_name}</strong>
-          </span>
-          <Button variant="secondary" onClick={() => void onLogout()}>
-            {vi.auth.logout}
-          </Button>
+      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link to="/app" className="group flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-md shadow-blue-500/20 transition-transform duration-200 group-hover:scale-105">
+                <Activity className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="font-display text-lg font-bold tracking-tight text-white">
+                    {vi.appName}
+                  </span>
+                  <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400">
+                    MVP v1.0
+                  </span>
+                </div>
+                <span className="text-[11px] text-[var(--ink-muted)]">
+                  Quyết định dịch tễ thông minh
+                </span>
+              </div>
+            </Link>
+
+            <div className="hidden items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 md:flex">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>AI Dịch tễ: Trực tuyến</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 text-sm">
+            <div className="hidden sm:flex items-center gap-3 rounded-full border border-white/10 bg-[var(--bg-surface-2)] px-3.5 py-1.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-sky-500 to-blue-600 text-xs font-bold text-white shadow-sm">
+                {user?.display_name ? user.display_name.charAt(0).toUpperCase() : "U"}
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-medium text-[var(--ink-primary)] leading-tight">
+                  {user?.display_name}
+                </span>
+                <span className="text-[10px] font-medium text-sky-400 leading-tight">
+                  {roleName}
+                </span>
+              </div>
+            </div>
+
+            <Button
+              variant="secondary"
+              onClick={() => void onLogout()}
+              className="px-3.5 py-1.5 text-xs flex items-center gap-1.5"
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{vi.auth.logout}</span>
+            </Button>
+          </div>
         </div>
       </header>
 
       {env.VITE_APP_MODE === "demo" ? (
-        <div className="px-6 pt-4">
+        <div className="mx-auto max-w-7xl px-6 pt-4">
           <Alert tone="info">{vi.auth.demoBanner}</Alert>
         </div>
       ) : null}
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[220px_1fr]">
-        <nav aria-label={vi.nav.console} className="flex flex-wrap gap-2 lg:flex-col">
-          {NAV.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              className={NAV_LINK}
-              activeProps={{
-                "aria-current": "page",
-                className: `${NAV_LINK} bg-[var(--accent-soft)] text-[var(--accent-ink)]`,
-              }}
-            >
-              {n.label}
+      <div className="mx-auto grid max-w-7xl gap-6 px-6 py-6 lg:grid-cols-[240px_1fr]">
+        <aside className="space-y-4">
+          <nav
+            aria-label={vi.nav.console}
+            className="glass-panel flex flex-wrap gap-1.5 rounded-2xl p-3 lg:flex-col"
+          >
+            <div className="hidden px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
+              Nghiệp vụ phòng dịch
+            </div>
+            {NAV_ITEMS.filter((i) => i.category === "operations").map((n) => {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={NAV_LINK_BASE}
+                  activeProps={{
+                    "aria-current": "page",
+                    className: `${NAV_LINK_BASE} ${NAV_LINK_ACTIVE}`,
+                  }}
+                >
+                  <Icon
+                    className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    aria-hidden="true"
+                  />
+                  <span>{n.label}</span>
+                </Link>
+              );
+            })}
+
+            <div className="hidden pt-2 px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
+              Hệ thống & AI
+            </div>
+            {NAV_ITEMS.filter((i) => i.category === "system").map((n) => {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  className={NAV_LINK_BASE}
+                  activeProps={{
+                    "aria-current": "page",
+                    className: `${NAV_LINK_BASE} ${NAV_LINK_ACTIVE}`,
+                  }}
+                >
+                  <Icon
+                    className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    aria-hidden="true"
+                  />
+                  <span>{n.label}</span>
+                </Link>
+              );
+            })}
+
+            <div className="my-1 border-t border-[var(--border-hairline)]" />
+            <Link to="/" className={NAV_LINK_BASE}>
+              <Home
+                className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                aria-hidden="true"
+              />
+              <span>{vi.nav.home}</span>
             </Link>
-          ))}
-          <Link to="/" className={NAV_LINK}>
-            {vi.nav.home}
-          </Link>
-        </nav>
+          </nav>
+        </aside>
+
         <main id="main" tabIndex={-1} className="min-w-0 outline-none">
           {children}
         </main>

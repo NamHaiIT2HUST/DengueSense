@@ -24,8 +24,8 @@ export function Navbar() {
             <Activity size={18} strokeWidth={2.5} className="text-white" />
           </span>
           <span className="font-display text-[17px] font-semibold tracking-tight">DengueSense</span>
-          <span className="hidden rounded-full border border-[var(--border-strong)] px-2 py-0.5 text-[10px] font-medium text-[var(--ink-muted)] sm:inline">
-            PROTOTYPE
+          <span className="hidden rounded-full border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-400 sm:inline">
+            MVP v1.0
           </span>
         </a>
 
@@ -48,12 +48,12 @@ export function Navbar() {
           >
             Đăng nhập
           </Link>
-          <a
-            href="#roadmap"
-            className="rounded-full bg-[var(--accent-solid)] px-4 py-2 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-[0.98]"
+          <Link
+            to="/app"
+            className="rounded-full bg-[var(--accent-solid)] px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/25 transition-transform hover:scale-[1.03] active:scale-[0.98]"
           >
-            Xem lộ trình
-          </a>
+            Vào Console
+          </Link>
         </div>
       </div>
     </motion.header>

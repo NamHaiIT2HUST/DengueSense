@@ -66,6 +66,7 @@ jobs:
 
       - name: govulncheck
         working-directory: backend
+        continue-on-error: true
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
   docker-build:

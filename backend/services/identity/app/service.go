@@ -30,8 +30,9 @@ type Config struct {
 // DefaultAudiencePolicy là chính sách mặc định của Đợt 1. Service không có trong bảng không xin được token nào.
 func DefaultAudiencePolicy() map[string][]string {
 	return map[string][]string{
-		"gateway":       {"identity", "surveillance", "forecast"},
+		"gateway":       {"identity", "surveillance", "forecast", "workflow"},
 		"forecast":      {"surveillance"},
+		"workflow":      {"surveillance", "forecast", "notification", "optimize", "genai"},
 		"ingest-worker": {"surveillance"},
 	}
 }

@@ -7,7 +7,7 @@ export interface DemoAccount {
   username: string;
   password: string;
   displayName: string;
-  roles: ("viewer" | "analyst")[];
+  roles: ("viewer" | "analyst" | "officer" | "approver")[];
 }
 
 export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
@@ -22,5 +22,17 @@ export const DEMO_ACCOUNTS: readonly DemoAccount[] = [
     password: "demo-2026-phan-tich",
     displayName: "Chuyên viên phân tích (demo)",
     roles: ["viewer", "analyst"],
+  },
+  {
+    username: "officer",
+    password: "officer123456",
+    displayName: "Cán bộ điều hành (demo)",
+    roles: ["officer"],
+  },
+  {
+    username: "approver",
+    password: "approver123456",
+    displayName: "Lãnh đạo phê duyệt (demo)",
+    roles: ["approver"],
   },
 ];

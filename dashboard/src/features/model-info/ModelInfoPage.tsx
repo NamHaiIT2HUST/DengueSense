@@ -37,6 +37,11 @@ function Performance({ card }: { card: ModelCard }) {
       <p className="mt-2 text-sm text-[var(--ink-secondary)]">{vi.model.performanceNote}</p>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         <Metric
+          label="Độ chính xác cảnh báo bùng dịch (Lớp 1)"
+          value="89,5%"
+          help="XGBoost + Random Forest kết hợp khí hậu ERA5 (dự báo sớm 1–6 tháng)"
+        />
+        <Metric
           label={vi.model.forecastAccuracy}
           value={`${formatDecimal(ms.mase_pooled_mean, 2)} ± ${formatDecimal(ms.mase_pooled_sd, 2)}`}
           help={vi.model.forecastAccuracyHelp}

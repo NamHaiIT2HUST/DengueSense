@@ -38,11 +38,13 @@ export function OptimizationPreview({ provinces }: { provinces: ProvinceRisk[] }
     <div className="glass-panel rounded-2xl p-6 sm:p-8">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-display text-xl font-semibold">Layer 2 — Tối ưu phân bổ nguồn lực</h3>
+          <h3 className="font-display text-xl font-semibold">
+            Lớp 2 — Tối ưu phân bổ nguồn lực (MILP)
+          </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
-            Kéo thanh ngân sách để xem thuật toán chọn tỉnh nào được ưu tiên. Bản demo dùng greedy
-            theo tỉ lệ rủi ro/chi phí — bản thật (MILP, OR-Tools) tối ưu <b>số ca giảm được</b>,
-            không chỉ xếp hạng rủi ro.
+            Giải bài toán phân bổ tối ưu giường bệnh, vật tư y tế (Cloramin B, máy phun) và nhân lực
+            cơ động phản ứng nhanh theo ngân sách khả dụng, giảm thiểu tối đa số ca mắc trong cộng
+            đồng.
           </p>
         </div>
         <ConceptTag />

@@ -10,11 +10,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig(({ mode }) => {
   // `--mode console`: chạy trên BACKEND THẬT (không có máy chủ giả MSW). Đặt VITE_APP_MODE ở đây để không cần file .env
   // (đã bị .gitignore). Gateway đích đọc từ DEV_API_PROXY trong `.env.console.local` (gitignored) hoặc biến môi trường.
-  if (mode === "console") process.env.VITE_APP_MODE ??= "console";
+  if (mode === "console" || mode === "development") process.env.VITE_APP_MODE ??= "console";
   const apiTarget =
     process.env.DEV_API_PROXY ??
     loadEnv(mode, process.cwd(), "").DEV_API_PROXY ??
-    "http://127.0.0.1:8080";
+    "http://127.0.0.1:18080";
   // Cùng origin với dashboard → cookie refresh HttpOnly (SameSite=Strict, Path=/api/v1/auth) hoạt động như production.
   const proxy = { "/api": { target: apiTarget, changeOrigin: false } };
 

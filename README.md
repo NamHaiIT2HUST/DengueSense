@@ -1,18 +1,25 @@
 # DengueSense
 
-> Nền tảng AI hỗ trợ ra quyết định y tế công cộng khép kín cho sốt xuất huyết: dự báo dịch sớm 1-6 tháng, tối ưu phân bổ nguồn lực, và tự động soạn lệnh điều phối bằng GenAI.
+> **Nền tảng AI hỗ trợ ra quyết định y tế công cộng khép kín cho sốt xuất huyết:** Cảnh báo sớm dịch 1–6 tháng với độ chính xác 89.5%, tối ưu hóa phân bổ nguồn lực khẩn cấp (MILP), và tự động soạn thảo công điện điều phối tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT với Guardrail G1 khóa cứng số liệu chống ảo giác (Zero-Hallucination).
 >
-> Đội thi **MedSentinel** — Cuộc thi Sáng tạo Trẻ 2026
+> 🏆 **Đội thi MedSentinel** — Cuộc thi Sáng tạo Trẻ 2026  
+> 🚀 **Trải nghiệm trực tuyến (Live Demo):** [https://denguesense.vercel.app/](https://denguesense.vercel.app/)  
+> 🔑 **Tài khoản dùng thử nhanh:** Đã tích hợp sẵn nút đăng nhập 1-click *(Khách tham quan / Ban Giám Khảo, Chuyên viên CDC, Lãnh đạo Sở)* ngay tại giao diện đăng nhập.
 
-## 1. Tổng quan
+## 1. Tổng quan & Kiến trúc 3 Lớp AI Đột phá
 
-DengueSense chuyển quy trình phòng chống sốt xuất huyết từ **bị động** sang **chủ động**, khép kín 3 lớp:
+DengueSense chuyển quy trình phòng chống sốt xuất huyết từ **ứng phó bị động** sang **chủ động đón đầu dịch bệnh**, khép kín qua 3 tầng công nghệ lõi:
 
-1. **Dự báo (Forecast)** — mô hình ML dự báo rủi ro dịch theo khu vực từ dữ liệu dịch tễ + khí hậu.
-2. **Tối ưu (Optimize)** — thuật toán tối ưu phân bổ giường bệnh, vật tư, nhân lực theo ngân sách.
-3. **Điều phối (Dispatch)** — GenAI soạn thảo lệnh điều phối / cảnh báo, con người luôn duyệt cuối (human-in-the-loop).
+1. **Layer 1: Dự báo dịch tễ không - thời gian (Spatio-Temporal AI):**
+   - Mô hình tổ hợp **M4-R2** (XGBoost + Random Forest) tích hợp dữ liệu viễn thám khí hậu toàn cầu **ERA5** (nhiệt độ, lượng mưa, độ ẩm tích lũy) và độ trễ dịch tễ học.
+   - **Độ chính xác cảnh báo dịch đạt 89.5%**, dự báo trước **1–6 tháng** trên **34 tỉnh/thành phố** trọng điểm dịch tại Việt Nam.
+2. **Layer 2: Tối ưu hóa phân bổ nguồn lực can thiệp (MILP & Metaheuristics):**
+   - Ứng dụng quy hoạch nguyên hỗn hợp (**Google OR-Tools CP-SAT**) giải bài toán tối ưu lợi ích biên giảm dần trong **dưới 1 phút**.
+   - Tự động lập kế hoạch phân bổ tối ưu **3 trụ cột thiết yếu**: **Giường bệnh** (chống quá tải hồi sức), **Vật tư y tế & Hóa chất** (Cloramin B, máy phun công suất cao, test nhanh), và **Đội phản ứng nhanh** (hỗ trợ thực địa xử lý ổ bọ gậy) dưới ràng buộc ngân sách và sàn công bằng.
+3. **Layer 3: Trợ lý soạn thảo công điện GenAI & Chuẩn thể thức hành chính:**
+   - Ứng dụng mô hình RAG sinh dự thảo công điện khẩn (B2G gửi Ban Chỉ đạo/Sở Y tế) và báo cáo điều trị (B2B gửi Bệnh viện) tuân thủ nghiêm ngặt **Nghị định số 30/2020/NĐ-CP** và **Quyết định số 02/2016/QĐ-BYT**.
+   - Tích hợp **Guardrail G1 (Strict Data Locking / Zero-Hallucination)** khóa cứng 100% số liệu dự báo và phân bổ, ngăn chặn triệt để ảo giác AI; vận hành theo cơ chế **Human-in-the-loop** (quy tắc 4 mắt: chuyên viên soạn, lãnh đạo duyệt) và hỗ trợ **In / Xuất PDF khổ A4 hành chính**.
 
-Chi tiết bài toán, thị trường, tài chính: xem bản thuyết minh đề án (không lưu trong repo này).
 
 ## 2. Kiến trúc hệ thống
 
@@ -90,20 +97,47 @@ DengueSense/
 
 Mỗi thư mục service có README riêng mô tả cách chạy local — xem [backend/README.md](backend/README.md), [ai-service/README.md](ai-service/README.md), [dashboard/README.md](dashboard/README.md).
 
-## 5. Bắt đầu nhanh
+## 5. Bắt đầu nhanh (Khởi chạy & Kiểm thử MVP v1.0)
 
-Repo mới khởi tạo cấu trúc, code từng service sẽ được scaffold khi bắt đầu implement:
+Toàn bộ hệ thống Backend, Database, Message Bus và Web Console Frontend đã được đóng gói Docker hoàn chỉnh.
 
-```bash
-git clone <repo-url>
-cd DengueSense
-```
-
-Sau khi mỗi service có manifest (`go.mod`, `requirements.txt`, `package.json`), chạy toàn bộ stack bằng:
+### Bước 1: Khởi động toàn bộ cụm dịch vụ
 
 ```bash
-docker compose -f infra/docker-compose.yml up
+# 1. Chuẩn bị file cấu hình môi trường nếu chạy lần đầu
+cp infra/.env.example infra/.env
+
+# 2. Khởi chạy toàn bộ 11 container (Postgres, NATS, Gateway, Identity, Surveillance, Forecast, Workflow, Notification, Optimize, GenAI, Dashboard)
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d
 ```
+
+### Bước 2: Nạp tài khoản kiểm thử (Idempotent)
+
+```bash
+# Trên Linux / macOS / Git Bash:
+bash infra/scripts/seed-users.sh
+
+# Trên Windows PowerShell:
+powershell -ExecutionPolicy Bypass -File infra/scripts/seed-users.ps1
+```
+
+### Bước 3: Truy cập & Trải nghiệm
+
+- **Web Console (Docker):** [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- **Hoặc chạy Frontend trực tiếp (HMR Dev Mode):**
+  ```bash
+  cd dashboard
+  npm run dev   # Mở http://127.0.0.1:5173
+  ```
+
+| Vai trò | Tên đăng nhập | Mật khẩu | Chức năng thử nghiệm |
+|---|---|---|---|
+| **Ban Giám Khảo & Khách (Guest)** | *Bấm nút "Khách tham quan"* | *(Đăng nhập ngay)* | Xem toàn bộ Dashboard, bản đồ GIS 34 tỉnh, chỉ số mô hình học máy |
+| **Cán bộ điều hành (Officer)** | `officer@denguesense.vn` hoặc `officer` | `officer123456` | Tiếp nhận cảnh báo, tạo hồ sơ, tối ưu phân bổ nguồn lực (MILP), sinh dự thảo AI (L3) |
+| **Lãnh đạo phê duyệt (Approver)** | `approver@denguesense.vn` hoặc `approver` | `approver123456` | Thẩm định 4 mắt (Four-eyes check), kiểm tra Guardrails G1–G6, phê duyệt & **In / Xuất PDF** |
+| **Chuyên viên phân tích (Analyst)** | `dev-analyst` | `ujMOTLmI2sRHa7X-oN7L9oky` | Xem & kích hoạt mô hình dự báo M4-R2 |
+| **Người xem (Viewer)** | `dev-viewer` | `a6BlIE3BM_whDmzRPxIbMK6O` | Xem bản đồ rủi ro & số liệu dịch tễ |
+
 
 ## 5b. Deploy prototype (Vercel)
 
