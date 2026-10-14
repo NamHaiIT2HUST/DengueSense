@@ -1,5 +1,9 @@
+from typing import Literal
+
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from app.optimize import OptimizeItemInput, optimize_allocation
 
 router = APIRouter()
 
@@ -7,50 +11,67 @@ router = APIRouter()
 class AllocateItem(BaseModel):
     province_id: str
     cases_pred: float
-    cost: float
+    cost: float = Field(default=0.0)
 
 
 class AllocateRequest(BaseModel):
     budget: float
     items: list[AllocateItem]
+    strategy: Literal["milp_marginal", "simulated_annealing", "greedy_baseline"] = (
+        "milp_marginal"
+    )
 
 
 class Allocation(BaseModel):
     province_id: str
     amount: float
     explanation: str
+    beds: int = 0
+    supplies: int = 0
+    teams: int = 0
 
 
 class AllocateResponse(BaseModel):
     total_cost: float
     estimated_cases_prevented: float
     allocations: list[Allocation]
+    algorithm_used: str
+    solve_time_ms: float
 
 
 @router.post("/allocate", response_model=AllocateResponse)
 def allocate_resources(req: AllocateRequest) -> AllocateResponse:
-    # Dummy implementation for Đợt 2 - AI layer sẽ thay thế bằng CP-SAT/MILP
-    allocs = []
-    total_cost = 0.0
-    cases_prevented = 0.0
+    inputs = [
+        OptimizeItemInput(
+            province_id=item.province_id,
+            cases_pred=item.cases_pred,
+            is_high_risk=item.cases_pred >= 250,
+        )
+        for item in req.items
+    ]
 
-    # Greedy (P1 baseline) tạm thời
-    sorted_items = sorted(req.items, key=lambda x: x.cases_pred, reverse=True)
+    result = optimize_allocation(
+        items=inputs,
+        budget=req.budget,
+        strategy=req.strategy,
+    )
 
-    for item in sorted_items:
-        if total_cost + item.cost <= req.budget:
-            allocs.append(
-                Allocation(
-                    province_id=item.province_id,
-                    amount=1.0,
-                    explanation=f"Phân bổ do rủi ro cao ({item.cases_pred} ca dự kiến)",
-                )
-            )
-            total_cost += item.cost
-            cases_prevented += item.cases_pred * 0.2  # Giả định giảm 20%
+    allocations = [
+        Allocation(
+            province_id=a.province_id,
+            amount=a.amount,
+            explanation=a.explanation,
+            beds=a.beds,
+            supplies=a.supplies,
+            teams=a.teams,
+        )
+        for a in result.allocations
+    ]
 
     return AllocateResponse(
-        total_cost=total_cost,
-        estimated_cases_prevented=cases_prevented,
-        allocations=allocs,
+        total_cost=result.total_cost,
+        estimated_cases_prevented=result.estimated_cases_prevented,
+        allocations=allocations,
+        algorithm_used=result.algorithm,
+        solve_time_ms=result.solve_time_ms,
     )
