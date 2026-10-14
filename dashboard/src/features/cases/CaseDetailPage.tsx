@@ -294,6 +294,9 @@ export function CaseDetailPage() {
             <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
               <tr>
                 <th className="py-2">{vi.allocation.columns.province}</th>
+                <th className="py-2">Vật tư y tế</th>
+                <th className="py-2">Giường bệnh</th>
+                <th className="py-2">Đội cơ động</th>
                 <th className="py-2">{vi.allocation.columns.amount}</th>
                 <th className="py-2">{vi.allocation.columns.explanation}</th>
               </tr>
@@ -301,6 +304,11 @@ export function CaseDetailPage() {
             <tbody className="divide-y divide-[var(--border-hairline)]">
               <tr>
                 <td className="py-2.5 font-medium text-[var(--ink-primary)]">TP. Hồ Chí Minh</td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">
+                  450L Cloramin B, 25 máy phun ULV
+                </td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">80 giường dã chiến</td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">6 đội cơ động</td>
                 <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
                   600.000.000 đ
                 </td>
@@ -310,6 +318,11 @@ export function CaseDetailPage() {
               </tr>
               <tr>
                 <td className="py-2.5 font-medium text-[var(--ink-primary)]">An Giang</td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">
+                  280L Cloramin B, 15 máy phun ULV
+                </td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">40 giường dã chiến</td>
+                <td className="py-2.5 text-[var(--ink-secondary)]">3 đội cơ động</td>
                 <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
                   350.000.000 đ
                 </td>

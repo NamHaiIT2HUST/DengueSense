@@ -5,18 +5,18 @@ import { ArrowRight, Radar, Cpu, FileText } from "lucide-react";
 const PILLARS = [
   {
     icon: Radar,
-    title: "Dự báo",
-    desc: "AI dự báo rủi ro dịch theo tỉnh, sớm 1–6 tháng",
+    title: "Lớp 1: Dự báo sớm (AI)",
+    desc: "XGBoost + Random Forest & ERA5 đạt độ chính xác 89,5%, cảnh báo sớm 1–6 tháng",
   },
   {
     icon: Cpu,
-    title: "Tối ưu",
-    desc: "Phân bổ nguồn lực theo số ca giảm được, không chỉ theo rủi ro",
+    title: "Lớp 2: Tối ưu phân bổ (MILP)",
+    desc: "Giải bài toán phân bổ giường bệnh, vật tư & nhân lực tối ưu theo mục tiêu",
   },
   {
     icon: FileText,
-    title: "Điều phối",
-    desc: "GenAI soạn lệnh, con người luôn duyệt cuối",
+    title: "Lớp 3: Điều phối tự động (GenAI)",
+    desc: "Soạn thảo văn bản điều phối chuẩn Bộ Y tế (B2G/B2B), Human-in-the-loop phê duyệt",
   },
 ];
 
