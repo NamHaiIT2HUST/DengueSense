@@ -91,3 +91,63 @@ def test_guardrail_g1_strict_lock_pass():
     g1 = next(g for g in data["guardrails"] if g["code"] == "G1")
     assert g1["passed"] is True
     assert "Zero-Hallucination" in g1["name"]
+
+
+def test_guardrail_g1_live_gemini_success(monkeypatch):
+    # Mock successful Gemini call complying with G1 data locking
+    def mock_call(*args, **kwargs):
+        return (
+            "CÔNG ĐIỆN CHỈ ĐẠO CỦA BỘ Y TẾ\n"
+            "Khu vực can thiệp: an_giang\n"
+            "Dự báo: 800 ca sốt xuất huyết.\n"
+            "Kinh phí cấp phát: 300,000,000 VNĐ.\n"
+            "Kính gửi các đơn vị khẩn trương triển khai theo Quyết định 02/2016/QĐ-BYT."
+        )
+
+    monkeypatch.setattr(
+        "app.serving.genai_api.routes._call_gemini_rag_draft", mock_call
+    )
+
+    payload = {
+        "draft_type": "b2g",
+        "slots": {
+            "run_id": "0192f0e1-7c1a-7000-8000-000000000001",
+            "province_ids": ["an_giang"],
+            "cases_predicted_total": 800.0,
+            "budget_allocated": 300000000.0,
+        },
+    }
+    resp = client.post("/internal/v1/genai/draft", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["model_used"] == "gemini-1.5-flash@live"
+    assert "300,000,000" in data["content"]
+    assert "800" in data["content"]
+
+
+def test_guardrail_g1_circuit_breaker_catches_hallucination(monkeypatch):
+    # Mock LLM hallucinating a different case count (e.g. 99,999 instead of 800)
+    def mock_hallucinated_call(*args, **kwargs):
+        return "CÔNG ĐIỆN: Dự báo có 99,999 ca bùng phát dịch! (Số liệu ảo giác)"
+
+    monkeypatch.setattr(
+        "app.serving.genai_api.routes._call_gemini_rag_draft", mock_hallucinated_call
+    )
+
+    payload = {
+        "draft_type": "b2g",
+        "slots": {
+            "run_id": "0192f0e1-7c1a-7000-8000-000000000001",
+            "province_ids": ["an_giang"],
+            "cases_predicted_total": 800.0,
+        },
+    }
+    resp = client.post("/internal/v1/genai/draft", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    # Circuit breaker must reject hallucination and fallback to safe deterministic template
+    assert data["model_used"] == "denguesense-rag-v1@gemini-1.5-flash"
+    assert "800" in data["content"]
+    assert "99,999" not in data["content"]
+    g1 = next(g for g in data["guardrails"] if g["code"] == "G1")
+    assert g1["passed"] is True

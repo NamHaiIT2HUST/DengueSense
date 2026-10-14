@@ -1,8 +1,13 @@
 import hashlib
+import logging
+import os
 from typing import Literal
 
+import httpx
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -243,12 +248,92 @@ def _generate_b2g_content(req: GenerateDraftRequest) -> tuple[str, str, list[Cit
     return title, content, citations
 
 
+def _call_gemini_rag_draft(
+    draft_type: str,
+    title: str,
+    slots: SlotsData,
+    base_content: str,
+    extra_instructions: str | None,
+) -> str | None:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    system_instruction = (
+        "Bạn là Trợ lý AI Y tế DengueSense chuyên trách soạn thảo văn bản chỉ đạo phòng chống dịch sốt xuất huyết. "
+        "BẮT BUỘC tuân thủ thể thức Nghị định 30/2020/NĐ-CP và Quyết định 02/2016/QĐ-BYT. "
+        "ĐẶC BIỆT (GUARDRAIL G1 - ZERO-HALLUCINATION): Mọi số liệu (số ca dự báo, ngân sách, số giường, số hóa chất, số đội cơ động, tháng, tên tỉnh) "
+        "PHẢI KHÓA CỨNG đúng 100% theo dữ liệu cung cấp, KHÔNG ĐƯỢC THAY ĐỔI HOẶC BỊA THÊM BẤT KỲ CON SỐ THỐNG KÊ NÀO."
+    )
+
+    prompt = (
+        f"Hãy tinh chỉnh và hoàn thiện văn bản điều phối sau đây:\n\n"
+        f"Loại văn bản: {draft_type.upper()}\n"
+        f"Tiêu đề: {title}\n"
+        f"Dữ liệu ràng buộc cứng:\n"
+        f"- Tháng: {slots.origin_month}\n"
+        f"- Địa bàn: {', '.join(slots.province_ids)}\n"
+        f"- Số ca dự kiến: {slots.cases_predicted_total}\n"
+        f"- Ngân sách: {slots.budget_allocated}\n"
+        f"- Giường bệnh: {slots.beds_allocated}\n"
+        f"- Vật tư: {slots.supplies_allocated}\n"
+        f"- Đội phản ứng nhanh: {slots.teams_allocated}\n"
+        f"Chỉ dẫn thêm: {extra_instructions or 'Không có'}\n\n"
+        f"Nội dung văn bản gốc mẫu chuẩn:\n{base_content}\n"
+    )
+
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "systemInstruction": {"parts": [{"text": system_instruction}]},
+            "generationConfig": {
+                "temperature": 0.1,
+                "maxOutputTokens": 2048,
+            },
+        }
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.post(url, json=payload)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return str(parts[0].get("text", ""))
+    except (httpx.HTTPError, KeyError, IndexError, ValueError) as exc:
+        logger.warning("Gemini live API invocation skipped or failed: %s", exc)
+
+    return None
+
+
 @router.post("/draft", response_model=GenerateDraftResponse)
 def generate_draft(req: GenerateDraftRequest) -> GenerateDraftResponse:
     if req.draft_type == "b2b":
         title, content, citations = _generate_b2b_content(req)
     else:
         title, content, citations = _generate_b2g_content(req)
+
+    model_used = "denguesense-rag-v1@gemini-1.5-flash"
+
+    # Gợi ý gọi trực tiếp Gemini nếu có GEMINI_API_KEY
+    llm_draft = _call_gemini_rag_draft(
+        draft_type=req.draft_type,
+        title=title,
+        slots=req.slots,
+        base_content=content,
+        extra_instructions=req.extra_instructions,
+    )
+    if llm_draft:
+        # Kiểm tra Guardrail G1 trên output của LLM
+        g1_llm_check = _verify_guardrail_g1(llm_draft, req.slots)
+        if g1_llm_check.passed:
+            content = llm_draft
+            model_used = "gemini-1.5-flash@live"
+        else:
+            logger.info(
+                "Phát hiện vi phạm Guardrail G1 từ output LLM. Tự động phục hồi về bản mẫu khóa cứng an toàn."
+            )
 
     # Tính content_hash sha256
     content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
@@ -297,5 +382,5 @@ def generate_draft(req: GenerateDraftRequest) -> GenerateDraftResponse:
         content_hash=content_hash,
         citations=citations,
         guardrails=guardrails,
-        model_used="denguesense-rag-v1@gemini-1.5-flash",
+        model_used=model_used,
     )
