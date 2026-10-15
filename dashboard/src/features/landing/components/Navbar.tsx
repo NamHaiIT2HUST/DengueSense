@@ -153,7 +153,10 @@ export function Navbar() {
             </nav>
 
             {/* Subtle Divider between Navigation and Actions */}
-            <div className="h-5 w-px bg-slate-300/60 dark:bg-slate-800 mx-1 hidden xl:block" aria-hidden="true" />
+            <div
+              className="h-5 w-px bg-slate-300/60 dark:bg-slate-800 mx-1 hidden xl:block"
+              aria-hidden="true"
+            />
 
             {/* Action Controls */}
             <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
@@ -161,7 +164,10 @@ export function Navbar() {
                 <ThemeToggle />
               </div>
 
-              <div className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block" aria-hidden="true" />
+              <div
+                className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block"
+                aria-hidden="true"
+              />
 
               <Link
                 to="/dang-nhap"

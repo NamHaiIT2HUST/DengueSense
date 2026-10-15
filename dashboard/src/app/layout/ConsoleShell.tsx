@@ -79,7 +79,7 @@ const ACCOUNT_SHORT_META: Record<string, { shortName: string; icon: typeof Activ
   approver: { shortName: "Lãnh đạo", icon: Award },
 };
 
-export function canAccessPath(path: string, role: AppRole): boolean {
+function canAccessPath(path: string, role: AppRole): boolean {
   if (path.startsWith("/app/canh-bao") || path.startsWith("/app/ho-so")) {
     return role === "officer" || role === "approver" || role === "admin";
   }
@@ -297,7 +297,10 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               <ThemeToggle />
             </div>
 
-            <div className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block" aria-hidden="true" />
+            <div
+              className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block"
+              aria-hidden="true"
+            />
 
             {/* User Profile Badge with Dynamic Role Color */}
             <div className="flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-slate-50/90 dark:border-white/10 dark:bg-slate-900/90 px-3 py-1.5 shadow-xs">
@@ -316,7 +319,10 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            <div className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block" aria-hidden="true" />
+            <div
+              className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block"
+              aria-hidden="true"
+            />
 
             <Button
               variant="secondary"
@@ -398,10 +404,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                       />
                       <span>{meta.shortName}</span>
                       {isCurrent && (
-                        <Check
-                          size={11}
-                          className="stroke-[3] text-blue-600 dark:text-cyan-400"
-                        />
+                        <Check size={11} className="stroke-[3] text-blue-600 dark:text-cyan-400" />
                       )}
                     </button>
                   );
