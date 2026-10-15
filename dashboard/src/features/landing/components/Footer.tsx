@@ -41,7 +41,7 @@ export function Footer() {
               Bản đồ Dịch tễ
             </Link>
             <Link to="/app/mo-hinh" className="hover:text-white transition-colors">
-              Model Card (Layer 1)
+              Hồ sơ Mô hình (Model Card)
             </Link>
             <Link to="/dang-nhap" className="hover:text-white transition-colors">
               Tài khoản Thử nghiệm

@@ -176,7 +176,7 @@ export function CaseDetailPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-indigo-400">Tối ưu phân bổ</p>
-              <p className="text-[10px] text-[var(--ink-muted)]">Layer 2 Optimize</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Google OR-Tools</p>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ export function CaseDetailPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-purple-400">Soạn thảo GenAI</p>
-              <p className="text-[10px] text-[var(--ink-muted)]">Layer 3 Guardrails</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Kiểm soát Guardrails</p>
             </div>
           </div>
 

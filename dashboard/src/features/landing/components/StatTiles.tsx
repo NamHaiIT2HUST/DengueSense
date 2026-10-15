@@ -9,10 +9,10 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
   const tiles = [
     {
       icon: Activity,
-      label: "Độ chính xác cảnh báo dịch (Lớp 1)",
+      label: "Độ chính xác cảnh báo dịch (M4-R2)",
       value: "89,5%",
       sub: "XGBoost + Random Forest & ERA5",
-      microTag: "Mô hình M4-R2",
+      microTag: "Kiểm chứng 6 mùa dịch",
       gradient: "from-blue-500/20 via-cyan-500/10 to-transparent",
       valueColor: "text-cyan-400",
       border: "border-cyan-500/30",
@@ -31,7 +31,7 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
     },
     {
       icon: Sliders,
-      label: "Tối ưu hoá nguồn lực (Lớp 2)",
+      label: "Tối ưu hoá nguồn lực y tế",
       value: "< 1 Phút",
       sub: "MILP chia 3 nguồn lực thiết yếu",
       microTag: "Google OR-Tools",
@@ -82,7 +82,7 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
 
           <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
             <span>{t.microTag}</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
+            <span className="text-cyan-400 font-bold">✓ Chuẩn hóa</span>
           </div>
         </motion.div>
       ))}

@@ -8,6 +8,7 @@ import {
   Zap,
   Target,
   Activity,
+  CheckCircle2,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -62,8 +63,7 @@ export function ProblemSolutionFramework() {
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 shadow-inner transition-transform group-hover:scale-110">
                 <AlertTriangle size={22} />
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-bold text-red-400 uppercase tracking-wider">
-                <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
+              <span className="inline-flex items-center rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-bold text-red-400 uppercase tracking-wider">
                 Điểm Nghẽn Thực Địa
               </span>
             </div>
@@ -136,15 +136,14 @@ export function ProblemSolutionFramework() {
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/20 border border-blue-500/40 text-cyan-400 shadow-inner transition-transform group-hover:scale-110">
                 <Layers size={22} />
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+              <span className="inline-flex items-center rounded-full border border-blue-500/40 bg-blue-500/20 px-3 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
                 Giải Pháp Đột Phá AI
               </span>
             </div>
 
             <div>
               <h3 className="font-display text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">
-                Hệ Sinh Thái AI 3 Tầng Khép Kín
+                Hệ Thống AI Dự Phòng Khép Kín
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
                 DengueSense giải quyết trọn vẹn chu trình y tế công cộng từ viễn thám khí hậu, tối
@@ -165,26 +164,26 @@ export function ProblemSolutionFramework() {
 
             <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
+                <CheckCircle2 size={16} className="text-cyan-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-white">AI Viễn thám ERA5 (Layer 1):</strong> Kết hợp chuỗi
-                  thời gian dịch tễ với lượng mưa, nhiệt độ, độ ẩm toàn cầu, cảnh báo sớm trước 1–6
+                  <strong className="text-white">Dự Báo Khí Tượng ERA5:</strong> Kết hợp chuỗi thời
+                  gian dịch tễ với lượng mưa, nhiệt độ, độ ẩm toàn cầu, cảnh báo sớm trước 1–6
                   tháng.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
+                <CheckCircle2 size={16} className="text-cyan-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-white">MILP Solver Tối ưu (Layer 2):</strong> Google
-                  OR-Tools phân bổ tối ưu 3 nguồn lực thiết yếu (Giường bệnh, Hóa chất, Đội phản ứng
-                  nhanh) dưới 1 phút.
+                  <strong className="text-white">Tối Ưu Phân Bổ Nguồn Lực (MILP):</strong> Thuật
+                  toán Google OR-Tools phân bổ tối ưu 3 nguồn lực thiết yếu (Giường bệnh, Hóa chất,
+                  Đội phản ứng nhanh) dưới 1 phút.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
+                <CheckCircle2 size={16} className="text-cyan-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-white">GenAI RAG Thể thức (Layer 3):</strong> Soạn thảo dự
-                  thảo công điện B2G & phác đồ B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định
+                  <strong className="text-white">Tự Động Hóa Soạn Thảo Công Điện:</strong> Soạn thảo
+                  dự thảo công điện B2G & phác đồ B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định
                   02/2016/QĐ-TTg chỉ trong 5 phút.
                 </span>
               </li>
@@ -220,8 +219,7 @@ export function ProblemSolutionFramework() {
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 shadow-inner transition-transform group-hover:scale-110">
                 <ShieldCheck size={22} />
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+              <span className="inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
                 Quản Trị & Ràng Buộc
               </span>
             </div>
@@ -238,15 +236,15 @@ export function ProblemSolutionFramework() {
 
             <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
+                <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-white">Guardrail G1 (Khóa số liệu):</strong> Khóa cứng
-                  100% số liệu từ Layer 1 & 2. Triệt tiêu hoàn toàn nguy cơ ảo giác
+                  <strong className="text-white">Khóa số liệu an toàn tuyệt đối:</strong> Khóa cứng
+                  100% số liệu dự báo và phân bổ nguồn lực. Triệt tiêu hoàn toàn nguy cơ ảo giác
                   (Zero-Hallucination) trong y tế.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
+                <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-white">Thẩm định 4 mắt (Human-in-the-Loop):</strong> AI
                   không tự ban hành. Cán bộ chuyên môn lập phương án, Lãnh đạo thẩm duyệt mới được
@@ -254,7 +252,7 @@ export function ProblemSolutionFramework() {
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
+                <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-white">Bảo vệ dữ liệu (NĐ 13/2023):</strong> Giám sát vĩ
                   mô trên số liệu cộng gộp cấp tỉnh/huyện, tuyệt đối không lưu trữ hay xử lý thông
@@ -262,7 +260,7 @@ export function ProblemSolutionFramework() {
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
+                <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-white">Minh bạch TreeSHAP:</strong> Báo cáo định lượng tỷ
                   trọng đóng góp của từng yếu tố viễn thám khí hậu (22.6% – 27.9%), không phải hộp

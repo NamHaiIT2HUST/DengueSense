@@ -113,8 +113,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               </div>
             </Link>
 
-            <div className="hidden items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 md:flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 md:flex">
+              <Activity size={13} className="text-emerald-400" />
               <span>AI Dịch tễ: Trực tuyến</span>
             </div>
           </div>

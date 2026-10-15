@@ -17,7 +17,7 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
         <div>
           <h3 className="font-display flex items-center gap-2 text-xl font-semibold">
             <FileText size={18} className="text-[var(--accent)]" />
-            Layer 3 — Dự thảo điều phối bằng GenAI
+            Trụ cột 3 — Tự động hóa dự thảo điều phối (GenAI B2G)
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
             Định dạng văn bản hành chính tự động cho luồng điều phối B2G. Toàn bộ số liệu dự báo và

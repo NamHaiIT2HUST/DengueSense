@@ -73,7 +73,7 @@ export function useCreateCase() {
   });
 }
 
-/** Lập phương án phân bổ nguồn lực (Layer 2). */
+/** Lập phương án phân bổ nguồn lực (Google OR-Tools MILP). */
 export function useCreateAllocationPlan(caseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -133,7 +133,7 @@ export function useCreateDraft(caseId: string) {
   });
 }
 
-/** Yêu cầu AI sinh dự thảo văn bản (Layer 3). */
+/** Yêu cầu AI sinh dự thảo văn bản (GenAI B2G). */
 export function useGenerateDraft(caseId: string) {
   const queryClient = useQueryClient();
   return useMutation({

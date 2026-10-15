@@ -37,7 +37,7 @@ function Performance({ card }: { card: ModelCard }) {
       <p className="mt-2 text-sm text-[var(--ink-secondary)]">{vi.model.performanceNote}</p>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         <Metric
-          label="Độ chính xác cảnh báo bùng dịch (Lớp 1)"
+          label="Độ chính xác cảnh báo sớm (M4-R2)"
           value="89,5%"
           help="XGBoost + Random Forest kết hợp khí hậu ERA5 (dự báo sớm 1–6 tháng)"
         />

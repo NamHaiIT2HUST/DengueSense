@@ -86,24 +86,21 @@ export function HeroCommandCenter() {
     <div className="relative mx-auto mt-12 w-full max-w-5xl rounded-3xl border border-slate-700/80 bg-slate-950/90 p-2 sm:p-3 shadow-[0_20px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl ring-1 ring-white/10">
       {/* Window Title Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-red-500/80 ring-1 ring-red-400/40" />
-            <span className="h-3 w-3 rounded-full bg-amber-500/80 ring-1 ring-amber-400/40" />
-            <span className="h-3 w-3 rounded-full bg-emerald-500/80 ring-1 ring-emerald-400/40" />
-          </div>
-          <span className="ml-2 font-mono text-xs font-semibold text-slate-300">
-            DengueSense Command Platform v2.6
+        <div className="flex items-center gap-2.5">
+          <Activity size={15} className="text-cyan-400 shrink-0" />
+          <span className="font-display text-xs sm:text-sm font-bold text-white tracking-wide">
+            Bảng Điều Khiển Điều Phối Y Tế Dự Phòng DengueSense
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-mono font-medium text-emerald-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>ERA5 LIVE FEED: ACTIVE</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+            <Activity size={12} className="text-emerald-400" />
+            <span>Khí tượng ERA5: Trực tuyến</span>
           </span>
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[11px] font-mono font-medium text-cyan-300">
-            <ShieldCheck size={11} /> GUARDRAIL G1: LOCKED
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
+            <ShieldCheck size={12} className="text-cyan-400" />
+            <span>Khóa số liệu an toàn</span>
           </span>
         </div>
       </div>
@@ -120,7 +117,7 @@ export function HeroCommandCenter() {
             }`}
           >
             <Radar size={14} className={activeTab === "radar" ? "text-cyan-300" : ""} />
-            <span>1. Giám Sát Viễn Thám ERA5</span>
+            <span>1. Giám Sát Điểm Nóng Dịch</span>
           </button>
 
           <button
@@ -132,7 +129,7 @@ export function HeroCommandCenter() {
             }`}
           >
             <Cpu size={14} className={activeTab === "milp" ? "text-indigo-300" : ""} />
-            <span>2. Bộ Giải Nguồn Lực MILP</span>
+            <span>2. Tối Ưu Phân Bổ Nguồn Lực</span>
           </button>
 
           <button
@@ -143,8 +140,8 @@ export function HeroCommandCenter() {
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
-            <FileText size={14} className={activeTab === "dispatch" ? "text-cyan-200" : ""} />
-            <span>3. Dự Thảo Công Điện B2G (NĐ 30)</span>
+            <FileText size={14} className={activeTab === "dispatch" ? "text-cyan-300" : ""} />
+            <span>3. Dự Thảo Công Điện Điều Phối</span>
           </button>
         </div>
 
@@ -407,8 +404,8 @@ export function HeroCommandCenter() {
                   <p className="text-xs text-slate-300 leading-relaxed">
                     Khóa cứng 100% số liệu: Số ca dự báo (
                     {selectedHotspot.casesExpected.toLocaleString()} ca), ngân sách và số vật tư
-                    điều phối đều được truyền trực tiếp từ Layer 1 & 2. Triệt tiêu hoàn toàn rủi ro
-                    ảo giác.
+                    điều phối đều được truyền trực tiếp từ mô hình dự báo và bài toán tối ưu nguồn
+                    lực. Triệt tiêu hoàn toàn rủi ro ảo giác.
                   </p>
                 </div>
 

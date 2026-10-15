@@ -32,7 +32,6 @@ export function DataSourceBadge({ source }: { source: DataSource }) {
 export function Eyebrow({ children }: { children: ReactNode }) {
   return (
     <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
-      <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
       {children}
     </div>
   );

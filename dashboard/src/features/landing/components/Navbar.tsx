@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X, Activity } from "lucide-react";
 
 const LINKS = [
   { href: "#overview", label: "Tổng quan" },
   { href: "#framework", label: "Giải pháp" },
   { href: "#timeline", label: "Lộ trình" },
-  { href: "#layers", label: "Kiến trúc AI" },
+  { href: "#layers", label: "Quy trình AI" },
   { href: "#map", label: "Bản đồ 34 tỉnh" },
   { href: "#team", label: "Đội ngũ" },
   { href: "#faq", label: "Hỏi đáp" },
@@ -92,12 +92,9 @@ export function Navbar() {
         {/* Action Controls */}
         <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
           {/* Live Telemetry Pill */}
-          <div className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-emerald-400 shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span>ERA5 LIVE</span>
+          <div className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-400 shadow-sm">
+            <Activity size={12} className="text-emerald-400 shrink-0" />
+            <span>ERA5 TRỰC TUYẾN</span>
           </div>
 
           <Link

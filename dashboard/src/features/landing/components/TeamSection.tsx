@@ -111,9 +111,9 @@ const MEMBERS: TeamMember[] = [
     bullets: [
       "Quán quân Cuộc thi ý tưởng đổi mới sáng tạo - PTIT",
       "Edge AI Engineer — VinRobotics, VinGroup",
-      "Chủ trì kiến trúc khép kín 3 tầng, Go Microservices & React Console",
+      "Chủ trì kiến trúc kỹ thuật khép kín, Go Microservices & React Console",
     ],
-    skills: ["Go / NATS", "React / TS", "Edge AI VinRobotics", "Kiến trúc 3 Tầng"],
+    skills: ["Go / NATS", "React / TS", "Edge AI VinRobotics", "Hệ Thống Y Tế"],
     icon: Binary,
     color: "from-blue-500/15 via-cyan-500/5 to-slate-950 border-cyan-500/35",
     ringColor: "ring-cyan-500/40 shadow-cyan-500/20",

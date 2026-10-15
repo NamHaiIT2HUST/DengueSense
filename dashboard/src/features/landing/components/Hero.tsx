@@ -6,25 +6,25 @@ import { HeroCommandCenter } from "./HeroCommandCenter";
 const PILLARS = [
   {
     icon: Radar,
-    layer: "Layer 1",
+    pillar: "Trụ Cột 01 · Cảnh Báo Sớm",
     badge: "Độ chính xác 89,5%",
-    title: "Dự báo Dịch tễ (AI)",
+    title: "Dự báo Dịch tễ & Khí hậu ERA5",
     desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
     color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-cyan-400",
   },
   {
     icon: Cpu,
-    layer: "Layer 2",
-    badge: "MILP Solver < 1 Phút",
-    title: "Tối ưu Phân bổ Nguồn lực",
+    pillar: "Trụ Cột 02 · Tối Ưu Nguồn Lực",
+    badge: "Giải toán MILP < 1 Phút",
+    title: "Cân Đối Nguồn Lực Điều Trị",
     desc: "Quy hoạch nguyên hỗn hợp giải bài toán phân bổ 3 trụ cột thiết yếu: Giường bệnh, Hóa chất Cloramin B và Đội phản ứng nhanh.",
     color: "from-blue-600/20 to-indigo-500/10 border-blue-600/30 text-blue-400",
   },
   {
     icon: FileText,
-    layer: "Layer 3",
-    badge: "Chuẩn NĐ 30/2020",
-    title: "Soạn thảo Công điện GenAI",
+    pillar: "Trụ Cột 03 · Điều Phối Hành Chính",
+    badge: "Chuẩn Thể Thức NĐ 30/2020",
+    title: "Tự Động Hóa Công Điện Khẩn",
     desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
     color: "from-indigo-500/20 to-violet-500/10 border-indigo-500/30 text-indigo-300",
   },
@@ -199,13 +199,12 @@ export function Hero() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner transition-transform group-hover:scale-110 group-hover:border-blue-500/50">
                   <p.icon size={20} strokeWidth={2.2} />
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/80 bg-slate-900/90 px-3 py-1 text-[11px] font-bold text-slate-200 shadow-sm transition-colors group-hover:border-cyan-400/40 group-hover:text-cyan-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="inline-flex items-center rounded-full border border-slate-700/80 bg-slate-900/90 px-3 py-1 text-[11px] font-bold text-slate-200 shadow-sm transition-colors group-hover:border-cyan-400/40 group-hover:text-cyan-300">
                   {p.badge}
                 </span>
               </div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                {p.layer}
+                {p.pillar}
               </span>
               <h3 className="font-display text-lg font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors">
                 {p.title}
