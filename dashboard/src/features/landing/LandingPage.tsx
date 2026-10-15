@@ -63,49 +63,49 @@ export function LandingPage() {
         <Hero />
 
         <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-clip">
-        <section>
-          <StatTiles provinces={data.provinces} />
-        </section>
+          <section>
+            <StatTiles provinces={data.provinces} />
+          </section>
 
-        <ProductSection />
+          <ProductSection />
 
-        <ProblemSolutionFramework />
+          <ProblemSolutionFramework />
 
-        <OutbreakTimeline />
+          <OutbreakTimeline />
 
-        <InteractiveLayers />
+          <InteractiveLayers />
 
-        <section id="map">
-          <SectionHeader
-            eyebrow="Giám sát dịch tễ không gian"
-            title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
-            desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
-          />
-          <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-            <Suspense fallback={<MapFallback />}>
-              <RiskMap provinces={data.provinces} />
-            </Suspense>
-            <ProvinceRanking provinces={data.provinces} />
-          </div>
-        </section>
+          <section id="map">
+            <SectionHeader
+              eyebrow="Giám sát dịch tễ không gian"
+              title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
+              desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
+            />
+            <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+              <Suspense fallback={<MapFallback />}>
+                <RiskMap provinces={data.provinces} />
+              </Suspense>
+              <ProvinceRanking provinces={data.provinces} />
+            </div>
+          </section>
 
-        <ComparisonSection />
+          <ComparisonSection />
 
-        <section id="roadmap">
-          <SectionHeader
-            eyebrow="Kế hoạch triển khai toàn diện"
-            title="Lộ Trình Phát Triển & Triển Khai Thực Địa"
-            desc="Kế hoạch nghiên cứu R&D, kiểm chứng thực địa tại các bệnh viện và chuyển giao công nghệ cho các cơ sở y tế dự phòng."
-          />
-          <RoadmapStrip />
-        </section>
+          <section id="roadmap">
+            <SectionHeader
+              eyebrow="Kế hoạch triển khai toàn diện"
+              title="Lộ Trình Phát Triển & Triển Khai Thực Địa"
+              desc="Kế hoạch nghiên cứu R&D, kiểm chứng thực địa tại các bệnh viện và chuyển giao công nghệ cho các cơ sở y tế dự phòng."
+            />
+            <RoadmapStrip />
+          </section>
 
-        <TeamSection />
+          <TeamSection />
 
-        <FaqSection />
+          <FaqSection />
 
-        <CtaBanner />
-      </main>
+          <CtaBanner />
+        </main>
       </div>
 
       <Footer />
