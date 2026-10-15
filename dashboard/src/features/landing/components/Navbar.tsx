@@ -72,16 +72,20 @@ export function Navbar() {
   };
 
   return (
-    <motion.header
-      initial={{ y: -24, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "border-b border-slate-800/90 bg-slate-950/90 shadow-2xl shadow-blue-950/20 backdrop-blur-2xl"
-          : "border-b border-slate-800/60 bg-slate-950/75 backdrop-blur-xl"
-      }`}
-    >
+    <>
+      <header
+        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "border-b border-slate-800/90 bg-slate-950/90 shadow-2xl shadow-blue-950/20 backdrop-blur-2xl"
+            : "border-b border-slate-800/60 bg-slate-950/75 backdrop-blur-xl"
+        }`}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="w-full"
+        >
       {/* Dynamic bottom glowing neon laser line */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/60 via-blue-500/40 to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent opacity-80 blur-[1px]" />
@@ -231,6 +235,10 @@ export function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+        </motion.div>
+      </header>
+      {/* Spacer to preserve layout flow beneath fixed header */}
+      <div className="h-16 sm:h-18" aria-hidden="true" />
+    </>
   );
 }

@@ -57,11 +57,12 @@ export function LandingPage() {
   if (isError || !data) return <ErrorScreen message="Không tải được dữ liệu rủi ro." />;
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden">
+    <div className="min-h-screen w-full">
       <Navbar />
-      <Hero />
+      <div className="w-full overflow-x-clip">
+        <Hero />
 
-      <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-hidden">
+        <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-clip">
         <section>
           <StatTiles provinces={data.provinces} />
         </section>
@@ -105,6 +106,7 @@ export function LandingPage() {
 
         <CtaBanner />
       </main>
+      </div>
 
       <Footer />
     </div>
