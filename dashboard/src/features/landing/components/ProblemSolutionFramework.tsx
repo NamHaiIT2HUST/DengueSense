@@ -14,7 +14,7 @@ import { Link } from "@tanstack/react-router";
 
 export function ProblemSolutionFramework() {
   return (
-    <section id="framework" className="relative space-y-12">
+    <section id="framework" className="relative space-y-12 overflow-hidden">
       {/* Dynamic Ambient Glow Behind Section */}
       <div
         className="pointer-events-none absolute left-1/2 top-10 h-72 w-96 -translate-x-1/2 rounded-full opacity-25 blur-[120px]"

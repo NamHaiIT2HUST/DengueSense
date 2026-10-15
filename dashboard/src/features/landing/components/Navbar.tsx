@@ -4,14 +4,14 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Menu, X, Activity } from "lucide-react";
 
 const LINKS = [
-  { href: "#overview", label: "Tổng quan" },
-  { href: "#framework", label: "Khung giải pháp" },
-  { href: "#timeline", label: "Quy trình ứng phó" },
-  { href: "#layers", label: "Kiến trúc công nghệ" },
-  { href: "#map", label: "Bản đồ 34 tỉnh" },
-  { href: "#roadmap", label: "Lộ trình" },
-  { href: "#team", label: "Đội ngũ" },
-  { href: "#faq", label: "Hỏi đáp" },
+  { href: "#overview", label: "Tổng quan", fullLabel: "Tổng quan" },
+  { href: "#framework", label: "Giải pháp", fullLabel: "Khung giải pháp" },
+  { href: "#timeline", label: "Quy trình", fullLabel: "Quy trình ứng phó" },
+  { href: "#layers", label: "Công nghệ", fullLabel: "Kiến trúc công nghệ" },
+  { href: "#map", label: "Bản đồ", fullLabel: "Bản đồ 34 tỉnh" },
+  { href: "#roadmap", label: "Lộ trình", fullLabel: "Lộ trình triển khai" },
+  { href: "#team", label: "Đội ngũ", fullLabel: "Đội ngũ MedSentinel" },
+  { href: "#faq", label: "Hỏi đáp", fullLabel: "Hỏi đáp chuyên môn" },
 ];
 
 export function Navbar() {
@@ -97,7 +97,7 @@ export function Navbar() {
 
         {/* Desktop Navigation Links with Sliding Magnetic Glow Pill */}
         <nav
-          className="hidden items-center gap-0.5 xl:gap-1 lg:flex"
+          className="hidden items-center gap-0.5 xl:gap-1 xl:flex"
           onMouseLeave={() => setHoveredIdx(null)}
         >
           {LINKS.map((l, idx) => {
@@ -109,7 +109,7 @@ export function Navbar() {
                 href={l.href}
                 onClick={(e) => handleNavClick(e, l.href)}
                 onMouseEnter={() => setHoveredIdx(idx)}
-                className={`relative rounded-lg px-3 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                className={`relative rounded-lg px-2.5 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   isActive || isHovered ? "text-white" : "text-slate-300 hover:text-white"
                 }`}
               >
@@ -134,7 +134,7 @@ export function Navbar() {
         </nav>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Live Telemetry Pill */}
           <div className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-400 shadow-sm">
             <Activity size={12} className="text-emerald-400 shrink-0" />
@@ -143,7 +143,7 @@ export function Navbar() {
 
           <Link
             to="/dang-nhap"
-            className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap md:inline-block px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
+            className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap lg:inline-block px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
           >
             Đăng nhập
           </Link>
@@ -151,7 +151,7 @@ export function Navbar() {
           {/* Shimmering Dynamic Console CTA Button */}
           <Link
             to="/app"
-            className="relative group overflow-hidden inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap"
+            className="relative group overflow-hidden inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap shrink-0"
           >
             {/* Shimmer sweep effect */}
             <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -166,7 +166,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white xl:hidden"
             aria-label={mobileOpen ? "Đóng danh mục" : "Mở danh mục"}
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -181,7 +181,7 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-b border-slate-800/80 bg-slate-950/95 px-6 py-4 backdrop-blur-2xl lg:hidden overflow-hidden"
+            className="border-b border-slate-800/80 bg-slate-950/95 px-6 py-4 backdrop-blur-2xl xl:hidden overflow-hidden"
           >
             <div className="flex flex-col gap-1">
               {LINKS.map((l) => {
@@ -197,7 +197,7 @@ export function Navbar() {
                         : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
                     }`}
                   >
-                    {l.label}
+                    {l.fullLabel}
                   </a>
                 );
               })}

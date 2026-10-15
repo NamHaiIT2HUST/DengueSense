@@ -129,7 +129,7 @@ const MEMBERS: TeamMember[] = [
 
 export function TeamSection() {
   return (
-    <section id="team" className="relative space-y-12">
+    <section id="team" className="relative space-y-12 overflow-hidden">
       {/* Dynamic ambient backlight */}
       <div
         className="pointer-events-none absolute left-1/2 top-10 h-80 w-[600px] -translate-x-1/2 rounded-full opacity-20 blur-[130px]"

@@ -50,7 +50,7 @@ export function InteractiveLayers() {
   const [activeTab, setActiveTab] = useState<StageTab>("forecast");
 
   return (
-    <section id="layers" className="relative space-y-8">
+    <section id="layers" className="relative space-y-8 overflow-hidden">
       {/* Subtle Ambient Backlight */}
       <div
         aria-hidden="true"

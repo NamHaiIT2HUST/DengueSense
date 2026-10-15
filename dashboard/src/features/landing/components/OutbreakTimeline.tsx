@@ -103,7 +103,7 @@ export function OutbreakTimeline() {
   const active = STAGES[selectedIdx]!;
 
   return (
-    <section id="timeline" className="relative space-y-12">
+    <section id="timeline" className="relative space-y-12 overflow-hidden">
       {/* Ambient background glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/4 h-80 w-[600px] -translate-x-1/2 rounded-full opacity-20 blur-[130px]"

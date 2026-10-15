@@ -46,7 +46,7 @@ export function FaqSection() {
   };
 
   return (
-    <section id="faq" className="relative space-y-8">
+    <section id="faq" className="relative space-y-8 overflow-hidden">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400 mb-3">

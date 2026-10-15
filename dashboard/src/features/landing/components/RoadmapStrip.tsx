@@ -65,9 +65,9 @@ export function RoadmapStrip() {
   return (
     <div className="relative">
       {/* Connecting horizontal line for desktop */}
-      <div className="hidden lg:block absolute left-8 right-8 top-[28px] h-0.5 bg-gradient-to-r from-cyan-500/50 via-blue-500/40 to-slate-800" />
+      <div className="hidden xl:block absolute left-8 right-8 top-[28px] h-0.5 bg-gradient-to-r from-cyan-500/50 via-blue-500/40 to-slate-800" />
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-6 text-left">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 text-left">
         {PHASES.map((p, i) => {
           const isDone = p.status === "done";
           const isActive = p.status === "active";

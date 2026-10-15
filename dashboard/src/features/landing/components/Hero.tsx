@@ -183,7 +183,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mx-auto mt-14 grid gap-5 sm:grid-cols-3 text-left"
+          className="mx-auto mt-14 grid gap-5 md:grid-cols-3 text-left"
         >
           {PILLARS.map((p) => (
             <motion.div

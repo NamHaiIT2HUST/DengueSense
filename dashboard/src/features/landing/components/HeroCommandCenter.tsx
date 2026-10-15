@@ -107,41 +107,41 @@ export function HeroCommandCenter() {
 
       {/* Internal Navigation Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/60 bg-slate-900/40 px-3 py-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setActiveTab("radar")}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
               activeTab === "radar"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
             <Radar size={14} className={activeTab === "radar" ? "text-cyan-300" : ""} />
-            <span>1. Giám Sát Điểm Nóng Dịch</span>
+            <span>1. Điểm Nóng Dịch</span>
           </button>
 
           <button
             onClick={() => setActiveTab("milp")}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
               activeTab === "milp"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
             <Cpu size={14} className={activeTab === "milp" ? "text-indigo-300" : ""} />
-            <span>2. Tối Ưu Phân Bổ Nguồn Lực</span>
+            <span>2. Tối Ưu Nguồn Lực</span>
           </button>
 
           <button
             onClick={() => setActiveTab("dispatch")}
-            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
               activeTab === "dispatch"
                 ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
             <FileText size={14} className={activeTab === "dispatch" ? "text-cyan-300" : ""} />
-            <span>3. Dự Thảo Công Điện Điều Phối</span>
+            <span>3. Dự Thảo Công Điện</span>
           </button>
         </div>
 

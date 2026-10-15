@@ -56,11 +56,11 @@ export function LandingPage() {
   if (isError || !data) return <ErrorScreen message="Không tải được dữ liệu rủi ro." />;
 
   return (
-    <>
+    <div className="min-h-screen w-full overflow-x-hidden">
       <Navbar />
       <Hero />
 
-      <main className="mx-auto max-w-7xl space-y-28 px-6 pb-28">
+      <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-hidden">
         <section>
           <StatTiles provinces={data.provinces} />
         </section>
@@ -77,7 +77,7 @@ export function LandingPage() {
             title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
             desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
           />
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
             <Suspense fallback={<MapFallback />}>
               <RiskMap provinces={data.provinces} />
             </Suspense>
@@ -104,6 +104,6 @@ export function LandingPage() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }
