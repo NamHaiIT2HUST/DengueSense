@@ -113,6 +113,16 @@ export function OutbreakTimeline() {
         </p>
       </div>
 
+      {/* Visual Timeline Track */}
+      <div className="relative max-w-5xl mx-auto px-2 hidden lg:block">
+        <div className="h-1.5 w-full bg-slate-900 rounded-full relative overflow-hidden border border-slate-800">
+          <div
+            className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-red-500 transition-all duration-500 rounded-full"
+            style={{ width: `${((selectedIdx + 1) / STAGES.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
       {/* Interactive Timeline Stepper Buttons */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-5xl mx-auto">
         {STAGES.map((s, idx) => {
