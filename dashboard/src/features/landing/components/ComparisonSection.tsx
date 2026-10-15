@@ -80,10 +80,12 @@ export function ComparisonSection() {
                 <th className="py-4 px-5 text-slate-400 font-bold w-[37.5%]">
                   Phương thức truyền thống
                 </th>
-                <th className="py-4 px-5 text-cyan-400 font-bold w-[37.5%] bg-blue-950/30 border-l border-blue-500/20">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck size={16} className="text-cyan-400" />
-                    <span>DengueSense AI Solution</span>
+                <th className="py-4 px-5 text-cyan-300 font-bold w-[37.5%] bg-blue-950/40 border-l border-blue-500/30">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-cyan-500/20 text-cyan-400 shrink-0">
+                      <ShieldCheck size={14} />
+                    </span>
+                    <span className="uppercase tracking-wide text-xs sm:text-sm">DengueSense AI Solution</span>
                   </div>
                 </th>
               </tr>
