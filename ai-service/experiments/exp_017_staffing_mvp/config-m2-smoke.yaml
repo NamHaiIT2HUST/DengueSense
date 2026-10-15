@@ -1,0 +1,45 @@
+# Approved smoke: four runs, one scenario.
+report_schema_version: 2
+data_seed: 20261014
+order_seed: 20261015
+count_per_size: 1
+replicas:
+- 1
+methods:
+- cp_sat
+- scip
+- sa
+- tabu
+solver_seeds:
+- 42
+time_budgets_s:
+- 1.0
+seed_search_fraction: 0.2
+profile:
+  base_fixture: ../../tests/test_optimize/fixtures/priority_trap.json
+  replicas: 1
+  demand_percent_choices:
+  - 100
+  budget_percent_choices:
+  - 100
+  available_percent_choices:
+  - 100
+  source_refs:
+  - D08
+  assumption_ids:
+  - stress-v1
+milp:
+  integrality_tolerance: 1.0e-06
+  feasibility_tolerance: 1.0e-06
+  objective_tolerance: 1.0e-06
+  relative_gap_limit: 0.0
+  absolute_gap_limit: 0.0
+  threads: 1
+heuristic:
+  health_fraction: 0.7
+  initial_temperature_fraction: 0.1
+  min_temperature: 1.0
+  cooling_rate: 0.995
+  candidate_batch_size: 64
+  tabu_tenure: 7
+  diversify_after: 50

@@ -56,10 +56,43 @@ Report có scenario/hash/seed/version, status/proof/bound/gap từng phase và t
 `ERROR`/`MODEL_INVALID` trả exit nonzero, dù còn incumbent phục vụ chẩn đoán;
 `INFEASIBLE`/`UNKNOWN` được lưu đúng nhãn, không tạo plan thay thế.
 
-Chỉ có M1 CP-SAT; chưa chạy benchmark M2, SCIP/SA/Tabu hoặc nối HTTP/Layer 3.
+M2 thêm SCIP, SA và Tabu cho benchmark offline; chưa nối HTTP/Layer 3.
 Nguồn và giả định: [staffing.md](docs/data-sources/staffing.md).
 Aggregate feasible chưa chứng minh roster cá nhân khả thi. Coverage chưa đo
 hiệu lực phòng dịch; không suy ra số ca tránh được hoặc dùng để điều phối thật.
+
+### Staffing M2 — benchmark và resume
+
+Logic và tests mới nằm trong `app/optimize/`. Từ `ai-service/`, dùng môi trường trên:
+
+```bash
+python -m pytest app/optimize/tests tests/test_optimize -q
+python -m experiments.exp_017_staffing_mvp.run --benchmark --config experiments/exp_017_staffing_mvp/config-m2-smoke.yaml --out data/processed/staffing-m2/smoke
+python -m experiments.exp_017_staffing_mvp.run --benchmark --config experiments/exp_017_staffing_mvp/config-m2-smoke.yaml --out data/processed/staffing-m2/smoke --resume
+python -m experiments.exp_017_staffing_mvp.run --benchmark --config experiments/exp_017_staffing_mvp/config-m2.yaml --out data/processed/staffing-m2/matrix --dry-run
+python -m experiments.exp_017_staffing_mvp.run --benchmark --config experiments/exp_017_staffing_mvp/config-m2.yaml --out data/processed/staffing-m2/matrix --resume
+```
+
+Với thư mục output chưa có manifest, bỏ `--resume` để chạy từ đầu.
+`--dry-run` chỉ in matrix, không tạo dataset hoặc manifest.
+
+Smoke có 4 runs. Matrix đã hoàn tất 360 runs trên ba sizes mô phỏng, tổng budget
+cấu hình 82 phút; runtime method thực đo khoảng 41 phút. CP-SAT có proof ở 90/90
+runs, SCIP khớp score với proof=false; heuristic ở size 20 nhạy theo seed khi
+budget ngắn. Kết quả và giới hạn quyết định offline ở
+[RESULTS-M2.md](experiments/exp_017_staffing_mvp/RESULTS-M2.md).
+SA/Tabu tự tìm seed CP-SAT trong tối đa 20% budget, dùng phần còn lại để cải thiện.
+SCIP giữ raw status/bound nhưng không cấp bằng chứng tối ưu nguyên.
+
+Chốt CP-SAT làm baseline offline trên ba sizes đã đo. Kiểm tra lặp riêng 20 runs
+SA/Tabu ở size 20, budget 30 giây đều khớp tuple CP-SAT; tổng runtime matrix và
+đo lại khoảng 51 phút. Chưa chọn solver production hoặc SLA/thời gian chờ UI.
+
+Runner lưu dataset, manifest và checkpoint từng run. Resume yêu cầu cùng
+config/code/backend và bỏ qua mọi record hoàn chỉnh, kể cả ERROR. Khi đổi đầu vào
+hoặc muốn retry lỗi, chọn thư mục output mới. Nếu crash để lại `.runner.lock`,
+kiểm tra runner đã dừng trước khi gỡ lock; runner không tự xóa lock cũ.
+Tests kiểm gián đoạn sau 2/4 runs, checksum, manifest và file tạm.
 
 ## Pipeline dữ liệu (`app/data/`) — đã chạy được thật
 

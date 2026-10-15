@@ -1,7 +1,5 @@
 import argparse
-import hashlib
 import json
-import math
 import sys
 from importlib.metadata import version
 from pathlib import Path
@@ -11,6 +9,7 @@ import yaml
 from pydantic import Field
 
 from app.optimize.cp_sat import solve_staffing
+from app.optimize.reporting import digest, distribution
 from app.optimize.scenarios import (
     GENERATOR_VERSION,
     ScenarioProfile,
@@ -27,34 +26,12 @@ class RunConfig(Record):
     profile: ScenarioProfile
 
 
-def digest(value):
-    encoded = json.dumps(
-        value,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    ).encode()
-    return hashlib.sha256(encoded).hexdigest()
-
-
-def distribution(values, total):
-    ordered = sorted(v for v in values if v is not None)
-
-    def percentile(p):
-        if not ordered:
-            return None
-        return ordered[max(0, math.ceil(p * len(ordered)) - 1)]
-
-    return {
-        "p50": percentile(0.5),
-        "p95": percentile(0.95),
-        "observed": len(ordered),
-        "missing": total - len(ordered),
-    }
-
-
 def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if "--benchmark" in argv:
+        from app.optimize.benchmark import main as benchmark_main
+
+        return benchmark_main(argv)
     parser = argparse.ArgumentParser(
         description="M1 simulated staffing CP-SAT; no operational dispatch"
     )
