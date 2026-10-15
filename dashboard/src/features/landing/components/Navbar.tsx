@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ShieldCheck, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X } from "lucide-react";
 
 const LINKS = [
   { href: "#overview", label: "Tổng quan" },
@@ -9,7 +9,7 @@ const LINKS = [
   { href: "#timeline", label: "Lộ trình" },
   { href: "#layers", label: "Kiến trúc AI" },
   { href: "#map", label: "Bản đồ 34 tỉnh" },
-  { href: "#comparison", label: "So sánh" },
+  { href: "#team", label: "Đội ngũ" },
   { href: "#faq", label: "Hỏi đáp" },
 ];
 
@@ -34,15 +34,9 @@ export function Navbar() {
             />
           </div>
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-lg font-bold tracking-tight text-white leading-none">
-                Dengue<span className="text-red-500">Sense</span>
-              </span>
-              <span className="hidden xl:inline-flex items-center gap-1 rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-400 leading-none shrink-0">
-                <ShieldCheck size={10} className="text-cyan-400" />
-                <span>Đề án 2026</span>
-              </span>
-            </div>
+            <span className="font-display text-lg font-bold tracking-tight text-white leading-none">
+              Dengue<span className="text-red-500">Sense</span>
+            </span>
             <span className="text-[10px] text-slate-400 font-medium tracking-wide leading-none mt-1 hidden sm:block">
               Nền tảng AI Y tế Dự phòng
             </span>

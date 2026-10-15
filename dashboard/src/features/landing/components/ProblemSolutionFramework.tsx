@@ -1,27 +1,41 @@
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
-  Sparkles,
+  Layers,
   ShieldCheck,
-  Check,
   X,
   ArrowRight,
   Zap,
   Target,
+  Activity,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 export function ProblemSolutionFramework() {
   return (
-    <section id="framework" className="relative space-y-10">
+    <section id="framework" className="relative space-y-12">
+      {/* Dynamic Ambient Glow Behind Section */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-10 h-72 w-96 -translate-x-1/2 rounded-full opacity-25 blur-[120px]"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(37, 99, 235, 0.45) 0%, rgba(14, 165, 233, 0.2) 60%, transparent 100%)",
+        }}
+      />
+
       {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400">
-          <Sparkles size={13} />
-          <span>BỐI CẢNH Y TẾ & GIẢI PHÁP ĐỘT PHÁ</span>
+      <div className="relative text-center max-w-3xl mx-auto space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-slate-900/80 px-4 py-1.5 text-xs font-semibold tracking-wider text-cyan-300 shadow-md backdrop-blur-md">
+          <Activity size={14} className="text-cyan-400" />
+          <span className="uppercase tracking-widest text-[11px] font-bold">
+            Bối Cảnh Y Tế & Giải Pháp Đột Phá
+          </span>
         </div>
-        <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl tracking-tight">
-          Giải Quyết Trực Diện Điểm Nghẽn Phòng Chống Dịch
+        <h2 className="font-display text-3xl font-extrabold sm:text-5xl tracking-tight leading-[1.15]">
+          <span className="text-white">Giải Quyết Trực Diện </span>
+          <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            Điểm Nghẽn Phòng Chống Dịch
+          </span>
         </h2>
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
           Chuyển dịch toàn diện từ mô hình y tế ứng phó thụ động sang hệ thống dự phòng chủ động đón
@@ -33,24 +47,29 @@ export function ProblemSolutionFramework() {
       <div className="grid gap-6 lg:grid-cols-3 text-left">
         {/* Card 1: The Bottlenecks */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.4 }}
-          className="relative flex flex-col justify-between rounded-3xl border border-red-500/20 bg-gradient-to-b from-red-950/20 via-slate-950/80 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl ring-1 ring-red-500/10 hover:border-red-500/40 transition-all"
+          whileHover={{ y: -6, scale: 1.015 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          className="group relative flex flex-col justify-between rounded-3xl border border-red-500/25 bg-gradient-to-b from-red-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-red-500/50 hover:shadow-[0_12px_40px_rgba(239,68,68,0.2)]"
         >
+          {/* Top glowing line */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 shadow-inner">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 shadow-inner transition-transform group-hover:scale-110">
                 <AlertTriangle size={22} />
               </span>
-              <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-bold text-red-400 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-[11px] font-bold text-red-400 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
                 Điểm Nghẽn Thực Địa
               </span>
             </div>
 
             <div>
-              <h3 className="font-display text-xl font-bold text-white">
+              <h3 className="font-display text-xl font-bold text-white group-hover:text-red-200 transition-colors">
                 Thực Trạng Ứng Phó Truyền Thống
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -59,33 +78,37 @@ export function ProblemSolutionFramework() {
               </p>
             </div>
 
-            <ul className="space-y-3 text-xs sm:text-sm text-slate-300">
+            <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-2.5">
                 <X size={16} className="text-red-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Độ trễ báo cáo 30–60 ngày:</strong> Báo cáo giấy từ trạm y tế cơ sở lên
-                  tuyến tỉnh quá chậm, khi nhận diện được thì bệnh viện đã kín giường.
+                  <strong className="text-white">Độ trễ báo cáo 30–60 ngày:</strong> Báo cáo giấy từ
+                  trạm y tế cơ sở lên tuyến tỉnh quá chậm, khi nhận diện được thì bệnh viện đã kín
+                  giường.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
                 <X size={16} className="text-red-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Phân bổ cảm tính, cào bằng:</strong> Chia đều ngân sách và vật tư mà không
-                  có mô hình định lượng, dẫn tới nơi thiếu nghiêm trọng, nơi tồn kho lãng phí.
+                  <strong className="text-white">Phân bổ cảm tính, cào bằng:</strong> Chia đều ngân
+                  sách và vật tư mà không có mô hình định lượng, dẫn tới nơi thiếu nghiêm trọng, nơi
+                  tồn kho lãng phí.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
                 <X size={16} className="text-red-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Soạn văn bản mất 2–3 ngày:</strong> Thủ tục ban hành công điện điều phối
-                  qua nhiều cấp trung gian làm bỏ lỡ thời điểm vàng khống chế dịch.
+                  <strong className="text-white">Soạn văn bản mất 2–3 ngày:</strong> Thủ tục ban
+                  hành công điện điều phối qua nhiều cấp trung gian làm bỏ lỡ thời điểm vàng khống
+                  chế dịch.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
                 <X size={16} className="text-red-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Quá tải bệnh viện tuyến trên:</strong> Thiếu dự phòng sớm khiến ca nặng
-                  dồn về tuyến cuối, gây kiệt quệ y bác sĩ và trang thiết bị hồi sức.
+                  <strong className="text-white">Quá tải bệnh viện tuyến trên:</strong> Thiếu dự
+                  phòng sớm khiến ca nặng dồn về tuyến cuối, gây kiệt quệ y bác sĩ và trang thiết bị
+                  hồi sức.
                 </span>
               </li>
             </ul>
@@ -98,24 +121,29 @@ export function ProblemSolutionFramework() {
 
         {/* Card 2: DengueSense Solution */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.4, delay: 0.08 }}
-          className="relative flex flex-col justify-between rounded-3xl border border-blue-500/40 bg-gradient-to-b from-blue-950/40 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-2xl ring-1 ring-blue-500/20 hover:border-cyan-400/50 transition-all"
+          whileHover={{ y: -8, scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          className="group relative flex flex-col justify-between rounded-3xl border border-blue-500/40 bg-gradient-to-b from-blue-950/40 via-slate-950/95 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-2xl ring-1 ring-blue-500/30 transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_16px_50px_rgba(14,165,233,0.3)]"
         >
+          {/* Top glowing line */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 transition-opacity duration-300" />
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/20 border border-blue-500/40 text-cyan-400 shadow-inner">
-                <Sparkles size={22} />
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/20 border border-blue-500/40 text-cyan-400 shadow-inner transition-transform group-hover:scale-110">
+                <Layers size={22} />
               </span>
-              <span className="rounded-full border border-blue-500/40 bg-blue-500/20 px-3 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3 py-1 text-[11px] font-bold text-cyan-300 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
                 Giải Pháp Đột Phá AI
               </span>
             </div>
 
             <div>
-              <h3 className="font-display text-xl font-bold text-white">
+              <h3 className="font-display text-xl font-bold text-white group-hover:text-cyan-300 transition-colors">
                 Hệ Sinh Thái AI 3 Tầng Khép Kín
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -135,26 +163,29 @@ export function ProblemSolutionFramework() {
               </div>
             </div>
 
-            <ul className="space-y-3 text-xs sm:text-sm text-slate-300">
+            <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-cyan-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
                 <span>
-                  <strong>AI Viễn thám ERA5 (Layer 1):</strong> Kết hợp chuỗi thời gian dịch tễ với
-                  lượng mưa, nhiệt độ, độ ẩm toàn cầu, cảnh báo sớm trước 1–6 tháng.
+                  <strong className="text-white">AI Viễn thám ERA5 (Layer 1):</strong> Kết hợp chuỗi
+                  thời gian dịch tễ với lượng mưa, nhiệt độ, độ ẩm toàn cầu, cảnh báo sớm trước 1–6
+                  tháng.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-cyan-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
                 <span>
-                  <strong>MILP Solver Tối ưu (Layer 2):</strong> Google OR-Tools phân bổ tối ưu 3
-                  nguồn lực thiết yếu (Giường bệnh, Hóa chất, Đội phản ứng nhanh) dưới 1 phút.
+                  <strong className="text-white">MILP Solver Tối ưu (Layer 2):</strong> Google
+                  OR-Tools phân bổ tối ưu 3 nguồn lực thiết yếu (Giường bệnh, Hóa chất, Đội phản ứng
+                  nhanh) dưới 1 phút.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-cyan-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
                 <span>
-                  <strong>GenAI RAG Thể thức (Layer 3):</strong> Soạn thảo công điện B2G & phác đồ
-                  B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016 chỉ trong 5 phút.
+                  <strong className="text-white">GenAI RAG Thể thức (Layer 3):</strong> Soạn thảo
+                  công điện B2G & phác đồ B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016 chỉ
+                  trong 5 phút.
                 </span>
               </li>
             </ul>
@@ -164,7 +195,7 @@ export function ProblemSolutionFramework() {
             <span>Hiệu quả: Triệt tiêu đỉnh dịch ngay từ cơ sở</span>
             <Link
               to="/app"
-              className="inline-flex items-center gap-1 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1 text-cyan-300 hover:text-white transition-colors"
             >
               <span>Thử nghiệm</span>
               <ArrowRight size={13} />
@@ -174,24 +205,29 @@ export function ProblemSolutionFramework() {
 
         {/* Card 3: Governance & Trust */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.4, delay: 0.16 }}
-          className="relative flex flex-col justify-between rounded-3xl border border-emerald-500/20 bg-gradient-to-b from-emerald-950/20 via-slate-950/80 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl ring-1 ring-emerald-500/10 hover:border-emerald-500/40 transition-all"
+          whileHover={{ y: -6, scale: 1.015 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          className="group relative flex flex-col justify-between rounded-3xl border border-indigo-500/25 bg-gradient-to-b from-indigo-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-400/50 hover:shadow-[0_12px_40px_rgba(99,102,241,0.2)]"
         >
+          {/* Top glowing line */}
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 shadow-inner">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 shadow-inner transition-transform group-hover:scale-110">
                 <ShieldCheck size={22} />
               </span>
-              <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
                 Quản Trị & Ràng Buộc
               </span>
             </div>
 
             <div>
-              <h3 className="font-display text-xl font-bold text-white">
+              <h3 className="font-display text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">
                 Cam Kết Chuẩn Mực & An Toàn AI
               </h3>
               <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -200,39 +236,43 @@ export function ProblemSolutionFramework() {
               </p>
             </div>
 
-            <ul className="space-y-3 text-xs sm:text-sm text-slate-300">
+            <ul className="space-y-3.5 text-xs sm:text-sm text-slate-300">
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
                 <span>
-                  <strong>Guardrail G1 (Khóa số liệu):</strong> Khóa cứng 100% số liệu từ Layer 1 &
-                  2. Triệt tiêu hoàn toàn nguy cơ ảo giác (Zero-Hallucination) trong y tế.
+                  <strong className="text-white">Guardrail G1 (Khóa số liệu):</strong> Khóa cứng
+                  100% số liệu từ Layer 1 & 2. Triệt tiêu hoàn toàn nguy cơ ảo giác
+                  (Zero-Hallucination) trong y tế.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
                 <span>
-                  <strong>Thẩm định 4 mắt (Human-in-the-Loop):</strong> AI không tự ban hành. Cán bộ
-                  chuyên môn lập phương án, Lãnh đạo thẩm duyệt mới được ký số điện tử.
+                  <strong className="text-white">Thẩm định 4 mắt (Human-in-the-Loop):</strong> AI
+                  không tự ban hành. Cán bộ chuyên môn lập phương án, Lãnh đạo thẩm duyệt mới được
+                  ký số điện tử.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
                 <span>
-                  <strong>Bảo vệ dữ liệu (NĐ 13/2023):</strong> Giám sát vĩ mô trên số liệu cộng gộp
-                  cấp tỉnh/huyện, tuyệt đối không lưu trữ hay xử lý thông tin cá nhân (PII).
+                  <strong className="text-white">Bảo vệ dữ liệu (NĐ 13/2023):</strong> Giám sát vĩ
+                  mô trên số liệu cộng gộp cấp tỉnh/huyện, tuyệt đối không lưu trữ hay xử lý thông
+                  tin cá nhân (PII).
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
-                <Check size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-indigo-400/80 bg-indigo-400/30 shadow-[0_0_8px_rgba(99,102,241,0.7)]" />
                 <span>
-                  <strong>Minh bạch TreeSHAP:</strong> Báo cáo định lượng tỷ trọng đóng góp của từng
-                  yếu tố viễn thám khí hậu (22.6% – 27.9%), không phải hộp đen (Black Box).
+                  <strong className="text-white">Minh bạch TreeSHAP:</strong> Báo cáo định lượng tỷ
+                  trọng đóng góp của từng yếu tố viễn thám khí hậu (22.6% – 27.9%), không phải hộp
+                  đen (Black Box).
                 </span>
               </li>
             </ul>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-emerald-500/20 text-xs font-semibold text-emerald-400/90 flex items-center justify-between">
+          <div className="mt-6 pt-4 border-t border-indigo-500/20 text-xs font-semibold text-indigo-300 flex items-center justify-between">
             <span>Nguyên tắc: AI hỗ trợ — Con người phê duyệt</span>
           </div>
         </motion.div>

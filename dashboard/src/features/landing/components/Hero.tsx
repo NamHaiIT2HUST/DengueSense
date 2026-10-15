@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Radar, Cpu, FileText, CheckCircle2, Sparkles, MapPin } from "lucide-react";
+import { ArrowRight, Radar, Cpu, FileText, LayoutDashboard, MapPin } from "lucide-react";
 import { HeroCommandCenter } from "./HeroCommandCenter";
 
 const PILLARS = [
@@ -128,7 +128,7 @@ export function Hero() {
             to="/app"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-7 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-cyan-500/40 active:scale-95"
           >
-            <Sparkles size={16} />
+            <LayoutDashboard size={16} />
             <span>Trải nghiệm Bảng điều khiển Console</span>
             <ArrowRight size={16} />
           </Link>
@@ -147,16 +147,19 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Trust Badges Bar */}
+        {/* Trust Metadata Bar */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium text-slate-400"
+          className="mt-10 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs font-medium text-slate-300"
         >
           {TRUST_TAGS.map((tag) => (
-            <span key={tag} className="inline-flex items-center gap-1.5">
-              <CheckCircle2 size={13} className="text-cyan-400" />
+            <span
+              key={tag}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3.5 py-1.5 backdrop-blur-sm transition-colors hover:border-slate-700 hover:text-white"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
               <span>{tag}</span>
             </span>
           ))}
@@ -179,24 +182,32 @@ export function Hero() {
           className="mx-auto mt-14 grid gap-5 sm:grid-cols-3 text-left"
         >
           {PILLARS.map((p) => (
-            <div
+            <motion.div
               key={p.title}
-              className={`relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 backdrop-blur-xl transition-all hover:border-slate-600 hover:shadow-xl ${p.color}`}
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className={`group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_12px_40px_rgba(37,99,235,0.2)] ${p.color}`}
             >
+              {/* Dynamic glowing top accent bar */}
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
               <div className="flex items-center justify-between mb-4">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900/80 border border-slate-800 shadow-inner">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner transition-transform group-hover:scale-110 group-hover:border-blue-500/50">
                   <p.icon size={20} strokeWidth={2.2} />
                 </span>
-                <span className="rounded-full border border-slate-700 bg-slate-900/90 px-2.5 py-1 text-[11px] font-bold text-slate-200">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/80 bg-slate-900/90 px-3 py-1 text-[11px] font-bold text-slate-200 shadow-sm transition-colors group-hover:border-cyan-400/40 group-hover:text-cyan-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   {p.badge}
                 </span>
               </div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 {p.layer}
               </span>
-              <h3 className="font-display text-lg font-bold text-white mt-1">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">{p.desc}</p>
-            </div>
+              <h3 className="font-display text-lg font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors">
+                {p.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300/90">{p.desc}</p>
+            </motion.div>
           ))}
         </motion.div>
       </div>

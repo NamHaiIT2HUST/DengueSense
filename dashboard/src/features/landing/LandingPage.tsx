@@ -12,6 +12,7 @@ import { ComparisonSection } from "./components/ComparisonSection";
 import { FaqSection } from "./components/FaqSection";
 import { RoadmapStrip } from "./components/RoadmapStrip";
 import { SectionHeader } from "./components/SectionHeader";
+import { TeamSection } from "./components/TeamSection";
 import { CtaBanner } from "./components/CtaBanner";
 import { Footer } from "./components/Footer";
 import { useRiskSummary } from "./model/useRiskSummary";
@@ -96,6 +97,8 @@ export function LandingPage() {
           />
           <RoadmapStrip />
         </section>
+
+        <TeamSection />
 
         <CtaBanner />
       </main>
