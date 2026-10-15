@@ -149,12 +149,6 @@ export function Navbar() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Live Telemetry Pill */}
-          <div className="hidden 2xl:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-medium text-emerald-400 shadow-sm">
-            <Activity size={12} className="text-emerald-400 shrink-0" />
-            <span>ERA5 TRỰC TUYẾN</span>
-          </div>
-
           <Link
             to="/dang-nhap"
             className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap lg:inline-block px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
