@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import { Users, GraduationCap, Binary, Brain, Award, TrendingUp, Boxes } from "lucide-react";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 interface TeamMember {
   name: string;
@@ -119,20 +119,23 @@ export function TeamSection() {
       {/* Team Cards Container: 3 in row 1, 2 centered in row 2 on desktop */}
       <div className="flex flex-wrap justify-center gap-6 max-w-7xl mx-auto">
         {MEMBERS.map((m) => (
-          <motion.div
+          <TiltCard3D
             key={m.name}
-            whileHover={{ y: -6, scale: 1.015 }}
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className={`group relative flex w-full flex-col items-center justify-between text-center rounded-3xl border bg-gradient-to-b p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_12px_40px_rgba(37,99,235,0.2)] md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] max-w-sm ${m.color}`}
+            maxTilt={8}
+            scale={1.025}
+            glare={true}
+            glareOpacity={0.16}
+            containerClassName="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] max-w-sm"
+            className={`group relative flex w-full flex-col items-center justify-between text-center rounded-3xl border bg-gradient-to-b p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_16px_50px_rgba(37,99,235,0.25)] ${m.color}`}
           >
             {/* Top glowing accent bar */}
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
             <div className="flex flex-col items-center text-center w-full">
-              {/* Avatar - Centered */}
-              <div className="relative">
+              {/* Avatar - Centered with 3D Z-Depth Elevation */}
+              <div className="relative" style={{ transform: "translateZ(30px)" }}>
                 <div
-                  className={`relative h-24 w-24 sm:h-28 sm:w-28 overflow-hidden rounded-full ring-2 shadow-xl transition-transform duration-300 group-hover:scale-105 bg-slate-900 ${m.ringColor}`}
+                  className={`relative h-24 w-24 sm:h-28 sm:w-28 overflow-hidden rounded-full ring-2 shadow-2xl transition-transform duration-300 group-hover:scale-105 bg-slate-900 ${m.ringColor}`}
                 >
                   <img
                     src={m.avatar}
@@ -147,12 +150,18 @@ export function TeamSection() {
               </div>
 
               {/* Name */}
-              <h3 className="font-display text-xl font-bold text-white group-hover:text-cyan-300 transition-colors tracking-tight mt-4">
+              <h3
+                className="font-display text-xl font-bold text-white group-hover:text-cyan-300 transition-colors tracking-tight mt-4"
+                style={{ transform: "translateZ(18px)" }}
+              >
                 {m.name}
               </h3>
 
               {/* Project Role */}
-              <div className="mt-2.5 flex flex-col items-center gap-1">
+              <div
+                className="mt-2.5 flex flex-col items-center gap-1"
+                style={{ transform: "translateZ(14px)" }}
+              >
                 <span
                   className={`rounded-full border px-3 py-1 text-xs font-bold tracking-wide uppercase shadow-sm ${m.badgeColor}`}
                 >
@@ -162,7 +171,10 @@ export function TeamSection() {
               </div>
 
               {/* Major & University */}
-              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-300/90 leading-relaxed max-w-[280px]">
+              <div
+                className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-300/90 leading-relaxed max-w-[280px]"
+                style={{ transform: "translateZ(10px)" }}
+              >
                 <GraduationCap size={16} className="shrink-0 text-cyan-400" />
                 <span>{m.major}</span>
               </div>
@@ -174,7 +186,7 @@ export function TeamSection() {
                 MedSentinel - HUST
               </span>
             </div>
-          </motion.div>
+          </TiltCard3D>
         ))}
       </div>
     </section>

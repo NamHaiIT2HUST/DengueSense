@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import {
   AlertTriangle,
   Layers,
@@ -11,6 +10,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
+import { Model3DCube } from "./Model3DCube";
 
 export function ProblemSolutionFramework() {
   return (
@@ -47,13 +48,13 @@ export function ProblemSolutionFramework() {
       {/* 3 Pillars Grid */}
       <div className="grid gap-6 lg:grid-cols-3 text-left">
         {/* Card 1: The Bottlenecks */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          whileHover={{ y: -6, scale: 1.015 }}
-          transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="group relative flex flex-col justify-between rounded-3xl border border-red-500/25 bg-gradient-to-b from-red-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-red-500/50 hover:shadow-[0_12px_40px_rgba(239,68,68,0.2)]"
+        <TiltCard3D
+          maxTilt={6}
+          scale={1.015}
+          glare={true}
+          glareOpacity={0.12}
+          containerClassName="h-full"
+          className="group relative flex flex-col justify-between h-full rounded-3xl border border-red-500/25 bg-gradient-to-b from-red-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-red-500/50 hover:shadow-[0_12px_40px_rgba(239,68,68,0.2)]"
         >
           {/* Top glowing line */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-red-500/80 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -117,16 +118,16 @@ export function ProblemSolutionFramework() {
           <div className="mt-6 pt-4 border-t border-red-500/20 text-xs font-semibold text-red-400/90 flex items-center justify-between">
             <span>Hậu quả: Chi phí dập dịch tăng gấp 5 lần</span>
           </div>
-        </motion.div>
+        </TiltCard3D>
 
         {/* Card 2: DengueSense Solution */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          whileHover={{ y: -8, scale: 1.02 }}
-          transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="group relative flex flex-col justify-between rounded-3xl border border-blue-500/40 bg-gradient-to-b from-blue-950/40 via-slate-950/95 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-2xl ring-1 ring-blue-500/30 transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_16px_50px_rgba(14,165,233,0.3)]"
+        <TiltCard3D
+          maxTilt={7}
+          scale={1.02}
+          glare={true}
+          glareOpacity={0.16}
+          containerClassName="h-full"
+          className="group relative flex flex-col justify-between h-full rounded-3xl border border-blue-500/40 bg-gradient-to-b from-blue-950/40 via-slate-950/95 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-2xl ring-1 ring-blue-500/30 transition-all duration-300 hover:border-cyan-400 hover:shadow-[0_16px_50px_rgba(14,165,233,0.3)]"
         >
           {/* Top glowing line */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-90 transition-opacity duration-300" />
@@ -200,16 +201,16 @@ export function ProblemSolutionFramework() {
               <ArrowRight size={13} />
             </Link>
           </div>
-        </motion.div>
+        </TiltCard3D>
 
         {/* Card 3: Governance & Trust */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          whileHover={{ y: -6, scale: 1.015 }}
-          transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="group relative flex flex-col justify-between rounded-3xl border border-indigo-500/25 bg-gradient-to-b from-indigo-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-400/50 hover:shadow-[0_12px_40px_rgba(99,102,241,0.2)]"
+        <TiltCard3D
+          maxTilt={6}
+          scale={1.015}
+          glare={true}
+          glareOpacity={0.12}
+          containerClassName="h-full"
+          className="group relative flex flex-col justify-between h-full rounded-3xl border border-indigo-500/25 bg-gradient-to-b from-indigo-950/20 via-slate-950/90 to-slate-950 p-6 sm:p-7 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-indigo-400/50 hover:shadow-[0_12px_40px_rgba(99,102,241,0.2)]"
         >
           {/* Top glowing line */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -273,8 +274,11 @@ export function ProblemSolutionFramework() {
           <div className="mt-6 pt-4 border-t border-indigo-500/20 text-xs font-semibold text-indigo-300 flex items-center justify-between">
             <span>Nguyên tắc: AI hỗ trợ — Con người phê duyệt</span>
           </div>
-        </motion.div>
+        </TiltCard3D>
       </div>
+
+      {/* Interactive 3D Model Decision & Capability Cube Showcase */}
+      <Model3DCube />
     </section>
   );
 }

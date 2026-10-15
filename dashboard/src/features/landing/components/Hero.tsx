@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText, LayoutDashboard, MapPin } from "lucide-react";
 import { HeroCommandCenter } from "./HeroCommandCenter";
 import { HeroGlobe3D } from "./HeroGlobe3D";
+import { SpatialBackground3D } from "./SpatialBackground3D";
 import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 const PILLARS = [
@@ -57,6 +58,9 @@ const PILLARS = [
 export function Hero() {
   return (
     <section id="overview" className="relative overflow-hidden px-6 pb-20 pt-12 sm:pt-20">
+      {/* 3D Spatial Telemetry Particle Canvas */}
+      <SpatialBackground3D />
+
       {/* Dynamic ambient background glow layers */}
       <div
         className="pointer-events-none absolute left-1/2 top-[-12%] h-[650px] w-[1100px] -translate-x-1/2 rounded-full opacity-35 blur-[140px]"

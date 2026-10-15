@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import { Check, X, ShieldCheck, Scale } from "lucide-react";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 const COMPARISONS = [
   {
@@ -64,12 +64,12 @@ export function ComparisonSection() {
         </p>
       </div>
 
-      {/* Comparison Table Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
-        transition={{ duration: 0.5 }}
+      {/* Comparison Table 3D Tilt Card */}
+      <TiltCard3D
+        maxTilt={3}
+        scale={1.008}
+        glare={true}
+        glareOpacity={0.08}
         className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/80 backdrop-blur-xl shadow-2xl"
       >
         <div className="overflow-x-auto">
@@ -118,7 +118,7 @@ export function ComparisonSection() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </TiltCard3D>
     </section>
   );
 }

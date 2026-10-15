@@ -15,6 +15,7 @@ import {
   Award,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { IsometricArchitecture3D } from "./IsometricArchitecture3D";
 
 type StageTab = "forecast" | "allocation" | "directive";
 
@@ -505,6 +506,9 @@ export function InteractiveLayers() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* 3D Exploded Isometric Layer Architecture Showcase */}
+      <IsometricArchitecture3D />
     </section>
   );
 }
