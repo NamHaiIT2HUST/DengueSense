@@ -254,14 +254,16 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 	calledOptimize := false
 	if s.optimizeURL != "" {
 		optReq := struct {
-			Budget float64 `json:"budget"`
-			Items  []struct {
+			Budget   float64 `json:"budget"`
+			Strategy string  `json:"strategy"`
+			Items    []struct {
 				ProvinceID string  `json:"province_id"`
 				CasesPred  float64 `json:"cases_pred"`
 				Cost       float64 `json:"cost"`
 			} `json:"items"`
 		}{
-			Budget: req.Budget,
+			Budget:   req.Budget,
+			Strategy: "milp_marginal",
 		}
 		for _, it := range req.Items {
 			optReq.Items = append(optReq.Items, struct {
@@ -421,16 +423,58 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseId uuid.UUID) {
 	content := fmt.Sprintf("# %s\n\nHồ sơ: %s (Mã: %s)\nLoại văn bản: %s\nThời điểm: %s\n\nNội dung tự động sinh bởi AI và được kiểm soát theo các nguyên tắc Guardrails G1-G6.",
 		title, cs.Title, cs.ID.String(), string(req.DraftType), time.Now().Format("02/01/2006"))
 
+	slots := struct {
+		RunID               string   `json:"run_id"`
+		ProvinceIDs         []string `json:"province_ids"`
+		OriginMonth         string   `json:"origin_month,omitempty"`
+		CasesPredictedTotal float64  `json:"cases_predicted_total,omitempty"`
+		BudgetAllocated     float64  `json:"budget_allocated,omitempty"`
+		BedsAllocated       int      `json:"beds_allocated,omitempty"`
+		SuppliesAllocated   int      `json:"supplies_allocated,omitempty"`
+		TeamsAllocated      int      `json:"teams_allocated,omitempty"`
+	}{
+		RunID:               uuid.New().String(),
+		ProvinceIDs:         []string{"VN-HN", "VN-SG", "VN-DN"},
+		OriginMonth:         "2010-03",
+		CasesPredictedTotal: 1250.0,
+		BudgetAllocated:     500000000.0,
+		BedsAllocated:       50,
+		SuppliesAllocated:   1200,
+		TeamsAllocated:      6,
+	}
+
+	plans, _ := s.repo.ListAllocationPlansByCase(ctx, caseId)
+	if len(plans) > 0 {
+		latestPlan := plans[0]
+		if latestPlan.TotalCost > 0 {
+			slots.BudgetAllocated = latestPlan.TotalCost
+		}
+		if latestPlan.EstimatedCasesPrevented > 0 {
+			slots.CasesPredictedTotal = latestPlan.EstimatedCasesPrevented * 5.0
+		}
+		var pids []string
+		for _, a := range latestPlan.Allocations {
+			if a.ProvinceID != "" {
+				pids = append(pids, a.ProvinceID)
+			}
+		}
+		if len(pids) > 0 {
+			slots.ProvinceIDs = pids
+		}
+	}
+
 	if s.genaiURL != "" {
 		gReq := struct {
 			DraftType   string         `json:"draft_type"`
-			CaseID      string         `json:"case_id"`
+			CaseID      string         `json:"case_id,omitempty"`
 			Title       string         `json:"title,omitempty"`
-			ContextData map[string]any `json:"context_data"`
+			Slots       any            `json:"slots"`
+			ContextData map[string]any `json:"context_data,omitempty"`
 		}{
 			DraftType: string(req.DraftType),
 			CaseID:    caseId.String(),
 			Title:     title,
+			Slots:     slots,
 			ContextData: map[string]any{
 				"case_title": cs.Title,
 				"status":     string(cs.Status),
@@ -445,13 +489,15 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseId uuid.UUID) {
 				resp, err := s.httpClient.Do(httpReq)
 				if err == nil && resp.StatusCode == http.StatusOK {
 					var gResp struct {
-						Content        string   `json:"content"`
-						ContentHash    string   `json:"content_hash"`
-						Citations      []string `json:"citations"`
-						GuardrailFlags []string `json:"guardrail_flags"`
+						Title       string `json:"title"`
+						Content     string `json:"content"`
+						ContentHash string `json:"content_hash"`
 					}
 					if err := json.NewDecoder(resp.Body).Decode(&gResp); err == nil && gResp.Content != "" {
 						content = gResp.Content
+						if gResp.Title != "" {
+							title = gResp.Title
+						}
 					}
 					_ = resp.Body.Close()
 				}
