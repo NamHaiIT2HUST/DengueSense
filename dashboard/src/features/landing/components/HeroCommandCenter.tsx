@@ -14,7 +14,6 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 type ViewMode = "radar" | "milp" | "dispatch";
 
@@ -84,14 +83,7 @@ export function HeroCommandCenter() {
   const preventedCases = Math.round((budget / 650000000) * 340);
 
   return (
-    <TiltCard3D
-      maxTilt={3.5}
-      scale={1.006}
-      glare={true}
-      glareOpacity={0.08}
-      containerClassName="relative mx-auto mt-12 w-full max-w-5xl text-left"
-      className="rounded-3xl border border-slate-700/80 bg-slate-950/90 p-2 sm:p-3 shadow-[0_20px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl ring-1 ring-white/10"
-    >
+    <div className="relative mx-auto mt-12 w-full max-w-5xl rounded-3xl border border-slate-700/80 bg-slate-950/90 p-2 sm:p-3 shadow-[0_20px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl ring-1 ring-white/10 text-left">
       {/* Window Title Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -117,8 +109,9 @@ export function HeroCommandCenter() {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/60 bg-slate-900/40 px-3 py-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
+            type="button"
             onClick={() => setActiveTab("radar")}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "radar"
                 ? "bg-blue-600 text-white shadow-md shadow-blue-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
@@ -129,8 +122,9 @@ export function HeroCommandCenter() {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab("milp")}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "milp"
                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
@@ -141,8 +135,9 @@ export function HeroCommandCenter() {
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab("dispatch")}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "dispatch"
                 ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
@@ -189,9 +184,10 @@ export function HeroCommandCenter() {
                     const isSelected = selectedHotspot.id === h.id;
                     return (
                       <button
+                        type="button"
                         key={h.id}
                         onClick={() => setSelectedHotspot(h)}
-                        className={`w-full rounded-xl border p-3 text-left transition-all ${
+                        className={`w-full rounded-xl border p-3 text-left transition-all cursor-pointer ${
                           isSelected
                             ? "border-blue-500/50 bg-blue-950/40 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500/30"
                             : "border-slate-800 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-900"
@@ -537,6 +533,6 @@ export function HeroCommandCenter() {
           )}
         </AnimatePresence>
       </div>
-    </TiltCard3D>
+    </div>
   );
 }
