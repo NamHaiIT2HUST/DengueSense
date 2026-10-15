@@ -16,7 +16,7 @@ import { TextField } from "@/shared/ui/TextField";
 
 type StatusFilter = "all" | "open" | "completed" | "archived";
 
-const OFFICER_ROLES = ["officer", "analyst", "approver", "admin"] as const;
+const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
 export function CaseListPage() {
   const router = useRouter();

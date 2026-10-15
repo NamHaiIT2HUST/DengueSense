@@ -21,7 +21,7 @@ import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { TextField } from "@/shared/ui/TextField";
 
-const OFFICER_ROLES = ["officer", "analyst", "approver", "admin"] as const;
+const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
 export function CaseDetailPage() {
   const router = useRouter();

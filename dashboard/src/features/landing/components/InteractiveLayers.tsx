@@ -426,7 +426,7 @@ export function InteractiveLayers() {
                 </div>
                 <div className="pt-2">
                   <Link
-                    to="/app/canh-bao"
+                    to="/app"
                     className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-indigo-300 hover:text-white transition-colors group"
                   >
                     <span>Mở danh sách cảnh báo & lập hồ sơ xử lý</span>

@@ -36,7 +36,7 @@ export function DraftPage() {
   const user = useCurrentUser();
 
   const isApprover = hasAnyRole(user, "approver", "admin");
-  const isOfficer = hasAnyRole(user, "officer", "analyst", "admin");
+  const isOfficer = hasAnyRole(user, "officer", "admin");
 
   const draftQuery = useDraft(draftId);
   const draft = draftQuery.data;

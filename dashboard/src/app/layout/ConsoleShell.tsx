@@ -79,6 +79,16 @@ const ACCOUNT_SHORT_META: Record<string, { shortName: string; icon: typeof Activ
   approver: { shortName: "Lãnh đạo", icon: Award },
 };
 
+export function canAccessPath(path: string, role: AppRole): boolean {
+  if (path.startsWith("/app/canh-bao") || path.startsWith("/app/ho-so")) {
+    return role === "officer" || role === "approver" || role === "admin";
+  }
+  if (path.startsWith("/app/du-thao")) {
+    return role === "officer" || role === "approver" || role === "admin";
+  }
+  return true; // /app/ban-do, /app/tinh, /app/mo-hinh, /app/luot-du-bao
+}
+
 /**
  * Khung console: liên kết bỏ qua điều hướng, thanh trên (tên người dùng, đăng xuất), điều hướng chính, nội dung.
  * Khi phiên mất giữa chừng (làm mới token thất bại, đăng xuất ở tab khác…) tự chuyển về đăng nhập và XOÁ cache truy
@@ -92,6 +102,17 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const signingOut = useRef(false);
 
+  const userRoles = user?.roles ?? [];
+  const primaryRole: AppRole = userRoles.includes("admin")
+    ? "admin"
+    : userRoles.includes("approver")
+      ? "approver"
+      : userRoles.includes("officer")
+        ? "officer"
+        : userRoles.includes("analyst")
+          ? "analyst"
+          : "viewer";
+
   useEffect(() => {
     // Chỉ chuyển khi còn đứng trong console: sau khi đã chuyển, `href` đổi thành trang đăng nhập nhưng khung này
     // còn sống thêm một nhịp — không có điều kiện này nó sẽ chuyển tiếp lần nữa, lồng `redirect` vô hạn.
@@ -99,6 +120,13 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     queryClient.clear();
     void router.navigate({ to: "/dang-nhap", search: { redirect: href }, replace: true });
   }, [accessToken, href, pathname, queryClient, router]);
+
+  // Ngăn chặn truy cập hoặc xem giao diện không thuộc role hiện tại
+  useEffect(() => {
+    if (accessToken && pathname.startsWith("/app") && !canAccessPath(pathname, primaryRole)) {
+      void router.navigate({ to: "/app/ban-do", replace: true });
+    }
+  }, [accessToken, pathname, primaryRole, router]);
 
   if (!accessToken) return null; // đang chuyển về đăng nhập
 
@@ -126,27 +154,13 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               ? "analyst"
               : "viewer";
 
-      const currentItem = NAV_ITEMS.find(
-        (item) => pathname === item.to || (item.to !== "/app" && pathname.startsWith(item.to))
-      );
-      if (currentItem && !currentItem.roles.includes(newRole)) {
-        void router.navigate({ to: "/app/ban-do" });
+      if (!canAccessPath(pathname, newRole)) {
+        void router.navigate({ to: "/app/ban-do", replace: true });
       }
     } catch {
       // Bỏ qua lỗi nếu chuyển thất bại
     }
   }
-
-  const userRoles = user?.roles ?? [];
-  const primaryRole: AppRole = userRoles.includes("admin")
-    ? "admin"
-    : userRoles.includes("approver")
-      ? "approver"
-      : userRoles.includes("officer")
-        ? "officer"
-        : userRoles.includes("analyst")
-          ? "analyst"
-          : "viewer";
 
   const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(primaryRole));
   const operationItems = visibleNavItems.filter((i) => i.category === "operations");
