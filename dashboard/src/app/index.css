@@ -399,11 +399,73 @@ body {
   animation: radar-sweep 8s linear infinite;
 }
 
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes photon-flow-right {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300%);
+    opacity: 0;
+  }
+}
+
+@keyframes photon-flow-left {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-300%);
+    opacity: 0;
+  }
+}
+
+.animate-text-shimmer {
+  background-size: 200% 200%;
+  animation: text-shimmer 4s ease infinite;
+}
+
+.animate-photon-flow-right {
+  animation: photon-flow-right 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-photon-flow-left {
+  animation: photon-flow-left 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-spin-3d-slow,
   .animate-orbit-reverse-3d,
   .animate-radar-sweep,
-  .animate-shimmer {
+  .animate-shimmer,
+  .animate-text-shimmer,
+  .animate-photon-flow-right,
+  .animate-photon-flow-left {
     animation: none !important;
   }
 }

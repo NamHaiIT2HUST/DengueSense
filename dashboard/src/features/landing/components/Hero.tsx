@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText, LayoutDashboard, MapPin } from "lucide-react";
 import { HeroCommandCenter } from "./HeroCommandCenter";
 import { HeroGlobe3D } from "./HeroGlobe3D";
+import { MedSentinelBadge } from "./MedSentinelBadge";
 import { SpatialBackground3D } from "./SpatialBackground3D";
 import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
@@ -75,30 +76,8 @@ export function Hero() {
       <div className="pointer-events-none absolute -right-20 top-1/4 h-80 w-80 rounded-full bg-indigo-500/15 blur-[120px]" />
 
       <div className="relative mx-auto max-w-6xl text-center">
-        {/* Top Signature Brand Logotype (Bespoke Minimalist Crest) */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="mb-8 inline-flex items-center justify-center gap-3 sm:gap-4"
-        >
-          <div className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400" />
-
-          <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/25 bg-slate-900/50 backdrop-blur-md shadow-[0_0_20px_rgba(37,99,235,0.15)]">
-            <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.32em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-              MED
-            </span>
-            <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.32em] bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(14,165,233,0.5)]">
-              SENTINEL
-            </span>
-            <span className="text-slate-600 font-light">/</span>
-            <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest text-slate-400 uppercase">
-              AI Platform
-            </span>
-          </div>
-
-          <div className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent via-cyan-500/40 to-cyan-400" />
-        </motion.div>
+        {/* Top Signature Brand Logotype: High-Tech Interactive MedSentinel Crest */}
+        <MedSentinelBadge />
 
         {/* Main Heading */}
         <motion.h1
