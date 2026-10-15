@@ -259,12 +259,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       </a>
 
       {/* Main Console Top Header */}
-      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-4 sm:px-6 py-3.5 backdrop-blur-2xl bg-white/90 border-b border-slate-200/90 shadow-xs dark:bg-slate-950/85 dark:border-slate-800/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link to="/app" className="group flex items-center gap-3">
+      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-3 sm:px-6 lg:px-8 py-3.5 backdrop-blur-2xl bg-white/90 border-b border-slate-200/90 shadow-xs dark:bg-slate-950/85 dark:border-slate-800/80">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link to="/app" className="group flex items-center gap-2.5 sm:gap-3">
               {/* Official Project Logo */}
-              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/30 via-slate-900 to-slate-950 p-1.5 ring-1 ring-cyan-500/30 shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-transform duration-200 group-hover:scale-105">
+              <div className="relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/30 via-slate-900 to-slate-950 p-1.5 ring-1 ring-cyan-500/30 shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-transform duration-200 group-hover:scale-105">
                 <img
                   src="/logo-icon.png"
                   alt="DengueSense Logo"
@@ -273,26 +273,26 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none">
+                  <span className="font-display text-base sm:text-lg font-bold tracking-tight text-[var(--ink-primary)] leading-none">
                     Dengue<span className="text-red-500">Sense</span>
                   </span>
-                  <span className="rounded-full border border-blue-200 bg-blue-50/80 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300">
+                  <span className="hidden sm:inline-block rounded-full border border-blue-200 bg-blue-50/80 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300">
                     Console v1.0
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 dark:text-[var(--ink-muted)] mt-0.5">
+                <span className="text-[11px] text-slate-500 dark:text-[var(--ink-muted)] mt-0.5 hidden md:block">
                   Quyết định dịch tễ thông minh
                 </span>
               </div>
             </Link>
 
-            <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 md:flex">
+            <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 lg:flex">
               <Activity size={13} className="text-emerald-600 dark:text-emerald-400" />
               <span>AI Dịch tễ: Trực tuyến</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-3 text-sm shrink-0">
             <div className="flex items-center px-0.5">
               <ThemeToggle />
             </div>
@@ -303,13 +303,13 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             />
 
             {/* User Profile Badge with Dynamic Role Color */}
-            <div className="flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-slate-50/90 dark:border-white/10 dark:bg-slate-900/90 px-3 py-1.5 shadow-xs">
+            <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50/90 dark:border-white/10 dark:bg-slate-900/90 p-1 sm:px-3 sm:py-1.5 shadow-xs shrink-0">
               <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr ${roleMeta.avatarBg} text-xs font-bold text-white shadow-xs`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr ${roleMeta.avatarBg} text-xs font-bold text-white shadow-xs shrink-0`}
               >
                 {user?.display_name ? user.display_name.charAt(0).toUpperCase() : "U"}
               </div>
-              <div className="flex flex-col text-left">
+              <div className="hidden sm:flex flex-col text-left">
                 <span className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">
                   {user?.display_name || user?.username}
                 </span>
@@ -327,10 +327,11 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             <Button
               variant="secondary"
               onClick={() => void onLogout()}
-              className="px-3 py-1.5 text-xs flex items-center gap-1.5 hover:border-red-500/40 hover:text-red-500 dark:hover:text-red-300 transition-colors"
+              className="px-2.5 sm:px-3 py-1.5 text-xs flex items-center gap-1.5 hover:border-red-500/40 hover:text-red-500 dark:hover:text-red-300 transition-colors shrink-0"
+              title={vi.auth.logout}
             >
-              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>{vi.auth.logout}</span>
+              <LogOut className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="hidden sm:inline">{vi.auth.logout}</span>
             </Button>
           </div>
         </div>
@@ -338,7 +339,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
       {/* Dynamic Role Mission & 1-Click Fast Role Switcher Ribbon (Demo Mode) */}
       {env.VITE_APP_MODE === "demo" && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-4">
+        <div className="w-full px-3 sm:px-6 lg:px-8 pt-4">
           <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 sm:p-4 backdrop-blur-xl shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-lg">
             {/* Top glowing accent bar */}
             <div
@@ -416,7 +417,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       )}
 
       {/* Main Console Grid: Sidebar + Content */}
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 py-6 lg:grid-cols-[240px_1fr]">
+      <div className="grid w-full gap-6 px-3 sm:px-6 lg:px-8 py-6 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr]">
         <aside className="space-y-4">
           <nav
             aria-label={vi.nav.console}
@@ -522,7 +523,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               </>
             )}
 
-            <div className="my-1 border-t border-slate-200 dark:border-[var(--border-hairline)]" />
+            <div className="my-1 border-t border-slate-200 dark:border-slate-800/80 hidden lg:block" />
             <Link
               to="/"
               className="relative group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-600 dark:text-[var(--ink-secondary)] hover:bg-slate-100 dark:hover:bg-[var(--bg-surface-hover)] hover:text-slate-900 dark:hover:text-[var(--ink-primary)] transition-colors active:scale-[0.98]"
@@ -534,8 +535,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               <span>{vi.nav.home}</span>
             </Link>
 
-            <div className="hidden lg:flex items-center justify-between px-3.5 py-2 text-xs text-slate-500 dark:text-[var(--ink-muted)]">
-              <span>Chế độ sáng/tối</span>
+            <div className="hidden lg:flex items-center justify-between px-3.5 py-2.5 text-xs text-slate-500 dark:text-[var(--ink-muted)] mt-1 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80">
+              <span className="font-medium">Chế độ sáng/tối</span>
               <ThemeToggle />
             </div>
           </nav>

@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
 /* ============================================================
    Design tokens — Dual Mode: Deep Medical Tech Dark / Pure Clean Light
    Trend 2026: Restrained glassmorphism, telemetry auroras, bento grid.

@@ -91,13 +91,13 @@ export function Navbar() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent opacity-80 blur-[1px]" />
 
           <div
-            className={`mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+            className={`flex w-full items-center justify-between px-3 sm:px-6 lg:px-8 xl:px-10 transition-all duration-300 ${
               scrolled ? "h-16" : "h-16 sm:h-18"
             }`}
           >
             {/* Brand Lockup */}
-            <a href="#" className="flex items-center gap-3 group shrink-0">
-              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/25 via-slate-900 to-slate-950 p-1.5 ring-1 ring-white/10 shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all duration-300 group-hover:scale-105 group-hover:ring-cyan-400/60 group-hover:shadow-[0_0_25px_rgba(14,165,233,0.45)]">
+            <a href="#" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+              <div className="relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/25 via-slate-900 to-slate-950 p-1.5 ring-1 ring-white/10 shadow-[0_0_15px_rgba(37,99,235,0.2)] transition-all duration-300 group-hover:scale-105 group-hover:ring-cyan-400/60 group-hover:shadow-[0_0_25px_rgba(14,165,233,0.45)]">
                 <img
                   src="/logo-icon.png"
                   alt="DengueSense Logo"
@@ -105,7 +105,7 @@ export function Navbar() {
                 />
               </div>
               <div className="flex flex-col">
-                <span className="font-display text-lg font-bold tracking-tight text-white leading-none transition-colors group-hover:text-cyan-200">
+                <span className="font-display text-base sm:text-lg font-bold tracking-tight text-white leading-none transition-colors group-hover:text-cyan-200">
                   Dengue<span className="text-red-500">Sense</span>
                 </span>
                 <span className="text-[10px] text-slate-400 font-medium tracking-wide leading-none mt-1 hidden sm:block">
@@ -116,7 +116,7 @@ export function Navbar() {
 
             {/* Desktop Navigation Links with Sliding Magnetic Glow Pill */}
             <nav
-              className="hidden items-center gap-0.5 xl:gap-1 xl:flex"
+              className="hidden items-center justify-center gap-0.5 xl:gap-1 lg:flex flex-1 mx-2 xl:mx-6"
               onMouseLeave={() => setHoveredIdx(null)}
             >
               {LINKS.map((l, idx) => {
@@ -128,7 +128,7 @@ export function Navbar() {
                     href={l.href}
                     onClick={(e) => handleNavClick(e, l.href)}
                     onMouseEnter={() => setHoveredIdx(idx)}
-                    className={`relative rounded-lg px-2.5 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                    className={`relative rounded-lg px-2 xl:px-2.5 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
                       isActive || isHovered ? "text-white" : "text-slate-300 hover:text-white"
                     }`}
                   >
@@ -154,12 +154,12 @@ export function Navbar() {
 
             {/* Subtle Divider between Navigation and Actions */}
             <div
-              className="h-5 w-px bg-slate-300/60 dark:bg-slate-800 mx-1 hidden xl:block"
+              className="h-5 w-px bg-slate-300/60 dark:bg-slate-800 mx-1 hidden lg:block"
               aria-hidden="true"
             />
 
             {/* Action Controls */}
-            <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <div className="flex items-center px-0.5">
                 <ThemeToggle />
               </div>
@@ -171,7 +171,7 @@ export function Navbar() {
 
               <Link
                 to="/dang-nhap"
-                className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap lg:inline-block px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
+                className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap md:inline-block px-2.5 xl:px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
               >
                 Đăng nhập
               </Link>
@@ -179,7 +179,7 @@ export function Navbar() {
               {/* Shimmering Dynamic Console CTA Button */}
               <Link
                 to="/app"
-                className="relative group overflow-hidden inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap shrink-0"
+                className="relative group overflow-hidden inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(14,165,233,0.5)] hover:scale-[1.03] active:scale-[0.98] whitespace-nowrap shrink-0"
               >
                 {/* Shimmer sweep effect */}
                 <div className="pointer-events-none absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/30 to-transparent" />
@@ -194,7 +194,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white xl:hidden"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 text-slate-300 transition-colors hover:border-slate-700 hover:bg-slate-800 hover:text-white lg:hidden"
                 aria-label={mobileOpen ? "Đóng danh mục" : "Mở danh mục"}
               >
                 {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -209,7 +209,7 @@ export function Navbar() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="border-b border-slate-800/80 bg-slate-950/95 px-6 py-4 backdrop-blur-2xl xl:hidden overflow-hidden"
+                className="border-b border-slate-800/80 bg-slate-950/95 px-4 sm:px-6 py-4 backdrop-blur-2xl lg:hidden overflow-hidden"
               >
                 <div className="flex flex-col gap-1">
                   {LINKS.map((l) => {
