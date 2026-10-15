@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/((?!assets/|data/|demo/|mockServiceWorker\\.js|favicon\\.svg).*)",
+      "source": "/((?!assets/|data/|demo/|mockServiceWorker\\.js|favicon\\.svg|favicon\\.png|favicon-32x32\\.png|favicon\\.ico|apple-touch-icon\\.png|logo.*\\.png).*)",
       "destination": "/index.html"
     }
   ]
