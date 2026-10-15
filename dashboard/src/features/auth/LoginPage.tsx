@@ -22,6 +22,7 @@ import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
 import { TextField } from "@/shared/ui/TextField";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 import { login } from "./api";
 import { safeRedirect } from "./safeRedirect";
@@ -203,7 +204,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
 
         {/* Right Column: Authentication Form Panel */}
         <main className="lg:col-span-5 xl:col-span-5 flex flex-col justify-between p-6 sm:p-10 xl:p-12 relative overflow-y-auto">
-          {/* Top Mobile Brand Lockup (visible on mobile / tablet) */}
+          {/* Top Mobile Brand Lockup & Top Controls */}
           <div className="flex items-center justify-between mb-6 lg:mb-0">
             <Link to="/" className="lg:hidden flex items-center gap-3 group">
               <div className="h-9 w-9 rounded-xl p-1.5 bg-gradient-to-br from-blue-600/30 to-slate-950 border border-cyan-400/30 shadow-md">
@@ -218,13 +219,17 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
               </span>
             </Link>
 
-            <Link
-              to="/"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 transition-colors hover:text-white ml-auto"
-            >
-              <ArrowLeft size={13} />
-              <span>{vi.auth.backToLanding}</span>
-            </Link>
+            <div className="flex items-center gap-3 ml-auto">
+              <ThemeToggle />
+              <div className="h-4 w-px bg-slate-800" aria-hidden="true" />
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-xs text-slate-300 transition-colors hover:text-white"
+              >
+                <ArrowLeft size={13} />
+                <span>{vi.auth.backToLanding}</span>
+              </Link>
+            </div>
           </div>
 
           {/* Centered Auth Card Container */}
@@ -334,7 +339,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                   spellCheck={false}
                   error={errors.username?.message}
                   {...register("username")}
-                  className="bg-slate-900/90 border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-sm"
+                  className="bg-slate-900/90 border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-sm text-slate-100"
                 />
 
                 <TextField
@@ -343,7 +348,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                   autoComplete="current-password"
                   error={errors.password?.message}
                   {...register("password")}
-                  className="bg-slate-900/90 border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-sm"
+                  className="bg-slate-900/90 border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-sm text-slate-100"
                 />
               </div>
 

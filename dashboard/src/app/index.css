@@ -73,7 +73,7 @@ html.light {
 
   --ink-primary: #0f172a;
   --ink-secondary: #334155;
-  --ink-muted: #64748b;
+  --ink-muted: #475569; /* ≥ 5.8:1 WCAG AA */
 
   --border-hairline: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.16);

@@ -24,19 +24,52 @@ import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
+export type AppRole = "approver" | "officer" | "analyst" | "admin" | "viewer";
+
 interface NavItem {
   to: string;
   label: string;
   icon: typeof Map;
   category: "operations" | "system";
+  roles: readonly AppRole[];
 }
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { to: "/app/ban-do", label: vi.nav.map, icon: Map, category: "operations" },
-  { to: "/app/canh-bao", label: vi.nav.alerts, icon: AlertTriangle, category: "operations" },
-  { to: "/app/ho-so", label: vi.nav.cases, icon: FolderKanban, category: "operations" },
-  { to: "/app/luot-du-bao", label: vi.nav.runs, icon: TrendingUp, category: "system" },
-  { to: "/app/mo-hinh", label: vi.nav.model, icon: ShieldCheck, category: "system" },
+  {
+    to: "/app/ban-do",
+    label: vi.nav.map,
+    icon: Map,
+    category: "operations",
+    roles: ["viewer", "analyst", "officer", "approver", "admin"],
+  },
+  {
+    to: "/app/canh-bao",
+    label: vi.nav.alerts,
+    icon: AlertTriangle,
+    category: "operations",
+    roles: ["officer", "approver", "admin"],
+  },
+  {
+    to: "/app/ho-so",
+    label: vi.nav.cases,
+    icon: FolderKanban,
+    category: "operations",
+    roles: ["officer", "approver", "admin"],
+  },
+  {
+    to: "/app/luot-du-bao",
+    label: vi.nav.runs,
+    icon: TrendingUp,
+    category: "system",
+    roles: ["analyst", "admin"],
+  },
+  {
+    to: "/app/mo-hinh",
+    label: vi.nav.model,
+    icon: ShieldCheck,
+    category: "system",
+    roles: ["viewer", "analyst", "officer", "approver", "admin"],
+  },
 ];
 
 const ACCOUNT_SHORT_META: Record<string, { shortName: string; icon: typeof Activity }> = {
@@ -80,23 +113,44 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     try {
       await login(username, password);
       await queryClient.invalidateQueries();
+
+      const targetAccount = DEMO_ACCOUNTS.find((a) => a.username === username);
+      const targetRoles: readonly string[] = targetAccount?.roles ?? [];
+      const newRole: AppRole = targetRoles.includes("admin")
+        ? "admin"
+        : targetRoles.includes("approver")
+          ? "approver"
+          : targetRoles.includes("officer")
+            ? "officer"
+            : targetRoles.includes("analyst")
+              ? "analyst"
+              : "viewer";
+
+      const currentItem = NAV_ITEMS.find(
+        (item) => pathname === item.to || (item.to !== "/app" && pathname.startsWith(item.to))
+      );
+      if (currentItem && !currentItem.roles.includes(newRole)) {
+        void router.navigate({ to: "/app/ban-do" });
+      }
     } catch {
       // Bỏ qua lỗi nếu chuyển thất bại
     }
   }
 
-  type AppRole = "approver" | "officer" | "analyst" | "admin" | "viewer";
-
   const userRoles = user?.roles ?? [];
-  const primaryRole: AppRole = userRoles.includes("approver")
-    ? "approver"
-    : userRoles.includes("officer")
-      ? "officer"
-      : userRoles.includes("analyst")
-        ? "analyst"
-        : userRoles.includes("admin")
-          ? "admin"
+  const primaryRole: AppRole = userRoles.includes("admin")
+    ? "admin"
+    : userRoles.includes("approver")
+      ? "approver"
+      : userRoles.includes("officer")
+        ? "officer"
+        : userRoles.includes("analyst")
+          ? "analyst"
           : "viewer";
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(primaryRole));
+  const operationItems = visibleNavItems.filter((i) => i.category === "operations");
+  const systemItems = visibleNavItems.filter((i) => i.category === "system");
 
   const ROLE_CONFIG: Record<
     AppRole,
@@ -220,7 +274,11 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3 text-sm">
-            <ThemeToggle />
+            <div className="flex items-center px-0.5">
+              <ThemeToggle />
+            </div>
+
+            <div className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block" aria-hidden="true" />
 
             {/* User Profile Badge with Dynamic Role Color */}
             <div className="flex items-center gap-2.5 rounded-full border border-white/10 bg-slate-900/90 px-3 py-1.5 shadow-sm">
@@ -238,6 +296,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                 </span>
               </div>
             </div>
+
+            <div className="h-4 w-px bg-slate-300/40 dark:bg-slate-800 hidden sm:block" aria-hidden="true" />
 
             <Button
               variant="secondary"
@@ -331,95 +391,105 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             aria-label={vi.nav.console}
             className="glass-panel flex flex-wrap gap-1.5 rounded-2xl p-3 lg:flex-col border border-slate-800/80 bg-slate-900/60"
           >
-            <div className="hidden px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
-              Nghiệp vụ phòng dịch
-            </div>
-            {NAV_ITEMS.filter((i) => i.category === "operations").map((n) => {
-              const Icon = n.icon;
-              const isActive = pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className="relative group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
-                  activeProps={{
-                    "aria-current": "page",
-                  }}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebarActivePill"
-                      transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
-                    />
-                  )}
-                  <div className="relative z-10 flex items-center gap-3">
-                    <Icon
-                      className={`h-4 w-4 transition-colors duration-150 ${
-                        isActive
-                          ? "text-[var(--accent-ink)]"
-                          : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <span
-                      className={`transition-colors duration-150 ${
-                        isActive
-                          ? "font-semibold text-[var(--accent-ink)]"
-                          : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
-                      }`}
+            {operationItems.length > 0 && (
+              <>
+                <div className="hidden px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
+                  Nghiệp vụ phòng dịch
+                </div>
+                {operationItems.map((n) => {
+                  const Icon = n.icon;
+                  const isActive =
+                    pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      className="relative group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
+                      activeProps={{
+                        "aria-current": "page",
+                      }}
                     >
-                      {n.label}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+                      {isActive && (
+                        <motion.div
+                          layoutId="sidebarActivePill"
+                          transition={{ type: "spring", stiffness: 480, damping: 32 }}
+                          className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
+                        />
+                      )}
+                      <div className="relative z-10 flex items-center gap-3">
+                        <Icon
+                          className={`h-4 w-4 transition-colors duration-150 ${
+                            isActive
+                              ? "text-[var(--accent-ink)]"
+                              : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className={`transition-colors duration-150 ${
+                            isActive
+                              ? "font-semibold text-[var(--accent-ink)]"
+                              : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                          }`}
+                        >
+                          {n.label}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </>
+            )}
 
-            <div className="hidden pt-2 px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
-              Hệ thống & Trí tuệ AI
-            </div>
-            {NAV_ITEMS.filter((i) => i.category === "system").map((n) => {
-              const Icon = n.icon;
-              const isActive = pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
-              return (
-                <Link
-                  key={n.to}
-                  to={n.to}
-                  className="relative group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
-                  activeProps={{
-                    "aria-current": "page",
-                  }}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebarActivePill"
-                      transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
-                    />
-                  )}
-                  <div className="relative z-10 flex items-center gap-3">
-                    <Icon
-                      className={`h-4 w-4 transition-colors duration-150 ${
-                        isActive
-                          ? "text-[var(--accent-ink)]"
-                          : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <span
-                      className={`transition-colors duration-150 ${
-                        isActive
-                          ? "font-semibold text-[var(--accent-ink)]"
-                          : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
-                      }`}
+            {systemItems.length > 0 && (
+              <>
+                <div className="hidden pt-2 px-3 py-1.5 text-[10px] font-semibold tracking-wider text-[var(--ink-muted)] uppercase lg:block">
+                  Hệ thống & Trí tuệ AI
+                </div>
+                {systemItems.map((n) => {
+                  const Icon = n.icon;
+                  const isActive =
+                    pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      className="relative group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
+                      activeProps={{
+                        "aria-current": "page",
+                      }}
                     >
-                      {n.label}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+                      {isActive && (
+                        <motion.div
+                          layoutId="sidebarActivePill"
+                          transition={{ type: "spring", stiffness: 480, damping: 32 }}
+                          className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
+                        />
+                      )}
+                      <div className="relative z-10 flex items-center gap-3">
+                        <Icon
+                          className={`h-4 w-4 transition-colors duration-150 ${
+                            isActive
+                              ? "text-[var(--accent-ink)]"
+                              : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <span
+                          className={`transition-colors duration-150 ${
+                            isActive
+                              ? "font-semibold text-[var(--accent-ink)]"
+                              : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                          }`}
+                        >
+                          {n.label}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </>
+            )}
 
             <div className="my-1 border-t border-[var(--border-hairline)]" />
             <Link
@@ -432,6 +502,11 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               />
               <span>{vi.nav.home}</span>
             </Link>
+
+            <div className="hidden lg:flex items-center justify-between px-3.5 py-2 text-xs text-[var(--ink-muted)]">
+              <span>Chế độ sáng/tối</span>
+              <ThemeToggle />
+            </div>
           </nav>
         </aside>
 
