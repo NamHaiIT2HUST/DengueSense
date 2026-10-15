@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, X, Sparkles, Scale } from "lucide-react";
+import { Check, X, ShieldCheck, Scale } from "lucide-react";
 
 const COMPARISONS = [
   {
@@ -82,7 +82,7 @@ export function ComparisonSection() {
                 </th>
                 <th className="py-4 px-5 text-cyan-400 font-bold w-[37.5%] bg-blue-950/30 border-l border-blue-500/20">
                   <div className="flex items-center gap-1.5">
-                    <Sparkles size={16} className="text-cyan-400" />
+                    <ShieldCheck size={16} className="text-cyan-400" />
                     <span>DengueSense AI Solution</span>
                   </div>
                 </th>

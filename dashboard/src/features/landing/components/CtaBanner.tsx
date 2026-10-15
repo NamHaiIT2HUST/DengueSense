@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
+import { ArrowRight, LayoutDashboard, ShieldCheck } from "lucide-react";
 
 export function CtaBanner() {
   return (
@@ -44,7 +44,7 @@ export function CtaBanner() {
             to="/app"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 px-7 py-3.5 text-sm font-bold text-white shadow-xl shadow-blue-500/30 transition-all hover:scale-105 hover:shadow-cyan-500/40 active:scale-95"
           >
-            <Sparkles size={16} />
+            <LayoutDashboard size={16} className="shrink-0" />
             <span>Vào Bảng Điều Khiển Console</span>
             <ArrowRight size={16} />
           </Link>

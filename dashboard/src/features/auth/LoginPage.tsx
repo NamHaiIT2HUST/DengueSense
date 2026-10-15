@@ -3,7 +3,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Activity, ArrowRight, ArrowLeft, Shield, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, ArrowLeft, Shield } from "lucide-react";
 
 import { toUserFacing } from "@/shared/api";
 import { DEMO_ACCOUNTS } from "@/shared/config/demo";
@@ -64,7 +64,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
             <Activity className="h-7 w-7" aria-hidden="true" />
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400">
-            <Sparkles className="h-3 w-3" />
+            <Shield className="h-3 w-3" />
             <span>DengueSense Decision Platform</span>
           </div>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-tight text-white">

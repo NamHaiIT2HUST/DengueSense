@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Check, Pencil, X } from "lucide-react";
+import { FileText, Check, Pencil, X } from "lucide-react";
 import { ConceptTag } from "@/shared/ui/Badge";
 import type { ProvinceRisk } from "../model/types";
 
@@ -16,7 +16,7 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-display flex items-center gap-2 text-xl font-semibold">
-            <Sparkles size={18} className="text-[var(--accent)]" />
+            <FileText size={18} className="text-[var(--accent)]" />
             Layer 3 — Dự thảo điều phối bằng GenAI
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">

@@ -8,7 +8,7 @@ import {
   Activity,
   Sliders,
   TrendingDown,
-  Sparkles,
+  Binary,
   MapPin,
   Printer,
   ChevronRight,
@@ -256,7 +256,7 @@ export function HeroCommandCenter() {
                 <div className="rounded-xl bg-slate-950/90 p-3.5 border border-slate-800/80 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-slate-300 font-semibold flex items-center gap-1.5">
-                      <Sparkles size={13} className="text-cyan-400" />
+                      <Binary size={13} className="text-cyan-400 shrink-0" />
                       <span>Giải trình nguyên nhân TreeSHAP (Explainable AI)</span>
                     </span>
                     <span className="font-mono text-[11px] text-emerald-400">Khớp quy luật</span>
