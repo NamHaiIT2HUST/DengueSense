@@ -10,8 +10,8 @@ export function DataSourceBadge({ source }: { source: DataSource }) {
       className={clsx(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
         isReal
-          ? "bg-[color-mix(in_srgb,var(--status-good)_18%,transparent)] text-[#4ade80]"
-          : "bg-[color-mix(in_srgb,var(--status-warning)_18%,transparent)] text-[#fbbf24]"
+          ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-good)_18%,transparent)] dark:text-[#4ade80]"
+          : "bg-amber-50 text-amber-900 border border-amber-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-warning)_18%,transparent)] dark:text-[#fbbf24]"
       )}
       title={
         isReal

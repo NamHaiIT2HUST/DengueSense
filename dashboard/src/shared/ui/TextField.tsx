@@ -32,7 +32,7 @@ export function TextField({ label, error, className, id, ref, ...rest }: TextFie
         )}
       />
       {error ? (
-        <p id={errorId} className="text-sm text-[#f28b82]">
+        <p id={errorId} className="text-sm text-red-600 dark:text-[#f28b82]">
           {error}
         </p>
       ) : null}

@@ -49,6 +49,9 @@
   --status-warning: #f59e0b;
   --status-serious: #f97316;
   --status-critical: #ef4444;
+  --status-good-ink: #86efac;
+  --status-warning-ink: #fbd98a;
+  --status-critical-ink: #f5b5b0;
 
   /* Brand Colors từ Logo DengueSense & Identity */
   --brand-navy: #0a192f;
@@ -66,22 +69,22 @@
 html.light {
   color-scheme: light;
 
-  --bg-page: #f8fafc;
+  --bg-page: #f1f5f9;
   --bg-surface: #ffffff;
-  --bg-surface-2: #f1f5f9;
+  --bg-surface-2: #f8fafc;
   --bg-surface-hover: #e2e8f0;
 
   --ink-primary: #0f172a;
   --ink-secondary: #334155;
-  --ink-muted: #475569; /* ≥ 5.8:1 WCAG AA */
+  --ink-muted: #64748b; /* ≥ 4.5:1 WCAG AA */
 
-  --border-hairline: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.16);
+  --border-hairline: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.22);
 
   --accent: #2563eb;
   --accent-solid: #1d4ed8;
-  --accent-ink: #ffffff;
-  --accent-soft: rgba(37, 99, 235, 0.12);
+  --accent-ink: #1e40af;
+  --accent-soft: rgba(37, 99, 235, 0.08);
 
   --risk-1: #fff5f0;
   --risk-2: #fee0d2;
@@ -103,6 +106,9 @@ html.light {
   --status-warning: #d97706;
   --status-serious: #ea580c;
   --status-critical: #dc2626;
+  --status-good-ink: #15803d;
+  --status-warning-ink: #b45309;
+  --status-critical-ink: #b91c1c;
 
   --brand-navy: #1e3a8a;
   --brand-blue: #2563eb;
@@ -187,18 +193,18 @@ body {
    ============================================================ */
 [data-theme="light"],
 [data-theme="light"] body {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
   background-image:
     radial-gradient(
       circle at 50% -5%,
-      rgba(37, 99, 235, 0.14) 0%,
-      rgba(14, 165, 233, 0.08) 35%,
+      rgba(37, 99, 235, 0.08) 0%,
+      rgba(14, 165, 233, 0.04) 35%,
       transparent 65%
     ),
-    radial-gradient(circle at 92% 28%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 8% 68%, rgba(239, 68, 68, 0.06) 0%, transparent 50%),
-    linear-gradient(to bottom, rgba(248, 250, 252, 0.75) 0%, rgba(241, 245, 249, 0.96) 100%),
-    radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+    radial-gradient(circle at 92% 28%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 8% 68%, rgba(239, 68, 68, 0.03) 0%, transparent 50%),
+    linear-gradient(to bottom, rgba(241, 245, 249, 0.8) 0%, rgba(241, 245, 249, 0.98) 100%),
+    radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
   background-size:
     100% 100%,
     100% 100%,
@@ -406,15 +412,19 @@ body {
 [data-theme="light"] {
   /* 1. Global Surfaces & Cards */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.9) !important;
+    background: #ffffff !important;
     border-color: rgba(226, 232, 240, 0.95) !important;
-    box-shadow: 0 4px 24px -2px rgba(15, 23, 42, 0.06) !important;
+    box-shadow:
+      0 1px 3px 0 rgba(15, 23, 42, 0.04),
+      0 4px 14px -2px rgba(15, 23, 42, 0.05) !important;
   }
 
   .glass-panel-elevated {
-    background: rgba(255, 255, 255, 0.98) !important;
-    border-color: rgba(203, 213, 225, 0.9) !important;
-    box-shadow: 0 10px 32px -4px rgba(15, 23, 42, 0.08) !important;
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.85) !important;
+    box-shadow:
+      0 4px 6px -1px rgba(15, 23, 42, 0.05),
+      0 12px 28px -4px rgba(15, 23, 42, 0.07) !important;
   }
 
   /* Eliminate all dark gradients in cards across the entire app */
@@ -491,6 +501,69 @@ body {
     color: #475569 !important;
   }
 
+  /* High-contrast accessible badges & status inks in Light Mode */
+  .text-cyan-300,
+  .text-cyan-400 {
+    color: #0284c7 !important; /* Sky 600 - crisp and readable on light */
+  }
+  .text-blue-300,
+  .text-blue-400 {
+    color: #1d4ed8 !important; /* Blue 700 */
+  }
+  .text-emerald-300,
+  .text-emerald-400 {
+    color: #059669 !important; /* Emerald 600 */
+  }
+  .text-amber-300,
+  .text-amber-400 {
+    color: #b45309 !important; /* Amber 700 */
+  }
+  .text-purple-300,
+  .text-purple-400 {
+    color: #7e22ce !important; /* Purple 700 */
+  }
+  .text-rose-300,
+  .text-rose-400 {
+    color: #e11d48 !important; /* Rose 600 */
+  }
+
+  /* Badge border and backgrounds in Light Mode */
+  .border-cyan-500\/30,
+  .border-cyan-500\/20,
+  .border-cyan-500\/40,
+  .border-cyan-400\/40 {
+    border-color: rgba(2, 132, 199, 0.3) !important;
+  }
+  .border-emerald-500\/20,
+  .border-emerald-500\/30 {
+    border-color: rgba(5, 150, 105, 0.3) !important;
+  }
+  .border-amber-500\/30 {
+    border-color: rgba(180, 83, 9, 0.3) !important;
+  }
+  .border-blue-500\/30,
+  .border-blue-500\/40 {
+    border-color: rgba(29, 78, 216, 0.3) !important;
+  }
+
+  .bg-cyan-500\/10,
+  .bg-cyan-500\/15,
+  .bg-cyan-500\/20 {
+    background-color: rgba(2, 132, 199, 0.08) !important;
+  }
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/15 {
+    background-color: rgba(5, 150, 105, 0.08) !important;
+  }
+  .bg-amber-500\/10 {
+    background-color: rgba(180, 83, 9, 0.08) !important;
+  }
+  .bg-blue-500\/10,
+  .bg-blue-500\/15,
+  .bg-blue-500\/20 {
+    background-color: rgba(29, 78, 216, 0.08) !important;
+  }
+
   /* 3. Solid Buttons & Action Controls */
   a.bg-gradient-to-r,
   button.bg-gradient-to-r,
@@ -506,7 +579,10 @@ body {
   a.bg-blue-600 *,
   button.bg-blue-600 *,
   a[class*="from-blue-600"] *,
-  button[class*="from-blue-600"] * {
+  button[class*="from-blue-600"] *,
+  .peer-checked\:text-white,
+  [class*="bg-gradient-to-tr"],
+  [class*="bg-gradient-to-tr"] * {
     color: #ffffff !important;
   }
 
