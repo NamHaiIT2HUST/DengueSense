@@ -201,6 +201,19 @@ body {
   box-shadow: 0 0 50px -10px rgba(239, 68, 68, 0.35);
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
 @media print {
   body {
     background-color: #ffffff !important;
