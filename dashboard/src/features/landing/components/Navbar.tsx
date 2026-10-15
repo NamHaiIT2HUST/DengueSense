@@ -1,17 +1,31 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Menu, X, Activity } from "lucide-react";
+import {
+  ArrowRight,
+  Menu,
+  X,
+  Activity,
+  Boxes,
+  Target,
+  Clock,
+  Cpu,
+  Map,
+  Compass,
+  Users,
+  HelpCircle,
+} from "lucide-react";
 
 const LINKS = [
-  { href: "#overview", label: "Tổng quan", fullLabel: "Tổng quan" },
-  { href: "#framework", label: "Giải pháp", fullLabel: "Khung giải pháp" },
-  { href: "#timeline", label: "Quy trình", fullLabel: "Quy trình ứng phó" },
-  { href: "#layers", label: "Công nghệ", fullLabel: "Kiến trúc công nghệ" },
-  { href: "#map", label: "Bản đồ", fullLabel: "Bản đồ 34 tỉnh" },
-  { href: "#roadmap", label: "Lộ trình", fullLabel: "Lộ trình triển khai" },
-  { href: "#team", label: "Đội ngũ", fullLabel: "Đội ngũ MedSentinel" },
-  { href: "#faq", label: "Hỏi đáp", fullLabel: "Hỏi đáp chuyên môn" },
+  { href: "#overview", label: "Tổng quan", fullLabel: "Tổng quan hệ thống", icon: Activity },
+  { href: "#product", label: "Sản phẩm", fullLabel: "Giới thiệu sản phẩm", icon: Boxes },
+  { href: "#framework", label: "Giải pháp", fullLabel: "Khung giải pháp", icon: Target },
+  { href: "#timeline", label: "Quy trình", fullLabel: "Quy trình ứng phó", icon: Clock },
+  { href: "#layers", label: "Công nghệ", fullLabel: "Kiến trúc công nghệ", icon: Cpu },
+  { href: "#map", label: "Bản đồ", fullLabel: "Bản đồ 34 tỉnh", icon: Map },
+  { href: "#roadmap", label: "Lộ trình", fullLabel: "Lộ trình triển khai", icon: Compass },
+  { href: "#team", label: "Đội ngũ", fullLabel: "Đội ngũ MedSentinel", icon: Users },
+  { href: "#faq", label: "Hỏi đáp", fullLabel: "Hỏi đáp chuyên môn", icon: HelpCircle },
 ];
 
 export function Navbar() {
@@ -186,18 +200,20 @@ export function Navbar() {
             <div className="flex flex-col gap-1">
               {LINKS.map((l) => {
                 const isActive = activeSection === l.href;
+                const Icon = l.icon;
                 return (
                   <a
                     key={l.href}
                     href={l.href}
                     onClick={(e) => handleNavClick(e, l.href)}
-                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                    className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                       isActive
-                        ? "bg-blue-600/20 text-cyan-300 border-l-2 border-cyan-400 font-semibold"
+                        ? "bg-blue-600/20 text-cyan-300 border-l-2 border-cyan-400 font-semibold shadow-sm"
                         : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
                     }`}
                   >
-                    {l.fullLabel}
+                    <Icon size={16} className={isActive ? "text-cyan-400" : "text-slate-400"} />
+                    <span>{l.fullLabel}</span>
                   </a>
                 );
               })}

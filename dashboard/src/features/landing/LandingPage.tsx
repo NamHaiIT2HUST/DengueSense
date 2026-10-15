@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatTiles } from "./components/StatTiles";
+import { ProductSection } from "./components/ProductSection";
 import { ProblemSolutionFramework } from "./components/ProblemSolutionFramework";
 import { OutbreakTimeline } from "./components/OutbreakTimeline";
 import { ProvinceRanking } from "./components/ProvinceRanking";
@@ -64,6 +65,8 @@ export function LandingPage() {
         <section>
           <StatTiles provinces={data.provinces} />
         </section>
+
+        <ProductSection />
 
         <ProblemSolutionFramework />
 
