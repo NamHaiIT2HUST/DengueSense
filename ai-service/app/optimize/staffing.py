@@ -122,6 +122,8 @@ class SolveResult(Record):
     seed_search: SeedSearchSummary | None = None
     seed: int
     error_code: str | None = None
+    solver_metadata: dict | None = None
+    search_steps: Count | None = None
 
 
 def integer_lower_bound(bound: float | None, guaranteed: bool = True) -> int | None:

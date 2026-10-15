@@ -310,6 +310,11 @@ def _solve(scenario, time_limit_s, seed, feasibility_only):
         seed_search=seed_search,
         seed=seed,
         error_code=error_code,
+        solver_metadata={
+            "first_feasible_at_s": (
+                start + first_time if first_time is not None else None
+            )
+        },
     )
 
 
