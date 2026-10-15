@@ -84,14 +84,14 @@ const STAGES: TimelineStage[] = [
     shortLabel: "Công điện B2G",
     phase: "Giai đoạn 4: Ban Hành & Triệt Tiêu Đỉnh Dịch",
     title: "Ban Hành Công Điện Khẩn & Khống Chế Ổ Dịch",
-    desc: "GenAI RAG tự động sinh công điện B2G chuẩn Nghị định 30/2020/NĐ-CP và phác đồ điều trị B2B Quyết định 02/2016. Lãnh đạo thẩm duyệt và ký số điện tử. Các đội cơ động xuất quân diệt lăng quăng, triệt tiêu đỉnh dịch.",
+    desc: "GenAI RAG tự động sinh dự thảo công điện B2G chuẩn Nghị định 30/2020/NĐ-CP và điều kiện công bố dịch Quyết định 02/2016/QĐ-TTg. Lãnh đạo thẩm định và ký số theo quy trình 4 mắt. Các đội cơ động xuất quân xử lý ổ bọ gậy, triệt tiêu đỉnh dịch.",
     icon: FileCheck2,
     badge: "Chuẩn NĐ 30/2020",
-    color: "from-red-500/20 to-rose-500/10 border-red-500/40 text-red-400",
+    color: "from-indigo-500/20 to-blue-500/10 border-indigo-500/40 text-indigo-300",
     metrics: [
       { label: "Thời gian soạn thảo", value: "5 phút", highlight: true },
       { label: "Khóa số liệu Guardrail", value: "100%" },
-      { label: "Ký số điện tử CA", value: "Hợp pháp" },
+      { label: "Ký số điện tử CA", value: "Quy trình 4 mắt" },
     ],
     actionNote:
       "Bảo vệ hệ thống y tế tuyến trên không bị vỡ trận, giảm tối đa tỷ lệ tử vong do sốt xuất huyết.",

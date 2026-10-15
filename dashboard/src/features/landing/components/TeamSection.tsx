@@ -42,9 +42,9 @@ const MEMBERS: TeamMember[] = [
     tag: "Epidemiological Advisory",
     affiliation: "Hệ Thống Y Tế Dự Phòng & Bệnh Viện Truyền Nhiễm",
     focus:
-      "Hiệu chuẩn ngưỡng cảnh báo bùng dịch P75 trên 34 tỉnh, tham vấn quy trình cách ly và phác đồ điều trị QĐ 02/2016.",
+      "Hiệu chuẩn ngưỡng cảnh báo bùng dịch P75 trên 34 tỉnh, tham vấn điều kiện công bố dịch QĐ 02/2016/QĐ-TTg và phác đồ chuyên môn Bộ Y tế.",
     icon: Stethoscope,
-    color: "from-red-500/20 to-rose-500/10 border-red-500/30 text-red-400",
+    color: "from-rose-500/15 to-indigo-500/10 border-rose-500/30 text-rose-300",
   },
   {
     name: "Nhóm Kỹ Thuật Dữ Liệu & GIS",

@@ -36,7 +36,7 @@ const COMPARISONS = [
     criterion: "Soạn thảo công văn chỉ đạo",
     traditional: "Mất 2–3 ngày soạn thảo và thẩm định qua nhiều cấp trung gian.",
     denguesense:
-      "GenAI RAG tự động sinh văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT chỉ trong 5 phút.",
+      "GenAI RAG tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
   },
   {
     criterion: "Kiểm soát an toàn thông tin & ảo giác",
@@ -51,7 +51,7 @@ export function ComparisonSection() {
     <section id="comparison" className="relative space-y-8">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-semibold text-red-400 mb-3">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400 mb-3">
           <Scale size={13} />
           <span>SO SÁNH NĂNG LỰC VƯỢT TRỘI</span>
         </div>

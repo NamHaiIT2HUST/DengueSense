@@ -183,9 +183,9 @@ export function ProblemSolutionFramework() {
               <li className="flex items-start gap-2.5">
                 <div className="mt-1 h-2 w-2 shrink-0 rounded-full border border-cyan-400/80 bg-cyan-400/30 shadow-[0_0_8px_rgba(14,165,233,0.7)]" />
                 <span>
-                  <strong className="text-white">GenAI RAG Thể thức (Layer 3):</strong> Soạn thảo
-                  công điện B2G & phác đồ B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016 chỉ
-                  trong 5 phút.
+                  <strong className="text-white">GenAI RAG Thể thức (Layer 3):</strong> Soạn thảo dự
+                  thảo công điện B2G & phác đồ B2B chuẩn Nghị định 30/2020/NĐ-CP & Quyết định
+                  02/2016/QĐ-TTg chỉ trong 5 phút.
                 </span>
               </li>
             </ul>

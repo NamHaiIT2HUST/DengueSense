@@ -65,7 +65,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-300">
             <ShieldCheck size={13} className="text-cyan-400" />
-            <span>Tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT</span>
+            <span>Tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg</span>
           </div>
         </div>
       </div>

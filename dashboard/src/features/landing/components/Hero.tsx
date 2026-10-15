@@ -26,7 +26,7 @@ const PILLARS = [
     badge: "Chuẩn NĐ 30/2020",
     title: "Soạn thảo Công điện GenAI",
     desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
-    color: "from-red-500/20 to-rose-500/10 border-red-500/30 text-red-400",
+    color: "from-indigo-500/20 to-violet-500/10 border-indigo-500/30 text-indigo-300",
   },
 ];
 
@@ -97,7 +97,7 @@ export function Hero() {
           DengueSense là nền tảng AI y tế công cộng khép kín đầu tiên tại Việt Nam:{" "}
           <strong className="text-white font-semibold">Cảnh báo sớm 1–6 tháng (89.5%)</strong>, tối
           ưu hoá phân bổ <strong className="text-white font-semibold">3 nguồn lực thiết yếu</strong>{" "}
-          dưới 1 phút và tự động soạn thảo công điện điều phối chuẩn{" "}
+          dưới 1 phút và tự động soạn thảo dự thảo công điện điều phối chuẩn{" "}
           <strong className="text-cyan-400 font-semibold">Nghị định 30/2020/NĐ-CP</strong>.
         </motion.p>
 

@@ -383,7 +383,7 @@ export function InteractiveLayers() {
                 <p className="text-slate-300 text-sm leading-relaxed">
                   Trợ lý GenAI ứng dụng mô hình RAG tự động sinh công điện B2G và kế hoạch lâm sàng
                   B2B theo chuẩn <strong>Nghị định 30/2020/NĐ-CP</strong> và{" "}
-                  <strong>Quyết định 02/2016/QĐ-BYT</strong>.
+                  <strong>Quyết định 02/2016/QĐ-TTg</strong>.
                 </p>
                 <div className="space-y-3 text-xs sm:text-sm text-slate-300">
                   <div className="flex items-start gap-3 rounded-xl bg-slate-900/90 border border-indigo-500/30 p-3.5 shadow-sm">
@@ -455,7 +455,7 @@ export function InteractiveLayers() {
                     </span>
                   </div>
                   <h4 className="font-display font-bold text-sm sm:text-base text-rose-200 uppercase tracking-wide">
-                    CÔNG ĐIỆN CHỈ ĐẠO ĐIỀU PHỐI KHẨN CẤP
+                    DỰ THẢO CÔNG ĐIỆN CHỈ ĐẠO ĐIỀU PHỐI KHẨN CẤP
                   </h4>
                   <p className="text-xs italic text-slate-300 mt-0.5">
                     V/v triển khai cấp bách công tác phòng, chống dịch sốt xuất huyết Dengue
@@ -504,13 +504,13 @@ export function InteractiveLayers() {
                 {/* Official Signature & Legal Foundation */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-[11px] border-t border-slate-800/80">
                   <div className="text-slate-400 italic">
-                    Căn cứ: NĐ 30/2020/NĐ-CP & QĐ 02/2016/QĐ-BYT
+                    Căn cứ: NĐ 30/2020/NĐ-CP & QĐ 02/2016/QĐ-TTg
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg bg-slate-900/90 border border-cyan-500/30 px-3 py-1.5 shadow-sm">
                     <div className="text-right">
                       <div className="font-bold text-slate-200 text-[10px]">TL. BỘ TRƯỞNG</div>
                       <div className="text-cyan-400 font-mono text-[10px] font-semibold">
-                        [ĐÃ KÝ SỐ ĐIỆN TỬ]
+                        [QUY TRÌNH 4 MẮT · CHỜ LÃNH ĐẠO KÝ SỐ]
                       </div>
                     </div>
                     <div className="h-6 w-6 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-xs">

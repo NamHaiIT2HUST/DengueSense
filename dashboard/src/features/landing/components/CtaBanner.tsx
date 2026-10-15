@@ -36,7 +36,7 @@ export function CtaBanner() {
 
         <p className="mx-auto max-w-2xl text-sm sm:text-base text-slate-300 leading-relaxed">
           Trải nghiệm toàn bộ hệ sinh thái khép kín từ bản đồ nhiệt GIS cảnh báo sớm, tối ưu hóa
-          phân bổ nguồn lực đến xuất công điện hành chính PDF chuẩn Nghị định 30/2020/NĐ-CP.
+          phân bổ nguồn lực đến xuất dự thảo công điện hành chính PDF chuẩn Nghị định 30/2020/NĐ-CP.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
