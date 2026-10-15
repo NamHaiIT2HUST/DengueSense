@@ -4,6 +4,8 @@ import { Loader2 } from "lucide-react";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatTiles } from "./components/StatTiles";
+import { ProblemSolutionFramework } from "./components/ProblemSolutionFramework";
+import { OutbreakTimeline } from "./components/OutbreakTimeline";
 import { ProvinceRanking } from "./components/ProvinceRanking";
 import { InteractiveLayers } from "./components/InteractiveLayers";
 import { ComparisonSection } from "./components/ComparisonSection";
@@ -61,6 +63,10 @@ export function LandingPage() {
         <section>
           <StatTiles provinces={data.provinces} />
         </section>
+
+        <ProblemSolutionFramework />
+
+        <OutbreakTimeline />
 
         <InteractiveLayers />
 

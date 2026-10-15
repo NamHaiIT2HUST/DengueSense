@@ -4,6 +4,8 @@ import { ArrowRight, ShieldCheck } from "lucide-react";
 
 const LINKS = [
   { href: "#overview", label: "Tổng quan" },
+  { href: "#framework", label: "Khung Giải Pháp" },
+  { href: "#timeline", label: "Lộ Trình Dịch Tễ" },
   { href: "#layers", label: "Kiến trúc 3 Tầng" },
   { href: "#map", label: "Bản đồ Dịch tễ" },
   { href: "#comparison", label: "So sánh Giải pháp" },

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText, CheckCircle2, Sparkles, MapPin } from "lucide-react";
+import { HeroCommandCenter } from "./HeroCommandCenter";
 
 const PILLARS = [
   {
@@ -139,6 +140,15 @@ export function Hero() {
               <span>{tag}</span>
             </span>
           ))}
+        </motion.div>
+
+        {/* Interactive Live Command Center Window */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.28 }}
+        >
+          <HeroCommandCenter />
         </motion.div>
 
         {/* 3 Pillars Bento Grid */}
