@@ -153,7 +153,10 @@ export function ProductSection() {
 
               <div className="space-y-4">
                 {/* Header row with Icon and Badge */}
-                <div className="flex items-center justify-between" style={{ transform: "translateZ(18px)" }}>
+                <div
+                  className="flex items-center justify-between"
+                  style={{ transform: "translateZ(18px)" }}
+                >
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900/90 border border-slate-700/80 text-white shadow-md transition-transform group-hover:scale-110">
                     <Icon size={20} className={m.accentText} />
                   </div>
@@ -173,7 +176,10 @@ export function ProductSection() {
                   </h3>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed" style={{ transform: "translateZ(8px)" }}>
+                <p
+                  className="text-xs text-slate-300 leading-relaxed"
+                  style={{ transform: "translateZ(8px)" }}
+                >
                   {m.desc}
                 </p>
               </div>
@@ -202,9 +208,7 @@ export function ProductSection() {
               Từ Dữ Liệu Khí Hậu Đến Hành Động Dập Dịch Thực Địa
             </h3>
           </div>
-          <span className="text-xs font-medium text-slate-400">
-            Khép kín 4 công đoạn tự động
-          </span>
+          <span className="text-xs font-medium text-slate-400">Khép kín 4 công đoạn tự động</span>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -220,18 +224,27 @@ export function ProductSection() {
                 className="relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 transition-colors hover:border-slate-700 hover:bg-slate-900/80"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3" style={{ transform: "translateZ(14px)" }}>
-                    <span className="font-mono text-xl font-black text-slate-600">
-                      {w.step}
-                    </span>
-                    <div className={`flex h-9 w-9 items-center justify-center rounded-xl border shadow-sm ${w.accent}`}>
+                  <div
+                    className="flex items-center justify-between mb-3"
+                    style={{ transform: "translateZ(14px)" }}
+                  >
+                    <span className="font-mono text-xl font-black text-slate-600">{w.step}</span>
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-xl border shadow-sm ${w.accent}`}
+                    >
                       <StepIcon size={16} />
                     </div>
                   </div>
-                  <h4 className="font-display text-sm font-bold text-white mb-1.5" style={{ transform: "translateZ(10px)" }}>
+                  <h4
+                    className="font-display text-sm font-bold text-white mb-1.5"
+                    style={{ transform: "translateZ(10px)" }}
+                  >
                     {w.title}
                   </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed" style={{ transform: "translateZ(6px)" }}>
+                  <p
+                    className="text-xs text-slate-300 leading-relaxed"
+                    style={{ transform: "translateZ(6px)" }}
+                  >
                     {w.desc}
                   </p>
                 </div>

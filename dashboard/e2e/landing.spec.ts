@@ -15,7 +15,10 @@ test.describe("trang giới thiệu (bản build)", () => {
     );
 
     await expect(
-      page.getByRole("heading", { name: "Giải Pháp 3 Bước Toàn Diện Cho Y Tế Dự Phòng", exact: true })
+      page.getByRole("heading", {
+        name: "Giải Pháp 3 Bước Toàn Diện Cho Y Tế Dự Phòng",
+        exact: true,
+      })
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành", exact: true })

@@ -265,9 +265,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                     <ShieldCheck size={13} className="text-cyan-400" />
                     <span>{vi.auth.demoAccounts}</span>
                   </span>
-                  <span className="text-[11px] text-slate-400 font-normal">
-                    Chọn nhanh 1 chạm
-                  </span>
+                  <span className="text-[11px] text-slate-400 font-normal">Chọn nhanh 1 chạm</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">

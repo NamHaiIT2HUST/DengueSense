@@ -16,7 +16,8 @@ const PILLARS = [
     color: "from-cyan-950/40 via-slate-900/90 to-slate-950/95 border-cyan-500/30 text-cyan-400",
     hoverBorder: "hover:border-cyan-400/60 hover:shadow-[0_16px_50px_rgba(14,165,233,0.25)]",
     topGlow: "from-transparent via-cyan-400 to-transparent",
-    iconBg: "bg-cyan-500/15 border-cyan-500/35 text-cyan-400 group-hover:bg-cyan-500/25 group-hover:shadow-[0_0_24px_rgba(14,165,233,0.45)]",
+    iconBg:
+      "bg-cyan-500/15 border-cyan-500/35 text-cyan-400 group-hover:bg-cyan-500/25 group-hover:shadow-[0_0_24px_rgba(14,165,233,0.45)]",
     badgeStyle: "border-cyan-500/30 bg-cyan-950/60 text-cyan-300",
     tag: "Khí hậu ERA5 + M4-R2",
   },
@@ -30,7 +31,8 @@ const PILLARS = [
     color: "from-blue-950/40 via-slate-900/90 to-slate-950/95 border-blue-500/30 text-blue-400",
     hoverBorder: "hover:border-blue-400/60 hover:shadow-[0_16px_50px_rgba(37,99,235,0.25)]",
     topGlow: "from-transparent via-blue-400 to-transparent",
-    iconBg: "bg-blue-500/15 border-blue-500/35 text-blue-400 group-hover:bg-blue-500/25 group-hover:shadow-[0_0_24px_rgba(37,99,235,0.45)]",
+    iconBg:
+      "bg-blue-500/15 border-blue-500/35 text-blue-400 group-hover:bg-blue-500/25 group-hover:shadow-[0_0_24px_rgba(37,99,235,0.45)]",
     badgeStyle: "border-blue-500/30 bg-blue-950/60 text-blue-300",
     tag: "Quy hoạch Google OR-Tools",
   },
@@ -41,10 +43,12 @@ const PILLARS = [
     badge: "Chuẩn Thể Thức NĐ 30/2020",
     title: "Tự Động Hóa Công Điện Khẩn",
     desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
-    color: "from-indigo-950/40 via-slate-900/90 to-slate-950/95 border-indigo-500/30 text-indigo-300",
+    color:
+      "from-indigo-950/40 via-slate-900/90 to-slate-950/95 border-indigo-500/30 text-indigo-300",
     hoverBorder: "hover:border-indigo-400/60 hover:shadow-[0_16px_50px_rgba(99,102,241,0.25)]",
     topGlow: "from-transparent via-indigo-400 to-transparent",
-    iconBg: "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
+    iconBg:
+      "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
     badgeStyle: "border-indigo-500/30 bg-indigo-950/60 text-indigo-200",
     tag: "Guardrail G1 RAG",
   },

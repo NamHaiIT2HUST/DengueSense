@@ -22,6 +22,7 @@ import { DEMO_ACCOUNTS } from "@/shared/config/demo";
 import { env } from "@/shared/config/env";
 import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 interface NavItem {
   to: string;
@@ -38,10 +39,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { to: "/app/mo-hinh", label: vi.nav.model, icon: ShieldCheck, category: "system" },
 ];
 
-const ACCOUNT_SHORT_META: Record<
-  string,
-  { shortName: string; icon: typeof Activity }
-> = {
+const ACCOUNT_SHORT_META: Record<string, { shortName: string; icon: typeof Activity }> = {
   "demo.xem": { shortName: "Người xem", icon: Eye },
   "demo.phan-tich": { shortName: "Chuyên viên", icon: TrendingUp },
   officer: { shortName: "Điều hành", icon: Activity },
@@ -179,7 +177,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const RoleIcon = roleMeta.icon;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen text-[var(--ink-primary)] transition-colors duration-200">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-white"
@@ -222,6 +220,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3 text-sm">
+            <ThemeToggle />
+
             {/* User Profile Badge with Dynamic Role Color */}
             <div className="flex items-center gap-2.5 rounded-full border border-white/10 bg-slate-900/90 px-3 py-1.5 shadow-sm">
               <div

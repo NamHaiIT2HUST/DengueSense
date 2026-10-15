@@ -15,6 +15,7 @@ import {
   Users,
   HelpCircle,
 } from "lucide-react";
+import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 const LINKS = [
   { href: "#overview", label: "Tổng quan", fullLabel: "Tổng quan hệ thống", icon: Activity },
@@ -149,6 +150,8 @@ export function Navbar() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <ThemeToggle />
+
           <Link
             to="/dang-nhap"
             className="hidden text-xs xl:text-sm font-medium text-slate-300 transition-all hover:text-white whitespace-nowrap lg:inline-block px-3 py-1.5 rounded-lg hover:bg-slate-800/60 hover:shadow-sm"
@@ -212,6 +215,10 @@ export function Navbar() {
                 );
               })}
               <div className="mt-3 border-t border-slate-800/80 pt-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800/60">
+                  <span className="text-xs font-medium text-slate-300">Giao diện</span>
+                  <ThemeToggle showLabel />
+                </div>
                 <Link
                   to="/dang-nhap"
                   onClick={() => setMobileOpen(false)}

@@ -1,13 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  Users,
-  GraduationCap,
-  Binary,
-  Brain,
-  Award,
-  TrendingUp,
-  Boxes,
-} from "lucide-react";
+import { Users, GraduationCap, Binary, Brain, Award, TrendingUp, Boxes } from "lucide-react";
 
 interface TeamMember {
   name: string;
@@ -119,7 +111,8 @@ export function TeamSection() {
         </h2>
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
           Đội ngũ sáng lập MedSentinel gồm 5 thành viên từ các chuyên ngành mũi nhọn tại Đại học
-          Bách khoa Hà Nội, kết hợp nghiên cứu khoa học chuyên sâu cùng giải pháp công nghệ y tế cộng đồng.
+          Bách khoa Hà Nội, kết hợp nghiên cứu khoa học chuyên sâu cùng giải pháp công nghệ y tế
+          cộng đồng.
         </p>
       </div>
 
@@ -165,9 +158,7 @@ export function TeamSection() {
                 >
                   {m.tag}
                 </span>
-                <span className={`text-xs font-semibold ${m.accentText}`}>
-                  {m.roleTitle}
-                </span>
+                <span className={`text-xs font-semibold ${m.accentText}`}>{m.roleTitle}</span>
               </div>
 
               {/* Major & University */}

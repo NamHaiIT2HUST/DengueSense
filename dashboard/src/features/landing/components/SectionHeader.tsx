@@ -14,9 +14,13 @@ export function SectionHeader({
       <div className="flex justify-center">
         <Eyebrow>{eyebrow}</Eyebrow>
       </div>
-      <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight">{title}</h2>
+      <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight">
+        {title}
+      </h2>
       {desc && (
-        <p className="mt-3 text-xs sm:text-sm lg:text-[15px] leading-relaxed text-[var(--ink-secondary)]">{desc}</p>
+        <p className="mt-3 text-xs sm:text-sm lg:text-[15px] leading-relaxed text-[var(--ink-secondary)]">
+          {desc}
+        </p>
       )}
     </div>
   );
