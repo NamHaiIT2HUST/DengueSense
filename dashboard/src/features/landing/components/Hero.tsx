@@ -8,27 +8,45 @@ import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 const PILLARS = [
   {
     icon: Radar,
+    pillarNumber: "01",
     pillar: "Trụ Cột 01 - Cảnh Báo Sớm",
     badge: "Độ chính xác 89,5%",
     title: "Dự báo Dịch tễ & Khí hậu ERA5",
     desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
-    color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-cyan-400",
+    color: "from-cyan-950/40 via-slate-900/90 to-slate-950/95 border-cyan-500/30 text-cyan-400",
+    hoverBorder: "hover:border-cyan-400/60 hover:shadow-[0_16px_50px_rgba(14,165,233,0.25)]",
+    topGlow: "from-transparent via-cyan-400 to-transparent",
+    iconBg: "bg-cyan-500/15 border-cyan-500/35 text-cyan-400 group-hover:bg-cyan-500/25 group-hover:shadow-[0_0_24px_rgba(14,165,233,0.45)]",
+    badgeStyle: "border-cyan-500/30 bg-cyan-950/60 text-cyan-300",
+    tag: "Khí hậu ERA5 + M4-R2",
   },
   {
     icon: Cpu,
+    pillarNumber: "02",
     pillar: "Trụ Cột 02 - Tối Ưu Nguồn Lực",
     badge: "Giải toán MILP < 1 Phút",
     title: "Cân Đối Nguồn Lực Điều Trị",
     desc: "Quy hoạch nguyên hỗn hợp giải bài toán phân bổ 3 trụ cột thiết yếu: Giường bệnh, Hóa chất Cloramin B và Đội phản ứng nhanh.",
-    color: "from-blue-600/20 to-indigo-500/10 border-blue-600/30 text-blue-400",
+    color: "from-blue-950/40 via-slate-900/90 to-slate-950/95 border-blue-500/30 text-blue-400",
+    hoverBorder: "hover:border-blue-400/60 hover:shadow-[0_16px_50px_rgba(37,99,235,0.25)]",
+    topGlow: "from-transparent via-blue-400 to-transparent",
+    iconBg: "bg-blue-500/15 border-blue-500/35 text-blue-400 group-hover:bg-blue-500/25 group-hover:shadow-[0_0_24px_rgba(37,99,235,0.45)]",
+    badgeStyle: "border-blue-500/30 bg-blue-950/60 text-blue-300",
+    tag: "Quy hoạch Google OR-Tools",
   },
   {
     icon: FileText,
+    pillarNumber: "03",
     pillar: "Trụ Cột 03 - Điều Phối Hành Chính",
     badge: "Chuẩn Thể Thức NĐ 30/2020",
     title: "Tự Động Hóa Công Điện Khẩn",
     desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
-    color: "from-indigo-500/20 to-violet-500/10 border-indigo-500/30 text-indigo-300",
+    color: "from-indigo-950/40 via-slate-900/90 to-slate-950/95 border-indigo-500/30 text-indigo-300",
+    hoverBorder: "hover:border-indigo-400/60 hover:shadow-[0_16px_50px_rgba(99,102,241,0.25)]",
+    topGlow: "from-transparent via-indigo-400 to-transparent",
+    iconBg: "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
+    badgeStyle: "border-indigo-500/30 bg-indigo-950/60 text-indigo-200",
+    tag: "Guardrail G1 RAG",
   },
 ];
 
@@ -194,35 +212,82 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mx-auto mt-14 grid gap-5 md:grid-cols-3 text-left"
+          className="mx-auto mt-14 grid gap-6 md:grid-cols-3 text-left"
         >
           {PILLARS.map((p) => (
             <TiltCard3D
               key={p.title}
-              maxTilt={8}
+              maxTilt={7}
               scale={1.02}
               glare={true}
               glareOpacity={0.16}
-              className={`group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_12px_40px_rgba(37,99,235,0.2)] ${p.color}`}
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-b p-6 sm:p-7 backdrop-blur-2xl transition-all duration-300 shadow-xl ${p.color} ${p.hoverBorder}`}
             >
               {/* Dynamic glowing top accent bar */}
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div
+                className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${p.topGlow} opacity-75 transition-opacity duration-300 group-hover:opacity-100`}
+              />
 
-              <div className="flex items-center justify-between mb-4" style={{ transform: "translateZ(20px)" }}>
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner transition-transform group-hover:scale-110 group-hover:border-blue-500/50">
-                  <p.icon size={20} strokeWidth={2.2} />
+              {/* Watermark Pillar Number in background */}
+              <div
+                className="pointer-events-none absolute -right-2 -top-3 select-none font-mono text-7xl font-black text-white/[0.04] transition-colors duration-300 group-hover:text-white/[0.08]"
+                aria-hidden="true"
+              >
+                {p.pillarNumber}
+              </div>
+
+              <div>
+                <div
+                  className="flex items-center justify-between mb-5"
+                  style={{ transform: "translateZ(20px)" }}
+                >
+                  <span
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-md transition-all duration-300 group-hover:scale-110 ${p.iconBg}`}
+                  >
+                    <p.icon size={22} strokeWidth={2.2} />
+                  </span>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-bold shadow-sm transition-all ${p.badgeStyle}`}
+                  >
+                    {p.badge}
+                  </span>
+                </div>
+
+                <div
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-1"
+                  style={{ transform: "translateZ(10px)" }}
+                >
+                  <span className="h-1 w-3 rounded-full bg-slate-600 group-hover:bg-cyan-400 transition-colors" />
+                  <span>{p.pillar}</span>
+                </div>
+
+                <h3
+                  className="font-display text-lg sm:text-xl font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors leading-snug"
+                  style={{ transform: "translateZ(15px)" }}
+                >
+                  {p.title}
+                </h3>
+
+                <p
+                  className="mt-2.5 text-xs sm:text-sm leading-relaxed text-slate-300/90"
+                  style={{ transform: "translateZ(10px)" }}
+                >
+                  {p.desc}
+                </p>
+              </div>
+
+              {/* Bottom Feature Tag */}
+              <div
+                className="mt-6 pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400"
+                style={{ transform: "translateZ(12px)" }}
+              >
+                <span className="text-[11px] font-medium text-slate-400 group-hover:text-slate-200 transition-colors">
+                  {p.tag}
                 </span>
-                <span className="inline-flex items-center rounded-full border border-slate-700/80 bg-slate-900/90 px-3 py-1 text-[11px] font-bold text-slate-200 shadow-sm transition-colors group-hover:border-cyan-400/40 group-hover:text-cyan-300">
-                  {p.badge}
+                <span className="text-cyan-400 group-hover:translate-x-1 transition-transform">
+                  →
                 </span>
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400" style={{ transform: "translateZ(10px)" }}>
-                {p.pillar}
-              </span>
-              <h3 className="font-display text-lg font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors" style={{ transform: "translateZ(15px)" }}>
-                {p.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-300/90" style={{ transform: "translateZ(10px)" }}>{p.desc}</p>
             </TiltCard3D>
           ))}
         </motion.div>
