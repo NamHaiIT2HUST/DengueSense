@@ -14,6 +14,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 type ViewMode = "radar" | "milp" | "dispatch";
 
@@ -83,7 +84,14 @@ export function HeroCommandCenter() {
   const preventedCases = Math.round((budget / 650000000) * 340);
 
   return (
-    <div className="relative mx-auto mt-12 w-full max-w-5xl rounded-3xl border border-slate-700/80 bg-slate-950/90 p-2 sm:p-3 shadow-[0_20px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl ring-1 ring-white/10">
+    <TiltCard3D
+      maxTilt={3.5}
+      scale={1.006}
+      glare={true}
+      glareOpacity={0.08}
+      containerClassName="relative mx-auto mt-12 w-full max-w-5xl text-left"
+      className="rounded-3xl border border-slate-700/80 bg-slate-950/90 p-2 sm:p-3 shadow-[0_20px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl ring-1 ring-white/10"
+    >
       {/* Window Title Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 px-4 py-3">
         <div className="flex items-center gap-2.5">
@@ -529,6 +537,6 @@ export function HeroCommandCenter() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </TiltCard3D>
   );
 }

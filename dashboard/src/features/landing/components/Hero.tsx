@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText, LayoutDashboard, MapPin } from "lucide-react";
 import { HeroCommandCenter } from "./HeroCommandCenter";
+import { HeroGlobe3D } from "./HeroGlobe3D";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 const PILLARS = [
   {
@@ -169,6 +171,15 @@ export function Hero() {
           </div>
         </motion.div>
 
+        {/* 3D Holographic Radar Wireframe Globe (ECMWF ERA5 Satellite & Spatial Telemetry) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.26 }}
+        >
+          <HeroGlobe3D />
+        </motion.div>
+
         {/* Interactive Live Command Center Window */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -178,7 +189,7 @@ export function Hero() {
           <HeroCommandCenter />
         </motion.div>
 
-        {/* 3 Pillars Bento Grid */}
+        {/* 3 Pillars Bento Grid with 3D Tilt & Specular Light */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -186,16 +197,18 @@ export function Hero() {
           className="mx-auto mt-14 grid gap-5 md:grid-cols-3 text-left"
         >
           {PILLARS.map((p) => (
-            <motion.div
+            <TiltCard3D
               key={p.title}
-              whileHover={{ y: -6, scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              maxTilt={8}
+              scale={1.02}
+              glare={true}
+              glareOpacity={0.16}
               className={`group relative overflow-hidden rounded-2xl border bg-gradient-to-b p-6 backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_12px_40px_rgba(37,99,235,0.2)] ${p.color}`}
             >
               {/* Dynamic glowing top accent bar */}
               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-4" style={{ transform: "translateZ(20px)" }}>
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner transition-transform group-hover:scale-110 group-hover:border-blue-500/50">
                   <p.icon size={20} strokeWidth={2.2} />
                 </span>
@@ -203,14 +216,14 @@ export function Hero() {
                   {p.badge}
                 </span>
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400" style={{ transform: "translateZ(10px)" }}>
                 {p.pillar}
               </span>
-              <h3 className="font-display text-lg font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors">
+              <h3 className="font-display text-lg font-bold text-white mt-1 group-hover:text-cyan-300 transition-colors" style={{ transform: "translateZ(15px)" }}>
                 {p.title}
               </h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-300/90">{p.desc}</p>
-            </motion.div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-300/90" style={{ transform: "translateZ(10px)" }}>{p.desc}</p>
+            </TiltCard3D>
           ))}
         </motion.div>
       </div>

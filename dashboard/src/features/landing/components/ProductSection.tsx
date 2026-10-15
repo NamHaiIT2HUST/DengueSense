@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Link } from "@tanstack/react-router";
 import {
   Boxes,
@@ -13,6 +12,7 @@ import {
   Send,
   CheckCircle2,
 } from "lucide-react";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 const PRODUCT_MODULES = [
   {
@@ -135,15 +135,17 @@ export function ProductSection() {
         </p>
       </div>
 
-      {/* 4 Core Modules Grid */}
+      {/* 4 Core Modules Grid with 3D Tactile Tilt & Glare */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-left">
         {PRODUCT_MODULES.map((m) => {
           const Icon = m.icon;
           return (
-            <motion.div
+            <TiltCard3D
               key={m.code}
-              whileHover={{ y: -6, scale: 1.015 }}
-              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              maxTilt={7}
+              scale={1.02}
+              glare={true}
+              glareOpacity={0.15}
               className={`group relative flex flex-col justify-between rounded-3xl border bg-gradient-to-b p-6 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_12px_40px_rgba(37,99,235,0.2)] ${m.color}`}
             >
               {/* Top accent glowing bar */}
@@ -151,7 +153,7 @@ export function ProductSection() {
 
               <div className="space-y-4">
                 {/* Header row with Icon and Badge */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between" style={{ transform: "translateZ(18px)" }}>
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900/90 border border-slate-700/80 text-white shadow-md transition-transform group-hover:scale-110">
                     <Icon size={20} className={m.accentText} />
                   </div>
@@ -162,7 +164,7 @@ export function ProductSection() {
                   </span>
                 </div>
 
-                <div>
+                <div style={{ transform: "translateZ(12px)" }}>
                   <span className="text-[10px] font-mono font-bold tracking-wider text-slate-400 uppercase">
                     {m.code}
                   </span>
@@ -171,17 +173,20 @@ export function ProductSection() {
                   </h3>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed" style={{ transform: "translateZ(8px)" }}>
                   {m.desc}
                 </p>
               </div>
 
               {/* Bottom Highlight */}
-              <div className="mt-5 pt-3 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 group-hover:text-slate-200 transition-colors">
+              <div
+                className="mt-5 pt-3 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 group-hover:text-slate-200 transition-colors"
+                style={{ transform: "translateZ(10px)" }}
+              >
                 <CheckCircle2 size={13} className={m.accentText} />
                 <span>{m.highlight}</span>
               </div>
-            </motion.div>
+            </TiltCard3D>
           );
         })}
       </div>
@@ -206,12 +211,16 @@ export function ProductSection() {
           {WORKFLOW_STEPS.map((w) => {
             const StepIcon = w.icon;
             return (
-              <div
+              <TiltCard3D
                 key={w.step}
+                maxTilt={5}
+                scale={1.015}
+                glare={true}
+                glareOpacity={0.1}
                 className="relative flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 transition-colors hover:border-slate-700 hover:bg-slate-900/80"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3" style={{ transform: "translateZ(14px)" }}>
                     <span className="font-mono text-xl font-black text-slate-600">
                       {w.step}
                     </span>
@@ -219,14 +228,14 @@ export function ProductSection() {
                       <StepIcon size={16} />
                     </div>
                   </div>
-                  <h4 className="font-display text-sm font-bold text-white mb-1.5">
+                  <h4 className="font-display text-sm font-bold text-white mb-1.5" style={{ transform: "translateZ(10px)" }}>
                     {w.title}
                   </h4>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-300 leading-relaxed" style={{ transform: "translateZ(6px)" }}>
                     {w.desc}
                   </p>
                 </div>
-              </div>
+              </TiltCard3D>
             );
           })}
         </div>
