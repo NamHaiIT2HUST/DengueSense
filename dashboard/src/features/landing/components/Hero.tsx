@@ -51,21 +51,41 @@ export function Hero() {
       />
 
       <div className="relative mx-auto max-w-6xl text-center">
-        {/* Top Floating Badge */}
+        {/* Top Signature Brand Insignia */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6 inline-flex items-center gap-2.5 rounded-full border border-blue-500/30 bg-slate-900/80 px-4 py-1.5 text-xs font-semibold text-slate-200 shadow-lg backdrop-blur-md"
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="mb-8 inline-flex items-center justify-center"
         >
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-          </span>
-          <span className="tracking-wide">HỆ SINH THÁI AI Y TẾ DỰ PHÒNG · MEDSENTINEL 2026</span>
-          <span className="hidden rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300 sm:inline">
-            MVP v1.0
-          </span>
+          <div className="relative group inline-flex items-center gap-3 rounded-full border border-blue-500/30 bg-slate-950/70 px-5 py-2 shadow-[0_0_25px_rgba(37,99,235,0.25)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_0_35px_rgba(14,165,233,0.35)]">
+            {/* Ambient Background Aura */}
+            <div className="absolute -inset-0.5 -z-10 rounded-full bg-gradient-to-r from-blue-600/30 via-cyan-500/30 to-indigo-600/30 opacity-40 blur-sm group-hover:opacity-100 transition duration-500" />
+
+            {/* Telemetry Pulse Indicator */}
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" />
+            </span>
+
+            {/* Bespoke MEDSENTINEL Typography */}
+            <div className="flex items-center">
+              <span className="font-display text-xs sm:text-sm font-black tracking-[0.28em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                MED
+              </span>
+              <span className="font-display text-xs sm:text-sm font-black tracking-[0.28em] bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(14,165,233,0.5)]">
+                SENTINEL
+              </span>
+            </div>
+
+            {/* Subtle Divider */}
+            <span className="h-3.5 w-px bg-slate-700/80" />
+
+            {/* Architecture Tag */}
+            <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest text-slate-300 uppercase">
+              AI Platform
+            </span>
+          </div>
         </motion.div>
 
         {/* Main Heading */}
