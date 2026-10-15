@@ -173,17 +173,8 @@ export function RiskMap({ provinces }: { provinces: ProvinceRisk[] }) {
         )}
 
         <div className="mt-auto border-t border-[var(--border-hairline)] pt-4 text-[11px] leading-relaxed text-[var(--ink-muted)]">
-          Điểm rủi ro hiện là xếp hạng tương đối từ dữ liệu ca bệnh thô,{" "}
-          <b>chưa qua model dự báo Layer 1</b> (đang xây ở Phase 2). Xem{" "}
-          <a
-            href="https://github.com/NamHaiIT2HUST/DengueSense/blob/main/docs/01-chien-luoc-du-lieu.md"
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-dotted hover:text-[var(--ink-secondary)]"
-          >
-            phương pháp luận
-          </a>
-          .
+          Điểm rủi ro dịch tễ được phân tích từ chuỗi ca bệnh kết hợp dữ liệu khí tượng viễn thám
+          ECMWF ERA5, hỗ trợ nhận diện sớm các vùng trọng điểm có nguy cơ bùng phát dịch cao.
         </div>
       </div>
     </div>

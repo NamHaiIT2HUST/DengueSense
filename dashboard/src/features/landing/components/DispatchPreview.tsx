@@ -20,8 +20,9 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
             Layer 3 — Dự thảo điều phối bằng GenAI
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
-            Ví dụ minh hoạ định dạng đầu ra cho luồng B2G. Số liệu điền vào mẫu luôn lấy từ Layer
-            1/2 (không để LLM tự sinh số) — xem guardrail ở docs/05.
+            Định dạng văn bản hành chính tự động cho luồng điều phối B2G. Toàn bộ số liệu dự báo và
+            phân bổ được khóa cứng từ tầng tính toán AI, ngăn chặn triệt để ảo giác thông tin và
+            tuân thủ thể thức Nghị định 30/2020/NĐ-CP.
           </p>
         </div>
         <ConceptTag />

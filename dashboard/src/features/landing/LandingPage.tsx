@@ -73,9 +73,9 @@ export function LandingPage() {
 
         <section id="map">
           <SectionHeader
-            eyebrow="Dữ liệu thật, không phải mock"
-            title="Bản đồ rủi ro theo 34 tỉnh thành"
-            desc={`Tổng hợp từ ${data.meta.window_start} đến ${data.meta.window_end}. ${data.meta.note}`}
+            eyebrow="Giám sát dịch tễ không gian"
+            title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
+            desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
           />
           <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
             <Suspense fallback={<MapFallback />}>
@@ -91,9 +91,9 @@ export function LandingPage() {
 
         <section id="roadmap">
           <SectionHeader
-            eyebrow="Đang xây dựng công khai"
-            title="Lộ trình kỹ thuật"
-            desc="Theo dõi chi tiết tại ROADMAP.md — mỗi phase có cổng nghiệm thu rõ ràng."
+            eyebrow="Kế hoạch triển khai toàn diện"
+            title="Lộ Trình Phát Triển & Triển Khai Thực Địa"
+            desc="Kế hoạch nghiên cứu R&D, kiểm chứng thực địa tại các bệnh viện và chuyển giao công nghệ cho các cơ sở y tế dự phòng."
           />
           <RoadmapStrip />
         </section>
