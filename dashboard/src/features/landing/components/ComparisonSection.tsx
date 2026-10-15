@@ -73,7 +73,7 @@ export function ComparisonSection() {
         className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/80 backdrop-blur-xl shadow-2xl"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[640px] text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider font-display">
                 <th className="py-4 px-5 text-slate-400 font-bold w-1/4">Tiêu chí đánh giá</th>

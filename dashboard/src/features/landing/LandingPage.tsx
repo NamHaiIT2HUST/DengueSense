@@ -87,8 +87,6 @@ export function LandingPage() {
 
         <ComparisonSection />
 
-        <FaqSection />
-
         <section id="roadmap">
           <SectionHeader
             eyebrow="Kế hoạch triển khai toàn diện"
@@ -99,6 +97,8 @@ export function LandingPage() {
         </section>
 
         <TeamSection />
+
+        <FaqSection />
 
         <CtaBanner />
       </main>

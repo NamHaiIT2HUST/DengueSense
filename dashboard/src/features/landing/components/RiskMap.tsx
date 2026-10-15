@@ -9,6 +9,7 @@ import { riskColor, riskLabel } from "../model/riskScale";
 import { fetchStaticJson } from "@/shared/api";
 import { formatCount } from "@/shared/lib/format";
 import { DataSourceBadge } from "@/shared/ui/Badge";
+import { MapPin } from "lucide-react";
 import type { ProvinceRisk } from "../model/types";
 
 interface ProvinceProps {
@@ -163,7 +164,7 @@ export function RiskMap({ provinces }: { provinces: ProvinceRisk[] }) {
           </motion.div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-3 h-10 w-10 rounded-full border-2 border-dashed border-[var(--border-strong)]" />
+            <MapPin size={32} className="mb-3 text-[var(--ink-muted)] opacity-50" />
             <p className="text-sm text-[var(--ink-muted)]">
               Rê chuột vào một tỉnh trên bản đồ
               <br />

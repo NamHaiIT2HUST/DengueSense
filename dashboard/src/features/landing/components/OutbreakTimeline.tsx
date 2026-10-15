@@ -174,7 +174,7 @@ export function OutbreakTimeline() {
                 <span
                   className={`flex h-6 w-6 items-center justify-center rounded-lg font-mono text-xs font-bold transition-colors ${
                     isSelected
-                      ? "bg-cyan-500 text-white shadow-md shadow-cyan-500/40"
+                      ? "bg-cyan-400 text-slate-950 font-black shadow-md shadow-cyan-400/40"
                       : "bg-slate-800 text-slate-400 group-hover:text-white"
                   }`}
                 >

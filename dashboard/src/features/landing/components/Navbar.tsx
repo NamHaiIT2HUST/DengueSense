@@ -5,10 +5,11 @@ import { ArrowRight, Menu, X, Activity } from "lucide-react";
 
 const LINKS = [
   { href: "#overview", label: "Tổng quan" },
-  { href: "#framework", label: "Giải pháp" },
-  { href: "#timeline", label: "Lộ trình" },
-  { href: "#layers", label: "Quy trình AI" },
+  { href: "#framework", label: "Khung giải pháp" },
+  { href: "#timeline", label: "Quy trình ứng phó" },
+  { href: "#layers", label: "Kiến trúc công nghệ" },
   { href: "#map", label: "Bản đồ 34 tỉnh" },
+  { href: "#roadmap", label: "Lộ trình" },
   { href: "#team", label: "Đội ngũ" },
   { href: "#faq", label: "Hỏi đáp" },
 ];
