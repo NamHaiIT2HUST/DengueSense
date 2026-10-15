@@ -29,7 +29,7 @@ const TABS: TabItem[] = [
   {
     id: "forecast",
     label: "1. Dự Báo Khí Tượng & Viễn Thám",
-    badge: "M4-R2 · 89,5%",
+    badge: "M4-R2 - 89,5%",
     icon: Radar,
   },
   {

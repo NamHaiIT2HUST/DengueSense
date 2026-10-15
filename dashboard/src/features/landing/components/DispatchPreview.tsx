@@ -30,8 +30,8 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
 
       <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-5 font-mono text-[13px] leading-relaxed text-[var(--ink-secondary)]">
         <div className="mb-3 flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 text-[11px] uppercase tracking-wide text-[var(--ink-muted)]">
-          <span>Dự thảo · Luồng B2G</span>
-          <span>Căn cứ QĐ 02/2016/QĐ-TTg · Hướng dẫn HCDC</span>
+          <span>Dự thảo - Luồng B2G</span>
+          <span>Căn cứ QĐ 02/2016/QĐ-TTg - Hướng dẫn HCDC</span>
         </div>
         <p className="text-[var(--ink-primary)]">Kính gửi: Trung tâm Kiểm soát bệnh tật {name}</p>
         <p className="mt-3">

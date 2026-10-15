@@ -60,7 +60,7 @@ export function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <div>
-            Đội thi <strong className="text-white">MedSentinel</strong> · Cuộc thi Sáng tạo Trẻ
+            Đội thi <strong className="text-white">MedSentinel</strong> - Cuộc thi Sáng tạo Trẻ
             2026.
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-300">

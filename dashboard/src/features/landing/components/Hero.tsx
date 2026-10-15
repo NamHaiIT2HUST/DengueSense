@@ -6,7 +6,7 @@ import { HeroCommandCenter } from "./HeroCommandCenter";
 const PILLARS = [
   {
     icon: Radar,
-    pillar: "Trụ Cột 01 · Cảnh Báo Sớm",
+    pillar: "Trụ Cột 01 - Cảnh Báo Sớm",
     badge: "Độ chính xác 89,5%",
     title: "Dự báo Dịch tễ & Khí hậu ERA5",
     desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
@@ -14,7 +14,7 @@ const PILLARS = [
   },
   {
     icon: Cpu,
-    pillar: "Trụ Cột 02 · Tối Ưu Nguồn Lực",
+    pillar: "Trụ Cột 02 - Tối Ưu Nguồn Lực",
     badge: "Giải toán MILP < 1 Phút",
     title: "Cân Đối Nguồn Lực Điều Trị",
     desc: "Quy hoạch nguyên hỗn hợp giải bài toán phân bổ 3 trụ cột thiết yếu: Giường bệnh, Hóa chất Cloramin B và Đội phản ứng nhanh.",
@@ -22,7 +22,7 @@ const PILLARS = [
   },
   {
     icon: FileText,
-    pillar: "Trụ Cột 03 · Điều Phối Hành Chính",
+    pillar: "Trụ Cột 03 - Điều Phối Hành Chính",
     badge: "Chuẩn Thể Thức NĐ 30/2020",
     title: "Tự Động Hóa Công Điện Khẩn",
     desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",

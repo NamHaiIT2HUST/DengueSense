@@ -34,7 +34,7 @@ const MEMBERS: TeamMember[] = [
     name: "Nguyễn Đình Đạo",
     roleCode: "CMO",
     roleTitle: "Chief Marketing Officer",
-    tag: "CMO · Tiếp Thị & Phát Triển",
+    tag: "CMO - Tiếp Thị & Phát Triển",
     major: "Chuyên ngành Kỹ thuật Y Sinh, Đại học Bách khoa Hà Nội",
     avatar: "/team/nguyen-dinh-dao.png",
     bullets: [
@@ -53,7 +53,7 @@ const MEMBERS: TeamMember[] = [
     name: "Phan Thị Hải Yến",
     roleCode: "CEO",
     roleTitle: "Chief Executive Officer",
-    tag: "CEO · Lãnh Đạo & Điều Hành",
+    tag: "CEO - Lãnh Đạo & Điều Hành",
     major: "Chuyên ngành Hệ thống thông tin quản lý, Đại học Bách khoa Hà Nội",
     avatar: "/team/phan-thi-hai-yen.png",
     bullets: [
@@ -72,7 +72,7 @@ const MEMBERS: TeamMember[] = [
     name: "Đồng Minh Dương",
     roleCode: "CAIO",
     roleTitle: "Chief AI Officer",
-    tag: "CAIO · Trưởng Nhóm AI/ML",
+    tag: "CAIO - Trưởng Nhóm AI/ML",
     major: "Chuyên ngành Kỹ thuật Y Sinh, Đại học Bách khoa Hà Nội",
     avatar: "/team/dong-minh-duong.png",
     bullets: [
@@ -91,7 +91,7 @@ const MEMBERS: TeamMember[] = [
     name: "Nguyễn Đào Nam Hải",
     roleCode: "CTO",
     roleTitle: "Chief Technology Officer",
-    tag: "CTO · Kiến Trúc Hệ Thống",
+    tag: "CTO - Kiến Trúc Hệ Thống",
     major: "Chuyên ngành Kỹ thuật máy tính, Đại học Bách khoa Hà Nội",
     avatar: "/team/nguyen-dao-nam-hai.png",
     bullets: [
@@ -110,7 +110,7 @@ const MEMBERS: TeamMember[] = [
     name: "Đỗ Ngọc Lan Anh",
     roleCode: "COO",
     roleTitle: "Chief Operating Officer",
-    tag: "COO · Vận Hành & Chuỗi Cung Ứng",
+    tag: "COO - Vận Hành & Chuỗi Cung Ứng",
     major: "Chuyên ngành Quản lý công nghiệp, Đại học Bách khoa Hà Nội",
     avatar: "/team/do-ngoc-lan-anh.png",
     bullets: [
@@ -144,7 +144,7 @@ export function TeamSection() {
         <div className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-slate-900/90 px-4 py-1.5 text-xs font-semibold text-cyan-300 shadow-md backdrop-blur-md">
           <Users size={14} className="text-cyan-400" />
           <span className="uppercase tracking-widest text-[11px] font-bold">
-            Đội Thi MedSentinel · Đại Học Bách Khoa Hà Nội
+            Đội Thi MedSentinel - Đại Học Bách Khoa Hà Nội
           </span>
         </div>
         <h2 className="font-display text-3xl font-extrabold sm:text-5xl tracking-tight leading-[1.15]">

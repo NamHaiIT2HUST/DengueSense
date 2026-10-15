@@ -384,7 +384,7 @@ export function HeroCommandCenter() {
               <div className="lg:col-span-5 space-y-4">
                 <div className="space-y-1">
                   <span className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-300">
-                    GenAI RAG · Chuẩn Thể Thức NĐ 30/2020
+                    GenAI RAG - Chuẩn Thể Thức NĐ 30/2020
                   </span>
                   <h4 className="font-display text-xl font-bold text-white">
                     Soạn Thảo Dự Thảo Công Điện B2G
@@ -516,7 +516,7 @@ export function HeroCommandCenter() {
                     <div className="text-right">
                       <div className="font-bold text-slate-200 text-[9px]">TL. BỘ TRƯỞNG</div>
                       <div className="text-cyan-400 font-mono text-[9px] font-semibold">
-                        [QUY TRÌNH 4 MẮT · CHỜ LÃNH ĐẠO KÝ SỐ]
+                        [QUY TRÌNH 4 MẮT - CHỜ LÃNH ĐẠO KÝ SỐ]
                       </div>
                     </div>
                     <div className="h-5 w-5 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-[10px]">

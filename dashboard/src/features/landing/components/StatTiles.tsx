@@ -82,7 +82,7 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
 
           <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
             <span>{t.microTag}</span>
-            <span className="text-cyan-400 font-bold">✓ Chuẩn hóa</span>
+            <span className="text-slate-400 font-medium">Chuẩn hóa</span>
           </div>
         </motion.div>
       ))}
