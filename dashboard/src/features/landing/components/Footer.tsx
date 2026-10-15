@@ -19,7 +19,13 @@ export function Footer() {
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="DengueSense Logo" className="h-10 w-auto object-contain" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/20 via-slate-900 to-slate-950 p-1.5 ring-1 ring-white/10 shadow-md">
+              <img
+                src="/logo-icon.png"
+                alt="DengueSense Logo"
+                className="h-full w-full object-contain"
+              />
+            </div>
             <div>
               <div className="font-display text-lg font-bold text-white leading-tight">
                 Dengue<span className="text-red-500">Sense</span>
