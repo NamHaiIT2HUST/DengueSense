@@ -1,6 +1,7 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import {
   Activity,
   AlertTriangle,
@@ -34,10 +35,6 @@ const NAV_ITEMS: readonly NavItem[] = [
   { to: "/app/mo-hinh", label: vi.nav.model, icon: ShieldCheck, category: "system" },
 ];
 
-const NAV_LINK_BASE =
-  "group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-150 text-[var(--ink-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--ink-primary)]";
-const NAV_LINK_ACTIVE =
-  "bg-gradient-to-r from-[var(--accent-soft)] to-transparent text-[var(--accent-ink)] border-l-2 border-[var(--accent)] font-semibold shadow-sm";
 
 /**
  * Khung console: liên kết bỏ qua điều hướng, thanh trên (tên người dùng, đăng xuất), điều hướng chính, nội dung.
@@ -163,21 +160,40 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             </div>
             {NAV_ITEMS.filter((i) => i.category === "operations").map((n) => {
               const Icon = n.icon;
+              const isActive = pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
               return (
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={NAV_LINK_BASE}
+                  className="relative group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
                   activeProps={{
                     "aria-current": "page",
-                    className: `${NAV_LINK_BASE} ${NAV_LINK_ACTIVE}`,
                   }}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebarActivePill"
+                      transition={{ type: "spring", stiffness: 480, damping: 32 }}
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
+                    />
+                  )}
                   <Icon
-                    className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    className={`relative z-10 h-4 w-4 transition-colors duration-150 ${
+                      isActive
+                        ? "text-[var(--accent-ink)]"
+                        : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    }`}
                     aria-hidden="true"
                   />
-                  <span>{n.label}</span>
+                  <span
+                    className={`relative z-10 transition-colors duration-150 ${
+                      isActive
+                        ? "font-semibold text-[var(--accent-ink)]"
+                        : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    }`}
+                  >
+                    {n.label}
+                  </span>
                 </Link>
               );
             })}
@@ -187,27 +203,49 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             </div>
             {NAV_ITEMS.filter((i) => i.category === "system").map((n) => {
               const Icon = n.icon;
+              const isActive = pathname === n.to || (n.to !== "/app" && pathname.startsWith(n.to));
               return (
                 <Link
                   key={n.to}
                   to={n.to}
-                  className={NAV_LINK_BASE}
+                  className="relative group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors duration-150 active:scale-[0.98]"
                   activeProps={{
                     "aria-current": "page",
-                    className: `${NAV_LINK_BASE} ${NAV_LINK_ACTIVE}`,
                   }}
                 >
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebarActivePill"
+                      transition={{ type: "spring", stiffness: 480, damping: 32 }}
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-soft)] to-transparent border-l-2 border-[var(--accent)] shadow-sm"
+                    />
+                  )}
                   <Icon
-                    className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    className={`relative z-10 h-4 w-4 transition-colors duration-150 ${
+                      isActive
+                        ? "text-[var(--accent-ink)]"
+                        : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    }`}
                     aria-hidden="true"
                   />
-                  <span>{n.label}</span>
+                  <span
+                    className={`relative z-10 transition-colors duration-150 ${
+                      isActive
+                        ? "font-semibold text-[var(--accent-ink)]"
+                        : "text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
+                    }`}
+                  >
+                    {n.label}
+                  </span>
                 </Link>
               );
             })}
 
             <div className="my-1 border-t border-[var(--border-hairline)]" />
-            <Link to="/" className={NAV_LINK_BASE}>
+            <Link
+              to="/"
+              className="relative group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-[var(--ink-secondary)] hover:bg-[var(--bg-surface-hover)] hover:text-[var(--ink-primary)] transition-colors active:scale-[0.98]"
+            >
               <Home
                 className="h-4 w-4 text-[var(--ink-secondary)] group-hover:text-[var(--ink-primary)]"
                 aria-hidden="true"

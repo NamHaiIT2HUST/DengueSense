@@ -16,15 +16,44 @@ const LINKS = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [activeSection, setActiveSection] = useState<string>("#overview");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      const sectionIds = LINKS.map((l) => l.href.slice(1));
+      const scrollPos = window.scrollY + 140;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i]!;
+        const el = document.getElementById(id);
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveSection(`#${id}`);
+          break;
+        }
+      }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.scrollY - 70;
+        window.scrollTo({
+          top,
+          behavior: "smooth",
+        });
+        setActiveSection(href);
+        window.history.pushState(null, "", href);
+      }
+      setMobileOpen(false);
+    }
+  };
 
   return (
     <motion.header
@@ -70,23 +99,37 @@ export function Navbar() {
           className="hidden items-center gap-0.5 xl:gap-1 lg:flex"
           onMouseLeave={() => setHoveredIdx(null)}
         >
-          {LINKS.map((l, idx) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onMouseEnter={() => setHoveredIdx(idx)}
-              className="relative rounded-lg px-3 py-1.5 text-xs xl:text-sm font-medium text-slate-300 transition-colors hover:text-white whitespace-nowrap"
-            >
-              {hoveredIdx === idx && (
-                <motion.div
-                  layoutId="navbarHoverPill"
-                  transition={{ type: "spring", stiffness: 450, damping: 30 }}
-                  className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-600/20 via-cyan-500/20 to-blue-600/20 border border-cyan-500/35 shadow-[0_0_15px_rgba(14,165,233,0.25)]"
-                />
-              )}
-              <span className="relative z-10">{l.label}</span>
-            </a>
-          ))}
+          {LINKS.map((l, idx) => {
+            const isHovered = hoveredIdx === idx;
+            const isActive = activeSection === l.href;
+            return (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={(e) => handleNavClick(e, l.href)}
+                onMouseEnter={() => setHoveredIdx(idx)}
+                className={`relative rounded-lg px-3 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                  isActive || isHovered ? "text-white" : "text-slate-300 hover:text-white"
+                }`}
+              >
+                {isHovered && (
+                  <motion.div
+                    layoutId="navbarHoverPill"
+                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
+                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-600/25 via-cyan-500/25 to-blue-600/25 border border-cyan-500/40 shadow-[0_0_15px_rgba(14,165,233,0.25)]"
+                  />
+                )}
+                {!isHovered && isActive && (
+                  <motion.div
+                    layoutId="navbarActivePill"
+                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    className="absolute inset-0 rounded-lg bg-blue-500/15 border border-cyan-400/30 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                  />
+                )}
+                <span className="relative z-10">{l.label}</span>
+              </a>
+            );
+          })}
         </nav>
 
         {/* Action Controls */}
@@ -140,16 +183,23 @@ export function Navbar() {
             className="border-b border-slate-800/80 bg-slate-950/95 px-6 py-4 backdrop-blur-2xl lg:hidden overflow-hidden"
           >
             <div className="flex flex-col gap-1">
-              {LINKS.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800/60 hover:text-white"
-                >
-                  {l.label}
-                </a>
-              ))}
+              {LINKS.map((l) => {
+                const isActive = activeSection === l.href;
+                return (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    onClick={(e) => handleNavClick(e, l.href)}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                      isActive
+                        ? "bg-blue-600/20 text-cyan-300 border-l-2 border-cyan-400 font-semibold"
+                        : "text-slate-300 hover:bg-slate-800/60 hover:text-white"
+                    }`}
+                  >
+                    {l.label}
+                  </a>
+                );
+              })}
               <div className="mt-3 border-t border-slate-800/80 pt-3 flex flex-col gap-2">
                 <Link
                   to="/dang-nhap"

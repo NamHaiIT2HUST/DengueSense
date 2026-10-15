@@ -68,6 +68,11 @@
   border-color: var(--border-hairline);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 html,
 body {
   background-color: #020617;
