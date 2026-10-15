@@ -30,62 +30,46 @@ const PILLARS = [
   },
 ];
 
-const TRUST_TAGS = [
-  "Dữ liệu khí hậu ERA5 (ECMWF)",
-  "Giám sát 34 Tỉnh dịch tễ trọng điểm",
-  "Nghị định số 30/2020/NĐ-CP",
-  "Quyết định số 02/2016/QĐ-BYT & QĐ 3711",
-  "Cơ chế Thẩm định 4 mắt (Human-in-the-loop)",
-];
-
 export function Hero() {
   return (
     <section id="overview" className="relative overflow-hidden px-6 pb-20 pt-12 sm:pt-20">
-      {/* Dynamic ambient background glow */}
+      {/* Dynamic ambient background glow layers */}
       <div
-        className="pointer-events-none absolute left-1/2 top-[-15%] h-[600px] w-[1000px] -translate-x-1/2 rounded-full opacity-30 blur-[130px]"
+        className="pointer-events-none absolute left-1/2 top-[-12%] h-[650px] w-[1100px] -translate-x-1/2 rounded-full opacity-35 blur-[140px]"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(37, 99, 235, 0.45) 0%, rgba(14, 165, 233, 0.25) 45%, rgba(239, 68, 68, 0.15) 80%, transparent 100%)",
+            "radial-gradient(ellipse at center, rgba(37, 99, 235, 0.5) 0%, rgba(14, 165, 233, 0.3) 45%, rgba(239, 68, 68, 0.15) 80%, transparent 100%)",
         }}
       />
+      {/* Left flank cyan flare */}
+      <div className="pointer-events-none absolute -left-20 top-1/3 h-80 w-80 rounded-full bg-cyan-500/15 blur-[120px]" />
+      {/* Right flank indigo flare */}
+      <div className="pointer-events-none absolute -right-20 top-1/4 h-80 w-80 rounded-full bg-indigo-500/15 blur-[120px]" />
 
       <div className="relative mx-auto max-w-6xl text-center">
-        {/* Top Signature Brand Insignia */}
+        {/* Top Signature Brand Logotype (Bespoke Minimalist Crest) */}
         <motion.div
-          initial={{ opacity: 0, y: -12 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="mb-8 inline-flex items-center justify-center"
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="mb-8 inline-flex items-center justify-center gap-3 sm:gap-4"
         >
-          <div className="relative group inline-flex items-center gap-3 rounded-full border border-blue-500/30 bg-slate-950/70 px-5 py-2 shadow-[0_0_25px_rgba(37,99,235,0.25)] backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/50 hover:shadow-[0_0_35px_rgba(14,165,233,0.35)]">
-            {/* Ambient Background Aura */}
-            <div className="absolute -inset-0.5 -z-10 rounded-full bg-gradient-to-r from-blue-600/30 via-cyan-500/30 to-indigo-600/30 opacity-40 blur-sm group-hover:opacity-100 transition duration-500" />
+          <div className="h-px w-8 sm:w-16 bg-gradient-to-r from-transparent via-cyan-500/40 to-cyan-400" />
 
-            {/* Telemetry Pulse Indicator */}
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500" />
+          <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/25 bg-slate-900/50 backdrop-blur-md shadow-[0_0_20px_rgba(37,99,235,0.15)]">
+            <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.32em] text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
+              MED
             </span>
-
-            {/* Bespoke MEDSENTINEL Typography */}
-            <div className="flex items-center">
-              <span className="font-display text-xs sm:text-sm font-black tracking-[0.28em] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                MED
-              </span>
-              <span className="font-display text-xs sm:text-sm font-black tracking-[0.28em] bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(14,165,233,0.5)]">
-                SENTINEL
-              </span>
-            </div>
-
-            {/* Subtle Divider */}
-            <span className="h-3.5 w-px bg-slate-700/80" />
-
-            {/* Architecture Tag */}
-            <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest text-slate-300 uppercase">
+            <span className="font-mono text-xs sm:text-sm font-black uppercase tracking-[0.32em] bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(14,165,233,0.5)]">
+              SENTINEL
+            </span>
+            <span className="text-slate-600 font-light">/</span>
+            <span className="text-[10px] sm:text-[11px] font-semibold tracking-widest text-slate-400 uppercase">
               AI Platform
             </span>
           </div>
+
+          <div className="h-px w-8 sm:w-16 bg-gradient-to-l from-transparent via-cyan-500/40 to-cyan-400" />
         </motion.div>
 
         {/* Main Heading */}
@@ -147,22 +131,42 @@ export function Hero() {
           </Link>
         </motion.div>
 
-        {/* Trust Metadata Bar */}
+        {/* Unified Institutional Verification Ribbon */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.25 }}
-          className="mt-10 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs font-medium text-slate-300"
+          className="mx-auto mt-10 max-w-4xl rounded-2xl border border-slate-800/80 bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xl shadow-lg ring-1 ring-white/5"
         >
-          {TRUST_TAGS.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/60 px-3.5 py-1.5 backdrop-blur-sm transition-colors hover:border-slate-700 hover:text-white"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
-              <span>{tag}</span>
-            </span>
-          ))}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-400 ring-1 ring-blue-500/20">
+                ERA5
+              </span>
+              <span>Dữ liệu khí hậu ECMWF</span>
+            </div>
+            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-400 ring-1 ring-blue-500/20">
+                GIS 34
+              </span>
+              <span>34 Tỉnh dịch tễ trọng điểm</span>
+            </div>
+            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-slate-800/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-300">
+                NĐ 30
+              </span>
+              <span>Nghị định 30/2020/NĐ-CP</span>
+            </div>
+            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300 ring-1 ring-cyan-500/20">
+                HITL
+              </span>
+              <span>Thẩm định 4 mắt (Cán bộ & Lãnh đạo)</span>
+            </div>
+          </div>
         </motion.div>
 
         {/* Interactive Live Command Center Window */}
