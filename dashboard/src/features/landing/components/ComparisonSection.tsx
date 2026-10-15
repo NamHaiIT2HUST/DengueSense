@@ -85,7 +85,9 @@ export function ComparisonSection() {
                     <span className="flex h-5 w-5 items-center justify-center rounded-md bg-cyan-500/20 text-cyan-400 shrink-0">
                       <ShieldCheck size={14} />
                     </span>
-                    <span className="uppercase tracking-wide text-xs sm:text-sm">DengueSense AI Solution</span>
+                    <span className="uppercase tracking-wide text-xs sm:text-sm">
+                      DengueSense AI Solution
+                    </span>
                   </div>
                 </th>
               </tr>
