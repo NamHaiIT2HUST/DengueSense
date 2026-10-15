@@ -9,6 +9,7 @@ import { riskColor, riskLabel } from "../model/riskScale";
 import { fetchStaticJson } from "@/shared/api";
 import { formatCount } from "@/shared/lib/format";
 import { DataSourceBadge } from "@/shared/ui/Badge";
+import { MapPin } from "lucide-react";
 import type { ProvinceRisk } from "../model/types";
 
 interface ProvinceProps {
@@ -163,7 +164,7 @@ export function RiskMap({ provinces }: { provinces: ProvinceRisk[] }) {
           </motion.div>
         ) : (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <div className="mb-3 h-10 w-10 rounded-full border-2 border-dashed border-[var(--border-strong)]" />
+            <MapPin size={32} className="mb-3 text-[var(--ink-muted)] opacity-50" />
             <p className="text-sm text-[var(--ink-muted)]">
               Rê chuột vào một tỉnh trên bản đồ
               <br />
@@ -173,17 +174,8 @@ export function RiskMap({ provinces }: { provinces: ProvinceRisk[] }) {
         )}
 
         <div className="mt-auto border-t border-[var(--border-hairline)] pt-4 text-[11px] leading-relaxed text-[var(--ink-muted)]">
-          Điểm rủi ro hiện là xếp hạng tương đối từ dữ liệu ca bệnh thô,{" "}
-          <b>chưa qua model dự báo Layer 1</b> (đang xây ở Phase 2). Xem{" "}
-          <a
-            href="https://github.com/NamHaiIT2HUST/DengueSense/blob/main/docs/01-chien-luoc-du-lieu.md"
-            target="_blank"
-            rel="noreferrer"
-            className="underline decoration-dotted hover:text-[var(--ink-secondary)]"
-          >
-            phương pháp luận
-          </a>
-          .
+          Điểm rủi ro dịch tễ được phân tích từ chuỗi ca bệnh kết hợp dữ liệu khí tượng viễn thám
+          ECMWF ERA5, hỗ trợ nhận diện sớm các vùng trọng điểm có nguy cơ bùng phát dịch cao.
         </div>
       </div>
     </div>

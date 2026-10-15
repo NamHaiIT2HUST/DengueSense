@@ -1,9 +1,19 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Link, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
+import { CustomCursor } from "../../shared/ui/CustomCursor";
 
 /** Ngữ cảnh dùng chung cho mọi route (loader/beforeLoad truy cập cache truy vấn). */
 export interface RouterContext {
   queryClient: QueryClient;
+}
+
+function RootComponent() {
+  return (
+    <>
+      <CustomCursor />
+      <Outlet />
+    </>
+  );
 }
 
 function NotFound() {
@@ -22,6 +32,6 @@ function NotFound() {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: Outlet,
+  component: RootComponent,
   notFoundComponent: NotFound,
 });

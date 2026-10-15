@@ -20,7 +20,7 @@ import { TextField } from "@/shared/ui/TextField";
 type StatusFilter = "all" | "open" | "closed";
 type RegionFilter = "all" | "Bắc" | "Trung" | "Nam";
 
-const OFFICER_ROLES = ["officer", "analyst", "approver", "admin"] as const;
+const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
 export function AlertsPage() {
   const router = useRouter();

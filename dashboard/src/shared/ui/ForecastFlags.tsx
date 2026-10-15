@@ -22,17 +22,19 @@ export function ForecastFlags({
         return (
           <li
             key={flag}
-            className="inline-flex max-w-full items-start gap-1.5 rounded-lg border border-[var(--status-warning)] bg-[color-mix(in_srgb,var(--status-warning)_10%,transparent)] px-2 py-1 text-xs text-[#fbd98a]"
+            className="inline-flex max-w-full items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50/90 text-amber-950 dark:border-[var(--status-warning)] dark:bg-[color-mix(in_srgb,var(--status-warning)_10%,transparent)] px-2 py-1 text-xs dark:text-[#fbd98a]"
           >
             <TriangleAlert
               size={13}
               strokeWidth={2.5}
               aria-hidden="true"
-              className="mt-0.5 shrink-0"
+              className="mt-0.5 shrink-0 text-amber-600 dark:text-[var(--status-warning)]"
             />
             <span>
               <span className="font-semibold">{text?.label ?? flag}</span>
-              {notes && text ? <span className="block text-[#f0d9a6]">{text.note}</span> : null}
+              {notes && text ? (
+                <span className="block text-amber-900/90 dark:text-[#f0d9a6]">{text.note}</span>
+              ) : null}
             </span>
           </li>
         );

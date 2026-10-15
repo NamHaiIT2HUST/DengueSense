@@ -445,9 +445,9 @@ export const vi = {
       createdAt: "Khởi tạo lúc",
       attachedAlerts: "Cảnh báo đính kèm",
       noAlerts: "Hồ sơ này chưa có cảnh báo đính kèm.",
-      allocationPlan: "Phương án phân bổ nguồn lực (Layer 2)",
+      allocationPlan: "Phương án phân bổ nguồn lực",
       noPlan: "Chưa có phương án phân bổ nguồn lực.",
-      drafts: "Dự thảo văn bản chỉ đạo (Layer 3)",
+      drafts: "Dự thảo văn bản chỉ đạo",
       noDrafts: "Chưa có dự thảo văn bản nào.",
       createPlan: "Lập phương án phân bổ",
       createDraft: "Soạn dự thảo",
@@ -458,7 +458,7 @@ export const vi = {
   },
 
   allocation: {
-    title: "Phân bổ nguồn lực phòng dịch (Layer 2)",
+    title: "Phân bổ nguồn lực phòng dịch",
     lead: "AI tối ưu hoá ngân sách để giảm thiểu số ca mắc dự kiến dựa trên mô hình dịch tễ.",
     budgetLabel: "Tổng ngân sách phân bổ (VNĐ)",
     budgetHelp: "Số ngân sách dự kiến dùng cho chiến dịch phòng dịch.",
@@ -476,7 +476,7 @@ export const vi = {
   },
 
   drafts: {
-    title: "Dự thảo & Duyệt văn bản (Layer 3)",
+    title: "Dự thảo & Duyệt văn bản",
     lead: "Văn bản chỉ đạo do AI hỗ trợ soạn thảo, kiểm soát an toàn và lãnh đạo phê duyệt.",
     backToCase: "Về hồ sơ xử lý",
     type: {
@@ -493,7 +493,7 @@ export const vi = {
     guardrailsTitle: "Kiểm soát an toàn văn bản (Guardrails)",
     guardrailsPassed: "Đạt chuẩn an toàn nội dung y tế công cộng",
     guardrailItems: {
-      g1: "Số liệu khớp với dự báo Layer 1",
+      g1: "Số liệu khớp với mô hình dự báo dịch tễ",
       g2: "Không chẩn đoán ca bệnh cá nhân",
       g3: "Giọng văn chuẩn mực y tế công cộng, không gây hoang mang",
       g4: "Đầy đủ căn cứ pháp lý và thẩm quyền",

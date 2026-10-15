@@ -39,7 +39,7 @@ export function OptimizationPreview({ provinces }: { provinces: ProvinceRisk[] }
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-xl font-semibold">
-            Lớp 2 — Tối ưu phân bổ nguồn lực (MILP)
+            Trụ cột 2 — Tối ưu phân bổ nguồn lực y tế (MILP)
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
             Giải bài toán phân bổ tối ưu giường bệnh, vật tư y tế (Cloramin B, máy phun) và nhân lực
