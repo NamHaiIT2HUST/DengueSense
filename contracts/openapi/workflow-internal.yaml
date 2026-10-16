@@ -329,6 +329,8 @@ components:
             latest_draft_id:
               type: string
               format: uuid
+            latest_plan:
+              $ref: "#/components/schemas/AllocationPlan"
 
     CreateCaseRequest:
       type: object
@@ -373,6 +375,9 @@ components:
               province_id: { type: string }
               amount: { type: number, format: double }
               explanation: { type: string }
+              beds: { type: integer }
+              supplies: { type: integer }
+              teams: { type: integer }
         created_at: { type: string, format: date-time }
 
     DispatchDraft:

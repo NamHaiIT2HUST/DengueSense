@@ -615,13 +615,17 @@ export function createHandlers(
           return {
             province_id: it.province_id,
             amount: costShare,
-            explanation: `Ưu tiên điểm nóng thứ ${idx + 1} (dự kiến ${it.cases_pred} ca). Phân bổ: ${beds} giường dã chiến, ${chemicals}L Cloramin B, ${teams} đội cơ động.`,
+            beds,
+            supplies: chemicals,
+            teams,
+            explanation: `Ưu tiên điểm nóng thứ ${idx + 1} (dự kiến ${it.cases_pred} ca). Phân bổ: ${beds} giường cấp cứu, ${chemicals}L Cloramin B, ${teams} đội phản ứng nhanh cơ động.`,
           };
         }),
         created_at: new Date().toISOString(),
       };
       plans.set(planId, newPlan);
       found.latest_plan_id = planId;
+      found.latest_plan = newPlan;
       return HttpResponse.json(newPlan, { status: 201 });
     }),
 

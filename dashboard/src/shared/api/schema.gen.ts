@@ -921,6 +921,7 @@ export interface components {
             latest_plan_id?: string;
             /** Format: uuid */
             latest_draft_id?: string;
+            latest_plan?: components["schemas"]["AllocationPlan"];
         };
         CreateCaseRequest: {
             title: string;
@@ -954,6 +955,9 @@ export interface components {
                 /** Format: double */
                 amount: number;
                 explanation: string;
+                beds?: number;
+                supplies?: number;
+                teams?: number;
             }[];
             /** Format: date-time */
             created_at: string;

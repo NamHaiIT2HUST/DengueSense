@@ -12,7 +12,7 @@ import {
 } from "@/entities/draft";
 import { useProvinces } from "@/entities/forecast";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
-import { formatCount, formatDateTime } from "@/shared/lib/format";
+import { formatCount, formatCurrency, formatDateTime } from "@/shared/lib/format";
 import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
@@ -264,75 +264,99 @@ export function CaseDetailPage() {
         </div>
 
         {/* Nội dung kết quả phân bổ */}
-        <div className="rounded-xl border border-[var(--border-hairline)] p-4 bg-[var(--bg-surface)] space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">Ngân sách dự kiến</span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--ink-primary)]">
-                1.000.000.000 đ
-              </span>
+        {caseData?.latest_plan ? (
+          <div className="rounded-xl border border-[var(--border-hairline)] p-4 bg-[var(--bg-surface)] space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">Ngân sách dự kiến</span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--ink-primary)]">
+                  {formatCurrency(caseData.latest_plan.budget)}
+                </span>
+              </div>
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">
+                  {vi.allocation.totalCost}
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--accent)]">
+                  {formatCurrency(caseData.latest_plan.total_cost)}
+                </span>
+              </div>
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">
+                  {vi.allocation.casesPrevented}
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--status-good)]">
+                  ≈ {formatCount(caseData.latest_plan.estimated_cases_prevented)} ca
+                </span>
+              </div>
             </div>
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">
-                {vi.allocation.totalCost}
-              </span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--accent)]">
-                950.000.000 đ
-              </span>
-            </div>
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">
-                {vi.allocation.casesPrevented}
-              </span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--status-good)]">
-                ≈ {formatCount(420)} ca
-              </span>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
+                  <tr>
+                    <th className="py-2">{vi.allocation.columns.province}</th>
+                    <th className="py-2">Vật tư y tế</th>
+                    <th className="py-2">Giường bệnh</th>
+                    <th className="py-2">Đội cơ động</th>
+                    <th className="py-2">{vi.allocation.columns.amount}</th>
+                    <th className="py-2">{vi.allocation.columns.explanation}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-hairline)]">
+                  {caseData.latest_plan.allocations.map((alloc, idx) => {
+                    const prov = provincesMap.get(alloc.province_id);
+                    const provName = prov?.name ?? alloc.province_id;
+                    const suppliesText = alloc.supplies
+                      ? `${alloc.supplies}L Cloramin B / vật tư`
+                      : "Theo cơ số y tế";
+                    const bedsText = alloc.beds ? `${alloc.beds} giường cấp cứu` : "Theo định mức";
+                    const teamsText = alloc.teams
+                      ? `${alloc.teams} đội phản ứng nhanh`
+                      : "Theo tổ cơ động";
+
+                    return (
+                      <tr key={alloc.province_id || idx}>
+                        <td className="py-2.5 font-medium text-[var(--ink-primary)] whitespace-nowrap">
+                          {provName}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {suppliesText}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {bedsText}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {teamsText}
+                        </td>
+                        <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums whitespace-nowrap">
+                          {formatCurrency(alloc.amount)}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] min-w-[200px]">
+                          {alloc.explanation}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
-              <tr>
-                <th className="py-2">{vi.allocation.columns.province}</th>
-                <th className="py-2">Vật tư y tế</th>
-                <th className="py-2">Giường bệnh</th>
-                <th className="py-2">Đội cơ động</th>
-                <th className="py-2">{vi.allocation.columns.amount}</th>
-                <th className="py-2">{vi.allocation.columns.explanation}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-hairline)]">
-              <tr>
-                <td className="py-2.5 font-medium text-[var(--ink-primary)]">TP. Hồ Chí Minh</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  450L Cloramin B, 25 máy phun ULV
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">80 giường dã chiến</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">6 đội cơ động</td>
-                <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
-                  600.000.000 đ
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2.5 font-medium text-[var(--ink-primary)]">An Giang</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  280L Cloramin B, 15 máy phun ULV
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">40 giường dã chiến</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">3 đội cơ động</td>
-                <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
-                  350.000.000 đ
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-[var(--border-hairline)] p-6 text-center text-xs text-[var(--ink-secondary)]">
+            <p>Chưa có phương án phân bổ nguồn lực nào cho hồ sơ này.</p>
+            {canAct ? (
+              <Button
+                variant="secondary"
+                className="mt-3 px-3 py-1.5 text-xs gap-1.5 mx-auto"
+                onClick={() => setIsAllocating(true)}
+              >
+                <Plus size={14} />
+                {vi.cases.detail.createPlan}
+              </Button>
+            ) : null}
+          </div>
+        )}
       </Card>
 
       {/* SECTION 3: Dự thảo văn bản chỉ đạo (Layer 3 - S9 hub) */}
