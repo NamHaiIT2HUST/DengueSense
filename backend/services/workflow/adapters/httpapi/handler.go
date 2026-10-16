@@ -861,11 +861,11 @@ func formatNumber(val float64) string {
 	in := strconv.FormatInt(int64(math.Round(val)), 10)
 	var out []byte
 	l := len(in)
-	for i, c := range in {
+	for i := 0; i < l; i++ {
 		if i > 0 && (l-i)%3 == 0 {
 			out = append(out, ',')
 		}
-		out = append(out, byte(c))
+		out = append(out, in[i])
 	}
 	return string(out)
 }
