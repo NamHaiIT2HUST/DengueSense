@@ -84,22 +84,26 @@ export function InteractiveLayers() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors duration-200 ${
-                isActive ? "text-white" : "text-slate-400 hover:text-slate-200"
+                isActive
+                  ? "text-[var(--selection-ink)]"
+                  : "text-[var(--ink-secondary)] hover:text-[var(--ink-primary)]"
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeStageTab"
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 shadow-md shadow-blue-500/20 border border-cyan-400/30"
+                  className="absolute inset-0 rounded-xl bg-[var(--selection-bg)] border border-[var(--selection-border)]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
               <span className="relative z-10 flex items-center gap-2">
-                <Icon size={16} className={isActive ? "text-cyan-200" : "text-slate-400"} />
+                <Icon size={16} />
                 <span>{tab.label}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-                    isActive ? "bg-white/20 text-white font-bold" : "bg-slate-800 text-slate-400"
+                    isActive
+                      ? "bg-[var(--bg-surface)] text-[var(--selection-ink)] font-bold"
+                      : "bg-[var(--bg-surface-2)] text-[var(--ink-secondary)]"
                   }`}
                 >
                   {tab.badge}

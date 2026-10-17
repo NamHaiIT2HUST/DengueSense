@@ -20,7 +20,7 @@ const PILLARS = [
     topGlow: "from-transparent via-cyan-400 to-transparent",
     iconBg:
       "bg-cyan-500/15 border-cyan-500/35 text-cyan-400 group-hover:bg-cyan-500/25 group-hover:shadow-[0_0_24px_rgba(14,165,233,0.45)]",
-    badgeStyle: "border-cyan-500/30 bg-cyan-950/60 text-cyan-300",
+    badgeStyle: "ui-badge ui-badge-cyan",
     tag: "Khí hậu ERA5 + M4-R2",
   },
   {
@@ -35,7 +35,7 @@ const PILLARS = [
     topGlow: "from-transparent via-blue-400 to-transparent",
     iconBg:
       "bg-blue-500/15 border-blue-500/35 text-blue-400 group-hover:bg-blue-500/25 group-hover:shadow-[0_0_24px_rgba(37,99,235,0.45)]",
-    badgeStyle: "border-blue-500/30 bg-blue-950/60 text-blue-300",
+    badgeStyle: "ui-badge ui-badge-blue",
     tag: "Quy hoạch Google OR-Tools",
   },
   {
@@ -51,7 +51,7 @@ const PILLARS = [
     topGlow: "from-transparent via-indigo-400 to-transparent",
     iconBg:
       "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
-    badgeStyle: "border-indigo-500/30 bg-indigo-950/60 text-indigo-200",
+    badgeStyle: "ui-badge ui-badge-indigo",
     tag: "Guardrail G1 RAG",
   },
 ];
@@ -125,14 +125,14 @@ export function Hero() {
           </Link>
           <a
             href="#map"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition-all hover:border-slate-500 hover:text-white hover:bg-slate-800"
+            className="landing-secondary-link inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/80 px-6 py-3.5 text-sm font-semibold text-slate-200 backdrop-blur-md transition-all hover:border-slate-500 hover:text-white hover:bg-slate-800"
           >
             <MapPin size={16} className="text-cyan-400" />
             <span>Xem Bản đồ Dịch tễ 34 Tỉnh</span>
           </a>
           <Link
             to="/app/mo-hinh"
-            className="rounded-full border border-slate-800 bg-slate-950/60 px-5 py-3.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200"
+            className="landing-secondary-link rounded-full border border-slate-800 bg-slate-950/60 px-5 py-3.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200"
           >
             Hồ sơ Mô hình (Model Card)
           </Link>
@@ -161,7 +161,7 @@ export function Hero() {
             </div>
             <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
             <div className="flex items-center gap-2">
-              <span className="rounded bg-slate-800/80 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-300">
+              <span className="rounded bg-[var(--bg-surface-2)] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[var(--ink-secondary)]">
                 NĐ 30
               </span>
               <span>Nghị định 30/2020/NĐ-CP</span>

@@ -113,11 +113,11 @@ export function HeroCommandCenter() {
             onClick={() => setActiveTab("radar")}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "radar"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-500/30"
+                ? "bg-[var(--selection-bg)] text-[var(--selection-ink)] ring-1 ring-inset ring-[var(--selection-border)]"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
-            <Radar size={14} className={activeTab === "radar" ? "text-cyan-300" : ""} />
+            <Radar size={14} />
             <span>1. Điểm Nóng Dịch</span>
           </button>
 
@@ -126,11 +126,11 @@ export function HeroCommandCenter() {
             onClick={() => setActiveTab("milp")}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "milp"
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/30"
+                ? "bg-[var(--selection-bg)] text-[var(--selection-ink)] ring-1 ring-inset ring-[var(--selection-border)]"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
-            <Cpu size={14} className={activeTab === "milp" ? "text-indigo-300" : ""} />
+            <Cpu size={14} />
             <span>2. Tối Ưu Nguồn Lực</span>
           </button>
 
@@ -139,11 +139,11 @@ export function HeroCommandCenter() {
             onClick={() => setActiveTab("dispatch")}
             className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "dispatch"
-                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30"
+                ? "bg-[var(--selection-bg)] text-[var(--selection-ink)] ring-1 ring-inset ring-[var(--selection-border)]"
                 : "text-slate-400 hover:text-white hover:bg-slate-800/50"
             }`}
           >
-            <FileText size={14} className={activeTab === "dispatch" ? "text-cyan-300" : ""} />
+            <FileText size={14} />
             <span>3. Dự Thảo Công Điện</span>
           </button>
         </div>
@@ -200,8 +200,8 @@ export function HeroCommandCenter() {
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                               h.level === "critical"
-                                ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                                : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                ? "bg-[color-mix(in_srgb,var(--status-critical)_12%,transparent)] text-[var(--status-critical-ink)] border border-[var(--status-critical)]"
+                                : "bg-[color-mix(in_srgb,var(--status-warning)_12%,transparent)] text-[var(--status-warning-ink)] border border-[var(--status-warning)]"
                             }`}
                           >
                             P{h.score.toFixed(0)}% Nguy cơ
@@ -227,7 +227,7 @@ export function HeroCommandCenter() {
                       <span>{selectedHotspot.name}</span>
                     </h4>
                   </div>
-                  <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400">
+                  <span className="ui-badge ui-badge-critical rounded-full border px-3 py-1 text-xs font-bold">
                     BÁO ĐỘNG ĐỎ DỊCH
                   </span>
                 </div>

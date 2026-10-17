@@ -266,8 +266,8 @@ export function AlertsPage() {
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           isOpen
-                            ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[#f87171]"
-                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[#4ade80]"
+                            ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[var(--status-critical-ink)]"
+                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[var(--status-good-ink)]"
                         }`}
                       >
                         {isOpen ? vi.alerts.statusOpen : vi.alerts.statusClosed}
