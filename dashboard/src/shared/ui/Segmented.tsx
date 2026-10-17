@@ -27,7 +27,7 @@ export function Segmented<T extends string | number>({
   return (
     <fieldset className={clsx("min-w-0", className)}>
       <legend className="mb-1 text-xs text-[var(--ink-muted)]">{legend}</legend>
-      <div className="inline-flex flex-wrap gap-1 rounded-full border border-[var(--border-strong)] p-0.5">
+      <div className="inline-flex flex-wrap gap-1 rounded-full border border-[var(--border-strong)] bg-[var(--bg-surface)] p-0.5">
         {options.map((o) => (
           <label key={String(o.value)} className="cursor-pointer">
             <input
@@ -40,9 +40,7 @@ export function Segmented<T extends string | number>({
             />
             <span
               className={clsx(
-                "block rounded-full px-3 py-1 text-sm text-[var(--ink-secondary)] transition",
-                "hover:text-[var(--ink-primary)]",
-                "peer-checked:bg-[var(--accent-solid)] peer-checked:text-white",
+                "segmented-option block rounded-full px-3 py-1 text-sm transition-colors",
                 "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[var(--accent)]"
               )}
             >

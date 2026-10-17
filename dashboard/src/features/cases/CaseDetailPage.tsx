@@ -231,7 +231,7 @@ export function CaseDetailPage() {
                       {prov?.region ?? "Vùng"} · Lượt: {alert.run_id}
                     </div>
                   </div>
-                  <span className="rounded-full bg-[var(--bg-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-critical)]">
+                  <span className="rounded-full bg-[var(--bg-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-critical-ink)]">
                     {alert.status === "open" ? vi.alerts.statusOpen : vi.alerts.statusClosed}
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export function CaseDetailPage() {
                 <span className="block text-xs text-[var(--ink-secondary)]">
                   {vi.allocation.casesPrevented}
                 </span>
-                <span className="text-lg font-semibold tabular-nums text-[var(--status-good)]">
+                <span className="text-lg font-semibold tabular-nums text-[var(--status-good-ink)]">
                   ≈ {formatCount(caseData.latest_plan.estimated_cases_prevented)} ca
                 </span>
               </div>

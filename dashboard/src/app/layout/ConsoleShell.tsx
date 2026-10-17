@@ -305,7 +305,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             {/* User Profile Badge with Dynamic Role Color */}
             <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50/90 dark:border-white/10 dark:bg-slate-900/90 p-1 sm:px-3 sm:py-1.5 shadow-xs shrink-0">
               <div
-                className={`flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr ${roleMeta.avatarBg} text-xs font-bold text-white shadow-xs shrink-0`}
+                className={`role-avatar flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr ${roleMeta.avatarBg} text-xs font-bold text-white shadow-xs shrink-0`}
               >
                 {user?.display_name ? user.display_name.charAt(0).toUpperCase() : "U"}
               </div>
@@ -445,14 +445,14 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                         <motion.div
                           layoutId="sidebarActivePill"
                           transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                          className="absolute inset-0 rounded-xl bg-blue-50/90 border-l-2 border-blue-600 shadow-xs dark:bg-gradient-to-r dark:from-[var(--accent-soft)] dark:to-transparent dark:border-[var(--accent)]"
+                          className="console-nav-selection absolute inset-0 rounded-xl"
                         />
                       )}
                       <div className="relative z-10 flex items-center gap-3">
                         <Icon
                           className={`h-4 w-4 transition-colors duration-150 ${
                             isActive
-                              ? "text-blue-700 dark:text-[var(--accent-ink)]"
+                              ? "text-[var(--selection-ink)]"
                               : "text-slate-600 dark:text-[var(--ink-secondary)] group-hover:text-slate-900 dark:group-hover:text-[var(--ink-primary)]"
                           }`}
                           aria-hidden="true"
@@ -460,7 +460,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                         <span
                           className={`transition-colors duration-150 ${
                             isActive
-                              ? "font-semibold text-blue-700 dark:text-[var(--accent-ink)]"
+                              ? "font-semibold text-[var(--selection-ink)]"
                               : "text-slate-600 dark:text-[var(--ink-secondary)] group-hover:text-slate-900 dark:group-hover:text-[var(--ink-primary)]"
                           }`}
                         >
@@ -495,14 +495,14 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                         <motion.div
                           layoutId="sidebarActivePill"
                           transition={{ type: "spring", stiffness: 480, damping: 32 }}
-                          className="absolute inset-0 rounded-xl bg-blue-50/90 border-l-2 border-blue-600 shadow-xs dark:bg-gradient-to-r dark:from-[var(--accent-soft)] dark:to-transparent dark:border-[var(--accent)]"
+                          className="console-nav-selection absolute inset-0 rounded-xl"
                         />
                       )}
                       <div className="relative z-10 flex items-center gap-3">
                         <Icon
                           className={`h-4 w-4 transition-colors duration-150 ${
                             isActive
-                              ? "text-blue-700 dark:text-[var(--accent-ink)]"
+                              ? "text-[var(--selection-ink)]"
                               : "text-slate-600 dark:text-[var(--ink-secondary)] group-hover:text-slate-900 dark:group-hover:text-[var(--ink-primary)]"
                           }`}
                           aria-hidden="true"
@@ -510,7 +510,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                         <span
                           className={`transition-colors duration-150 ${
                             isActive
-                              ? "font-semibold text-blue-700 dark:text-[var(--accent-ink)]"
+                              ? "font-semibold text-[var(--selection-ink)]"
                               : "text-slate-600 dark:text-[var(--ink-secondary)] group-hover:text-slate-900 dark:group-hover:text-[var(--ink-primary)]"
                           }`}
                         >

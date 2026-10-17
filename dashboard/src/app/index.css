@@ -27,6 +27,25 @@
   --accent-solid: #2563eb;
   --accent-ink: #f0f9ff;
   --accent-soft: rgba(0, 210, 255, 0.15);
+  --accent-hover: #1d4ed8;
+  --on-accent: #ffffff;
+
+  --selection-bg: #18354b;
+  --selection-ink: #d8efff;
+  --selection-border: #3a6585;
+
+  --badge-cyan-bg: #123341;
+  --badge-cyan-ink: #a5f3fc;
+  --badge-cyan-border: #285769;
+  --badge-blue-bg: #192e4b;
+  --badge-blue-ink: #bfdbfe;
+  --badge-blue-border: #35577c;
+  --badge-indigo-bg: #292b4a;
+  --badge-indigo-ink: #c7d2fe;
+  --badge-indigo-border: #4b507d;
+  --badge-critical-bg: #3b2029;
+  --badge-critical-ink: #fecdd3;
+  --badge-critical-border: #763b4a;
 
   /* Thang màu rủi ro dịch — ColorBrewer "Reds" */
   --risk-1: #fff5f0;
@@ -78,7 +97,7 @@ html.light {
 
   --ink-primary: #0f172a;
   --ink-secondary: #334155;
-  --ink-muted: #64748b; /* ≥ 4.5:1 WCAG AA */
+  --ink-muted: #526176;
 
   --border-hairline: rgba(15, 23, 42, 0.12);
   --border-strong: rgba(15, 23, 42, 0.22);
@@ -87,6 +106,24 @@ html.light {
   --accent-solid: #1d4ed8;
   --accent-ink: #1e40af;
   --accent-soft: rgba(37, 99, 235, 0.08);
+  --accent-hover: #1e40af;
+
+  --selection-bg: #e6effb;
+  --selection-ink: #1e3a8a;
+  --selection-border: #b6cbee;
+
+  --badge-cyan-bg: #ecfeff;
+  --badge-cyan-ink: #155e75;
+  --badge-cyan-border: #a5dfe7;
+  --badge-blue-bg: #eff6ff;
+  --badge-blue-ink: #1e40af;
+  --badge-blue-border: #bfdbfe;
+  --badge-indigo-bg: #eef2ff;
+  --badge-indigo-ink: #3730a3;
+  --badge-indigo-border: #c7d2fe;
+  --badge-critical-bg: #fff1f2;
+  --badge-critical-ink: #9f1239;
+  --badge-critical-border: #fecdd3;
 
   --risk-1: #fff5f0;
   --risk-2: #fee0d2;
@@ -108,8 +145,8 @@ html.light {
   --status-warning: #d97706;
   --status-serious: #ea580c;
   --status-critical: #dc2626;
-  --status-good-ink: #15803d;
-  --status-warning-ink: #b45309;
+  --status-good-ink: #166534;
+  --status-warning-ink: #92400e;
   --status-critical-ink: #b91c1c;
 
   --brand-navy: #1e3a8a;
@@ -247,6 +284,59 @@ body {
 
 .font-display {
   font-family: var(--font-display);
+}
+
+/* Selected controls and navigation share a readable, restrained theme palette. */
+.segmented-option {
+  border: 1px solid transparent;
+  color: var(--ink-secondary);
+}
+
+.segmented-option:hover {
+  color: var(--ink-primary);
+  background-color: var(--bg-surface-hover);
+}
+
+.peer:checked + .segmented-option {
+  background-color: var(--selection-bg);
+  border-color: var(--selection-border);
+  color: var(--selection-ink);
+  font-weight: 600;
+}
+
+.console-nav-selection {
+  background-color: var(--selection-bg);
+  border-left: 2px solid var(--selection-border);
+}
+
+.ui-badge {
+  background-color: var(--badge-bg);
+  border-color: var(--badge-border);
+  color: var(--badge-ink);
+}
+
+.ui-badge-cyan {
+  --badge-bg: var(--badge-cyan-bg);
+  --badge-ink: var(--badge-cyan-ink);
+  --badge-border: var(--badge-cyan-border);
+}
+
+.ui-badge-blue {
+  --badge-bg: var(--badge-blue-bg);
+  --badge-ink: var(--badge-blue-ink);
+  --badge-border: var(--badge-blue-border);
+}
+
+.ui-badge-indigo {
+  --badge-bg: var(--badge-indigo-bg);
+  --badge-ink: var(--badge-indigo-ink);
+  --badge-border: var(--badge-indigo-border);
+}
+
+.ui-badge-critical {
+  --badge-bg: var(--badge-critical-bg);
+  --badge-ink: var(--badge-critical-ink);
+  --badge-border: var(--badge-critical-border);
 }
 
 /* Glassmorphism restrained */
@@ -538,6 +628,7 @@ body {
 
   /* Protect colored gradient text (e.g. rainbow accents) */
   .bg-clip-text {
+    background-image: linear-gradient(100deg, #1d4ed8, #0e7490, #b91c1c) !important;
     color: transparent !important;
     -webkit-text-fill-color: transparent !important;
   }
@@ -556,10 +647,10 @@ body {
     color: #334155 !important;
   }
   .text-slate-400 {
-    color: #64748b !important;
+    color: #526176 !important;
   }
   .text-slate-500 {
-    color: #64748b !important;
+    color: #526176 !important;
   }
   p {
     color: #475569 !important;
@@ -568,7 +659,7 @@ body {
   /* High-contrast accessible badges & status inks in Light Mode */
   .text-cyan-300,
   .text-cyan-400 {
-    color: #0284c7 !important; /* Sky 600 - crisp and readable on light */
+    color: #0e7490 !important;
   }
   .text-blue-300,
   .text-blue-400 {
@@ -576,7 +667,7 @@ body {
   }
   .text-emerald-300,
   .text-emerald-400 {
-    color: #059669 !important; /* Emerald 600 */
+    color: #047857 !important;
   }
   .text-amber-300,
   .text-amber-400 {
@@ -644,14 +735,12 @@ body {
   button.bg-blue-600 *,
   a[class*="from-blue-600"] *,
   button[class*="from-blue-600"] *,
-  .peer-checked\:text-white,
-  [class*="bg-gradient-to-tr"],
-  [class*="bg-gradient-to-tr"] * {
+  .role-avatar,
+  .role-avatar * {
     color: #ffffff !important;
   }
 
-  a[href="#map"],
-  a[href*="mo-hinh"] {
+  .landing-secondary-link {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     color: #0f172a !important;

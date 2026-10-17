@@ -145,11 +145,11 @@ export function HeroGlobe3D() {
         >
           {/* Orbiting Satellite Node */}
           <div
-            className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full border border-cyan-400/70 bg-slate-900/95 px-2.5 py-0.5 shadow-[0_0_15px_rgba(14,165,233,0.7)] backdrop-blur-md"
+            className="ui-badge ui-badge-cyan absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 shadow-sm"
             style={{ transform: "rotateX(-65deg)" }}
           >
-            <Satellite size={12} className="text-cyan-300 animate-pulse" />
-            <span className="font-mono text-[9px] font-bold tracking-wider text-cyan-200 uppercase">
+            <Satellite size={12} />
+            <span className="font-mono text-[9px] font-bold tracking-wider uppercase">
               ERA5 Sat
             </span>
           </div>
@@ -165,13 +165,11 @@ export function HeroGlobe3D() {
           }}
         >
           <div
-            className="absolute -bottom-2 right-1/4 flex items-center gap-1 rounded-full border border-indigo-500/50 bg-slate-900/90 px-2 py-0.5 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
+            className="ui-badge ui-badge-indigo absolute -bottom-2 right-1/4 flex items-center gap-1 rounded-full border px-2 py-0.5 shadow-sm"
             style={{ transform: "rotateX(-45deg)" }}
           >
-            <Radio size={10} className="text-indigo-400 animate-ping" />
-            <span className="font-mono text-[8px] font-bold text-indigo-300 uppercase">
-              MILP Grid
-            </span>
+            <Radio size={10} />
+            <span className="font-mono text-[8px] font-bold uppercase">MILP Grid</span>
           </div>
         </div>
 
@@ -182,11 +180,9 @@ export function HeroGlobe3D() {
             transform: "translateZ(95px) translateY(-20px)",
           }}
         >
-          <div className="flex items-center gap-1.5 rounded-xl border border-red-500/50 bg-slate-950/95 px-2.5 py-1 shadow-[0_0_25px_rgba(239,68,68,0.45)] backdrop-blur-md ring-1 ring-red-400/30">
-            <Activity size={13} className="text-red-400 shrink-0 animate-pulse" />
-            <span className="font-mono text-[10px] font-black text-red-200 tracking-wider">
-              VN-GIS / 34 Tỉnh
-            </span>
+          <div className="ui-badge ui-badge-critical flex items-center gap-1.5 rounded-xl border px-2.5 py-1 shadow-sm">
+            <Activity size={13} className="shrink-0" />
+            <span className="font-mono text-[10px] font-bold tracking-wider">VN-GIS / 34 Tỉnh</span>
           </div>
           <div className="h-5 w-px bg-gradient-to-b from-red-400 to-transparent" />
         </div>
@@ -228,13 +224,11 @@ export function HeroGlobe3D() {
 
         {/* Floating 3D HUD Telemetry Pill 4 (Bottom Left - Medium Z Depth) */}
         <div
-          className="absolute -bottom-2 -left-8 sm:-left-14 z-10 hidden lg:flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-slate-900/85 px-2.5 py-1 shadow-md backdrop-blur-sm pointer-events-none"
+          className="absolute -bottom-2 -left-8 sm:-left-14 z-10 hidden lg:flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-slate-900/85 px-2.5 py-1 text-[var(--status-warning-ink)] shadow-md backdrop-blur-sm pointer-events-none"
           style={{ transform: "translateZ(40px)" }}
         >
-          <Compass size={12} className="text-amber-400" />
-          <span className="font-mono text-[9px] font-bold text-amber-300 uppercase">
-            Lead Time 1–6T
-          </span>
+          <Compass size={12} />
+          <span className="font-mono text-[9px] font-bold uppercase">Lead Time 1–6T</span>
         </div>
       </motion.div>
     </div>

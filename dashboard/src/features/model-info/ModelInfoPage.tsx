@@ -10,8 +10,8 @@ const REGIONS = ["Bắc", "Trung", "Nam"] as const;
 
 /** Màu của mức nghiêm trọng đi kèm CHỮ (luật T9: màu không phải kênh duy nhất). */
 const SEVERITY_STYLE: Record<string, string> = {
-  high: "border-[var(--status-critical)] text-[#f5b5b0]",
-  moderate: "border-[var(--status-warning)] text-[#fbd98a]",
+  high: "border-[var(--status-critical)] text-[var(--status-critical-ink)]",
+  moderate: "border-[var(--status-warning)] text-[var(--status-warning-ink)]",
   info: "border-[var(--border-strong)] text-[var(--ink-secondary)]",
 };
 

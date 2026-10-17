@@ -158,10 +158,10 @@ export function DraftPage() {
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
               draft.status === "APPROVED"
-                ? "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[#4ade80]"
+                ? "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[var(--status-good-ink)]"
                 : draft.status === "REJECTED"
-                  ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[#f87171]"
-                  : "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[#fcd34d]"
+                  ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[var(--status-critical-ink)]"
+                  : "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[var(--status-warning-ink)]"
             }`}
           >
             {vi.drafts.statuses[draft.status] ?? draft.status}
@@ -284,7 +284,7 @@ export function DraftPage() {
                   <>
                     <Button
                       variant="secondary"
-                      className="px-3 py-1.5 text-xs text-[var(--status-critical)]"
+                      className="px-3 py-1.5 text-xs text-[var(--status-critical-ink)]"
                       onClick={() => setShowRejectDialog(true)}
                     >
                       <XCircle size={14} />
@@ -341,7 +341,7 @@ export function DraftPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--status-good)_10%,transparent)] p-2 text-center text-xs font-medium text-[var(--status-good)]">
+            <div className="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--status-good)_10%,transparent)] p-2 text-center text-xs font-medium text-[var(--status-good-ink)]">
               {vi.drafts.guardrailsPassed}
             </div>
           </Card>
@@ -385,7 +385,7 @@ export function DraftPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--ink-secondary)]">Trạng thái phát hành:</span>
-                  <span className="rounded-full bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] px-2 py-0.5 font-semibold text-[#4ade80]">
+                  <span className="rounded-full bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] px-2 py-0.5 font-semibold text-[var(--status-good-ink)]">
                     {vi.dispatch.statuses["SENT"]}
                   </span>
                 </div>

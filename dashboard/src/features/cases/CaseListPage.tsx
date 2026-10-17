@@ -202,8 +202,8 @@ export function CaseListPage() {
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           isOpen
-                            ? "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[#fcd34d]"
-                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[#4ade80]"
+                            ? "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[var(--status-warning-ink)]"
+                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[var(--status-good-ink)]"
                         }`}
                       >
                         {vi.cases.statuses[c.status] ?? c.status}

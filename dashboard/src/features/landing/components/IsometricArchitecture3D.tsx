@@ -406,7 +406,7 @@ export function IsometricArchitecture3D() {
               </h4>
             </div>
 
-            <span className="self-start sm:self-auto rounded-full border border-cyan-500/30 bg-cyan-950/60 px-3 py-1 text-xs font-semibold text-cyan-300">
+            <span className="ui-badge ui-badge-cyan self-start sm:self-auto rounded-full border px-3 py-1 text-xs font-semibold">
               Công nghệ: {selectedLayerData.techStack}
             </span>
           </div>
