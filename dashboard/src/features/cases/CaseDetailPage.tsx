@@ -30,6 +30,7 @@ import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { TextField } from "@/shared/ui/TextField";
+import { HealthEconomicsEvaluation } from "./HealthEconomicsEvaluation";
 
 const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
@@ -344,6 +345,11 @@ export function CaseDetailPage() {
                 </span>
               </div>
             </div>
+
+            <HealthEconomicsEvaluation
+              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+              interventionCost={caseData.latest_plan.total_cost}
+            />
 
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left text-xs">
