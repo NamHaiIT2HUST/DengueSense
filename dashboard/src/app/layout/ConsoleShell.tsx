@@ -27,7 +27,7 @@ import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
-import { TacticalScenarioModal } from "@/features/scenarios";
+import { TacticalScenarioModal, ScenarioComparisonModal } from "@/features/scenarios";
 import { GuidedTourModal } from "@/features/tour";
 import { CommandPaletteModal } from "@/features/command-palette";
 import type { TacticalScenario } from "@/shared/config/scenarios";
@@ -113,6 +113,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const userRoles = user?.roles ?? [];
   const primaryRole: AppRole = userRoles.includes("admin")
@@ -143,11 +144,14 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleOpenScenarios = () => setShowScenarioModal(true);
     const handleOpenTour = () => setShowTourModal(true);
+    const handleOpenComparison = () => setShowComparisonModal(true);
     window.addEventListener("open-tactical-scenarios", handleOpenScenarios);
     window.addEventListener("open-guided-tour", handleOpenTour);
+    window.addEventListener("open-scenario-comparison", handleOpenComparison);
     return () => {
       window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
       window.removeEventListener("open-guided-tour", handleOpenTour);
+      window.removeEventListener("open-scenario-comparison", handleOpenComparison);
     };
   }, []);
 
@@ -650,6 +654,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         open={showScenarioModal}
         onClose={() => setShowScenarioModal(false)}
         onSelectScenario={handleSelectScenario}
+        onOpenComparison={() => setShowComparisonModal(true)}
       />
 
       <GuidedTourModal
@@ -663,8 +668,15 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         onClose={() => setShowCommandPalette(false)}
         onOpenScenarios={() => setShowScenarioModal(true)}
         onOpenTour={() => setShowTourModal(true)}
+        onOpenComparison={() => setShowComparisonModal(true)}
         onNavigate={(route) => void router.navigate({ to: route })}
         onSwitchRole={onSwitchRole}
+      />
+
+      <ScenarioComparisonModal
+        open={showComparisonModal}
+        onClose={() => setShowComparisonModal(false)}
+        onSelectScenario={handleSelectScenario}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, ShieldAlert, Target, X } from "lucide-react";
+import { ArrowRight, Scale, ShieldAlert, Target, X } from "lucide-react";
 
 import { TACTICAL_SCENARIOS, type TacticalScenario } from "@/shared/config/scenarios";
 import { formatCurrency } from "@/shared/lib/format";
@@ -9,9 +9,15 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSelectScenario: (scenario: TacticalScenario) => void;
+  onOpenComparison?: () => void;
 }
 
-export function TacticalScenarioModal({ open, onClose, onSelectScenario }: Props) {
+export function TacticalScenarioModal({
+  open,
+  onClose,
+  onSelectScenario,
+  onOpenComparison,
+}: Props) {
   if (!open) return null;
 
   return (
@@ -48,14 +54,30 @@ export function TacticalScenarioModal({ open, onClose, onSelectScenario }: Props
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Đóng cửa sổ"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              {onOpenComparison && (
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1.5 text-xs gap-1.5"
+                  onClick={() => {
+                    onClose();
+                    onOpenComparison();
+                  }}
+                  title="Mở giao diện so sánh đối chứng đa kịch bản và phân tích độ nhạy ngân sách (+20% / -20%)"
+                >
+                  <Scale size={13} />
+                  <span>Đối sánh A/B & Độ nhạy</span>
+                </Button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Đóng cửa sổ"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Body */}

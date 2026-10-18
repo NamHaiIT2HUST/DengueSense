@@ -9,6 +9,7 @@ import {
   FileText,
   PieChart,
   Plus,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { useAlerts } from "@/entities/alert";
@@ -295,15 +296,26 @@ export function CaseDetailPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {caseData?.latest_plan && (
-              <Button
-                variant="secondary"
-                className="px-3 py-1 text-xs gap-1.5"
-                onClick={handleExportPlanCsv}
-                title="Tải bảng phương án phân bổ nguồn lực MILP định dạng CSV cho Excel"
-              >
-                <Download size={14} />
-                Xuất CSV (Excel)
-              </Button>
+              <>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
+                  title="Phân tích độ nhạy ngân sách và so sánh đối chứng đa phương án A/B (+20% / -20%)"
+                >
+                  <SlidersHorizontal size={14} className="text-indigo-500" />
+                  Độ nhạy & So sánh A/B
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5"
+                  onClick={handleExportPlanCsv}
+                  title="Tải bảng phương án phân bổ nguồn lực MILP định dạng CSV cho Excel"
+                >
+                  <Download size={14} />
+                  Xuất CSV (Excel)
+                </Button>
+              </>
             )}
             {canAct ? (
               <Button

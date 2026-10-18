@@ -7,6 +7,7 @@ import {
   FolderKanban,
   Map,
   MapPin,
+  Scale,
   Search,
   ShieldCheck,
   Target,
@@ -35,6 +36,7 @@ interface Props {
   onClose: () => void;
   onOpenScenarios: () => void;
   onOpenTour: () => void;
+  onOpenComparison?: () => void;
   onNavigate: (route: string) => void;
   onSwitchRole: (username: string, password: string) => void;
 }
@@ -44,6 +46,7 @@ export function CommandPaletteModal({
   onClose,
   onOpenScenarios,
   onOpenTour,
+  onOpenComparison,
   onNavigate,
   onSwitchRole,
 }: Props) {
@@ -98,6 +101,20 @@ export function CommandPaletteModal({
         onSelect: () => {
           onClose();
           onOpenTour();
+        },
+      },
+      {
+        id: "act-comparison",
+        category: "actions",
+        title: "⚖️ Đối sánh A/B & Độ nhạy ngân sách",
+        subtitle: "Mô phỏng đường cong co giãn chi phí - hiệu quả (+20% / -20%) và 3 kịch bản",
+        icon: Scale,
+        iconColor: "text-indigo-500",
+        badge: "Sensitivity A/B",
+        badgeColor: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
+        onSelect: () => {
+          onClose();
+          onOpenComparison?.();
         },
       },
       {
@@ -199,7 +216,7 @@ export function CommandPaletteModal({
     });
 
     return list;
-  }, [onClose, onOpenScenarios, onOpenTour, onNavigate, onSwitchRole, provinces]);
+  }, [onClose, onOpenScenarios, onOpenTour, onOpenComparison, onNavigate, onSwitchRole, provinces]);
 
   // Filter actions by query
   const filteredActions = useMemo(() => {
