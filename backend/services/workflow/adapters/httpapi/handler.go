@@ -288,33 +288,35 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 			if err == nil {
 				httpReq.Header.Set("Content-Type", "application/json")
 				resp, err := s.httpClient.Do(httpReq)
-				if err == nil && resp.StatusCode == http.StatusOK {
-					var optResp struct {
-						TotalCost               float64 `json:"total_cost"`
-						EstimatedCasesPrevented float64 `json:"estimated_cases_prevented"`
-						Allocations             []struct {
-							ProvinceID  string  `json:"province_id"`
-							Amount      float64 `json:"amount"`
-							Explanation string  `json:"explanation"`
-							Beds        int     `json:"beds"`
-							Supplies    int     `json:"supplies"`
-							Teams       int     `json:"teams"`
-						} `json:"allocations"`
-					}
-					if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil {
-						totalCost = optResp.TotalCost
-						prevented = optResp.EstimatedCasesPrevented
-						for _, a := range optResp.Allocations {
-							allocItems = append(allocItems, domain.AllocationItem{
-								ProvinceID:  a.ProvinceID,
-								Amount:      a.Amount,
-								Explanation: a.Explanation,
-								Beds:        a.Beds,
-								Supplies:    a.Supplies,
-								Teams:       a.Teams,
-							})
+				if err == nil {
+					if resp.StatusCode == http.StatusOK {
+						var optResp struct {
+							TotalCost               float64 `json:"total_cost"`
+							EstimatedCasesPrevented float64 `json:"estimated_cases_prevented"`
+							Allocations             []struct {
+								ProvinceID  string  `json:"province_id"`
+								Amount      float64 `json:"amount"`
+								Explanation string  `json:"explanation"`
+								Beds        int     `json:"beds"`
+								Supplies    int     `json:"supplies"`
+								Teams       int     `json:"teams"`
+							} `json:"allocations"`
 						}
-						calledOptimize = true
+						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil {
+							totalCost = optResp.TotalCost
+							prevented = optResp.EstimatedCasesPrevented
+							for _, a := range optResp.Allocations {
+								allocItems = append(allocItems, domain.AllocationItem{
+									ProvinceID:  a.ProvinceID,
+									Amount:      a.Amount,
+									Explanation: a.Explanation,
+									Beds:        a.Beds,
+									Supplies:    a.Supplies,
+									Teams:       a.Teams,
+								})
+							}
+							calledOptimize = true
+						}
 					}
 					_ = resp.Body.Close()
 				}
@@ -604,16 +606,18 @@ Chuyên viên Dịch tễ học thực địa`,
 			if err == nil {
 				httpReq.Header.Set("Content-Type", "application/json")
 				resp, err := s.httpClient.Do(httpReq)
-				if err == nil && resp.StatusCode == http.StatusOK {
-					var gResp struct {
-						Title       string `json:"title"`
-						Content     string `json:"content"`
-						ContentHash string `json:"content_hash"`
-					}
-					if err := json.NewDecoder(resp.Body).Decode(&gResp); err == nil && gResp.Content != "" {
-						content = gResp.Content
-						if gResp.Title != "" {
-							title = gResp.Title
+				if err == nil {
+					if resp.StatusCode == http.StatusOK {
+						var gResp struct {
+							Title       string `json:"title"`
+							Content     string `json:"content"`
+							ContentHash string `json:"content_hash"`
+						}
+						if err := json.NewDecoder(resp.Body).Decode(&gResp); err == nil && gResp.Content != "" {
+							content = gResp.Content
+							if gResp.Title != "" {
+								title = gResp.Title
+							}
 						}
 					}
 					_ = resp.Body.Close()

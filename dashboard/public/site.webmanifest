@@ -1,0 +1,33 @@
+{
+  "name": "DengueSense — Nền tảng AI Dịch tễ học",
+  "short_name": "DengueSense",
+  "description": "Nền tảng AI hỗ trợ ra quyết định y tế công cộng phòng chống sốt xuất huyết",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#040814",
+  "background_color": "#040814",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "start_url": "/"
+}
