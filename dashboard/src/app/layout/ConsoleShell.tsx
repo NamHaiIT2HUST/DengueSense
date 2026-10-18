@@ -15,6 +15,7 @@ import {
   TrendingUp,
   Check,
   Target,
+  Compass,
 } from "lucide-react";
 
 import { useSession } from "@/entities/user";
@@ -26,7 +27,9 @@ import { Button } from "@/shared/ui/Button";
 import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { TacticalScenarioModal } from "@/features/scenarios";
+import { GuidedTourModal } from "@/features/tour";
 import type { TacticalScenario } from "@/shared/config/scenarios";
+import type { TourStep } from "@/shared/config/guidedTour";
 
 export type AppRole = "approver" | "officer" | "analyst" | "admin" | "viewer";
 
@@ -106,6 +109,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const signingOut = useRef(false);
   const [showScenarioModal, setShowScenarioModal] = useState(false);
+  const [showTourModal, setShowTourModal] = useState(false);
 
   const userRoles = user?.roles ?? [];
   const primaryRole: AppRole = userRoles.includes("admin")
@@ -135,8 +139,13 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleOpenScenarios = () => setShowScenarioModal(true);
+    const handleOpenTour = () => setShowTourModal(true);
     window.addEventListener("open-tactical-scenarios", handleOpenScenarios);
-    return () => window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
+    window.addEventListener("open-guided-tour", handleOpenTour);
+    return () => {
+      window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
+      window.removeEventListener("open-guided-tour", handleOpenTour);
+    };
   }, []);
 
   if (!accessToken) return null; // đang chuyển về đăng nhập
@@ -183,6 +192,18 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       }
     }
     void router.navigate({ to: scenario.targetRoute });
+  }
+
+  async function handleNavigateTourStep(step: TourStep) {
+    setShowTourModal(false);
+    if (primaryRole !== step.role) {
+      const targetAcc = DEMO_ACCOUNTS.find((a) => a.roles.includes(step.role));
+      if (targetAcc) {
+        await login(targetAcc.username, targetAcc.password);
+        await queryClient.invalidateQueries();
+      }
+    }
+    void router.navigate({ to: step.targetRoute });
   }
 
   const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(primaryRole));
@@ -445,6 +466,16 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                   <Target size={12} className="text-red-500" />
                   <span>Diễn tập Tình huống</span>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowTourModal(true)}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/30 text-blue-600 dark:text-cyan-400 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all cursor-pointer shadow-xs ml-1"
+                  title="Lộ trình trải nghiệm 5 bước tác chiến đa vai trò"
+                >
+                  <Compass size={12} className="text-blue-500 dark:text-cyan-400" />
+                  <span>Lộ trình Trải nghiệm</span>
+                </button>
               </div>
             </div>
           </div>
@@ -590,6 +621,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         open={showScenarioModal}
         onClose={() => setShowScenarioModal(false)}
         onSelectScenario={handleSelectScenario}
+      />
+
+      <GuidedTourModal
+        open={showTourModal}
+        onClose={() => setShowTourModal(false)}
+        onNavigateStep={handleNavigateTourStep}
       />
     </div>
   );
