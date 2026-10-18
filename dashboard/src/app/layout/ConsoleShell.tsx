@@ -16,6 +16,7 @@ import {
   Check,
   Target,
   Compass,
+  Search,
 } from "lucide-react";
 
 import { useSession } from "@/entities/user";
@@ -28,6 +29,7 @@ import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 import { TacticalScenarioModal } from "@/features/scenarios";
 import { GuidedTourModal } from "@/features/tour";
+import { CommandPaletteModal } from "@/features/command-palette";
 import type { TacticalScenario } from "@/shared/config/scenarios";
 import type { TourStep } from "@/shared/config/guidedTour";
 
@@ -110,6 +112,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const signingOut = useRef(false);
   const [showScenarioModal, setShowScenarioModal] = useState(false);
   const [showTourModal, setShowTourModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
 
   const userRoles = user?.roles ?? [];
   const primaryRole: AppRole = userRoles.includes("admin")
@@ -146,6 +149,18 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
       window.removeEventListener("open-guided-tour", handleOpenTour);
     };
+  }, []);
+
+  // Phím tắt toàn cục Ctrl + K / Cmd + K mở thanh lệnh tác chiến
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setShowCommandPalette((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
   if (!accessToken) return null; // đang chuyển về đăng nhập
@@ -336,7 +351,21 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 text-sm shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 text-sm shrink-0">
+            {/* Quick Command Palette Search Bar */}
+            <button
+              type="button"
+              onClick={() => setShowCommandPalette(true)}
+              className="flex items-center gap-2 rounded-xl border border-slate-200/90 bg-slate-100/70 px-2.5 sm:px-3 py-1.5 text-xs text-slate-500 hover:border-blue-400 hover:bg-white hover:text-slate-800 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 transition-all cursor-pointer shadow-2xs mr-0.5 sm:mr-1"
+              title="Mở thanh lệnh tác chiến nhanh (Ctrl + K)"
+            >
+              <Search size={14} className="text-slate-400 shrink-0" />
+              <span className="hidden md:inline">Tìm kiếm (Ctrl+K)...</span>
+              <kbd className="hidden lg:inline-flex items-center gap-0.5 rounded border border-slate-300/80 bg-white px-1.5 py-0.2 text-[10px] font-mono text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                ⌘K
+              </kbd>
+            </button>
+
             <NotificationCenter />
 
             <div className="flex items-center px-0.5">
@@ -627,6 +656,15 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         open={showTourModal}
         onClose={() => setShowTourModal(false)}
         onNavigateStep={handleNavigateTourStep}
+      />
+
+      <CommandPaletteModal
+        open={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onOpenScenarios={() => setShowScenarioModal(true)}
+        onOpenTour={() => setShowTourModal(true)}
+        onNavigate={(route) => void router.navigate({ to: route })}
+        onSwitchRole={onSwitchRole}
       />
     </div>
   );
