@@ -22,6 +22,7 @@ import { DEMO_ACCOUNTS } from "@/shared/config/demo";
 import { env } from "@/shared/config/env";
 import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
+import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
 
 export type AppRole = "approver" | "officer" | "analyst" | "admin" | "viewer";
@@ -293,6 +294,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 text-sm shrink-0">
+            <NotificationCenter />
+
             <div className="flex items-center px-0.5">
               <ThemeToggle />
             </div>

@@ -1,12 +1,15 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useMemo, useState } from "react";
+import { Download } from "lucide-react";
 
 import { useForecastRuns, useGeometry, useRiskMap } from "@/entities/forecast";
 import type { Horizon, Region, RiskMap } from "@/shared/api";
+import { exportToCsv } from "@/shared/lib/exportCsv";
 import { formatCount, formatHorizon, formatIncidence, formatMonth } from "@/shared/lib/format";
 import { classColorVar } from "@/shared/lib/riskClass";
 import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
+import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { ForecastFlags } from "@/shared/ui/ForecastFlags";
@@ -68,6 +71,46 @@ export function RiskMapPage({
       // Bấm lại cột đang chọn thì đảo chiều; cột mới: tên tăng dần, số giảm dần.
       dir: s.key === key ? (s.dir === "asc" ? "desc" : "asc") : key === "province" ? "asc" : "desc",
     }));
+
+  function handleExportCsv() {
+    if (!map) return;
+    const filename = `DengueSense_Du_Bao_${map.meta.origin_month}_Tam_${search.h}T`;
+    exportToCsv(
+      filename,
+      [
+        { header: "Mã tỉnh", key: (r) => r.item.province_id },
+        { header: "Tỉnh / Thành phố", key: (r) => r.item.name },
+        { header: "Vùng", key: (r) => r.item.region },
+        { header: "Tầm dự báo (tháng)", key: () => search.h },
+        {
+          header: "Xác suất vượt ngưỡng (%)",
+          key: (r) => (r.item.forecast ? Math.round(r.item.forecast.exceed_prob * 100) : "N/A"),
+        },
+        {
+          header: "Mức nền (%)",
+          key: (r) => (r.item.forecast ? Math.round(r.item.forecast.base_rate * 100) : "N/A"),
+        },
+        {
+          header: "Tỉ suất ca / 100k dân",
+          key: (r) =>
+            r.item.forecast ? r.item.forecast.incidence_pred_per_100k.toFixed(1) : "N/A",
+        },
+        {
+          header: "Số ca dự báo",
+          key: (r) => (r.item.forecast ? Math.round(r.item.forecast.cases_pred) : "N/A"),
+        },
+        {
+          header: "Ngưỡng cảnh báo P75",
+          key: (r) => (r.item.forecast ? Math.round(r.item.forecast.threshold_p75) : "N/A"),
+        },
+        {
+          header: "Cờ ghi chú",
+          key: (r) => r.item.forecast?.flags?.join("; ") || "Bình thường",
+        },
+      ],
+      sorted
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -172,13 +215,24 @@ export function RiskMapPage({
 
           <Legend map={map} metric={search.metric} />
 
-          <section aria-labelledby="risk-table-title" className="space-y-2">
-            <h2 id="risk-table-title" className="text-lg font-semibold">
-              {vi.map.tableTitle}
-              <span className="ml-2 text-sm font-normal text-[var(--ink-secondary)]">
-                {formatHorizon(map.meta.origin_month, map.horizon)}
-              </span>
-            </h2>
+          <section aria-labelledby="risk-table-title" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="risk-table-title" className="text-lg font-semibold">
+                {vi.map.tableTitle}
+                <span className="ml-2 text-sm font-normal text-[var(--ink-secondary)]">
+                  {formatHorizon(map.meta.origin_month, map.horizon)}
+                </span>
+              </h2>
+              <Button
+                variant="secondary"
+                className="px-3 py-1.5 text-xs gap-1.5"
+                onClick={handleExportCsv}
+                title="Tải bảng dữ liệu dự báo định dạng CSV hỗ trợ mở trực tiếp bằng Microsoft Excel"
+              >
+                <Download size={14} />
+                Xuất CSV (Excel)
+              </Button>
+            </div>
             <RiskTable
               rows={sorted}
               ranks={ranks}

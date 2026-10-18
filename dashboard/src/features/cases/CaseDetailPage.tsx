@@ -1,6 +1,15 @@
 import { Link, useParams, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, Bot, FileEdit, FileText, PieChart, Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Bot,
+  Download,
+  FileEdit,
+  FileText,
+  PieChart,
+  Plus,
+} from "lucide-react";
 
 import { useAlerts } from "@/entities/alert";
 import {
@@ -12,6 +21,7 @@ import {
 } from "@/entities/draft";
 import { useProvinces } from "@/entities/forecast";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
+import { exportToCsv } from "@/shared/lib/exportCsv";
 import { formatCount, formatCurrency, formatDateTime } from "@/shared/lib/format";
 import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
@@ -112,6 +122,37 @@ export function CaseDetailPage() {
       to: "/app/du-thao/$draftId",
       params: { draftId: res.id },
     });
+  }
+
+  function handleExportPlanCsv() {
+    if (!caseData?.latest_plan) return;
+    const plan = caseData.latest_plan;
+    const filename = `DengueSense_Phan_Bo_${caseId}`;
+    exportToCsv(
+      filename,
+      [
+        {
+          header: "Tỉnh / Thành phố",
+          key: (a) => provincesMap.get(a.province_id)?.name ?? a.province_id,
+        },
+        { header: "Mã tỉnh", key: (a) => a.province_id },
+        { header: "Kinh phí phân bổ (VNĐ)", key: (a) => a.amount },
+        {
+          header: "Vật tư hóa chất",
+          key: (a) => (a.supplies ? `${a.supplies} L/kg Cloramin B` : "Theo định mức"),
+        },
+        {
+          header: "Giường bệnh cấp cứu",
+          key: (a) => (a.beds ? `${a.beds} giường` : "Theo định mức"),
+        },
+        {
+          header: "Đội phản ứng nhanh",
+          key: (a) => (a.teams ? `${a.teams} đội` : "Theo tổ cơ động"),
+        },
+        { header: "Căn cứ & Giải trình", key: (a) => a.explanation },
+      ],
+      plan.allocations
+    );
   }
 
   if (caseQuery.isPending) {
@@ -251,16 +292,29 @@ export function CaseDetailPage() {
             </h2>
             <p className="text-xs text-[var(--ink-secondary)] mt-0.5">{vi.allocation.lead}</p>
           </div>
-          {canAct ? (
-            <Button
-              variant="secondary"
-              className="px-3 py-1 text-xs gap-1.5"
-              onClick={() => setIsAllocating(true)}
-            >
-              <Plus size={14} />
-              {vi.cases.detail.createPlan}
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {caseData?.latest_plan && (
+              <Button
+                variant="secondary"
+                className="px-3 py-1 text-xs gap-1.5"
+                onClick={handleExportPlanCsv}
+                title="Tải bảng phương án phân bổ nguồn lực MILP định dạng CSV cho Excel"
+              >
+                <Download size={14} />
+                Xuất CSV (Excel)
+              </Button>
+            )}
+            {canAct ? (
+              <Button
+                variant="secondary"
+                className="px-3 py-1 text-xs gap-1.5"
+                onClick={() => setIsAllocating(true)}
+              >
+                <Plus size={14} />
+                {vi.cases.detail.createPlan}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {/* Nội dung kết quả phân bổ */}
