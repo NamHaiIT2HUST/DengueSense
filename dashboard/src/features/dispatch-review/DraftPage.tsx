@@ -131,7 +131,7 @@ export function DraftPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="print:hidden">
         <Link
           to="/app/ho-so/$caseId"
           params={{ caseId: draft.case_id }}
@@ -170,15 +170,17 @@ export function DraftPage() {
       </div>
 
       {fourEyesBlocked && isApprover ? (
-        <UiAlert tone="warning">{vi.drafts.fourEyesNotice}</UiAlert>
+        <div className="print:hidden">
+          <UiAlert tone="warning">{vi.drafts.fourEyesNotice}</UiAlert>
+        </div>
       ) : null}
 
       {/* Grid 2 cột: Trái (Editor/Viewer 60%) - Phải (Evidence + Guardrails + Dispatch 40%) */}
-      <div className="grid gap-6 lg:grid-cols-12 items-start">
+      <div className="grid gap-6 lg:grid-cols-12 items-start print:block">
         {/* CỘT TRÁI (60% ~ 7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          <Card>
-            <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 mb-4">
+        <div className="lg:col-span-7 space-y-4 print:w-full print:space-y-0">
+          <Card className="print:border-none print:shadow-none print:p-0 print:bg-transparent">
+            <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 mb-4 print:hidden">
               <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
                 <FileEdit size={18} className="text-[var(--accent)]" />
                 {vi.drafts.editorTitle}
@@ -246,29 +248,52 @@ export function DraftPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-6 shadow-inner">
-                {/* Tiêu ngữ công văn hành chính */}
-                <div className="mb-6 border-b border-white/10 pb-4 text-center">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-secondary)]">
+              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-6 shadow-inner print:border-none print:shadow-none print:p-0 print:bg-transparent">
+                {/* Tiêu ngữ công văn hành chính theo Nghị định 30/2020/NĐ-CP */}
+                <div className="mb-6 border-b border-white/10 pb-4 text-center print:border-b-black print:border-b-2 print:pb-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-secondary)] print:text-black print:text-sm">
                     CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
                   </p>
-                  <p className="text-[11px] font-medium text-[var(--ink-muted)]">
+                  <p className="text-[11px] font-semibold text-[var(--ink-muted)] print:text-black print:text-xs">
                     Độc lập - Tự do - Hạnh phúc
                   </p>
-                  <div className="mx-auto my-2 h-[1px] w-24 bg-white/20" />
-                  <p className="text-xs text-[var(--ink-muted)] font-mono">
-                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)}
+                  <div className="mx-auto my-2 h-[1px] w-24 bg-white/20 print:bg-black" />
+                  <p className="text-xs text-[var(--ink-muted)] font-mono print:text-black print:text-xs">
+                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)} /
+                    CĐ-DENGUESENSE
                   </p>
                 </div>
-                <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans">
+                <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans print:text-black print:text-base print:leading-normal print:prose-headings:text-black print:prose-strong:text-black">
                   {draft.content}
+                </div>
+
+                {/* Khối ký duyệt & nơi nhận chuẩn hành chính khi in */}
+                <div className="mt-10 pt-6 border-t border-dashed border-[var(--border-hairline)] hidden print:grid print:grid-cols-2 text-xs text-black">
+                  <div className="space-y-1 text-left">
+                    <p className="font-bold">Nơi nhận:</p>
+                    <p>- Ban Chỉ đạo Phòng chống dịch;</p>
+                    <p>- Sở Y tế & CDC các tỉnh thành liên quan;</p>
+                    <p>- Lưu: VT, Hồ sơ dịch tễ số {draft.case_id}.</p>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="italic">
+                      Hà Nội, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm{" "}
+                      {new Date().getFullYear()}
+                    </p>
+                    <p className="font-bold uppercase mt-1">NGƯỜI CÓ THẨM QUYỀN PHÊ DUYỆT</p>
+                    <p className="italic text-[10px] text-gray-600">
+                      (Ký, ghi rõ họ tên và đóng dấu)
+                    </p>
+                    <div className="h-16" />
+                    <p className="font-semibold">{draft.created_by.toUpperCase()}</p>
+                  </div>
                 </div>
               </div>
             )}
           </Card>
 
           {/* Action Bar thẩm định và ban hành */}
-          <Card>
+          <Card className="print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-[var(--ink-primary)]">
@@ -318,7 +343,7 @@ export function DraftPage() {
         </div>
 
         {/* CỘT PHẢI (40% ~ 5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 print:hidden">
           {/* Card Guardrails */}
           <Card>
             <h2 className="text-sm font-semibold text-[var(--ink-primary)] flex items-center gap-2 mb-3">

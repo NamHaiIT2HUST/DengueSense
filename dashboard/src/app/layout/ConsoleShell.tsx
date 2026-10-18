@@ -259,7 +259,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       </a>
 
       {/* Main Console Top Header */}
-      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-3 sm:px-6 lg:px-8 py-3.5 backdrop-blur-2xl bg-white/90 border-b border-slate-200/90 shadow-xs dark:bg-slate-950/85 dark:border-slate-800/80">
+      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-3 sm:px-6 lg:px-8 py-3.5 backdrop-blur-2xl bg-white/90 border-b border-slate-200/90 shadow-xs dark:bg-slate-950/85 dark:border-slate-800/80 print:hidden">
         <div className="flex w-full items-center justify-between gap-4">
           <div className="flex items-center gap-3 sm:gap-4">
             <Link to="/app" className="group flex items-center gap-2.5 sm:gap-3">
@@ -339,7 +339,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
       {/* Dynamic Role Mission & 1-Click Fast Role Switcher Ribbon (Demo Mode) */}
       {env.VITE_APP_MODE === "demo" && (
-        <div className="w-full px-3 sm:px-6 lg:px-8 pt-4">
+        <div className="w-full px-3 sm:px-6 lg:px-8 pt-4 print:hidden">
           <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 sm:p-4 backdrop-blur-xl shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-lg">
             {/* Top glowing accent bar */}
             <div
@@ -417,8 +417,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       )}
 
       {/* Main Console Grid: Sidebar + Content */}
-      <div className="grid w-full gap-6 px-3 sm:px-6 lg:px-8 py-6 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr]">
-        <aside className="space-y-4">
+      <div className="grid w-full gap-6 px-3 sm:px-6 lg:px-8 py-6 lg:grid-cols-[240px_1fr] xl:grid-cols-[260px_1fr] print:block print:p-0">
+        <aside className="space-y-4 print:hidden">
           <nav
             aria-label={vi.nav.console}
             className="glass-panel flex flex-wrap gap-1.5 rounded-2xl p-3 lg:flex-col border border-slate-200/90 bg-white/95 shadow-xs dark:border-slate-800/80 dark:bg-slate-900/60"
@@ -542,7 +542,11 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
           </nav>
         </aside>
 
-        <main id="main" tabIndex={-1} className="min-w-0 outline-none">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="min-w-0 outline-none print:w-full print:p-0 print:m-0"
+        >
           {children}
         </main>
       </div>

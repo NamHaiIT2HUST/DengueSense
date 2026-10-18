@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Radio, Sparkles } from "lucide-react";
+import { Radio } from "lucide-react";
 
 export function MedSentinelBadge() {
   const [clicked, setClicked] = useState(false);
@@ -89,9 +89,6 @@ export function MedSentinelBadge() {
                 className="pointer-events-none absolute inset-0 rounded-full border-2 border-cyan-400 bg-cyan-400/20"
               />
             )}
-
-            {/* Sparkle Micro Glint on Hover */}
-            <Sparkles className="hidden md:block h-3 w-3 text-cyan-300/60 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110" />
           </div>
         </div>
       </motion.button>
