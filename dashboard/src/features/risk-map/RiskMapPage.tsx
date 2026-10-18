@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Suspense, lazy, useMemo, useState } from "react";
-import { Download } from "lucide-react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
+import { Download, Pause, Play, RotateCcw, Scale, Target } from "lucide-react";
 
 import { useForecastRuns, useGeometry, useRiskMap } from "@/entities/forecast";
 import type { Horizon, Region, RiskMap } from "@/shared/api";
@@ -48,18 +48,57 @@ export function RiskMapPage({
   const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "rank", dir: "desc" });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState<number | "all">("all");
+
+  // Playback timer cycling through horizons [1, 2, 3, 6]
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      const idx = HORIZONS.indexOf(search.h);
+      const nextIdx = (idx + 1) % HORIZONS.length;
+      const nextH = HORIZONS[nextIdx];
+      if (nextH !== undefined) {
+        onSearchChange({ h: nextH });
+      }
+    }, 2400);
+    return () => clearInterval(interval);
+  }, [isPlaying, search.h, onSearchChange]);
 
   const map = riskMap.data;
-  const rows = useMemo(
+  const baseRows = useMemo(
     () => (map ? buildRows(map, search.metric, search.region) : []),
     [map, search.metric, search.region]
   );
+
+  // Apply severity filter if chosen
+  const rows = useMemo(() => {
+    if (severityFilter === "all") return baseRows;
+    return baseRows.filter((r) => r.cls === severityFilter);
+  }, [baseRows, severityFilter]);
+
   const ranks = useMemo(() => {
     // Hạng theo chỉ số đang tô màu (độc lập với cách sắp xếp bảng); tỉnh không có dự báo không có hạng.
     const ranked = sortRows(rows, "rank", "desc").filter((r) => r.value !== null);
     return new Map(ranked.map((r, i) => [r.item.province_id, i + 1] as const));
   }, [rows]);
   const sorted = useMemo(() => sortRows(rows, sort.key, sort.dir), [rows, sort]);
+
+  // Threat overview statistics
+  const threatStats = useMemo(() => {
+    if (!map) return { redCount: 0, amberCount: 0, totalCases: 0 };
+    let redCount = 0;
+    let amberCount = 0;
+    let totalCases = 0;
+    for (const it of map.items) {
+      if (it.forecast) {
+        totalCases += Math.round(it.forecast.cases_pred);
+        if (it.forecast.exceed_prob >= 0.75) redCount++;
+        else if (it.forecast.exceed_prob >= 0.5) amberCount++;
+      }
+    }
+    return { redCount, amberCount, totalCases };
+  }, [map]);
 
   const completedRuns = (runs.data?.items ?? []).filter((r) => r.status === "completed");
   const selectedRunId = search.run ?? map?.meta.run_id ?? "";
@@ -114,9 +153,29 @@ export function RiskMapPage({
 
   return (
     <div className="space-y-5">
-      <header>
-        <h1 className="font-display text-3xl font-semibold">{vi.map.title}</h1>
-        <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.map.lead}</p>
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">{vi.map.title}</h1>
+          <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.map.lead}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
+          >
+            <Target size={14} className="text-red-500" />
+            Diễn tập Mẫu
+          </Button>
+          <Button
+            variant="secondary"
+            className="gap-1.5 text-xs py-1.5 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
+          >
+            <Scale size={14} className="text-indigo-500" />
+            Độ nhạy & So sánh A/B
+          </Button>
+        </div>
       </header>
 
       <Card className="flex flex-wrap items-end gap-x-6 gap-y-4">
@@ -135,12 +194,32 @@ export function RiskMapPage({
                 }))
           }
         />
-        <Segmented
-          legend={vi.map.controls.horizon}
-          value={search.h}
-          onChange={(h) => onSearchChange({ h })}
-          options={HORIZONS.map((h) => ({ value: h, label: `${h} tháng` }))}
-        />
+        <div className="flex items-end gap-2">
+          <Segmented
+            legend={vi.map.controls.horizon}
+            value={search.h}
+            onChange={(h) => onSearchChange({ h })}
+            options={HORIZONS.map((h) => ({ value: h, label: `${h} tháng` }))}
+          />
+          <Button
+            variant="secondary"
+            className="px-3 py-1.5 text-xs gap-1.5 h-[38px]"
+            onClick={() => setIsPlaying((p) => !p)}
+            title="Tự động phát tiến trình dịch bệnh qua các tầm dự báo 1-2-3-6 tháng"
+          >
+            {isPlaying ? (
+              <>
+                <Pause size={13} className="text-amber-500 animate-pulse" />
+                <span>Tạm dừng</span>
+              </>
+            ) : (
+              <>
+                <Play size={13} className="text-emerald-500" />
+                <span>Phát (1T → 6T)</span>
+              </>
+            )}
+          </Button>
+        </div>
         <Segmented
           legend={vi.map.controls.metric}
           value={search.metric}
@@ -180,6 +259,57 @@ export function RiskMapPage({
             </Alert>
           ) : null}
 
+          {/* Tactical Outbreak Overview Stats */}
+          <div className="grid gap-3 sm:grid-cols-4 text-xs">
+            <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-red-500/20 bg-red-500/5">
+              <div>
+                <span className="text-[11px] text-slate-500 block">Ổ dịch Báo động Đỏ</span>
+                <strong className="text-base font-bold text-red-600 dark:text-red-400 tabular-nums">
+                  {threatStats.redCount} tỉnh
+                </strong>
+              </div>
+              <span className="rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-500">
+                P ≥ 75%
+              </span>
+            </div>
+
+            <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
+              <div>
+                <span className="text-[11px] text-slate-500 block">Khu vực Nguy cơ Cảnh báo</span>
+                <strong className="text-base font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                  {threatStats.amberCount} tỉnh
+                </strong>
+              </div>
+              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-500">
+                P 50 - 75%
+              </span>
+            </div>
+
+            <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-blue-500/20 bg-blue-500/5">
+              <div>
+                <span className="text-[11px] text-slate-500 block">Tổng ca dự báo toàn quốc</span>
+                <strong className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                  ≈ {formatCount(threatStats.totalCases)} ca
+                </strong>
+              </div>
+              <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-500">
+                Tầm {search.h}T
+              </span>
+            </div>
+
+            <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-emerald-500/20 bg-emerald-500/5">
+              <div>
+                <span className="text-[11px] text-slate-500 block">Tháng mục tiêu can thiệp</span>
+                <strong className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                  {formatMonth(map.meta.origin_month)} (+{search.h}T)
+                </strong>
+              </div>
+              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
+                Chuẩn hóa
+              </span>
+            </div>
+          </div>
+
           <div
             className={`grid gap-5 lg:grid-cols-[1fr_320px] ${riskMap.isPlaceholderData ? "opacity-70" : ""}`}
           >
@@ -193,7 +323,7 @@ export function RiskMapPage({
                   <RiskMapCanvas
                     geometry={geometry.data}
                     rows={rows}
-                    styleKey={`${map.meta.run_id}|${map.horizon}|${search.metric}|${search.region ?? "all"}`}
+                    styleKey={`${map.meta.run_id}|${map.horizon}|${search.metric}|${search.region ?? "all"}|${severityFilter}`}
                     selectedId={hoveredId}
                     onHover={setHoveredId}
                     onOpen={(id) =>
@@ -213,7 +343,12 @@ export function RiskMapPage({
             <HoverPanel item={hovered} map={map} runId={map.meta.run_id} horizon={search.h} />
           </div>
 
-          <Legend map={map} metric={search.metric} />
+          <Legend
+            map={map}
+            metric={search.metric}
+            activeFilter={severityFilter}
+            onSelectFilter={setSeverityFilter}
+          />
 
           <section aria-labelledby="risk-table-title" className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -262,22 +397,58 @@ function MapSkeleton() {
   );
 }
 
-function Legend({ map, metric }: { map: RiskMap; metric: Metric }) {
+function Legend({
+  map,
+  metric,
+  activeFilter,
+  onSelectFilter,
+}: {
+  map: RiskMap;
+  metric: Metric;
+  activeFilter: number | "all";
+  onSelectFilter: (filter: number | "all") => void;
+}) {
   const legend = legendFor(map, metric);
   return (
     <section aria-label={vi.map.legendTitle[metric]} className="glass-panel rounded-2xl p-4">
-      <h2 className="text-sm font-semibold">{vi.map.legendTitle[metric]}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold">{vi.map.legendTitle[metric]}</h2>
+        {activeFilter !== "all" && (
+          <button
+            type="button"
+            onClick={() => onSelectFilter("all")}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+          >
+            <RotateCcw size={12} />
+            <span>Hiện tất cả 34 tỉnh</span>
+          </button>
+        )}
+      </div>
       <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--ink-secondary)]">
-        {legend.map((c, i) => (
-          <li key={c.label} className="inline-flex items-center gap-2">
-            <span
-              aria-hidden="true"
-              className="inline-block h-3.5 w-6 rounded-sm border border-[var(--border-strong)]"
-              style={{ background: `var(${classColorVar(i)})` }}
-            />
-            {c.label}
-          </li>
-        ))}
+        {legend.map((c, i) => {
+          const isSelected = activeFilter === i;
+          return (
+            <li key={c.label}>
+              <button
+                type="button"
+                onClick={() => onSelectFilter(isSelected ? "all" : i)}
+                className={`inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 transition-all text-sm ${
+                  isSelected
+                    ? "ring-2 ring-indigo-500 font-bold text-[var(--ink-primary)] bg-indigo-50 dark:bg-indigo-950/40"
+                    : "hover:text-[var(--ink-primary)]"
+                }`}
+                title={`Bấm để lọc hiển thị riêng mức ${c.label}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-block h-3.5 w-6 rounded-sm border border-[var(--border-strong)]"
+                  style={{ background: `var(${classColorVar(i)})` }}
+                />
+                {c.label}
+              </button>
+            </li>
+          );
+        })}
         <li className="inline-flex items-center gap-2">
           <span
             aria-hidden="true"
