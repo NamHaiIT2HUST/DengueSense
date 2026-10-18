@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, Scale, Target } from "lucide-react";
 import { useMemo } from "react";
 
 import {
@@ -15,6 +15,8 @@ import {
   type Horizon,
   type Observation,
 } from "@/shared/api";
+import { TACTICAL_SCENARIOS } from "@/shared/config/scenarios";
+import { exportToCsv } from "@/shared/lib/exportCsv";
 import {
   addMonths,
   formatCount,
@@ -24,6 +26,7 @@ import {
   formatPercent,
 } from "@/shared/lib/format";
 import { vi } from "@/shared/i18n/vi";
+import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
 import { TimeSeriesChart } from "@/shared/ui/charts/TimeSeriesChart";
 import { ErrorState } from "@/shared/ui/ErrorState";
@@ -98,17 +101,131 @@ export function ProvinceDetailPage({
   const selected = byHorizon.get(search.h) ?? items[0] ?? null;
   const isBacktest = meta.run_mode === "backtest";
 
+  const relatedScenario = TACTICAL_SCENARIOS.find((sc) => sc.provinces.includes(name));
+
+  function handleExportProvinceCsv() {
+    if (!forecasts.data) return;
+    const filename = `DengueSense_${name}_Du_Bao_${meta.origin_month}`;
+    const rows = items.map((it) => ({
+      province: name,
+      origin: meta.origin_month,
+      horizon: `${it.horizon} tháng`,
+      targetMonth: it.target_month,
+      casesPred: Math.round(it.cases_pred),
+      incidencePred: it.incidence_pred_per_100k.toFixed(1),
+      exceedProb: `${Math.round(it.exceed_prob * 100)}%`,
+      baseRate: `${Math.round(it.base_rate * 100)}%`,
+      thresholdP75: Math.round(it.threshold_p75),
+      flags: it.flags.join("; ") || "Bình thường",
+    }));
+
+    exportToCsv(
+      filename,
+      [
+        { header: "Tỉnh / Thành", key: "province" },
+        { header: "Tháng neo", key: "origin" },
+        { header: "Tầm dự báo", key: "horizon" },
+        { header: "Tháng đích", key: "targetMonth" },
+        { header: "Ca dự báo", key: "casesPred" },
+        { header: "Tỉ suất / 100k dân", key: "incidencePred" },
+        { header: "Xác suất vượt ngưỡng", key: "exceedProb" },
+        { header: "Mức nền lịch sử", key: "baseRate" },
+        { header: "Ngưỡng P75", key: "thresholdP75" },
+        { header: "Ghi chú & Cờ", key: "flags" },
+      ],
+      rows
+    );
+  }
+
+  function handleExportShapCsv() {
+    if (!explanation.data) return;
+    const filename = `DengueSense_${name}_TreeSHAP_${search.h}T`;
+    const rows = explanation.data.factors.map((f) => ({
+      feature: vi.features[f.feature] ?? f.feature,
+      family: vi.province.explanation.families[f.family] ?? f.family,
+      value: f.value != null ? f.value : "N/A",
+      contribution: `${(f.contribution * 100).toFixed(2)}%`,
+      direction: f.contribution >= 0 ? "Tăng rủi ro (+)" : "Giảm rủi ro (-)",
+    }));
+
+    exportToCsv(
+      filename,
+      [
+        { header: "Yếu tố dịch tễ / môi trường", key: "feature" },
+        { header: "Nhóm đặc trưng", key: "family" },
+        { header: "Giá trị đo đạc", key: "value" },
+        { header: "Đóng góp TreeSHAP (%)", key: "contribution" },
+        { header: "Chiều tác động", key: "direction" },
+      ],
+      rows
+    );
+  }
+
   return (
     <div className="space-y-5">
       {back}
-      <header>
-        <h1 className="font-display text-3xl font-semibold">{name}</h1>
-        {selected ? (
-          <p className="mt-1 text-sm text-[var(--ink-secondary)]">
-            {vi.regions[selected.region] ?? selected.region}
-          </p>
-        ) : null}
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">{name}</h1>
+          {selected ? (
+            <p className="mt-1 text-sm text-[var(--ink-secondary)]">
+              {vi.regions[selected.region] ?? selected.region} · {items.length} tầm dự báo (1T - 6T)
+            </p>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {relatedScenario && (
+            <Button
+              variant="secondary"
+              className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
+              title={`Tỉnh thuộc kịch bản: ${relatedScenario.title}`}
+            >
+              <Target size={14} className="text-red-500" />
+              <span>{relatedScenario.badge}</span>
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            className="gap-1.5 text-xs py-1.5"
+            onClick={handleExportProvinceCsv}
+            title="Xuất bảng dữ liệu dự báo 4 tầm ra file CSV cho Excel"
+          >
+            <Download size={14} />
+            <span>Xuất CSV (Excel)</span>
+          </Button>
+        </div>
       </header>
+
+      {/* Liên kết kịch bản tác chiến nếu tỉnh nằm trong danh sách điểm nóng */}
+      {relatedScenario && (
+        <div className="rounded-xl border border-red-500/30 bg-red-50/50 p-4 dark:border-red-500/20 dark:bg-red-950/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="space-y-1">
+            <span className="font-bold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+              <Target size={14} />
+              Địa bàn trọng điểm trong {relatedScenario.title}
+            </span>
+            <p className="text-slate-600 dark:text-slate-300">{relatedScenario.summary}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="text-xs py-1 px-3 border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
+            >
+              <Scale size={13} />
+              <span>Độ nhạy & So sánh A/B</span>
+            </Button>
+            <Link
+              to={relatedScenario.targetRoute}
+              className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1 font-semibold text-white hover:bg-red-700 transition-colors"
+            >
+              <span>Xem hồ sơ can thiệp MILP</span>
+              <ArrowLeft size={12} className="rotate-180" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       <ProvenanceBar meta={meta} />
 
@@ -156,8 +273,25 @@ export function ProvinceDetailPage({
 
       <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
-          <h2 className="text-lg font-semibold">{vi.province.explanation.title}</h2>
-          <p className="mt-1 text-sm text-[var(--ink-secondary)]">{vi.province.explanation.lead}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold">{vi.province.explanation.title}</h2>
+              <p className="mt-1 text-sm text-[var(--ink-secondary)]">
+                {vi.province.explanation.lead}
+              </p>
+            </div>
+            {explanation.data && (
+              <Button
+                variant="secondary"
+                className="px-2.5 py-1 text-xs gap-1"
+                onClick={handleExportShapCsv}
+                title="Xuất bảng phân rã TreeSHAP ra file CSV cho Excel"
+              >
+                <Download size={13} />
+                <span>Xuất SHAP CSV</span>
+              </Button>
+            )}
+          </div>
           <p className="mt-2 text-xs text-[var(--ink-muted)]">
             {formatHorizon(meta.origin_month, search.h)}
           </p>
