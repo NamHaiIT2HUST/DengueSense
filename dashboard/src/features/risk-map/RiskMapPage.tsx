@@ -161,18 +161,18 @@ export function RiskMapPage({
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
-            className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+            className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-500/10"
             onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
           >
-            <Target size={14} className="text-red-500" />
+            <Target size={14} className="text-red-600 dark:text-red-400" />
             Diễn tập Mẫu
           </Button>
           <Button
             variant="secondary"
-            className="gap-1.5 text-xs py-1.5 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10"
+            className="gap-1.5 text-xs py-1.5 border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/10"
             onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
           >
-            <Scale size={14} className="text-indigo-500" />
+            <Scale size={14} className="text-indigo-600 dark:text-indigo-400" />
             Độ nhạy & So sánh A/B
           </Button>
         </div>
@@ -263,48 +263,56 @@ export function RiskMapPage({
           <div className="grid gap-3 sm:grid-cols-4 text-xs">
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-red-500/20 bg-red-500/5">
               <div>
-                <span className="text-[11px] text-slate-500 block">Ổ dịch Báo động Đỏ</span>
-                <strong className="text-base font-bold text-red-600 dark:text-red-400 tabular-nums">
+                <span className="text-[11px] text-[var(--ink-muted)] block">
+                  Ổ dịch Báo động Đỏ
+                </span>
+                <strong className="text-base font-bold text-red-700 dark:text-red-300 tabular-nums">
                   {threatStats.redCount} tỉnh
                 </strong>
               </div>
-              <span className="rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-500">
+              <span className="rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-800 dark:text-red-300">
                 P ≥ 75%
               </span>
             </div>
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
               <div>
-                <span className="text-[11px] text-slate-500 block">Khu vực Nguy cơ Cảnh báo</span>
-                <strong className="text-base font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                <span className="text-[11px] text-[var(--ink-muted)] block">
+                  Khu vực Nguy cơ Cảnh báo
+                </span>
+                <strong className="text-base font-bold text-amber-800 dark:text-amber-300 tabular-nums">
                   {threatStats.amberCount} tỉnh
                 </strong>
               </div>
-              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-500">
+              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:text-amber-300">
                 P 50 - 75%
               </span>
             </div>
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-blue-500/20 bg-blue-500/5">
               <div>
-                <span className="text-[11px] text-slate-500 block">Tổng ca dự báo toàn quốc</span>
-                <strong className="text-base font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                <span className="text-[11px] text-[var(--ink-muted)] block">
+                  Tổng ca dự báo toàn quốc
+                </span>
+                <strong className="text-base font-bold text-blue-700 dark:text-blue-300 tabular-nums">
                   ≈ {formatCount(threatStats.totalCases)} ca
                 </strong>
               </div>
-              <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-500">
+              <span className="rounded-md bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-800 dark:text-blue-300">
                 Tầm {search.h}T
               </span>
             </div>
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-emerald-500/20 bg-emerald-500/5">
               <div>
-                <span className="text-[11px] text-slate-500 block">Tháng mục tiêu can thiệp</span>
-                <strong className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="text-[11px] text-[var(--ink-muted)] block">
+                  Tháng mục tiêu can thiệp
+                </span>
+                <strong className="text-base font-bold text-emerald-800 dark:text-emerald-300">
                   {formatMonth(map.meta.origin_month)} (+{search.h}T)
                 </strong>
               </div>
-              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
+              <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
                 Chuẩn hóa
               </span>
             </div>
