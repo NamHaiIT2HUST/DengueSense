@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Check,
+  Target,
 } from "lucide-react";
 
 import { useSession } from "@/entities/user";
@@ -24,6 +25,8 @@ import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
+import { TacticalScenarioModal } from "@/features/scenarios";
+import type { TacticalScenario } from "@/shared/config/scenarios";
 
 export type AppRole = "approver" | "officer" | "analyst" | "admin" | "viewer";
 
@@ -102,6 +105,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const href = useRouterState({ select: (s) => s.location.href });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const signingOut = useRef(false);
+  const [showScenarioModal, setShowScenarioModal] = useState(false);
 
   const userRoles = user?.roles ?? [];
   const primaryRole: AppRole = userRoles.includes("admin")
@@ -128,6 +132,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       void router.navigate({ to: "/app/ban-do", replace: true });
     }
   }, [accessToken, pathname, primaryRole, router]);
+
+  useEffect(() => {
+    const handleOpenScenarios = () => setShowScenarioModal(true);
+    window.addEventListener("open-tactical-scenarios", handleOpenScenarios);
+    return () => window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
+  }, []);
 
   if (!accessToken) return null; // đang chuyển về đăng nhập
 
@@ -161,6 +171,18 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     } catch {
       // Bỏ qua lỗi nếu chuyển thất bại
     }
+  }
+
+  async function handleSelectScenario(scenario: TacticalScenario) {
+    setShowScenarioModal(false);
+    if (primaryRole !== scenario.recommendedRole) {
+      const targetAcc = DEMO_ACCOUNTS.find((a) => a.roles.includes(scenario.recommendedRole));
+      if (targetAcc) {
+        await login(targetAcc.username, targetAcc.password);
+        await queryClient.invalidateQueries();
+      }
+    }
+    void router.navigate({ to: scenario.targetRoute });
   }
 
   const visibleNavItems = NAV_ITEMS.filter((item) => item.roles.includes(primaryRole));
@@ -413,6 +435,16 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                     </button>
                   );
                 })}
+
+                <button
+                  type="button"
+                  onClick={() => setShowScenarioModal(true)}
+                  className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold bg-gradient-to-r from-red-500/10 to-amber-500/10 border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/20 hover:border-red-500/50 transition-all cursor-pointer shadow-xs ml-1"
+                  title="Mở bảng kịch bản diễn tập dịch tễ thực tế"
+                >
+                  <Target size={12} className="text-red-500" />
+                  <span>Diễn tập Tình huống</span>
+                </button>
               </div>
             </div>
           </div>
@@ -553,6 +585,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+
+      <TacticalScenarioModal
+        open={showScenarioModal}
+        onClose={() => setShowScenarioModal(false)}
+        onSelectScenario={handleSelectScenario}
+      />
     </div>
   );
 }
