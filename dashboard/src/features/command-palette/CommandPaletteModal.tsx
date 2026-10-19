@@ -37,6 +37,7 @@ interface Props {
   onOpenScenarios: () => void;
   onOpenTour: () => void;
   onOpenComparison?: () => void;
+  onOpenAudit?: () => void;
   onNavigate: (route: string) => void;
   onSwitchRole: (username: string, password: string) => void;
 }
@@ -47,6 +48,7 @@ export function CommandPaletteModal({
   onOpenScenarios,
   onOpenTour,
   onOpenComparison,
+  onOpenAudit,
   onNavigate,
   onSwitchRole,
 }: Props) {
@@ -177,6 +179,18 @@ export function CommandPaletteModal({
           onNavigate("/app/mo-hinh");
         },
       },
+      {
+        id: "nav-audit",
+        category: "actions",
+        title: "Nhật ký Giám sát & Hồ sơ Tuân thủ (Audit Trail)",
+        subtitle: "Truy vết kiểm toán bất biến theo Nghị định 30/2020/NĐ-CP và mã băm SHA-256",
+        icon: ShieldCheck,
+        iconColor: "text-emerald-500",
+        onSelect: () => {
+          onClose();
+          onOpenAudit?.();
+        },
+      },
     ];
 
     // Role switcher actions
@@ -216,7 +230,16 @@ export function CommandPaletteModal({
     });
 
     return list;
-  }, [onClose, onOpenScenarios, onOpenTour, onOpenComparison, onNavigate, onSwitchRole, provinces]);
+  }, [
+    onClose,
+    onOpenScenarios,
+    onOpenTour,
+    onOpenComparison,
+    onOpenAudit,
+    onNavigate,
+    onSwitchRole,
+    provinces,
+  ]);
 
   // Filter actions by query
   const filteredActions = useMemo(() => {

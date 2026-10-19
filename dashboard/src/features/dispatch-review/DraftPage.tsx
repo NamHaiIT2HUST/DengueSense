@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
+  Download,
   FileCheck2,
   FileEdit,
   History,
@@ -22,6 +23,8 @@ import {
 } from "@/entities/draft";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
 import { formatDateTime } from "@/shared/lib/format";
+import { notify } from "@/shared/lib/notify";
+import { exportDispatchDoc } from "@/shared/lib/exportDispatchDoc";
 import { vi } from "@/shared/i18n/vi";
 import { Alert as UiAlert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
@@ -95,6 +98,7 @@ export function DraftPage() {
       updated_by: user?.username ?? "officer",
     });
     setIsEditing(false);
+    notify.info("Cập nhật dự thảo", "Bản thảo đã được lưu trữ thành công", { type: "draft" });
   }
 
   async function handleApprove() {
@@ -105,6 +109,11 @@ export function DraftPage() {
       action: "approve",
     });
     setShowApproveDialog(false);
+    notify.success(
+      "Phê duyệt công điện",
+      "Văn bản đã được thẩm định đạt chuẩn 4 mắt và phê duyệt chính thức",
+      { type: "draft" }
+    );
   }
 
   async function handleReject() {
@@ -116,6 +125,9 @@ export function DraftPage() {
       note: rejectReason.trim(),
     });
     setShowRejectDialog(false);
+    notify.warning("Từ chối phê duyệt", `Dự thảo bị từ chối với lý do: ${rejectReason.trim()}`, {
+      type: "draft",
+    });
     setRejectReason("");
   }
 
@@ -127,6 +139,11 @@ export function DraftPage() {
     });
     setDispatchedOrder(order);
     setShowDispatchDialog(false);
+    notify.success(
+      "Phát hành công điện B2G",
+      `Đã phát hành lệnh điều phối tới: ${dispatchRecipient.trim()}`,
+      { type: "draft" }
+    );
   }
 
   return (
@@ -193,6 +210,22 @@ export function DraftPage() {
                 >
                   <Printer size={14} />
                   In / Xuất PDF
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5 print:hidden"
+                  onClick={() => {
+                    exportDispatchDoc(draft);
+                    notify.success(
+                      "Xuất văn bản thành công",
+                      `Tệp công điện ${draft.id} chuẩn Nghị định 30 (.doc) đã được tải xuống`,
+                      { type: "draft" }
+                    );
+                  }}
+                  title="Xuất văn bản chuẩn thể thức Nghị định 30/2020/NĐ-CP định dạng Microsoft Word"
+                >
+                  <Download size={14} />
+                  Xuất Word (.doc)
                 </Button>
                 {isOfficer && draft.status !== "APPROVED" && (
                   <div>

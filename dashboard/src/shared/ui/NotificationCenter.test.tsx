@@ -1,9 +1,14 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { notify } from "@/shared/lib/notify";
 import { NotificationCenter } from "./NotificationCenter";
 
 describe("NotificationCenter", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it("renders notification bell with unread badge count", () => {
     render(<NotificationCenter />);
     const bellButton = screen.getByRole("button", { name: "Thông báo hệ thống" });
@@ -31,5 +36,16 @@ describe("NotificationCenter", () => {
 
     // After marking all as read, mark all button disappears and unread badge disappears
     expect(screen.queryByText("3 mới")).not.toBeInTheDocument();
+  });
+
+  it("receives live notifications via event bus and updates unread badge", () => {
+    render(<NotificationCenter />);
+    expect(screen.getByText("3")).toBeInTheDocument();
+
+    act(() => {
+      notify.critical("Báo động mới", "TP. Hồ Chí Minh nguy cơ cao");
+    });
+
+    expect(screen.getByText("4")).toBeInTheDocument();
   });
 });

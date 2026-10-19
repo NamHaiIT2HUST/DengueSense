@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Bell, CheckCheck, FileText, Send, Sparkles } from "lucide-react";
 
+import { NOTIFICATION_EVENT } from "@/shared/lib/notify";
+
 export interface SystemNotification {
   id: string;
   title: string;
@@ -85,6 +87,29 @@ export function NotificationCenter() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    function handleIncomingNotification(e: Event) {
+      const customEvent = e as CustomEvent<SystemNotification>;
+      const item = customEvent.detail;
+      if (!item) return;
+      setNotifications((prev) => [
+        {
+          id: item.id,
+          title: item.title,
+          message: item.message,
+          timestamp: item.timestamp || "Vừa xong",
+          type: item.type || "system",
+          link: item.link || "/app/ban-do",
+          read: false,
+        },
+        ...prev.filter((p) => p.id !== item.id),
+      ]);
+    }
+
+    window.addEventListener(NOTIFICATION_EVENT, handleIncomingNotification);
+    return () => window.removeEventListener(NOTIFICATION_EVENT, handleIncomingNotification);
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

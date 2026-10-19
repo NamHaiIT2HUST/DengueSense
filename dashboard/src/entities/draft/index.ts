@@ -219,3 +219,4 @@ export function useDispatchOrder(draftId: string) {
 }
 
 export type { AllocationPlan, Case, CaseDetail, DispatchDraft, DispatchOrder, ReviewResult };
+export type Draft = DispatchDraft;

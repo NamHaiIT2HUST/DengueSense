@@ -27,9 +27,13 @@ import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { NotificationCenter } from "@/shared/ui/NotificationCenter";
 import { ThemeToggle } from "@/shared/ui/ThemeToggle";
+import { notify } from "@/shared/lib/notify";
+import { ToastContainer } from "@/shared/ui/ToastContainer";
+import { OfflineBanner } from "@/shared/ui/OfflineBanner";
 import { TacticalScenarioModal, ScenarioComparisonModal } from "@/features/scenarios";
 import { GuidedTourModal } from "@/features/tour";
 import { CommandPaletteModal } from "@/features/command-palette";
+import { AuditGovernanceModal } from "@/features/audit-governance";
 import type { TacticalScenario } from "@/shared/config/scenarios";
 import type { TourStep } from "@/shared/config/guidedTour";
 
@@ -114,6 +118,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const [showTourModal, setShowTourModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showAuditModal, setShowAuditModal] = useState(false);
 
   const userRoles = user?.roles ?? [];
   const primaryRole: AppRole = userRoles.includes("admin")
@@ -145,13 +150,16 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     const handleOpenScenarios = () => setShowScenarioModal(true);
     const handleOpenTour = () => setShowTourModal(true);
     const handleOpenComparison = () => setShowComparisonModal(true);
+    const handleOpenAudit = () => setShowAuditModal(true);
     window.addEventListener("open-tactical-scenarios", handleOpenScenarios);
     window.addEventListener("open-guided-tour", handleOpenTour);
     window.addEventListener("open-scenario-comparison", handleOpenComparison);
+    window.addEventListener("open-audit-log", handleOpenAudit);
     return () => {
       window.removeEventListener("open-tactical-scenarios", handleOpenScenarios);
       window.removeEventListener("open-guided-tour", handleOpenTour);
       window.removeEventListener("open-scenario-comparison", handleOpenComparison);
+      window.removeEventListener("open-audit-log", handleOpenAudit);
     };
   }, []);
 
@@ -196,6 +204,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       if (!canAccessPath(pathname, newRole)) {
         void router.navigate({ to: "/app/ban-do", replace: true });
       }
+
+      notify.success(
+        "Chuyển đổi vai trò",
+        `Đang thao tác dưới quyền: ${ROLE_CONFIG[newRole].name}`,
+        { type: "system" }
+      );
     } catch {
       // Bỏ qua lỗi nếu chuyển thất bại
     }
@@ -210,6 +224,11 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         await queryClient.invalidateQueries();
       }
     }
+    notify.info(
+      "Kích hoạt Diễn tập Tác chiến",
+      `Đã nạp tình huống: ${scenario.title} (${scenario.region})`,
+      { link: scenario.targetRoute, type: "plan" }
+    );
     void router.navigate({ to: scenario.targetRoute });
   }
 
@@ -321,6 +340,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         {vi.nav.skipToContent}
       </a>
 
+      <OfflineBanner />
+
       {/* Main Console Top Header */}
       <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 px-3 sm:px-6 lg:px-8 py-3.5 backdrop-blur-2xl bg-white/90 border-b border-slate-200/90 shadow-xs dark:bg-slate-950/85 dark:border-slate-800/80 print:hidden">
         <div className="flex w-full items-center justify-between gap-4">
@@ -368,6 +389,17 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               <kbd className="hidden lg:inline-flex items-center gap-0.5 rounded border border-slate-300/80 bg-white px-1.5 py-0.2 text-[10px] font-mono text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
                 ⌘K
               </kbd>
+            </button>
+
+            {/* Quick Audit Trail & Compliance Button */}
+            <button
+              type="button"
+              onClick={() => setShowAuditModal(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/60 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20 transition-all cursor-pointer shadow-2xs mr-0.5"
+              title="Nhật ký Giám sát & Hồ sơ Tuân thủ Nghị định 30/2020/NĐ-CP"
+            >
+              <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+              <span className="hidden xl:inline">Nhật ký Giám sát</span>
             </button>
 
             <NotificationCenter />
@@ -669,6 +701,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         onOpenScenarios={() => setShowScenarioModal(true)}
         onOpenTour={() => setShowTourModal(true)}
         onOpenComparison={() => setShowComparisonModal(true)}
+        onOpenAudit={() => setShowAuditModal(true)}
         onNavigate={(route) => void router.navigate({ to: route })}
         onSwitchRole={onSwitchRole}
       />
@@ -678,6 +711,10 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         onClose={() => setShowComparisonModal(false)}
         onSelectScenario={handleSelectScenario}
       />
+
+      <AuditGovernanceModal open={showAuditModal} onClose={() => setShowAuditModal(false)} />
+
+      <ToastContainer />
     </div>
   );
 }

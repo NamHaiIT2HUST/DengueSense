@@ -43,3 +43,5 @@ export function exportToCsv<T>(filename: string, columns: CsvColumn<T>[], data: 
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+export const exportCsv = exportToCsv;
