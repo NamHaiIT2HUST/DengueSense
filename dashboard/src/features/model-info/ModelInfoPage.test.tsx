@@ -113,4 +113,12 @@ describe("Mô hình & giới hạn", () => {
     await user.click(within(alert).getByRole("button", { name: "Thử lại" }));
     expect(await screen.findByText("0,52 ± 0,17")).toBeInTheDocument();
   });
+
+  it("hiển thị mô phỏng động học SEIR-V và thẻ bất định Conformal Prediction", async () => {
+    renderPage();
+    expect(await screen.findByText("Mô phỏng Động học Lan truyền SEIR-V")).toBeInTheDocument();
+    expect(screen.getByText("Khoảng Dự Báo Bất Định Conformal Prediction")).toBeInTheDocument();
+    expect(screen.getByText("Mechanistic ODE (RK4)")).toBeInTheDocument();
+    expect(screen.getByText("Distribution-Free Guarantees")).toBeInTheDocument();
+  });
 });

@@ -5,6 +5,8 @@ import { formatDateTime, formatDecimal, formatPercent } from "@/shared/lib/forma
 import { Card } from "@/shared/ui/Card";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
+import { ConformalPredictionCard } from "./conformal/ConformalPredictionCard";
+import { SeirvSimulationPlayground } from "./seirv/SeirvSimulationPlayground";
 
 const REGIONS = ["Bắc", "Trung", "Nam"] as const;
 
@@ -230,6 +232,8 @@ export function ModelInfoPage() {
             </ul>
           </Card>
           <Performance card={card.data} />
+          <ConformalPredictionCard />
+          <SeirvSimulationPlayground />
           <Explainability />
           <Reliability card={card.data} />
         </>
