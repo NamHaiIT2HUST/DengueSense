@@ -32,6 +32,7 @@ import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { TextField } from "@/shared/ui/TextField";
 import { HealthEconomicsEvaluation } from "./HealthEconomicsEvaluation";
+import { PilotEvaluationBenchmark } from "./PilotEvaluationBenchmark";
 
 const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
@@ -361,6 +362,13 @@ export function CaseDetailPage() {
             <HealthEconomicsEvaluation
               casesPrevented={caseData.latest_plan.estimated_cases_prevented}
               interventionCost={caseData.latest_plan.total_cost}
+            />
+
+            <PilotEvaluationBenchmark
+              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+              interventionCost={caseData.latest_plan.total_cost}
+              provinceCount={caseData.latest_plan.allocations.length}
+              caseTitle={caseData.title}
             />
 
             <div className="overflow-x-auto">

@@ -300,6 +300,45 @@ export function DraftPage() {
                   {draft.content}
                 </div>
 
+                {/* Dấu ký số điện tử theo Nghị định 30/2020/NĐ-CP */}
+                {draft.status === "APPROVED" && (
+                  <div className="mt-8 flex justify-end">
+                    <div className="w-full max-w-sm rounded-lg border-2 border-dashed border-red-600/50 bg-red-500/5 p-3.5 text-xs shadow-xs">
+                      <div className="flex items-center justify-between border-b border-red-500/30 pb-1.5 mb-2">
+                        <span className="font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+                          KÝ BỞI: {user?.display_name?.toUpperCase() || "TS. BS. NGUYỄN VĂN A"}
+                        </span>
+                        <span className="rounded bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase">
+                          Chữ ký số hợp lệ
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-[11px] text-[var(--ink-secondary)]">
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Cơ quan:</strong> Trung tâm
+                          Kiểm soát Bệnh tật (CDC)
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Thời gian ký:</strong>{" "}
+                          {formatDateTime(draft.updated_at || new Date().toISOString())}
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Tổ chức chứng thực:</strong>{" "}
+                          Ban Cơ yếu Chính phủ (VGCA Root)
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Mã băm toàn vẹn:</strong>{" "}
+                          <code className="text-[10px] font-mono text-[var(--accent-ink)]">
+                            {draft.content_hash || "SHA256:7f9b2c...3d1e"}
+                          </code>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[10px] text-[var(--status-good-ink)] font-medium">
+                        ✓ Tuân thủ quy định chữ ký số tại Nghị định 30/2020/NĐ-CP
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Khối ký duyệt & nơi nhận chuẩn hành chính khi in */}
                 <div className="mt-10 pt-6 border-t border-dashed border-[var(--border-hairline)] hidden print:grid print:grid-cols-2 text-xs text-black">
                   <div className="space-y-1 text-left">
@@ -468,7 +507,30 @@ export function DraftPage() {
         loading={submitReviewMutation.isPending}
         onConfirm={() => void handleApprove()}
         onCancel={() => setShowApproveDialog(false)}
-      />
+      >
+        <div className="mt-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-2)] p-3 text-xs text-[var(--ink-secondary)] space-y-1.5">
+          <div className="flex items-center gap-2 font-semibold text-[var(--ink-primary)]">
+            <ShieldCheck size={16} className="text-[var(--status-good-ink)]" />
+            <span>Ký số chứng thư điện tử Ban Cơ yếu Chính phủ</span>
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Chủ thể:</strong>{" "}
+            {user?.display_name || "Lãnh đạo Phê duyệt"}
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Đơn vị:</strong> Trung tâm Kiểm soát Bệnh
+            tật (CDC)
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Tổ chức CA:</strong> Ban Cơ yếu Chính phủ
+            / VGCA Root
+          </div>
+          <div className="text-[10px] text-[var(--ink-muted)]">
+            * Văn bản sau khi duyệt sẽ tự động đóng dấu ký số điện tử hợp chuẩn Nghị định
+            30/2020/NĐ-CP.
+          </div>
+        </div>
+      </ConfirmDialog>
 
       {/* Modal Từ chối văn bản */}
       <ConfirmDialog

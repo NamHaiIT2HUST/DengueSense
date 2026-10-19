@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowUp, Download, Scale, Target } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, Scale, Target, Thermometer } from "lucide-react";
 import { useMemo } from "react";
 
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/shared/api";
 import { TACTICAL_SCENARIOS } from "@/shared/config/scenarios";
 import { exportToCsv } from "@/shared/lib/exportCsv";
+import { evaluateNorthernThermalPhase } from "@/shared/lib/thermalTrigger";
 import {
   addMonths,
   formatCount,
@@ -61,6 +62,12 @@ export function ProvinceDetailPage({
   const explanation = useExplanation(provinceId, search.run, search.h);
 
   const name = provinces.data?.items.find((p) => p.province_id === provinceId)?.name ?? provinceId;
+  const originMonthNum = parseInt(forecasts.data?.meta.origin_month.split("-")[1] || "6", 10);
+  const thermalAssessment = useMemo(
+    () => evaluateNorthernThermalPhase(provinceId, originMonthNum),
+    [provinceId, originMonthNum]
+  );
+
   const back = (
     <Link
       to="/app/ban-do"
@@ -224,6 +231,27 @@ export function ProvinceDetailPage({
               <ArrowLeft size={12} className="rotate-180" />
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Cảnh báo mô hình 2 pha miền Bắc theo nhiệt độ tích lũy GDD */}
+      {thermalAssessment.isNorthernProvince && (
+        <div className="rounded-xl border border-sky-500/30 bg-sky-50/50 p-4 dark:border-sky-500/20 dark:bg-sky-950/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="space-y-1 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5">
+                <Thermometer size={14} />
+                Mô hình Khí hậu 2 Pha Miền Bắc: {thermalAssessment.phaseLabel}
+              </span>
+              <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300">
+                GDD: {thermalAssessment.degreeDays}°C·ngày (T = {thermalAssessment.temperatureC}°C)
+              </span>
+            </div>
+            <p className="text-[var(--ink-secondary)]">{thermalAssessment.recommendation}</p>
+          </div>
+          <span className="text-[10px] text-[var(--ink-muted)] shrink-0">
+            * Khắc phục nhược điểm muỗi Aedes tạm ngừng hoạt động khi nhiệt độ dưới 16°C
+          </span>
         </div>
       )}
 

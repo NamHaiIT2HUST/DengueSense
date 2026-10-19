@@ -128,6 +128,9 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
+
+    expect(await screen.findByText(/Chữ ký số hợp lệ/)).toBeInTheDocument();
+    expect(screen.getByText(/Nghị định 30\/2020\/NĐ-CP/)).toBeInTheDocument();
   });
 
   it("lãnh đạo từ chối văn bản bắt buộc phải nhập lý do", async () => {
