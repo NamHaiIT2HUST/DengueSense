@@ -11,6 +11,7 @@ import {
   Plus,
   Printer,
   SlidersHorizontal,
+  Truck,
 } from "lucide-react";
 
 import { useAlerts } from "@/entities/alert";
@@ -33,6 +34,7 @@ import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { TextField } from "@/shared/ui/TextField";
 import { HealthEconomicsEvaluation } from "./HealthEconomicsEvaluation";
+import { InterProvincialSupplyTransferModal } from "./InterProvincialSupplyTransferModal";
 import { PilotEvaluationBenchmark } from "./PilotEvaluationBenchmark";
 
 const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
@@ -53,6 +55,7 @@ export function CaseDetailPage() {
   // States cho modal phân bổ (S8)
   const [isAllocating, setIsAllocating] = useState(false);
   const [budgetInput, setBudgetInput] = useState("1000000000"); // 1 tỷ mặc định
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const createAllocationMutation = useCreateAllocationPlan(caseId);
 
   // States cho modal AI sinh dự thảo
@@ -328,6 +331,15 @@ export function CaseDetailPage() {
                   <Download size={14} />
                   Xuất CSV (Excel)
                 </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5 border-blue-500/30 text-blue-600 dark:text-blue-400"
+                  onClick={() => setShowTransferModal(true)}
+                  title="Điều phối và chi viện kho vật tư liên tỉnh giữa các CDC khu vực"
+                >
+                  <Truck size={14} />
+                  Chi viện liên tỉnh
+                </Button>
               </>
             )}
             {canAct ? (
@@ -602,6 +614,13 @@ export function CaseDetailPage() {
           </div>
         </div>
       </ConfirmDialog>
+
+      {/* Modal Điều phối & Chi viện kho vật tư liên tỉnh */}
+      <InterProvincialSupplyTransferModal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        initialTargetProvinceId={caseData.latest_plan?.allocations[0]?.province_id || "angiang"}
+      />
     </div>
   );
 }
