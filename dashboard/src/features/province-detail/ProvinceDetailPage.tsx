@@ -39,6 +39,7 @@ import { ReliabilityNote } from "@/shared/ui/ReliabilityNote";
 import { Skeleton } from "@/shared/ui/Skeleton";
 
 import { contributionToPercent, fillMonths } from "./model";
+import { VectorSurveillanceCard } from "./VectorSurveillanceCard";
 
 export interface ProvinceSearch {
   run?: string | undefined;
@@ -355,6 +356,8 @@ export function ProvinceDetailPage({
           </Card>
         ) : null}
       </div>
+
+      <VectorSurveillanceCard provinceId={provinceId} provinceName={name} />
     </div>
   );
 }

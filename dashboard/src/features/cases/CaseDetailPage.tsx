@@ -9,6 +9,7 @@ import {
   FileText,
   PieChart,
   Plus,
+  Printer,
   SlidersHorizontal,
 } from "lucide-react";
 
@@ -193,9 +194,20 @@ export function CaseDetailPage() {
               {vi.cases.detail.createdAt}: {formatDateTime(caseData.created_at)}
             </p>
           </div>
-          <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-ink)]">
-            {vi.cases.statuses[caseData.status] ?? caseData.status}
-          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="px-3 py-1.5 text-xs gap-1.5 print:hidden"
+              onClick={() => window.print()}
+              title="In hoặc xuất PDF toàn bộ hồ sơ phương án can thiệp dịch tễ và đánh giá kinh tế y tế"
+            >
+              <Printer size={14} />
+              In / Xuất PDF Hồ sơ
+            </Button>
+            <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-ink)]">
+              {vi.cases.statuses[caseData.status] ?? caseData.status}
+            </span>
+          </div>
         </div>
       </div>
 
