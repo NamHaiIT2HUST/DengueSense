@@ -50,3 +50,4 @@ Nguồn sự thật cho trường `code` trong `application/problem+json` (docs/
 | `workflow.draft_not_approved` | 400 | Dự thảo chưa được phê duyệt nên không thể ban hành lệnh | Dự thảo chưa được phê duyệt |
 | `workflow.content_tampered` | 400 | Nội dung không khớp với mã băm (content_hash) đã được phê duyệt | Nội dung văn bản đã bị sửa đổi sau khi duyệt |
 | `workflow.invalid_state_transition` | 400 | Thao tác không hợp lệ đối với trạng thái hiện tại | Thao tác không hợp lệ với trạng thái hiện tại |
+| `genai.guardrail_blocked` | 422 | Có guardrail chặn thất bại (`passed=false`, `blocking=true`); không trả nội dung dự thảo. Phản hồi `application/problem+json` có `guardrails[]`; cờ rà soát không chặn như G6 không gây lỗi này | Dự thảo chưa đạt kiểm tra tự động; vui lòng soạn tay hoặc điều chỉnh đầu vào |

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: DengueSense Public API
-  version: 1.0.0-draft.1
+  version: 1.0.0-draft.2
   summary: API công khai (qua gateway) cho dashboard DengueSense — phạm vi Đợt 1 (xem rủi ro).
   description: |
     **Nguồn sự thật của hợp đồng giữa `gateway` ↔ `dashboard`** (docs/09 §6.10).
@@ -642,6 +642,11 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/DispatchDraft" }
+        "422":
+          description: Guardrail chặn; không có draft được lưu và response chỉ chứa problem details cùng các kiểm tra thất bại.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/GuardrailBlockedProblem" }
         "400": { $ref: "#/components/responses/ValidationError" }
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
@@ -1417,6 +1422,84 @@ components:
         created_by: { type: string }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+        generation_evidence:
+          $ref: "#/components/schemas/DraftGenerationEvidence"
+
+    DraftGenerationEvidence:
+      type: object
+      description: Bằng chứng gắn với đúng content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft.
+      required: [content_hash, citations, guardrails, source_provenance]
+      properties:
+        content_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        source_provenance: { $ref: "#/components/schemas/SlotProvenance" }
+        citations:
+          type: array
+          items: { $ref: "#/components/schemas/Citation" }
+        guardrails:
+          type: array
+          items: { $ref: "#/components/schemas/GuardrailCheck" }
+        model_used:
+          type: string
+          description: Tên model thật sự đã gọi; bỏ trống nếu dùng template.
+
+    SlotProvenance:
+      type: object
+      properties:
+        model_version: { type: string }
+        data_version: { type: string }
+        plan_id: { type: string, format: uuid }
+        plan_version: { type: integer, minimum: 1 }
+        plan_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        source_flags:
+          type: array
+          items: { type: string }
+
+    Citation:
+      type: object
+      required: [document_id, title, provision, quote]
+      properties:
+        document_id: { type: string }
+        title: { type: string }
+        issuer: { type: string }
+        document_version: { type: string }
+        status: { type: string, enum: [effective, expired, replaced, unknown] }
+        effective_from: { type: [string, "null"], format: date }
+        effective_to: { type: [string, "null"], format: date }
+        provision: { type: string, description: Điều/Khoản/Mục cụ thể trong tài liệu. }
+        quote: { type: string }
+        source_url: { type: string, format: uri }
+
+    GuardrailCheck:
+      type: object
+      required: [code, name, passed, detail]
+      properties:
+        code:
+          type: string
+          enum: [G1, G2, G3, G4, G5, G6]
+          description: |
+            G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+            G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+            G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+            G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+            G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+            G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+        name: { type: string }
+        passed: { type: boolean }
+        detail: { type: string }
+        blocking:
+          type: boolean
+          description: Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6).
+
+    GuardrailBlockedProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          required: [guardrails]
+          properties:
+            guardrails:
+              type: array
+              description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Nội dung draft không được trả kèm.
+              items: { $ref: "#/components/schemas/GuardrailCheck" }
 
     CreateDraftRequest:
       type: object
