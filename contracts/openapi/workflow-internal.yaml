@@ -185,6 +185,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DispatchDraft"
+        "422":
+          description: GenAI chặn dự thảo; workflow không lưu nội dung và chuyển tiếp các kiểm tra thất bại.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/GuardrailBlockedProblem" }
 
   /internal/v1/workflow/drafts/{draft_id}:
     get:
@@ -290,6 +295,30 @@ components:
       description: Dùng JWT service-to-service lấy từ identity.
 
   schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details (docs/09 §6.3).
+      required: [type, title, status, code, request_id]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        code:
+          type: string
+          description: Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+          examples: ["common.validation_error"]
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }
+
     Alert:
       type: object
       required: [id, run_id, province_id, created_at, status]
@@ -397,6 +426,84 @@ components:
         created_by: { type: string }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+        generation_evidence:
+          $ref: "#/components/schemas/DraftGenerationEvidence"
+
+    DraftGenerationEvidence:
+      type: object
+      description: Bằng chứng gắn với đúng content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft.
+      required: [content_hash, citations, guardrails, source_provenance]
+      properties:
+        content_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        source_provenance: { $ref: "#/components/schemas/SlotProvenance" }
+        citations:
+          type: array
+          items: { $ref: "#/components/schemas/Citation" }
+        guardrails:
+          type: array
+          items: { $ref: "#/components/schemas/GuardrailCheck" }
+        model_used:
+          type: string
+          description: Tên model thật sự đã gọi; bỏ trống nếu dùng template.
+
+    SlotProvenance:
+      type: object
+      properties:
+        model_version: { type: string }
+        data_version: { type: string }
+        plan_id: { type: string, format: uuid }
+        plan_version: { type: integer, minimum: 1 }
+        plan_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        source_flags:
+          type: array
+          items: { type: string }
+
+    Citation:
+      type: object
+      required: [document_id, title, provision, quote]
+      properties:
+        document_id: { type: string }
+        title: { type: string }
+        issuer: { type: string }
+        document_version: { type: string }
+        status: { type: string, enum: [effective, expired, replaced, unknown] }
+        effective_from: { type: [string, "null"], format: date }
+        effective_to: { type: [string, "null"], format: date }
+        provision: { type: string, description: Điều/Khoản/Mục cụ thể trong tài liệu. }
+        quote: { type: string }
+        source_url: { type: string, format: uri }
+
+    GuardrailCheck:
+      type: object
+      required: [code, name, passed, detail]
+      properties:
+        code:
+          type: string
+          enum: [G1, G2, G3, G4, G5, G6]
+          description: |
+            G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+            G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+            G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+            G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+            G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+            G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+        name: { type: string }
+        passed: { type: boolean }
+        detail: { type: string }
+        blocking:
+          type: boolean
+          description: Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6).
+
+    GuardrailBlockedProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          required: [guardrails]
+          properties:
+            guardrails:
+              type: array
+              description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Nội dung draft không được trả kèm.
+              items: { $ref: "#/components/schemas/GuardrailCheck" }
 
     CreateDraftRequest:
       type: object
