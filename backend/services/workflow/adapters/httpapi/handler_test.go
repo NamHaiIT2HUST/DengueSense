@@ -191,6 +191,7 @@ func (m *MockRepo) UpdateOrderStatus(_ context.Context, id uuid.UUID, status dom
 }
 
 func setupTestServer(repo *MockRepo, opts ...httpapi.ServerOption) *gin.Engine {
+	opts = append(opts, httpapi.WithGenAITokenSource(func(context.Context) (string, error) { return "test-service-token", nil }))
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	svc := app.NewWorkflowService(repo, nil)
@@ -341,13 +342,17 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 
 func TestGenerateDraftGuardrailBlockDoesNotSaveDraft(t *testing.T) {
 	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer test-service-token" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		_, _ = w.Write([]byte(`{"type":"about:blank","title":"Blocked","status":422,"code":"genai.guardrail_blocked","request_id":"req-1","guardrails":[{"code":"G1","name":"data","passed":false,"detail":"invalid","blocking":true}],"content":"must not leak"}`))
 	}))
 	defer genSrv.Close()
 	repo := NewMockRepo()
 	caseID := uuid.New()
-	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
 	_ = repo.CreateAlert(context.Background(), alert)
 	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, CreatedBy: "officer", AlertIDs: []uuid.UUID{alert.ID}})
 	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
@@ -375,7 +380,7 @@ func TestGenerateDraftRejectsUntrustedResponses(t *testing.T) {
 			}))
 			defer srv.Close()
 			repo := NewMockRepo()
-			alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+			alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
 			_ = repo.CreateAlert(context.Background(), alert)
 			caseID := uuid.New()
 			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alert.ID}})
@@ -395,6 +400,16 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// Mock external GenAI server
 	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/genai/draft" && r.Method == http.MethodPost {
+			var request struct {
+				Slots struct {
+					RunID       string   `json:"run_id"`
+					ProvinceIDs []string `json:"province_ids"`
+				} `json:"slots"`
+			}
+			if json.NewDecoder(r.Body).Decode(&request) != nil || request.Slots.RunID == "" || len(request.Slots.ProvinceIDs) != 1 || request.Slots.ProvinceIDs[0] != "ha_noi" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			content := "Kính gửi UBND TP: Đề xuất triển khai biện pháp khẩn cấp theo Quyết định 3711/QĐ-BYT."
@@ -409,7 +424,7 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
 
 	cID := uuid.New()
-	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
 	_ = repo.CreateAlert(context.Background(), alert)
 	_ = repo.CreateCase(context.Background(), &domain.Case{
 		ID:        cID,

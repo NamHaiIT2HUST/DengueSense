@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,6 +29,7 @@ type Server struct {
 	svc         *app.WorkflowService
 	repo        WorkflowRepo
 	genaiURL    string
+	genaiToken  func(context.Context) (string, error)
 	optimizeURL string
 	httpClient  *http.Client
 }
@@ -36,6 +38,10 @@ type ServerOption func(*Server)
 
 func WithGenAIURL(u string) ServerOption {
 	return func(s *Server) { s.genaiURL = u }
+}
+
+func WithGenAITokenSource(source func(context.Context) (string, error)) ServerOption {
+	return func(s *Server) { s.genaiToken = source }
 }
 
 func WithOptimizeURL(u string) ServerOption {
@@ -411,7 +417,7 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		c.JSON(404, gin.H{"error": "Không tìm thấy hồ sơ"})
 		return
 	}
-	if s.genaiURL == "" {
+	if s.genaiURL == "" || s.genaiToken == nil {
 		c.JSON(503, gin.H{"error": "GenAI chưa được cấu hình"})
 		return
 	}
@@ -436,27 +442,17 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 	}
 	slots := map[string]any{"run_id": run.String(), "province_ids": provinces}
 	provenance := api.SlotProvenance{}
-	plans, err := s.repo.ListAllocationPlansByCase(ctx, caseID)
-	if err != nil {
-		c.JSON(500, gin.H{"error": "Không thể đọc kế hoạch"})
-		return
-	}
-	if len(plans) > 0 {
-		plan := plans[0]
-		provenance.PlanId = &plan.ID
-		beds, supplies, teams := 0, 0, 0
-		for _, item := range plan.Allocations {
-			beds += item.Beds
-			supplies += item.Supplies
-			teams += item.Teams
-		}
-		slots["budget_allocated"] = plan.TotalCost
-		slots["beds_allocated"] = beds
-		slots["supplies_allocated"] = supplies
-		slots["teams_allocated"] = teams
-	}
+	// Allocation plans currently have no confirmation state, so their values
+	// cannot yet be represented as confirmed generation evidence.
 	slots["provenance"] = provenance
-	body, err := json.Marshal(map[string]any{"draft_type": req.DraftType, "case_id": caseID, "slots": slots, "title": req.Title, "extra_instructions": req.ExtraInstructions})
+	payload := map[string]any{"draft_type": req.DraftType, "case_id": caseID, "slots": slots}
+	if req.Title != nil {
+		payload["title"] = *req.Title
+	}
+	if req.ExtraInstructions != nil {
+		payload["extra_instructions"] = *req.ExtraInstructions
+	}
+	body, err := json.Marshal(payload)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Không thể tạo yêu cầu"})
 		return
@@ -467,6 +463,12 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		return
 	}
 	request.Header.Set("Content-Type", "application/json")
+	token, err := s.genaiToken(ctx)
+	if err != nil || token == "" {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Không thể xác thực với GenAI"})
+		return
+	}
+	request.Header.Set("Authorization", "Bearer "+token)
 	response, err := s.httpClient.Do(request)
 	if err != nil {
 		c.JSON(502, gin.H{"error": "Không thể gọi GenAI"})

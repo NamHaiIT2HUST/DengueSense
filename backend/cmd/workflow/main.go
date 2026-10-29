@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -116,6 +117,7 @@ func main() {
 	var opts []httpapi.ServerOption
 	if genaiURL := os.Getenv("GENAI_API_URL"); genaiURL != "" {
 		opts = append(opts, httpapi.WithGenAIURL(genaiURL))
+		opts = append(opts, httpapi.WithGenAITokenSource(httpapi.IdentityTokenSource(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), &http.Client{Timeout: 5 * time.Second})))
 	}
 	if optimizeURL := os.Getenv("OPTIMIZE_API_URL"); optimizeURL != "" {
 		opts = append(opts, httpapi.WithOptimizeURL(optimizeURL))
