@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/httpapi"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
@@ -198,6 +199,46 @@ func setupTestServer(repo *MockRepo, opts ...httpapi.ServerOption) *gin.Engine {
 	srv := httpapi.NewServer(svc, repo, opts...)
 	api.RegisterHandlers(r, srv)
 	return r
+}
+
+func TestWorkflowRequiresServiceToken(t *testing.T) {
+	publicKey, privateKey, err := authx.GenerateKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+	signer, err := authx.NewEd25519Signer(privateKey, "denguesense-identity", "gateway")
+	if err != nil {
+		t.Fatal(err)
+	}
+	verifier, err := authx.NewServiceVerifier(authx.StaticKeySet{"k1": publicKey}, "denguesense-identity", "workflow")
+	if err != nil {
+		t.Fatal(err)
+	}
+	good, err := signer.WithKeyID("k1").SignService("gateway", "workflow")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wrong, err := signer.SignService("gateway", "genai")
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo := NewMockRepo()
+	r := gin.New()
+	httpapi.RegisterAuthenticatedHandlers(r, httpapi.NewServer(app.NewWorkflowService(repo, nil), repo), verifier)
+	for _, tc := range []struct {
+		token string
+		want  int
+	}{{"", http.StatusUnauthorized}, {wrong, http.StatusUnauthorized}, {good, http.StatusOK}} {
+		req := httptest.NewRequest(http.MethodGet, "/internal/v1/workflow/alerts", nil)
+		req.Header.Set("Authorization", "Bearer "+tc.token)
+		req.Header.Set("X-Actor-ID", "forged")
+		req.Header.Set("X-Actor-Roles", "officer")
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		if w.Code != tc.want {
+			t.Fatalf("status=%d, want=%d", w.Code, tc.want)
+		}
+	}
 }
 
 func TestAlertHandlers(t *testing.T) {

@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/domain"
@@ -35,6 +36,11 @@ type Server struct {
 }
 
 type ServerOption func(*Server)
+
+// RegisterAuthenticatedHandlers protects all workflow operations with service tokens.
+func RegisterAuthenticatedHandlers(router *gin.Engine, server *Server, verifier *authx.ServiceVerifier) {
+	api.RegisterHandlers(router.Group("", authx.ServiceMiddleware(verifier, nil)), server)
+}
 
 func WithGenAIURL(u string) ServerOption {
 	return func(s *Server) { s.genaiURL = u }

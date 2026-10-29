@@ -308,6 +308,7 @@ services:
       NATS_URL: nats://nats:4222
       FORECAST_API_URL: http://forecast:8001/internal/v1
       GENAI_API_URL: http://genai:8001/internal/v1
+      WORKFLOW_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY}"
       WORKFLOW_IDENTITY_URL: http://identity:8081
       WORKFLOW_SERVICE_CLIENT_SECRET: "${WORKFLOW_SERVICE_CLIENT_SECRET:-}"
       OPTIMIZE_API_URL: http://optimize:8001/internal/v1

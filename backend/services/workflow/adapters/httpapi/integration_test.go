@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/httpapi"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/postgres"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
@@ -25,7 +26,8 @@ import (
 // Run only against an explicitly provisioned disposable database and GenAI service.
 func TestIntegrationGenAIAndPostgres(t *testing.T) {
 	dsn, genURL, token := os.Getenv("WORKFLOW_INTEGRATION_DB"), os.Getenv("WORKFLOW_INTEGRATION_GENAI"), os.Getenv("WORKFLOW_INTEGRATION_TOKEN")
-	if dsn == "" || genURL == "" || token == "" {
+	gatewayToken, publicKey := os.Getenv("WORKFLOW_INTEGRATION_GATEWAY_TOKEN"), os.Getenv("GENAI_JWT_PUBLIC_KEY")
+	if dsn == "" || genURL == "" || token == "" || gatewayToken == "" || publicKey == "" {
 		t.Skip("integration environment not configured")
 	}
 	if err := postgres.MigrateUp(dsn); err != nil {
@@ -59,11 +61,20 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 	defer identity.Close()
 	source := httpapi.IdentityTokenSource(identity.URL, "integration-secret", identity.Client())
 	server := httpapi.NewServer(app.NewWorkflowService(repo, nil), repo, httpapi.WithGenAIURL(genURL), httpapi.WithGenAITokenSource(source))
-	api.RegisterHandlers(router, server)
+	key, err := authx.ParsePublicKey(publicKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	verifier, err := authx.NewServiceVerifier(authx.StaticKeySet{"k1": key}, "denguesense-identity", "workflow")
+	if err != nil {
+		t.Fatal(err)
+	}
+	httpapi.RegisterAuthenticatedHandlers(router, server, verifier)
 	request := func(kind string) *httptest.ResponseRecorder {
 		t.Helper()
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", c.ID), bytes.NewBufferString(fmt.Sprintf(`{"draft_type":%q}`, kind)))
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+gatewayToken)
 		result := httptest.NewRecorder()
 		router.ServeHTTP(result, req)
 		return result

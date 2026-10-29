@@ -47,10 +47,12 @@ jobs:
           set -euo pipefail
           cd ai-service
           auth_file="${RUNNER_TEMP}/genai-integration-auth.json"
-          python -c 'import json; from tests.test_serving.jwt_helpers import Signer; s = Signer(); print(json.dumps({"key": s.public_b64, "token": s.service_token("genai", sub="workflow")}))' > "$auth_file"
+          python -c 'import json; from tests.test_serving.jwt_helpers import Signer; s = Signer(); print(json.dumps({"key": s.public_b64, "token": s.service_token("genai", sub="workflow"), "gateway": s.service_token("workflow", sub="gateway")}))' > "$auth_file"
           export GENAI_JWT_PUBLIC_KEY="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["key"])' "$auth_file")"
           export WORKFLOW_INTEGRATION_TOKEN="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["token"])' "$auth_file")"
+          export WORKFLOW_INTEGRATION_GATEWAY_TOKEN="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["gateway"])' "$auth_file")"
           echo "::add-mask::${WORKFLOW_INTEGRATION_TOKEN}"
+          echo "::add-mask::${WORKFLOW_INTEGRATION_GATEWAY_TOKEN}"
           export WORKFLOW_INTEGRATION_DB='postgres://integration:integration@127.0.0.1:5432/integration?sslmode=disable'
           export WORKFLOW_INTEGRATION_GENAI='http://127.0.0.1:25498/internal/v1'
           python -m uvicorn app.serving.genai_api.main:app --host 127.0.0.1 --port 25498 &
