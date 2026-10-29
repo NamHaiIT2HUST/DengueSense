@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -774,21 +773,4 @@ func mapPlanToAPI(plan *domain.AllocationPlan) api.AllocationPlan {
 		Allocations:             apiAllocs,
 		CreatedAt:               plan.CreatedAt,
 	}
-}
-
-func formatNumber(val float64) string {
-	in := strconv.FormatInt(int64(math.Round(val)), 10)
-	var out []byte
-	l := len(in)
-	for i := 0; i < l; i++ {
-		if i > 0 && (l-i)%3 == 0 {
-			out = append(out, ',')
-		}
-		out = append(out, in[i])
-	}
-	return string(out)
-}
-
-func formatInt(val int) string {
-	return formatNumber(float64(val))
 }
