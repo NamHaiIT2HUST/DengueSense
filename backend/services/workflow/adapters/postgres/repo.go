@@ -236,22 +236,22 @@ func (r *Repo) ListAllocationPlansByCase(ctx context.Context, caseID uuid.UUID) 
 // ---------------------------------------------------------------------
 
 func (r *Repo) CreateDraft(ctx context.Context, draft *domain.DispatchDraft) error {
-	query := `INSERT INTO dispatch_drafts (id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	query := `INSERT INTO dispatch_drafts (id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at, generation_evidence)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`
 	_, err := r.db.Exec(ctx, query,
 		draft.ID, draft.CaseID, draft.Version, string(draft.DraftType), draft.Title,
 		draft.Content, draft.ContentHash, string(draft.Status), draft.CreatedBy,
-		draft.CreatedAt, draft.UpdatedAt,
+		draft.CreatedAt, draft.UpdatedAt, draft.GenerationEvidence,
 	)
 	return err
 }
 
 func (r *Repo) GetDraftByID(ctx context.Context, id uuid.UUID) (*domain.DispatchDraft, error) {
-	row := r.db.QueryRow(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at 
+	row := r.db.QueryRow(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at, generation_evidence
 	                          FROM dispatch_drafts WHERE id = $1`, id)
 	var d domain.DispatchDraft
 	var dt, st string
-	err := row.Scan(&d.ID, &d.CaseID, &d.Version, &dt, &d.Title, &d.Content, &d.ContentHash, &st, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt)
+	err := row.Scan(&d.ID, &d.CaseID, &d.Version, &dt, &d.Title, &d.Content, &d.ContentHash, &st, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt, &d.GenerationEvidence)
 	if err != nil {
 		return nil, err
 	}
@@ -287,7 +287,7 @@ func (r *Repo) UpdateDraft(ctx context.Context, draft *domain.DispatchDraft) err
 }
 
 func (r *Repo) ListDraftsByCase(ctx context.Context, caseID uuid.UUID) ([]domain.DispatchDraft, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at 
+	rows, err := r.db.Query(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at, generation_evidence
 	                             FROM dispatch_drafts WHERE case_id = $1 ORDER BY created_at DESC`, caseID)
 	if err != nil {
 		return nil, err
@@ -298,7 +298,7 @@ func (r *Repo) ListDraftsByCase(ctx context.Context, caseID uuid.UUID) ([]domain
 	for rows.Next() {
 		var d domain.DispatchDraft
 		var dt, st string
-		if err := rows.Scan(&d.ID, &d.CaseID, &d.Version, &dt, &d.Title, &d.Content, &d.ContentHash, &st, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		if err := rows.Scan(&d.ID, &d.CaseID, &d.Version, &dt, &d.Title, &d.Content, &d.ContentHash, &st, &d.CreatedBy, &d.CreatedAt, &d.UpdatedAt, &d.GenerationEvidence); err != nil {
 			return nil, err
 		}
 		d.DraftType = domain.DraftType(dt)

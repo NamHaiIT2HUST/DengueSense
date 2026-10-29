@@ -76,6 +76,21 @@ func (e CaseDetailStatus) Valid() bool {
 	}
 }
 
+// Defines values for CitationStatus.
+const (
+	Effective CitationStatus = "effective"
+)
+
+// Valid indicates whether the value is a known member of the CitationStatus enum.
+func (e CitationStatus) Valid() bool {
+	switch e {
+	case Effective:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreateDraftRequestDraftType.
 const (
 	CreateDraftRequestDraftTypeB2b CreateDraftRequestDraftType = "b2b"
@@ -138,25 +153,25 @@ func (e DispatchDraftDraftType) Valid() bool {
 
 // Defines values for DispatchDraftStatus.
 const (
-	APPROVED         DispatchDraftStatus = "APPROVED"
-	CHANGESREQUESTED DispatchDraftStatus = "CHANGES_REQUESTED"
-	DRAFT            DispatchDraftStatus = "DRAFT"
-	PENDINGREVIEW    DispatchDraftStatus = "PENDING_REVIEW"
-	REJECTED         DispatchDraftStatus = "REJECTED"
+	DispatchDraftStatusAPPROVED         DispatchDraftStatus = "APPROVED"
+	DispatchDraftStatusCHANGESREQUESTED DispatchDraftStatus = "CHANGES_REQUESTED"
+	DispatchDraftStatusDRAFT            DispatchDraftStatus = "DRAFT"
+	DispatchDraftStatusPENDINGREVIEW    DispatchDraftStatus = "PENDING_REVIEW"
+	DispatchDraftStatusREJECTED         DispatchDraftStatus = "REJECTED"
 )
 
 // Valid indicates whether the value is a known member of the DispatchDraftStatus enum.
 func (e DispatchDraftStatus) Valid() bool {
 	switch e {
-	case APPROVED:
+	case DispatchDraftStatusAPPROVED:
 		return true
-	case CHANGESREQUESTED:
+	case DispatchDraftStatusCHANGESREQUESTED:
 		return true
-	case DRAFT:
+	case DispatchDraftStatusDRAFT:
 		return true
-	case PENDINGREVIEW:
+	case DispatchDraftStatusPENDINGREVIEW:
 		return true
-	case REJECTED:
+	case DispatchDraftStatusREJECTED:
 		return true
 	default:
 		return false
@@ -253,6 +268,51 @@ func (e GenerateDraftCaseRequestDraftType) Valid() bool {
 	}
 }
 
+// Defines values for GeneratedDispatchDraftDraftType.
+const (
+	GeneratedDispatchDraftDraftTypeB2b GeneratedDispatchDraftDraftType = "b2b"
+	GeneratedDispatchDraftDraftTypeB2g GeneratedDispatchDraftDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the GeneratedDispatchDraftDraftType enum.
+func (e GeneratedDispatchDraftDraftType) Valid() bool {
+	switch e {
+	case GeneratedDispatchDraftDraftTypeB2b:
+		return true
+	case GeneratedDispatchDraftDraftTypeB2g:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GeneratedDispatchDraftStatus.
+const (
+	GeneratedDispatchDraftStatusAPPROVED         GeneratedDispatchDraftStatus = "APPROVED"
+	GeneratedDispatchDraftStatusCHANGESREQUESTED GeneratedDispatchDraftStatus = "CHANGES_REQUESTED"
+	GeneratedDispatchDraftStatusDRAFT            GeneratedDispatchDraftStatus = "DRAFT"
+	GeneratedDispatchDraftStatusPENDINGREVIEW    GeneratedDispatchDraftStatus = "PENDING_REVIEW"
+	GeneratedDispatchDraftStatusREJECTED         GeneratedDispatchDraftStatus = "REJECTED"
+)
+
+// Valid indicates whether the value is a known member of the GeneratedDispatchDraftStatus enum.
+func (e GeneratedDispatchDraftStatus) Valid() bool {
+	switch e {
+	case GeneratedDispatchDraftStatusAPPROVED:
+		return true
+	case GeneratedDispatchDraftStatusCHANGESREQUESTED:
+		return true
+	case GeneratedDispatchDraftStatusDRAFT:
+		return true
+	case GeneratedDispatchDraftStatusPENDINGREVIEW:
+		return true
+	case GeneratedDispatchDraftStatusREJECTED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GeoJsonFeatureCollectionFeaturesType.
 const (
 	Feature GeoJsonFeatureCollectionFeaturesType = "Feature"
@@ -277,6 +337,36 @@ const (
 func (e GeoJsonFeatureCollectionType) Valid() bool {
 	switch e {
 	case FeatureCollection:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GuardrailCheckCode.
+const (
+	G1 GuardrailCheckCode = "G1"
+	G2 GuardrailCheckCode = "G2"
+	G3 GuardrailCheckCode = "G3"
+	G4 GuardrailCheckCode = "G4"
+	G5 GuardrailCheckCode = "G5"
+	G6 GuardrailCheckCode = "G6"
+)
+
+// Valid indicates whether the value is a known member of the GuardrailCheckCode enum.
+func (e GuardrailCheckCode) Valid() bool {
+	switch e {
+	case G1:
+		return true
+	case G2:
+		return true
+	case G3:
+		return true
+	case G4:
+		return true
+	case G5:
+		return true
+	case G6:
 		return true
 	default:
 		return false
@@ -680,6 +770,38 @@ type CaseDetail struct {
 // CaseDetailStatus defines model for CaseDetail.Status.
 type CaseDetailStatus string
 
+// Citation Citation đã xác minh trước khi draft thành công được trả. status=effective biểu thị hiệu lực tại thời điểm sinh; lịch sử giữ nguyên trạng thái tại thời điểm sinh.
+type Citation struct {
+	// DocumentId Định danh ổn định của văn bản trong kho tri thức.
+	DocumentId string `json:"document_id"`
+
+	// DocumentVersion Số/ký hiệu hoặc phiên bản văn bản được truy hồi.
+	DocumentVersion string `json:"document_version"`
+
+	// EffectiveFrom Ngày bắt đầu hiệu lực theo metadata kho tri thức; null nếu văn bản không công bố ngày.
+	EffectiveFrom *openapi_types.Date `json:"effective_from"`
+
+	// EffectiveTo Ngày kết thúc hiệu lực theo metadata kho tri thức; null nếu còn hiệu lực không xác định ngày kết thúc.
+	EffectiveTo *openapi_types.Date `json:"effective_to"`
+	Issuer      string              `json:"issuer"`
+
+	// Provision Điều/Khoản/Mục cụ thể trong tài liệu.
+	Provision string `json:"provision"`
+
+	// Quote Trích đoạn trong đúng điều khoản nêu trên.
+	Quote string `json:"quote"`
+
+	// SourceUrl URL hoặc URI ổn định để mở văn bản nguồn.
+	SourceUrl string `json:"source_url"`
+
+	// Status Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+	Status CitationStatus `json:"status"`
+	Title  string         `json:"title"`
+}
+
+// CitationStatus Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+type CitationStatus string
+
 // CreateAllocationPlanRequest defines model for CreateAllocationPlanRequest.
 type CreateAllocationPlanRequest struct {
 	Budget float64 `json:"budget"`
@@ -755,11 +877,14 @@ type DispatchDraft struct {
 	CreatedAt   time.Time              `json:"created_at"`
 	CreatedBy   string                 `json:"created_by"`
 	DraftType   DispatchDraftDraftType `json:"draft_type"`
-	Id          openapi_types.UUID     `json:"id"`
-	Status      DispatchDraftStatus    `json:"status"`
-	Title       string                 `json:"title"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Version     int                    `json:"version"`
+
+	// GenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+	GenerationEvidence *DraftGenerationEvidence `json:"generation_evidence,omitempty"`
+	Id                 openapi_types.UUID       `json:"id"`
+	Status             DispatchDraftStatus      `json:"status"`
+	Title              string                   `json:"title"`
+	UpdatedAt          time.Time                `json:"updated_at"`
+	Version            int                      `json:"version"`
 }
 
 // DispatchDraftDraftType defines model for DispatchDraft.DraftType.
@@ -787,6 +912,19 @@ type DispatchOrderStatus string
 type DispatchOrderRequest struct {
 	DispatchedBy string `json:"dispatched_by"`
 	Recipient    string `json:"recipient"`
+}
+
+// DraftGenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+type DraftGenerationEvidence struct {
+	Citations   []Citation       `json:"citations"`
+	ContentHash string           `json:"content_hash"`
+	Guardrails  []GuardrailCheck `json:"guardrails"`
+
+	// ModelUsed Tên model thật sự đã gọi; bỏ trống nếu dùng template.
+	ModelUsed *string `json:"model_used,omitempty"`
+
+	// SourceProvenance Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
+	SourceProvenance SlotProvenance `json:"source_provenance"`
 }
 
 // Explanation defines model for Explanation.
@@ -910,6 +1048,30 @@ type GenerateDraftCaseRequest struct {
 // GenerateDraftCaseRequestDraftType defines model for GenerateDraftCaseRequest.DraftType.
 type GenerateDraftCaseRequestDraftType string
 
+// GeneratedDispatchDraft defines model for GeneratedDispatchDraft.
+type GeneratedDispatchDraft struct {
+	CaseId      openapi_types.UUID              `json:"case_id"`
+	Content     string                          `json:"content"`
+	ContentHash string                          `json:"content_hash"`
+	CreatedAt   time.Time                       `json:"created_at"`
+	CreatedBy   string                          `json:"created_by"`
+	DraftType   GeneratedDispatchDraftDraftType `json:"draft_type"`
+
+	// GenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+	GenerationEvidence DraftGenerationEvidence      `json:"generation_evidence"`
+	Id                 openapi_types.UUID           `json:"id"`
+	Status             GeneratedDispatchDraftStatus `json:"status"`
+	Title              string                       `json:"title"`
+	UpdatedAt          time.Time                    `json:"updated_at"`
+	Version            int                          `json:"version"`
+}
+
+// GeneratedDispatchDraftDraftType defines model for GeneratedDispatchDraft.DraftType.
+type GeneratedDispatchDraftDraftType string
+
+// GeneratedDispatchDraftStatus defines model for GeneratedDispatchDraft.Status.
+type GeneratedDispatchDraftStatus string
+
 // GeoJsonFeatureCollection defines model for GeoJsonFeatureCollection.
 type GeoJsonFeatureCollection struct {
 	Features []struct {
@@ -934,6 +1096,52 @@ type GeoJsonFeatureCollectionFeaturesType string
 
 // GeoJsonFeatureCollectionType defines model for GeoJsonFeatureCollection.Type.
 type GeoJsonFeatureCollectionType string
+
+// GuardrailBlockedProblem defines model for GuardrailBlockedProblem.
+type GuardrailBlockedProblem struct {
+	// Code Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+	//
+	// Examples: common.validation_error
+	Code   string  `json:"code"`
+	Detail *string `json:"detail,omitempty"`
+	Errors *[]struct {
+		Field   string `json:"field"`
+		Message string `json:"message"`
+	} `json:"errors,omitempty"`
+
+	// Guardrails Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn.
+	Guardrails []GuardrailCheck `json:"guardrails"`
+	Instance   *string          `json:"instance,omitempty"`
+	RequestId  string           `json:"request_id"`
+	Status     int              `json:"status"`
+	Title      string           `json:"title"`
+	Type       string           `json:"type"`
+}
+
+// GuardrailCheck defines model for GuardrailCheck.
+type GuardrailCheck struct {
+	// Blocking Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6). passed chỉ mô tả kết quả kiểm tra; draft bị chặn khi và chỉ khi có mục passed=false và blocking=true.
+	Blocking *bool `json:"blocking,omitempty"`
+
+	// Code G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+	// G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+	// G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+	// G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+	// G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+	// G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+	Code   GuardrailCheckCode `json:"code"`
+	Detail string             `json:"detail"`
+	Name   string             `json:"name"`
+	Passed bool               `json:"passed"`
+}
+
+// GuardrailCheckCode G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+// G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+// G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+// G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+// G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+// G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+type GuardrailCheckCode string
 
 // Horizon Tầm dự báo — số tháng tính từ tháng neo (`origin_month`).
 type Horizon int
@@ -1206,6 +1414,27 @@ type RunMode string
 
 // RunStatus defines model for RunStatus.
 type RunStatus string
+
+// SlotProvenance Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
+type SlotProvenance struct {
+	// DataVersion Phiên bản dữ liệu của run_id nếu workflow có.
+	DataVersion *string `json:"data_version,omitempty"`
+
+	// ModelVersion Phiên bản model của run_id nếu workflow có.
+	ModelVersion *string `json:"model_version,omitempty"`
+
+	// PlanHash SHA-256 của snapshot kế hoạch nếu workflow có.
+	PlanHash *string `json:"plan_hash,omitempty"`
+
+	// PlanId Kế hoạch phân bổ đã xác nhận nếu có.
+	PlanId *openapi_types.UUID `json:"plan_id,omitempty"`
+
+	// PlanVersion Phiên bản kế hoạch nếu có.
+	PlanVersion *int `json:"plan_version,omitempty"`
+
+	// SourceFlags Cờ nguồn/dữ liệu của snapshot nếu workflow có.
+	SourceFlags *[]string `json:"source_flags,omitempty"`
+}
 
 // SubmitReviewRequest defines model for SubmitReviewRequest.
 type SubmitReviewRequest struct {
@@ -3078,7 +3307,7 @@ type GenerateDraftForCaseResponseObject interface {
 	VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error
 }
 
-type GenerateDraftForCase201JSONResponse DispatchDraft
+type GenerateDraftForCase201JSONResponse GeneratedDispatchDraft
 
 func (response GenerateDraftForCase201JSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
 
@@ -3152,6 +3381,20 @@ func (response GenerateDraftForCase404ApplicationProblemPlusJSONResponse) VisitG
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase422ApplicationProblemPlusJSONResponse GuardrailBlockedProblem
+
+func (response GenerateDraftForCase422ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
 	_, err := buf.WriteTo(w)
 	return err
 }

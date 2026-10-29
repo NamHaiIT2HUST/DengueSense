@@ -339,18 +339,66 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	}
 }
 
+func TestGenerateDraftGuardrailBlockDoesNotSaveDraft(t *testing.T) {
+	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = w.Write([]byte(`{"type":"about:blank","title":"Blocked","status":422,"code":"genai.guardrail_blocked","request_id":"req-1","guardrails":[{"code":"G1","name":"data","passed":false,"detail":"invalid","blocking":true}],"content":"must not leak"}`))
+	}))
+	defer genSrv.Close()
+	repo := NewMockRepo()
+	caseID := uuid.New()
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+	_ = repo.CreateAlert(context.Background(), alert)
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, CreatedBy: "officer", AlertIDs: []uuid.UUID{alert.ID}})
+	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", caseID), bytes.NewBufferString(`{"draft_type":"b2g"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if w.Code != http.StatusUnprocessableEntity || len(repo.drafts) != 0 || bytes.Contains(w.Body.Bytes(), []byte("must not leak")) {
+		t.Fatalf("blocked draft must not be saved or leaked: status=%d body=%s drafts=%d", w.Code, w.Body.String(), len(repo.drafts))
+	}
+}
+
+func TestGenerateDraftRejectsUntrustedResponses(t *testing.T) {
+	for _, tc := range []struct {
+		name, body string
+		status     int
+	}{
+		{"unavailable", `{}`, http.StatusServiceUnavailable},
+		{"invalid hash", `{"title":"test","content":"content","content_hash":"wrong","all_guardrails_passed":true,"guardrails":[],"citations":[]}`, http.StatusOK},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer srv.Close()
+			repo := NewMockRepo()
+			alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+			_ = repo.CreateAlert(context.Background(), alert)
+			caseID := uuid.New()
+			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alert.ID}})
+			r := setupTestServer(repo, httpapi.WithGenAIURL(srv.URL))
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", caseID), bytes.NewBufferString(`{"draft_type":"b2g"}`))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			if w.Code != http.StatusBadGateway || len(repo.drafts) != 0 {
+				t.Fatalf("status=%d drafts=%d", w.Code, len(repo.drafts))
+			}
+		})
+	}
+}
+
 func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// Mock external GenAI server
 	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/draft" && r.Method == http.MethodPost {
+		if r.URL.Path == "/genai/draft" && r.Method == http.MethodPost {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{
-				"content": "Kính gửi UBND TP: Đề xuất triển khai biện pháp khẩn cấp theo Quyết định 3711/QĐ-BYT.",
-				"content_hash": "mockhash123",
-				"citations": ["Quyết định 3711/QĐ-BYT"],
-				"guardrail_flags": []
-			}`))
+			content := "Kính gửi UBND TP: Đề xuất triển khai biện pháp khẩn cấp theo Quyết định 3711/QĐ-BYT."
+			_ = json.NewEncoder(w).Encode(map[string]any{"title": "Công điện", "content": content, "content_hash": domain.ComputeHash(content), "all_guardrails_passed": true, "guardrails": []any{map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""}, map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""}, map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""}, map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""}, map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""}, map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false}}, "citations": []any{}})
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)
@@ -361,8 +409,11 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
 
 	cID := uuid.New()
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "79"}
+	_ = repo.CreateAlert(context.Background(), alert)
 	_ = repo.CreateCase(context.Background(), &domain.Case{
 		ID:        cID,
+		AlertIDs:  []uuid.UUID{alert.ID},
 		Title:     "Case khẩn cấp đợt 2",
 		Status:    domain.CaseStatusOpen,
 		CreatedBy: "officer_01",
@@ -386,6 +437,16 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 
 	var draft api.DispatchDraft
 	_ = json.Unmarshal(w.Body.Bytes(), &draft)
+	if draft.GenerationEvidence == nil || draft.GenerationEvidence.ContentHash != domain.ComputeHash(draft.Content) {
+		t.Fatalf("missing or mismatched generation evidence: %s", w.Body.String())
+	}
+	getReq := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/internal/v1/workflow/drafts/%s", draft.Id), nil)
+	getResponse := httptest.NewRecorder()
+	r.ServeHTTP(getResponse, getReq)
+	var stored api.DispatchDraft
+	if getResponse.Code != http.StatusOK || json.Unmarshal(getResponse.Body.Bytes(), &stored) != nil || stored.GenerationEvidence == nil || stored.GenerationEvidence.ContentHash != draft.GenerationEvidence.ContentHash {
+		t.Fatalf("evidence was not retained: %s", getResponse.Body.String())
+	}
 	if draft.Content != "Kính gửi UBND TP: Đề xuất triển khai biện pháp khẩn cấp theo Quyết định 3711/QĐ-BYT." {
 		t.Errorf("unexpected content generated: %s", draft.Content)
 	}

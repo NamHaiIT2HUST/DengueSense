@@ -59,6 +59,8 @@ export const vi = {
       "workflow.draft_not_approved": "Dự thảo chưa được phê duyệt nên không thể ban hành lệnh.",
       "workflow.content_tampered": "Nội dung văn bản đã bị sửa đổi sau khi duyệt.",
       "workflow.invalid_state_transition": "Thao tác không hợp lệ đối với trạng thái hiện tại.",
+      "genai.guardrail_blocked":
+        "Dự thảo chưa đạt kiểm tra tự động; vui lòng soạn tay hoặc điều chỉnh đầu vào.",
       // Mã phía client (không có trong hợp đồng)
       "client.unexpected_response": "Máy chủ trả về phản hồi không hợp lệ. Vui lòng thử lại.",
       "client.empty_response": "Máy chủ trả về phản hồi trống. Vui lòng thử lại.",

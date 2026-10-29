@@ -980,6 +980,94 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+            generation_evidence?: components["schemas"]["DraftGenerationEvidence"];
+        };
+        /** @description Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ. */
+        DraftGenerationEvidence: {
+            content_hash: string;
+            source_provenance: components["schemas"]["SlotProvenance"];
+            citations: components["schemas"]["Citation"][];
+            guardrails: components["schemas"]["GuardrailCheck"][];
+            /** @description Tên model thật sự đã gọi; bỏ trống nếu dùng template. */
+            model_used?: string;
+        };
+        /** @description Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ. */
+        SlotProvenance: {
+            /** @description Phiên bản model của run_id nếu workflow có. */
+            model_version?: string;
+            /** @description Phiên bản dữ liệu của run_id nếu workflow có. */
+            data_version?: string;
+            /**
+             * Format: uuid
+             * @description Kế hoạch phân bổ đã xác nhận nếu có.
+             */
+            plan_id?: string;
+            /** @description Phiên bản kế hoạch nếu có. */
+            plan_version?: number;
+            /** @description SHA-256 của snapshot kế hoạch nếu workflow có. */
+            plan_hash?: string;
+            /** @description Cờ nguồn/dữ liệu của snapshot nếu workflow có. */
+            source_flags?: string[];
+        };
+        /** @description Citation đã xác minh trước khi draft thành công được trả. status=effective biểu thị hiệu lực tại thời điểm sinh; lịch sử giữ nguyên trạng thái tại thời điểm sinh. */
+        Citation: {
+            /** @description Định danh ổn định của văn bản trong kho tri thức. */
+            document_id: string;
+            title: string;
+            issuer: string;
+            /** @description Số/ký hiệu hoặc phiên bản văn bản được truy hồi. */
+            document_version: string;
+            /**
+             * @description Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+             * @constant
+             */
+            status: "effective";
+            /**
+             * Format: date
+             * @description Ngày bắt đầu hiệu lực theo metadata kho tri thức; null nếu văn bản không công bố ngày.
+             */
+            effective_from: string | null;
+            /**
+             * Format: date
+             * @description Ngày kết thúc hiệu lực theo metadata kho tri thức; null nếu còn hiệu lực không xác định ngày kết thúc.
+             */
+            effective_to: string | null;
+            /** @description Điều/Khoản/Mục cụ thể trong tài liệu. */
+            provision: string;
+            /** @description Trích đoạn trong đúng điều khoản nêu trên. */
+            quote: string;
+            /**
+             * Format: uri
+             * @description URL hoặc URI ổn định để mở văn bản nguồn.
+             */
+            source_url: string;
+        };
+        GuardrailCheck: {
+            /**
+             * @description G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+             *     G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+             *     G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+             *     G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+             *     G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+             *     G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+             * @enum {string}
+             */
+            code: "G1" | "G2" | "G3" | "G4" | "G5" | "G6";
+            name: string;
+            passed: boolean;
+            detail: string;
+            /**
+             * @description Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6). passed chỉ mô tả kết quả kiểm tra; draft bị chặn khi và chỉ khi có mục passed=false và blocking=true.
+             * @default true
+             */
+            blocking: boolean;
+        };
+        GuardrailBlockedProblem: components["schemas"]["Problem"] & {
+            /** @description Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn. */
+            guardrails: components["schemas"]["GuardrailCheck"][];
+        };
+        GeneratedDispatchDraft: components["schemas"]["DispatchDraft"] & {
+            generation_evidence: components["schemas"]["DraftGenerationEvidence"];
         };
         CreateDraftRequest: {
             /** @enum {string} */
@@ -1799,19 +1887,28 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Sinh dự thảo thành công và lưu vào hồ sơ. */
+            /** @description Sinh dự thảo thành công, lưu cùng generation_evidence gắn với content_hash lúc sinh. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DispatchDraft"];
+                    "application/json": components["schemas"]["GeneratedDispatchDraft"];
                 };
             };
             400: components["responses"]["ValidationError"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            /** @description Guardrail chặn; không có draft được lưu và response chỉ chứa problem details cùng các kiểm tra thất bại. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["GuardrailBlockedProblem"];
+                };
+            };
         };
     };
     getDraft: {

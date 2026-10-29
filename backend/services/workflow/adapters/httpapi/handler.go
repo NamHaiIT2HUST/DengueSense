@@ -400,246 +400,153 @@ func (s *Server) CreateDraft(c *gin.Context, caseId uuid.UUID) {
 }
 
 // GenerateDraftForCase implements api.ServerInterface
-func (s *Server) GenerateDraftForCase(c *gin.Context, caseId uuid.UUID) {
+func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 	var req api.GenerateDraftCaseRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	if c.ShouldBindJSON(&req) != nil || (req.DraftType != "b2b" && req.DraftType != "b2g") {
+		c.JSON(400, gin.H{"error": "Yêu cầu không hợp lệ"})
 		return
 	}
-
 	ctx := c.Request.Context()
-	cs, err := s.repo.GetCaseByID(ctx, caseId)
+	cs, err := s.repo.GetCaseByID(ctx, caseID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hồ sơ"})
+		c.JSON(404, gin.H{"error": "Không tìm thấy hồ sơ"})
 		return
 	}
-
-	title := "Báo cáo chuyên môn đánh giá nguy cơ dịch tễ sốt xuất huyết"
-	if req.DraftType == "b2g" {
-		title = "Công điện khẩn về việc tăng cường đáp ứng y tế phòng chống dịch sốt xuất huyết Dengue"
+	if s.genaiURL == "" {
+		c.JSON(503, gin.H{"error": "GenAI chưa được cấu hình"})
+		return
 	}
-	if req.Title != nil && *req.Title != "" {
-		title = *req.Title
+	var run uuid.UUID
+	provinces := []string{}
+	seen := map[string]bool{}
+	for _, id := range cs.AlertIDs {
+		alert, err := s.repo.GetAlertByID(ctx, id)
+		if err != nil || alert.RunID == uuid.Nil || alert.ProvinceID == "" || (run != uuid.Nil && run != alert.RunID) {
+			c.JSON(400, gin.H{"error": "Nguồn cảnh báo không hợp lệ"})
+			return
+		}
+		run = alert.RunID
+		if !seen[alert.ProvinceID] {
+			provinces = append(provinces, alert.ProvinceID)
+			seen[alert.ProvinceID] = true
+		}
 	}
-
-	slots := struct {
-		RunID               string   `json:"run_id"`
-		ProvinceIDs         []string `json:"province_ids"`
-		OriginMonth         string   `json:"origin_month,omitempty"`
-		CasesPredictedTotal float64  `json:"cases_predicted_total,omitempty"`
-		BudgetAllocated     float64  `json:"budget_allocated,omitempty"`
-		BedsAllocated       int      `json:"beds_allocated,omitempty"`
-		SuppliesAllocated   int      `json:"supplies_allocated,omitempty"`
-		TeamsAllocated      int      `json:"teams_allocated,omitempty"`
-	}{
-		RunID:               uuid.New().String(),
-		ProvinceIDs:         []string{"VN-SG", "VN-AG"},
-		OriginMonth:         time.Now().Format("2006-01"),
-		CasesPredictedTotal: 840.0,
-		BudgetAllocated:     480000000.0,
-		BedsAllocated:       45,
-		SuppliesAllocated:   950,
-		TeamsAllocated:      5,
+	if run == uuid.Nil {
+		c.JSON(400, gin.H{"error": "Hồ sơ cần cảnh báo có nguồn dự báo"})
+		return
 	}
-
-	plans, _ := s.repo.ListAllocationPlansByCase(ctx, caseId)
+	slots := map[string]any{"run_id": run.String(), "province_ids": provinces}
+	provenance := api.SlotProvenance{}
+	plans, err := s.repo.ListAllocationPlansByCase(ctx, caseID)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Không thể đọc kế hoạch"})
+		return
+	}
 	if len(plans) > 0 {
-		latestPlan := plans[0]
-		if latestPlan.TotalCost > 0 {
-			slots.BudgetAllocated = latestPlan.TotalCost
+		plan := plans[0]
+		provenance.PlanId = &plan.ID
+		beds, supplies, teams := 0, 0, 0
+		for _, item := range plan.Allocations {
+			beds += item.Beds
+			supplies += item.Supplies
+			teams += item.Teams
 		}
-		if latestPlan.EstimatedCasesPrevented > 0 {
-			slots.CasesPredictedTotal = math.Round(latestPlan.EstimatedCasesPrevented * 4.2)
-		}
-		var pids []string
-		totalBeds := 0
-		totalSupplies := 0
-		totalTeams := 0
-		for _, a := range latestPlan.Allocations {
-			if a.ProvinceID != "" {
-				pids = append(pids, a.ProvinceID)
-			}
-			totalBeds += a.Beds
-			totalSupplies += a.Supplies
-			totalTeams += a.Teams
-		}
-		if len(pids) > 0 {
-			slots.ProvinceIDs = pids
-		}
-		if totalBeds > 0 {
-			slots.BedsAllocated = totalBeds
-		}
-		if totalSupplies > 0 {
-			slots.SuppliesAllocated = totalSupplies
-		}
-		if totalTeams > 0 {
-			slots.TeamsAllocated = totalTeams
-		}
+		slots["budget_allocated"] = plan.TotalCost
+		slots["beds_allocated"] = beds
+		slots["supplies_allocated"] = supplies
+		slots["teams_allocated"] = teams
 	}
-
-	extraNote := ""
-	if req.ExtraInstructions != nil && *req.ExtraInstructions != "" {
-		extraNote = *req.ExtraInstructions
-	}
-
-	var content string
-	provincesStr := strings.Join(slots.ProvinceIDs, ", ")
-	nowStr := time.Now().Format("02/01/2006")
-
-	if req.DraftType == "b2g" {
-		instructionSection := ""
-		if extraNote != "" {
-			instructionSection = fmt.Sprintf("\n4. CHỈ ĐẠO BỔ SUNG TỪ LÃNH ĐẠO BỘ:\n%s\n", extraNote)
-		}
-		content = fmt.Sprintf(`BỘ Y TẾ - BAN CHỈ ĐẠO QUỐC GIA PHÒNG CHỐNG DỊCH BỆNH
-CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-Độc lập - Tự do - Hạnh phúc
------------------------------
-Số: %s/CĐ-BYT                              Hà Nội, ngày %s
-
-CÔNG ĐIỆN KHẨN
-Về việc tăng cường đáp ứng y tế cấp bách phòng chống dịch Sốt xuất huyết Dengue
-
-Kính gửi:
-- Chủ tịch Ủy ban nhân dân các tỉnh/thành phố: %s;
-- Giám đốc Sở Y tế các tỉnh/thành phố: %s;
-- Giám đốc các Viện Pasteur, Viện Vệ sinh Dịch tễ khu vực.
-
-Căn cứ Luật Phòng, chống bệnh truyền nhiễm số 03/2007/QH12;
-Căn cứ Nghị định số 30/2020/NĐ-CP ngày 05/3/2020 của Chính phủ về công tác văn thư;
-Căn cứ hệ thống dự báo dịch tễ học và giám sát cảnh báo sớm DengueSense AI;
-
-Dự báo dịch tễ ghi nhận nguy cơ bùng phát với tổng số ca dự kiến %s ca tại địa bàn các tỉnh/thành phố nêu trên. Ban Chỉ đạo yêu cầu các đơn vị khẩn trương triển khai:
-
-1. ĐIỀU ĐỘNG NGUỒN LỰC VÀ TRANG THIẾT BỊ:
-- Phân bổ ngân sách ứng phó khẩn cấp: %s đồng từ quỹ dự phòng dịch tễ.
-- Kích hoạt %s giường bệnh điều trị sốt xuất huyết tại các cơ sở y tế tuyến tỉnh và huyện.
-- Cấp phát bổ sung %s đơn vị vật tư y tế, hóa chất diệt muỗi, Cloramin B và dịch truyền cao phân tử.
-- Điều động %s đội phản ứng nhanh cơ động trực tiếp chi viện các điểm nóng dịch.
-
-2. CÔNG TÁC ĐIỀU TRỊ VÀ GIẢM TỬ VONG:
-- Thực hiện phân loại bệnh nhân theo đúng Hướng dẫn chẩn đoán, điều trị Sốt xuất huyết Dengue ban hành kèm theo Quyết định số 2760/QĐ-BYT của Bộ Y tế.
-- Chuyển tuyến an toàn, hạn chế tối đa quá tải tại các bệnh viện tuyến cuối.
-
-3. GIÁM SÁT VECTƠ VÀ XỬ LÝ Ổ DỊCH:
-- Tổ chức chiến dịch diệt lăng quăng/bọ gậy và phun hóa chất xử lý triệt để 100%% ổ dịch trong vòng 48 giờ.
-%s
-Nơi nhận:
-- Như trên;
-- Bộ trưởng Bộ Y tế (để b/c);
-- Lưu: VT, DP.
-                                                    TM. BAN CHỈ ĐẠO
-                                                     TRƯỞNG BAN`,
-			time.Now().Format("2006/01"),
-			nowStr,
-			provincesStr,
-			provincesStr,
-			formatNumber(slots.CasesPredictedTotal),
-			formatNumber(slots.BudgetAllocated),
-			formatInt(slots.BedsAllocated),
-			formatInt(slots.SuppliesAllocated),
-			formatInt(slots.TeamsAllocated),
-			instructionSection,
-		)
-	} else {
-		instructionSection := ""
-		if extraNote != "" {
-			instructionSection = fmt.Sprintf("\n- Khuyến nghị bổ sung: %s\n", extraNote)
-		}
-		content = fmt.Sprintf(`HỘI ĐỒNG CHUYÊN MÔN DỊCH TỄ HỌC - VIỆN DỊCH TỄ TRUNG ƯƠNG
-BÁO CÁO ĐÁNH GIÁ NGUY CƠ VÀ PHƯƠNG ÁN PHÂN BỔ NGUỒN LỰC DỊCH TỄ
-Số hồ sơ: %s | Ngày lập: %s
-
-1. ĐÁNH GIÁ NGUY CƠ DỊCH TỄ:
-- Vùng trọng điểm giám sát: %s
-- Dự báo tổng số ca mắc: %s ca (Độ tin cậy 95%% dựa trên mô hình DengueSense Hybrid AI).
-- Nguy cơ lây lan diện rộng qua vectơ Aedes aegypti với chỉ số BI vượt ngưỡng an toàn.
-
-2. PHƯƠNG ÁN PHÂN BỔ TỐI ƯU MILP:
-- Tổng ngân sách đề xuất: %s VNĐ
-- Năng lực thu dung điều trị: Bổ sung %s giường chuyên khoa SXH.
-- Vật tư tiêu hao & Hóa chất: %s đơn vị cấp phát trực tiếp.
-- Đội cơ động hỗ trợ: %s đội chuyên trách phối hợp CDC địa phương.
-
-3. ĐỀ XUẤT CAN THIỆP CHUYÊN MÔN:
-- Tuân thủ hướng dẫn giám sát véc tơ Quyết định số 3711/QĐ-BYT của Bộ Y tế.
-- Giám sát ca bệnh lâm sàng và chỉ số huyết thanh học theo chu kỳ 48 giờ.
-%s
-Người lập báo cáo: %s
-Chuyên viên Dịch tễ học thực địa`,
-			cs.ID.String(),
-			nowStr,
-			provincesStr,
-			formatNumber(slots.CasesPredictedTotal),
-			formatNumber(slots.BudgetAllocated),
-			formatInt(slots.BedsAllocated),
-			formatInt(slots.SuppliesAllocated),
-			formatInt(slots.TeamsAllocated),
-			instructionSection,
-			cs.CreatedBy,
-		)
-	}
-
-	if s.genaiURL != "" {
-		gReq := struct {
-			DraftType         string         `json:"draft_type"`
-			Title             *string        `json:"title,omitempty"`
-			Slots             any            `json:"slots"`
-			ExtraInstructions *string        `json:"extra_instructions,omitempty"`
-			CaseID            string         `json:"case_id,omitempty"`
-			ContextData       map[string]any `json:"context_data,omitempty"`
-		}{
-			DraftType:         string(req.DraftType),
-			Title:             req.Title,
-			Slots:             slots,
-			ExtraInstructions: req.ExtraInstructions,
-			CaseID:            caseId.String(),
-			ContextData: map[string]any{
-				"case_title": cs.Title,
-				"status":     string(cs.Status),
-			},
-		}
-		bodyBytes, err := json.Marshal(gReq)
-		if err == nil {
-			targetURL := strings.TrimRight(s.genaiURL, "/") + "/draft"
-			httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, targetURL, bytes.NewReader(bodyBytes))
-			if err == nil {
-				httpReq.Header.Set("Content-Type", "application/json")
-				resp, err := s.httpClient.Do(httpReq)
-				if err == nil {
-					if resp.StatusCode == http.StatusOK {
-						var gResp struct {
-							Title       string `json:"title"`
-							Content     string `json:"content"`
-							ContentHash string `json:"content_hash"`
-						}
-						if err := json.NewDecoder(resp.Body).Decode(&gResp); err == nil && gResp.Content != "" {
-							content = gResp.Content
-							if gResp.Title != "" {
-								title = gResp.Title
-							}
-						}
-					}
-					_ = resp.Body.Close()
-				}
-			}
-		}
-	}
-
-	draft := domain.NewDispatchDraft(
-		caseId,
-		domain.DraftType(req.DraftType),
-		title,
-		content,
-		cs.CreatedBy,
-	)
-
-	if err := s.repo.CreateDraft(ctx, draft); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	slots["provenance"] = provenance
+	body, err := json.Marshal(map[string]any{"draft_type": req.DraftType, "case_id": caseID, "slots": slots, "title": req.Title, "extra_instructions": req.ExtraInstructions})
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Không thể tạo yêu cầu"})
 		return
 	}
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(s.genaiURL, "/")+"/genai/draft", bytes.NewReader(body))
+	if err != nil {
+		c.JSON(502, gin.H{"error": "Không thể gọi GenAI"})
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+	response, err := s.httpClient.Do(request)
+	if err != nil {
+		c.JSON(502, gin.H{"error": "Không thể gọi GenAI"})
+		return
+	}
+	defer response.Body.Close()
+	if response.StatusCode == 422 {
+		var problem api.GuardrailBlockedProblem
+		if json.NewDecoder(response.Body).Decode(&problem) != nil || problem.Code != "genai.guardrail_blocked" || problem.Status != 422 || !hasBlockingFailure(problem.Guardrails) {
+			c.JSON(502, gin.H{"error": "Phản hồi guardrail không hợp lệ"})
+			return
+		}
+		c.Header("Content-Type", "application/problem+json")
+		c.JSON(422, problem)
+		return
+	}
+	if response.StatusCode != 200 {
+		c.JSON(502, gin.H{"error": "GenAI không tạo được dự thảo"})
+		return
+	}
+	var result struct {
+		Title       string               `json:"title"`
+		Content     string               `json:"content"`
+		ContentHash string               `json:"content_hash"`
+		AllPassed   *bool                `json:"all_guardrails_passed"`
+		Guardrails  []api.GuardrailCheck `json:"guardrails"`
+		Citations   []api.Citation       `json:"citations"`
+		ModelUsed   *string              `json:"model_used"`
+	}
+	if json.NewDecoder(response.Body).Decode(&result) != nil || result.Title == "" || result.Content == "" || result.ContentHash != domain.ComputeHash(result.Content) || result.AllPassed == nil || !*result.AllPassed || result.Guardrails == nil || result.Citations == nil || !validGuardrails(result.Guardrails) || hasBlockingFailure(result.Guardrails) || !validCitations(result.Citations) {
+		c.JSON(502, gin.H{"error": "Phản hồi GenAI không hợp lệ"})
+		return
+	}
+	evidence := api.DraftGenerationEvidence{ContentHash: result.ContentHash, Citations: result.Citations, Guardrails: result.Guardrails, SourceProvenance: provenance, ModelUsed: result.ModelUsed}
+	evidenceJSON, err := json.Marshal(evidence)
+	if err != nil {
+		c.JSON(502, gin.H{"error": "Bằng chứng không hợp lệ"})
+		return
+	}
+	draft := domain.NewDispatchDraft(caseID, domain.DraftType(req.DraftType), result.Title, result.Content, cs.CreatedBy)
+	draft.GenerationEvidence = evidenceJSON
+	if s.repo.CreateDraft(ctx, draft) != nil {
+		c.JSON(500, gin.H{"error": "Không thể lưu dự thảo"})
+		return
+	}
+	c.JSON(201, mapDraftToAPI(draft))
+}
 
-	c.JSON(http.StatusCreated, mapDraftToAPI(draft))
+func hasBlockingFailure(checks []api.GuardrailCheck) bool {
+	for _, check := range checks {
+		if !check.Passed && (check.Blocking == nil || *check.Blocking) {
+			return true
+		}
+	}
+	return false
+}
+
+func validGuardrails(checks []api.GuardrailCheck) bool {
+	seen := map[string]bool{}
+	for _, check := range checks {
+		code := string(check.Code)
+		if code != "G1" && code != "G2" && code != "G3" && code != "G4" && code != "G5" && code != "G6" {
+			return false
+		}
+		if seen[code] || check.Name == "" || (code != "G6" && check.Blocking != nil && !*check.Blocking) || (code == "G6" && (check.Blocking == nil || *check.Blocking)) {
+			return false
+		}
+		seen[code] = true
+	}
+	return len(seen) == 6
+}
+
+func validCitations(citations []api.Citation) bool {
+	for _, c := range citations {
+		if c.DocumentId == "" || c.Title == "" || c.Issuer == "" || c.DocumentVersion == "" || string(c.Status) != "effective" || c.Provision == "" || c.Quote == "" || c.SourceUrl == "" {
+			return false
+		}
+	}
+	return true
 }
 
 // GetDraft implements api.ServerInterface
@@ -798,18 +705,26 @@ func (s *Server) DispatchApprovedOrder(c *gin.Context, draftId uuid.UUID) {
 }
 
 func mapDraftToAPI(d *domain.DispatchDraft) api.DispatchDraft {
+	var evidence *api.DraftGenerationEvidence
+	if len(d.GenerationEvidence) > 0 {
+		var decoded api.DraftGenerationEvidence
+		if json.Unmarshal(d.GenerationEvidence, &decoded) == nil {
+			evidence = &decoded
+		}
+	}
 	return api.DispatchDraft{
-		Id:          d.ID,
-		CaseId:      d.CaseID,
-		Version:     d.Version,
-		DraftType:   api.DispatchDraftDraftType(d.DraftType),
-		Title:       d.Title,
-		Content:     d.Content,
-		ContentHash: d.ContentHash,
-		Status:      api.DispatchDraftStatus(d.Status),
-		CreatedBy:   d.CreatedBy,
-		CreatedAt:   d.CreatedAt,
-		UpdatedAt:   d.UpdatedAt,
+		GenerationEvidence: evidence,
+		Id:                 d.ID,
+		CaseId:             d.CaseID,
+		Version:            d.Version,
+		DraftType:          api.DispatchDraftDraftType(d.DraftType),
+		Title:              d.Title,
+		Content:            d.Content,
+		ContentHash:        d.ContentHash,
+		Status:             api.DispatchDraftStatus(d.Status),
+		CreatedBy:          d.CreatedBy,
+		CreatedAt:          d.CreatedAt,
+		UpdatedAt:          d.UpdatedAt,
 	}
 }
 
