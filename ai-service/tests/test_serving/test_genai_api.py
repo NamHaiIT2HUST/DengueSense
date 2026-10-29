@@ -106,6 +106,12 @@ def test_requires_service_token() -> None:
     assert response.status_code == 401
 
 
+def test_missing_verification_key_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GENAI_JWT_PUBLIC_KEY", raising=False)
+    response = client.post("/internal/v1/genai/draft", json=payload())
+    assert response.status_code == 503
+
+
 def test_rejects_token_for_other_service(monkeypatch: pytest.MonkeyPatch) -> None:
     signer = Signer()
     monkeypatch.setenv("GENAI_JWT_PUBLIC_KEY", signer.public_b64)
