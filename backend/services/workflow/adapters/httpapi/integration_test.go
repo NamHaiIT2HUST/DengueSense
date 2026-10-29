@@ -48,7 +48,17 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 	}
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	server := httpapi.NewServer(app.NewWorkflowService(repo, nil), repo, httpapi.WithGenAIURL(genURL), httpapi.WithGenAITokenSource(func(context.Context) (string, error) { return token, nil }))
+	identity := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]string
+		if r.URL.Path != "/internal/v1/service-tokens" || json.NewDecoder(r.Body).Decode(&request) != nil || request["service"] != "workflow" || request["audience"] != "genai" || request["client_secret"] != "integration-secret" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]string{"access_token": token})
+	}))
+	defer identity.Close()
+	source := httpapi.IdentityTokenSource(identity.URL, "integration-secret", identity.Client())
+	server := httpapi.NewServer(app.NewWorkflowService(repo, nil), repo, httpapi.WithGenAIURL(genURL), httpapi.WithGenAITokenSource(source))
 	api.RegisterHandlers(router, server)
 	request := func(kind string) *httptest.ResponseRecorder {
 		t.Helper()
