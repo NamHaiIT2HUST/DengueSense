@@ -1,0 +1,46 @@
+documents:
+  - document_id: vn-qd02-2016
+    path: RAG_Documents/02.signed.pdf
+    sha256: 7bc6d356b3cbfd3334fe99574544330e897705301425f825e377efb1324355f6
+    page_count: 6
+    source_url: https://vanban.chinhphu.vn/default.aspx?docid=183327&pageid=27160
+    language: vi
+    document_type: legal_decision
+    version: 02/2016/QD-TTg
+    published: '2016-01-28'
+    source_checked: null
+    legal_status: unverified
+    professional_review: pending
+    reviewer: null
+    usage_rights: unverified
+    indexed_sections: []
+  - document_id: who-rcce-dengue-2024
+    path: RAG_Documents/9789240095274-eng.pdf
+    sha256: e5684fb54e39f8e0356608b6c5970f2d772695389ec70f1d8b9fbd2c009c182e
+    page_count: 64
+    source_url: https://www.who.int/publications/i/item/9789240095274
+    language: en
+    document_type: guidance
+    version: '2024'
+    published: '2024-06-20'
+    source_checked: null
+    legal_status: not_applicable
+    professional_review: pending
+    reviewer: null
+    usage_rights: CC BY-NC-SA 3.0 IGO; commercial use requires review
+    indexed_sections: []
+  - document_id: hcdc-sxh-snapshot-2025
+    path: RAG_Documents/Cam nang SXH cap nhat 2025.pdf
+    sha256: f27db6740dc0c3e9ab76c019c254954aecfb6227fce92fbeec6eace293c6a9e0
+    page_count: 24
+    source_url: null
+    language: vi
+    document_type: guidance
+    version: snapshot-2025
+    published: null
+    source_checked: null
+    legal_status: unverified
+    professional_review: pending
+    reviewer: null
+    usage_rights: unverified
+    indexed_sections: []

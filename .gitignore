@@ -62,3 +62,5 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+/RAG_Documents/
