@@ -81,6 +81,20 @@ jobs:
           curl --fail --silent http://127.0.0.1:25499/readyz >/dev/null
           cd ../backend
           go test ./services/workflow/adapters/httpapi -run '^TestIntegrationGenAIAndPostgres$' -count=1 -v
+          kill "$genai_pid"
+          wait "$genai_pid" || true
+          cd ../ai-service
+          export GENAI_DEMO_MODE=true
+          python -m uvicorn app.serving.genai_api.main:app --host 127.0.0.1 --port 25498 &
+          genai_pid=$!
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null
+          export WORKFLOW_INTEGRATION_DEMO=true
+          cd ../backend
+          go test ./services/workflow/adapters/httpapi -run '^TestIntegrationGenAIAndPostgres$' -count=1 -v
 
   lint-test-build:
     runs-on: ubuntu-latest

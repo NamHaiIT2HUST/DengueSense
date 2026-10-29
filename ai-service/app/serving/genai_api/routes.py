@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import os
 import re
 from pathlib import Path
 from typing import Literal
@@ -12,6 +13,8 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from app.serving.genai_api.gemini import GeminiUnavailable, choose_focus
 
 router = APIRouter()
 
@@ -93,15 +96,16 @@ def _blocked(checks: list[GuardrailCheck]) -> JSONResponse:
 
 @router.post("/draft")
 def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
-    # Free text is not trusted as data or policy; it cannot enter the template.
-    if req.title or req.extra_instructions or req.slots.summary_points:
+    # Free text is never copied into the draft or sent to the provider.
+    hints = " ".join((req.title or "", req.extra_instructions or ""))
+    if req.slots.summary_points:
         return _blocked(
             [
                 _check(
                     "G5",
                     "Nội dung an toàn",
                     False,
-                    "Chưa hỗ trợ xác minh nội dung tự do.",
+                    "Chưa hỗ trợ xác minh các ý tóm tắt tự do.",
                 )
             ]
         )
@@ -115,9 +119,9 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
         return _blocked(
             [_check("G2", "Địa danh", False, "Có địa danh không có trong danh mục.")]
         )
-    # B2G requires verified legal citations and a reviewed administrative template.
-    # Neither is provisioned yet; never present fabricated legal evidence.
-    if req.draft_type == "b2g":
+    # Real B2G requires an independently reviewed legal repository and template.
+    # The competition-only draft is explicitly marked as simulation.
+    if req.draft_type == "b2g" and os.getenv("GENAI_DEMO_MODE", "").lower() != "true":
         return _blocked(
             [
                 _check(
@@ -129,7 +133,16 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             ]
         )
 
-    title = "Báo cáo dữ liệu giám sát sốt xuất huyết"
+    try:
+        focus, model_used = choose_focus(req.title, req.extra_instructions)
+    except GeminiUnavailable:
+        # The deterministic fallback is explicitly labelled and never claims a model was used.
+        focus, model_used = "monitoring", None
+    title = (
+        "Công điện điều phối dịch tễ mô phỏng"
+        if req.draft_type == "b2g"
+        else "Báo cáo dữ liệu giám sát sốt xuất huyết"
+    )
     rows: list[tuple[str, float | int | None]] = [
         ("Số ca dự báo", req.slots.cases_predicted_total),
         ("Ngân sách phân bổ", req.slots.budget_allocated),
@@ -137,13 +150,45 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
         ("Số vật tư", req.slots.supplies_allocated),
         ("Số đội", req.slots.teams_allocated),
     ]
-    lines = [
-        title,
-        "Địa bàn: " + ", ".join(provinces[code] for code in req.slots.province_ids),
-    ]
+    lines = []
+    if req.draft_type == "b2g":
+        lines.extend(
+            [
+                "BẢN MÔ PHỎNG CUỘC THI — KHÔNG PHẢI VĂN BẢN BAN HÀNH",
+                "CƠ QUAN ĐIỀU PHỐI MÔ PHỎNG",
+                "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM",
+                "Độc lập - Tự do - Hạnh phúc",
+                "Số văn bản: CHƯA CẤP | Ngày: CHƯA CẤP",
+                title,
+                "Kính gửi: Các đơn vị tham gia mô phỏng",
+            ]
+        )
+    else:
+        lines.append(title)
+    lines.append(
+        "Địa bàn: " + ", ".join(provinces[code] for code in req.slots.province_ids)
+    )
     if req.slots.origin_month:
         lines.append("Tháng dự báo: " + req.slots.origin_month)
     lines.extend(f"{label}: {value}" for label, value in rows if value is not None)
+    lines.append(
+        {
+            "monitoring": "Theo dõi diễn biến dựa trên dữ liệu đã ghi nhận.",
+            "coordination": "Phối hợp rà soát thông tin giữa các đơn vị liên quan.",
+            "readiness": "Rà soát năng lực ứng phó theo dữ liệu hiện có.",
+        }[focus]
+    )
+    if hints:
+        lines.append("Yêu cầu trình bày khác cần cán bộ kiểm tra và bổ sung thủ công.")
+    if model_used is None:
+        lines.append("Mẫu cố định dự phòng; không sử dụng phản hồi Gemini.")
+    if req.draft_type == "b2g":
+        lines.extend(
+            [
+                "Nơi nhận: Các đơn vị tham gia mô phỏng",
+                "Người có thẩm quyền: CHƯA KÝ",
+            ]
+        )
     lines.append("Dự thảo phục vụ cán bộ rà soát; chưa phải lệnh điều phối.")
     content = "\n".join(lines)
     # Numeric literals are emitted exclusively by the fixed template and slots.
@@ -158,11 +203,42 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
         return _blocked(
             [_check("G1", "Số liệu", False, "Nội dung có số liệu ngoài nguồn.")]
         )
+    if req.draft_type == "b2g":
+        required_sections = (
+            "MÔ PHỎNG CUỘC THI",
+            "CƠ QUAN ĐIỀU PHỐI MÔ PHỎNG",
+            "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM",
+            "Độc lập - Tự do - Hạnh phúc",
+            "Số văn bản: CHƯA CẤP",
+            "Ngày: CHƯA CẤP",
+            title,
+            "Kính gửi:",
+            "Nơi nhận:",
+            "Người có thẩm quyền: CHƯA KÝ",
+        )
+        if any(section not in content for section in required_sections):
+            return _blocked(
+                [_check("G4", "Thể thức", False, "Thiếu thành phần của mẫu mô phỏng.")]
+            )
     checks = [
         _check("G1", "Số liệu", True, "Số liệu lấy từ slots."),
         _check("G2", "Địa danh", True, "Địa danh khớp danh mục."),
-        _check("G3", "Căn cứ pháp lý", True, "Không có trích dẫn pháp lý."),
-        _check("G4", "Thể thức", True, "Báo cáo nội bộ theo mẫu dữ liệu."),
+        _check(
+            "G3",
+            "Căn cứ pháp lý",
+            True,
+            "Không có trích dẫn pháp lý; cần bổ sung và xác minh thủ công.",
+        ),
+        _check(
+            "G4",
+            "Thể thức",
+            True,
+            (
+                "Mẫu mô phỏng có đủ mục trình bày; số, ngày và chữ ký chưa được cấp."
+                if req.draft_type == "b2g"
+                else "Báo cáo nội bộ theo mẫu dữ liệu."
+            ),
+        ),
         _check(
             "G5",
             "Nội dung an toàn",
@@ -177,14 +253,15 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             blocking=False,
         ),
     ]
-    return JSONResponse(
-        content={
-            "draft_type": req.draft_type,
-            "title": title,
-            "content": content,
-            "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
-            "all_guardrails_passed": True,
-            "guardrails": [check.model_dump() for check in checks],
-            "citations": [],
-        }
-    )
+    result = {
+        "draft_type": req.draft_type,
+        "title": title,
+        "content": content,
+        "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        "all_guardrails_passed": True,
+        "guardrails": [check.model_dump() for check in checks],
+        "citations": [],
+    }
+    if model_used is not None:
+        result["model_used"] = model_used
+    return JSONResponse(content=result)

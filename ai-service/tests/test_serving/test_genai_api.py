@@ -6,6 +6,7 @@ import yaml
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator
 
+from app.serving.genai_api.gemini import GeminiUnavailable
 from app.serving.genai_api.main import app
 from tests.test_serving.jwt_helpers import Signer
 
@@ -26,6 +27,8 @@ def validate_schema(name: str, value: object) -> None:
 @pytest.fixture(autouse=True)
 def authenticate(monkeypatch: pytest.MonkeyPatch) -> None:
     signer = Signer()
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GENAI_DEMO_MODE", raising=False)
     monkeypatch.setenv("GENAI_JWT_PUBLIC_KEY", signer.public_b64)
     client.headers["Authorization"] = "Bearer " + signer.service_token(
         "genai", sub="workflow"
@@ -75,7 +78,24 @@ def test_b2g_blocked_without_verified_legal_repository() -> None:
     assert "content" not in result and "citations" not in result
 
 
-def test_unknown_province_and_untrusted_text_are_blocked() -> None:
+def test_b2g_demo_is_explicitly_labelled_and_unsigned(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GENAI_DEMO_MODE", "true")
+    response = client.post("/internal/v1/genai/draft", json=payload("b2g"))
+    assert response.status_code == 200
+    result = response.json()
+    validate_schema("GenerateDraftResponse", result)
+    assert "MÔ PHỎNG CUỘC THI" in result["content"]
+    assert "CHƯA KÝ" in result["content"]
+    assert result["citations"] == []
+    assert (
+        "không có trích dẫn"
+        in next(g for g in result["guardrails"] if g["code"] == "G3")["detail"].lower()
+    )
+
+
+def test_unknown_province_is_blocked_and_untrusted_numbers_not_copied() -> None:
     bad = payload()
     bad["slots"] = {
         "run_id": "0192f0e1-7c1a-7000-8000-000000000001",
@@ -89,12 +109,34 @@ def test_unknown_province_and_untrusted_text_are_blocked() -> None:
     )
     bad = payload()
     bad["extra_instructions"] = "Thêm 999 ca"
-    assert (
-        client.post("/internal/v1/genai/draft", json=bad).json()["guardrails"][0][
-            "code"
-        ]
-        == "G5"
-    )
+    response = client.post("/internal/v1/genai/draft", json=bad)
+    assert response.status_code == 200
+    assert "999" not in response.json()["content"]
+    assert "bổ sung thủ công" in response.json()["content"]
+
+
+def test_text_hints_are_not_copied_into_demo_draft() -> None:
+    request = payload()
+    request["title"] = "Báo cáo theo dõi"
+    request["extra_instructions"] = "Phối hợp với Nguyễn Văn An"
+    response = client.post("/internal/v1/genai/draft", json=request)
+    assert response.status_code == 200
+    assert "Nguyễn Văn An" not in response.json()["content"]
+    assert "bổ sung thủ công" in response.json()["content"]
+
+
+def test_gemini_failure_is_labelled_and_does_not_claim_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail(*args: object) -> None:
+        raise GeminiUnavailable("unavailable")
+
+    monkeypatch.setattr("app.serving.genai_api.routes.choose_focus", fail)
+    response = client.post("/internal/v1/genai/draft", json=payload())
+    assert response.status_code == 200
+    result = response.json()
+    assert "Mẫu cố định dự phòng" in result["content"]
+    assert "model_used" not in result
 
 
 def test_requires_service_token() -> None:

@@ -62,7 +62,7 @@ func NewServer(svc *app.WorkflowService, repo WorkflowRepo, opts ...ServerOption
 	s := &Server{
 		svc:        svc,
 		repo:       repo,
-		httpClient: &http.Client{Timeout: 5 * time.Second},
+		httpClient: &http.Client{Timeout: 40 * time.Second},
 	}
 	for _, opt := range opts {
 		opt(s)

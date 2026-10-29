@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,11 +106,23 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 		t.Fatalf("draft not persisted correctly: %v", err)
 	}
 	blocked := request("b2g")
-	if blocked.Code != http.StatusUnprocessableEntity {
+	wantDrafts := 1
+	if os.Getenv("WORKFLOW_INTEGRATION_DEMO") == "true" {
+		if blocked.Code != http.StatusCreated || !strings.Contains(blocked.Body.String(), "MÔ PHỎNG CUỘC THI") {
+			t.Fatalf("demo B2G status=%d body=%s", blocked.Code, blocked.Body.String())
+		}
+		if os.Getenv("WORKFLOW_INTEGRATION_REQUIRE_MODEL") == "true" {
+			var demo api.DispatchDraft
+			if json.Unmarshal(blocked.Body.Bytes(), &demo) != nil || demo.GenerationEvidence == nil || demo.GenerationEvidence.ModelUsed == nil || *demo.GenerationEvidence.ModelUsed == "" {
+				t.Fatal("B2G demo did not record a real model response")
+			}
+		}
+		wantDrafts = 2
+	} else if blocked.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("B2G status=%d body=%s", blocked.Code, blocked.Body.String())
 	}
 	drafts, err := repo.ListDraftsByCase(ctx, c.ID)
-	if err != nil || len(drafts) != 1 {
-		t.Fatalf("blocked draft was persisted: count=%d error=%v", len(drafts), err)
+	if err != nil || len(drafts) != wantDrafts {
+		t.Fatalf("unexpected saved drafts: count=%d error=%v", len(drafts), err)
 	}
 }
