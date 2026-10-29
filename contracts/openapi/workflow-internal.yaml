@@ -180,11 +180,11 @@ paths:
               $ref: "#/components/schemas/GenerateDraftCaseRequest"
       responses:
         "201":
-          description: Sinh dự thảo thành công và lưu vào hồ sơ
+          description: Sinh dự thảo thành công, lưu cùng generation_evidence gắn với content_hash lúc sinh.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DispatchDraft"
+                $ref: "#/components/schemas/GeneratedDispatchDraft"
         "422":
           description: GenAI chặn dự thảo; workflow không lưu nội dung và chuyển tiếp các kiểm tra thất bại.
           content:
@@ -426,7 +426,7 @@ components:
 
     DraftGenerationEvidence:
       type: object
-      description: Bằng chứng gắn với đúng content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft.
+      description: Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
       required: [content_hash, citations, guardrails, source_provenance]
       properties:
         content_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
@@ -443,30 +443,33 @@ components:
 
     SlotProvenance:
       type: object
+      description: Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
       properties:
-        model_version: { type: string }
-        data_version: { type: string }
-        plan_id: { type: string, format: uuid }
-        plan_version: { type: integer, minimum: 1 }
-        plan_hash: { type: string, pattern: "^[a-f0-9]{64}$" }
+        model_version: { type: string, description: Phiên bản model của run_id nếu workflow có. }
+        data_version: { type: string, description: Phiên bản dữ liệu của run_id nếu workflow có. }
+        plan_id: { type: string, format: uuid, description: Kế hoạch phân bổ đã xác nhận nếu có. }
+        plan_version: { type: integer, minimum: 1, description: Phiên bản kế hoạch nếu có. }
+        plan_hash: { type: string, pattern: "^[a-f0-9]{64}$", description: SHA-256 của snapshot kế hoạch nếu workflow có. }
         source_flags:
           type: array
+          description: Cờ nguồn/dữ liệu của snapshot nếu workflow có.
           items: { type: string }
 
     Citation:
       type: object
-      required: [document_id, title, provision, quote]
+      required: [document_id, title, issuer, document_version, status, effective_from, effective_to, provision, quote, source_url]
+      description: Citation đã xác minh trước khi draft thành công được trả. status=effective biểu thị hiệu lực tại thời điểm sinh; lịch sử giữ nguyên trạng thái tại thời điểm sinh.
       properties:
-        document_id: { type: string }
+        document_id: { type: string, description: Định danh ổn định của văn bản trong kho tri thức. }
         title: { type: string }
         issuer: { type: string }
-        document_version: { type: string }
-        status: { type: string, enum: [effective, expired, replaced, unknown] }
-        effective_from: { type: [string, "null"], format: date }
-        effective_to: { type: [string, "null"], format: date }
+        document_version: { type: string, description: Số/ký hiệu hoặc phiên bản văn bản được truy hồi. }
+        status: { type: string, const: effective, description: Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công. }
+        effective_from: { type: [string, "null"], format: date, description: Ngày bắt đầu hiệu lực theo metadata kho tri thức; null nếu văn bản không công bố ngày. }
+        effective_to: { type: [string, "null"], format: date, description: Ngày kết thúc hiệu lực theo metadata kho tri thức; null nếu còn hiệu lực không xác định ngày kết thúc. }
         provision: { type: string, description: Điều/Khoản/Mục cụ thể trong tài liệu. }
-        quote: { type: string }
-        source_url: { type: string, format: uri }
+        quote: { type: string, description: Trích đoạn trong đúng điều khoản nêu trên. }
+        source_url: { type: string, format: uri, description: URL hoặc URI ổn định để mở văn bản nguồn. }
 
     GuardrailCheck:
       type: object
@@ -487,7 +490,8 @@ components:
         detail: { type: string }
         blocking:
           type: boolean
-          description: Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6).
+          default: true
+          description: Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6). passed chỉ mô tả kết quả kiểm tra; draft bị chặn khi và chỉ khi có mục passed=false và blocking=true.
 
     GuardrailBlockedProblem:
       allOf:
@@ -497,8 +501,17 @@ components:
           properties:
             guardrails:
               type: array
-              description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Nội dung draft không được trả kèm.
+              description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn.
               items: { $ref: "#/components/schemas/GuardrailCheck" }
+
+    GeneratedDispatchDraft:
+      allOf:
+        - $ref: "#/components/schemas/DispatchDraft"
+        - type: object
+          required: [generation_evidence]
+          properties:
+            generation_evidence:
+              $ref: "#/components/schemas/DraftGenerationEvidence"
 
     CreateDraftRequest:
       type: object
