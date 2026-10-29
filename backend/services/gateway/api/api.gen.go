@@ -1042,8 +1042,10 @@ type ForecastRun struct {
 type GenerateDraftCaseRequest struct {
 	DraftType         GenerateDraftCaseRequestDraftType `json:"draft_type"`
 	ExtraInstructions *string                           `json:"extra_instructions,omitempty"`
-	PlanId            *openapi_types.UUID               `json:"plan_id,omitempty"`
-	Title             *string                           `json:"title,omitempty"`
+
+	// PlanId Định danh phương án phân bổ được xác nhận để đưa số liệu kế hoạch vào dự thảo.
+	PlanId *openapi_types.UUID `json:"plan_id,omitempty"`
+	Title  *string             `json:"title,omitempty"`
 }
 
 // GenerateDraftCaseRequestDraftType defines model for GenerateDraftCaseRequest.DraftType.

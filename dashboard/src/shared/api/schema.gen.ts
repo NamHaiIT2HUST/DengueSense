@@ -1079,6 +1079,10 @@ export interface components {
         GenerateDraftCaseRequest: {
             /** @enum {string} */
             draft_type: "b2b" | "b2g";
+            /**
+             * Format: uuid
+             * @description Định danh phương án phân bổ được xác nhận để đưa số liệu kế hoạch vào dự thảo.
+             */
             plan_id?: string;
             title?: string;
             extra_instructions?: string;
