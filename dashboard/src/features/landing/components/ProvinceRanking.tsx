@@ -50,7 +50,7 @@ export function ProvinceRanking({ provinces }: { provinces: ProvinceRisk[] }) {
 
       <div className="mt-5 flex items-center justify-between border-t border-[var(--border-hairline)] pt-4">
         <span className="text-[11px] text-[var(--ink-muted)]">
-          Nguồn: OpenDengue + small-area estimation
+          Nguồn: Dữ liệu dịch tễ học & Viễn thám ERA5
         </span>
         <DataSourceBadge source={top10[0]?.data_source ?? "estimated"} />
       </div>

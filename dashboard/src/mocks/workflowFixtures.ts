@@ -31,6 +31,37 @@ export const alertsFixture: Alert[] = [
   },
 ];
 
+export const planSouth01: AllocationPlan = {
+  id: "plan-south-01",
+  case_id: "case-south-2010-06",
+  budget: 1_000_000_000,
+  total_cost: 950_000_000,
+  estimated_cases_prevented: 420,
+  allocations: [
+    {
+      province_id: "ho_chi_minh",
+      amount: 600_000_000,
+      explanation: "Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.",
+      beds: 80,
+      supplies: 450,
+      teams: 6,
+    },
+    {
+      province_id: "an_giang",
+      amount: 350_000_000,
+      explanation: "Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.",
+      beds: 40,
+      supplies: 280,
+      teams: 3,
+    },
+  ],
+  created_at: "2010-06-02T14:00:00Z",
+};
+
+export const plansFixture: Record<string, AllocationPlan> = {
+  "plan-south-01": planSouth01,
+};
+
 export const casesFixture: CaseDetail[] = [
   {
     id: "case-south-2010-06",
@@ -42,6 +73,7 @@ export const casesFixture: CaseDetail[] = [
     alert_ids: ["alert-hcm-01", "alert-angiang-01"],
     latest_plan_id: "plan-south-01",
     latest_draft_id: "draft-south-01",
+    latest_plan: planSouth01,
   },
   {
     id: "case-central-2010-06",
@@ -53,29 +85,6 @@ export const casesFixture: CaseDetail[] = [
     alert_ids: ["alert-danang-01"],
   },
 ];
-
-export const plansFixture: Record<string, AllocationPlan> = {
-  "plan-south-01": {
-    id: "plan-south-01",
-    case_id: "case-south-2010-06",
-    budget: 1_000_000_000,
-    total_cost: 950_000_000,
-    estimated_cases_prevented: 420,
-    allocations: [
-      {
-        province_id: "ho_chi_minh",
-        amount: 600_000_000,
-        explanation: "Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.",
-      },
-      {
-        province_id: "an_giang",
-        amount: 350_000_000,
-        explanation: "Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.",
-      },
-    ],
-    created_at: "2010-06-02T14:00:00Z",
-  },
-};
 
 export const draftsFixture: Record<string, DispatchDraft> = {
   "draft-south-01": {

@@ -14,6 +14,7 @@ async function login(page: Page, account = VIEWER) {
   await page.getByLabel("Tên đăng nhập").fill(account.username);
   await page.getByLabel("Mật khẩu").fill(account.password);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await expect(page).toHaveURL(/\/app/);
 }
 
 const mapHeading = (page: Page) => page.getByRole("heading", { level: 1, name: "Bản đồ rủi ro" });

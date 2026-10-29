@@ -632,8 +632,11 @@ type AlertStatus string
 type AllocationPlan struct {
 	Allocations []struct {
 		Amount      float64 `json:"amount"`
+		Beds        *int    `json:"beds,omitempty"`
 		Explanation string  `json:"explanation"`
 		ProvinceId  string  `json:"province_id"`
+		Supplies    *int    `json:"supplies,omitempty"`
+		Teams       *int    `json:"teams,omitempty"`
 	} `json:"allocations"`
 	Budget                  float64            `json:"budget"`
 	CaseId                  openapi_types.UUID `json:"case_id"`
@@ -668,6 +671,7 @@ type CaseDetail struct {
 	CreatedBy     string                `json:"created_by"`
 	Id            openapi_types.UUID    `json:"id"`
 	LatestDraftId *openapi_types.UUID   `json:"latest_draft_id,omitempty"`
+	LatestPlan    *AllocationPlan       `json:"latest_plan,omitempty"`
 	LatestPlanId  *openapi_types.UUID   `json:"latest_plan_id,omitempty"`
 	Status        CaseDetailStatus      `json:"status"`
 	Title         string                `json:"title"`

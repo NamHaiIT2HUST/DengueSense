@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
-import { Check, X, Sparkles, Scale } from "lucide-react";
+import { Check, X, ShieldCheck, Scale } from "lucide-react";
+import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
 const COMPARISONS = [
   {
@@ -36,7 +36,7 @@ const COMPARISONS = [
     criterion: "Soạn thảo công văn chỉ đạo",
     traditional: "Mất 2–3 ngày soạn thảo và thẩm định qua nhiều cấp trung gian.",
     denguesense:
-      "GenAI RAG tự động sinh văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT chỉ trong 5 phút.",
+      "GenAI RAG tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
   },
   {
     criterion: "Kiểm soát an toàn thông tin & ảo giác",
@@ -48,10 +48,10 @@ const COMPARISONS = [
 
 export function ComparisonSection() {
   return (
-    <section id="comparison" className="relative space-y-8">
+    <section id="comparison" className="relative space-y-8 overflow-hidden">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-semibold text-red-400 mb-3">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400 mb-3">
           <Scale size={13} />
           <span>SO SÁNH NĂNG LỰC VƯỢT TRỘI</span>
         </div>
@@ -64,26 +64,30 @@ export function ComparisonSection() {
         </p>
       </div>
 
-      {/* Comparison Table Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
-        transition={{ duration: 0.5 }}
+      {/* Comparison Table 3D Tilt Card */}
+      <TiltCard3D
+        maxTilt={3}
+        scale={1.008}
+        glare={true}
+        glareOpacity={0.08}
         className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/80 backdrop-blur-xl shadow-2xl"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[640px] text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/90 text-xs sm:text-sm uppercase tracking-wider font-display">
                 <th className="py-4 px-5 text-slate-400 font-bold w-1/4">Tiêu chí đánh giá</th>
                 <th className="py-4 px-5 text-slate-400 font-bold w-[37.5%]">
                   Phương thức truyền thống
                 </th>
-                <th className="py-4 px-5 text-cyan-400 font-bold w-[37.5%] bg-blue-950/30 border-l border-blue-500/20">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles size={16} className="text-cyan-400" />
-                    <span>DengueSense AI Solution</span>
+                <th className="py-4 px-5 text-cyan-300 font-bold w-[37.5%] bg-blue-950/40 border-l border-blue-500/30">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-cyan-500/20 text-cyan-400 shrink-0">
+                      <ShieldCheck size={14} />
+                    </span>
+                    <span className="uppercase tracking-wide text-xs sm:text-sm">
+                      DengueSense AI Solution
+                    </span>
                   </div>
                 </th>
               </tr>
@@ -114,7 +118,7 @@ export function ComparisonSection() {
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </TiltCard3D>
     </section>
   );
 }

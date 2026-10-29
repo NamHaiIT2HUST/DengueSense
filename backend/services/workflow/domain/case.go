@@ -29,6 +29,9 @@ type AllocationItem struct {
 	ProvinceID  string  `json:"province_id"`
 	Amount      float64 `json:"amount"`
 	Explanation string  `json:"explanation"`
+	Beds        int     `json:"beds,omitempty"`
+	Supplies    int     `json:"supplies,omitempty"`
+	Teams       int     `json:"teams,omitempty"`
 }
 
 type AllocationPlan struct {

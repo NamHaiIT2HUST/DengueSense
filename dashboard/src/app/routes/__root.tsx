@@ -6,6 +6,10 @@ export interface RouterContext {
   queryClient: QueryClient;
 }
 
+function RootComponent() {
+  return <Outlet />;
+}
+
 function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
@@ -22,6 +26,6 @@ function NotFound() {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  component: Outlet,
+  component: RootComponent,
   notFoundComponent: NotFound,
 });

@@ -19,7 +19,13 @@ export function Footer() {
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-800/80">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="DengueSense Logo" className="h-10 w-auto object-contain" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600/20 via-slate-900 to-slate-950 p-1.5 ring-1 ring-white/10 shadow-md">
+              <img
+                src="/logo-icon.png"
+                alt="DengueSense Logo"
+                className="h-full w-full object-contain"
+              />
+            </div>
             <div>
               <div className="font-display text-lg font-bold text-white leading-tight">
                 Dengue<span className="text-red-500">Sense</span>
@@ -35,7 +41,7 @@ export function Footer() {
               Bản đồ Dịch tễ
             </Link>
             <Link to="/app/mo-hinh" className="hover:text-white transition-colors">
-              Model Card (Layer 1)
+              Hồ sơ Mô hình (Model Card)
             </Link>
             <Link to="/dang-nhap" className="hover:text-white transition-colors">
               Tài khoản Thử nghiệm
@@ -54,12 +60,12 @@ export function Footer() {
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-300">
           <div>
-            Đội thi <strong className="text-white">MedSentinel</strong> · Cuộc thi Sáng tạo Trẻ
+            Đội thi <strong className="text-white">MedSentinel</strong> - Cuộc thi Sáng tạo Trẻ
             2026.
           </div>
           <div className="flex items-center gap-1 text-[11px] text-slate-300">
             <ShieldCheck size={13} className="text-cyan-400" />
-            <span>Tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-BYT</span>
+            <span>Tuân thủ Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg</span>
           </div>
         </div>
       </div>

@@ -287,8 +287,8 @@ describe("S4 — lượt dự báo", () => {
 });
 
 describe("điều hướng console", () => {
-  it("có 3 mục điều hướng và mục hiện tại được đánh dấu", async () => {
-    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn() });
+  it("phân quyền hiển thị theo vai trò người dùng (RBAC: analyst)", async () => {
+    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn(ANALYST.username) });
     await mapTable();
     const nav = screen.getByRole("navigation", { name: "Điều hướng chính" });
     expect(within(nav).getByRole("link", { name: "Bản đồ rủi ro" })).toHaveAttribute(
@@ -297,5 +297,18 @@ describe("điều hướng console", () => {
     );
     expect(within(nav).getByRole("link", { name: "Lượt dự báo" })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: "Mô hình & giới hạn" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
+  });
+
+  it("người xem (viewer) chỉ thấy bản đồ và mô hình, không thấy các mục nghiệp vụ khác", async () => {
+    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn(VIEWER.username) });
+    await mapTable();
+    const nav = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(within(nav).getByRole("link", { name: "Bản đồ rủi ro" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Mô hình & giới hạn" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Lượt dự báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
   });
 });

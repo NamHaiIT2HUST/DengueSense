@@ -1,33 +1,53 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
 /* ============================================================
-   Design tokens — dark-mode-first theo skill dataviz + trend
-   2026 (glassmorphism restrained, bento grid). Xem:
-   docs/06-khao-sat-tai-lieu.md, README tech stack.
+   Design tokens — Dual Mode: Deep Medical Tech Dark / Pure Clean Light
+   Trend 2026: Restrained glassmorphism, telemetry auroras, bento grid.
    ============================================================ */
-:root {
+:root,
+[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-page: #0a0a0a;
-  --bg-surface: #141413;
-  --bg-surface-2: #1c1c1a;
-  --bg-surface-hover: #232321;
+  --bg-page: #040814;
+  --bg-surface: #0a1122;
+  --bg-surface-2: #111a33;
+  --bg-surface-hover: #172344;
 
   --ink-primary: #ffffff;
-  --ink-secondary: #c3c2b7;
-  --ink-muted: #9a9891; /* ≥ 4.5:1 trên mọi nền bề mặt kể cả nền accent-soft (WCAG AA) */
+  --ink-secondary: #cbd5e1;
+  --ink-muted: #94a3b8; /* ≥ 4.5:1 WCAG AA */
 
-  --border-hairline: rgba(255, 255, 255, 0.1);
+  --border-hairline: rgba(255, 255, 255, 0.09);
   --border-strong: rgba(255, 255, 255, 0.18);
 
-  /* Brand — xanh dương công nghệ/tin cậy (categorical slot 1, dark step) */
-  --accent: #3987e5;
-  /* Nền đặc cho nút/liên kết chữ TRẮNG: #3987e5 chỉ đạt 3.6:1, #2a6fd0 đạt 4.9:1 (WCAG AA) */
-  --accent-solid: #2a6fd0;
-  --accent-ink: #eaf2ff;
-  --accent-soft: rgba(57, 135, 229, 0.14);
+  /* Brand — Sắc xanh công nghệ AI & Cảnh báo sốt xuất huyết */
+  --accent: #00d2ff;
+  --accent-solid: #2563eb;
+  --accent-ink: #f0f9ff;
+  --accent-soft: rgba(0, 210, 255, 0.15);
+  --accent-hover: #1d4ed8;
+  --on-accent: #ffffff;
 
-  /* Thang màu rủi ro dịch — sequential đỏ (ColorBrewer "Reds", chuẩn cho bản đồ dịch tễ) */
+  --selection-bg: #18354b;
+  --selection-ink: #d8efff;
+  --selection-border: #3a6585;
+
+  --badge-cyan-bg: #123341;
+  --badge-cyan-ink: #a5f3fc;
+  --badge-cyan-border: #285769;
+  --badge-blue-bg: #192e4b;
+  --badge-blue-ink: #bfdbfe;
+  --badge-blue-border: #35577c;
+  --badge-indigo-bg: #292b4a;
+  --badge-indigo-ink: #c7d2fe;
+  --badge-indigo-border: #4b507d;
+  --badge-critical-bg: #3b2029;
+  --badge-critical-ink: #fecdd3;
+  --badge-critical-border: #763b4a;
+
+  /* Thang màu rủi ro dịch — ColorBrewer "Reds" */
   --risk-1: #fff5f0;
   --risk-2: #fee0d2;
   --risk-3: #fcbba1;
@@ -37,28 +57,104 @@
   --risk-7: #cb181d;
   --risk-8: #99000d;
 
-  /* Lớp rời rạc của CONSOLE (docs/10 §11.1): 5 lớp tuần tự vàng→đỏ (ColorBrewer "YlOrRd", an toàn cho mù màu).
-     Ngưỡng lớp cố định/do máy chủ trả — không co giãn theo dữ liệu. Luôn kèm nhãn chữ (WCAG 1.4.1). */
+  /* 5 lớp tuần tự YlOrRd cho Console */
   --risk-class-1: #ffffb2;
   --risk-class-2: #fecc5c;
   --risk-class-3: #fd8d3c;
   --risk-class-4: #f03b20;
   --risk-class-5: #bd0026;
-  --risk-class-none: #3a3a37; /* không có dự báo */
+  --risk-class-none: #3a3a37;
 
-  /* Status — cố định, không dùng cho series khác */
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
+  /* Status */
+  --status-good: #10b981;
+  --status-warning: #f59e0b;
+  --status-serious: #f97316;
+  --status-critical: #ef4444;
+  --status-good-ink: #86efac;
+  --status-warning-ink: #fbd98a;
+  --status-critical-ink: #f5b5b0;
 
-  /* Brand Colors từ Logo DengueSense & Slide Đề án */
+  /* Brand Colors từ Logo DengueSense & Identity */
   --brand-navy: #0a192f;
   --brand-blue: #2563eb;
   --brand-blue-hover: #1d4ed8;
-  --brand-cyan: #0ea5e9;
+  --brand-cyan: #00d2ff;
   --brand-coral: #ef4444;
   --brand-coral-hover: #dc2626;
+
+  --font-sans: "Be Vietnam Pro", "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Be Vietnam Pro", sans-serif;
+}
+
+[data-theme="light"],
+html.light {
+  color-scheme: light;
+
+  --bg-page: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f8fafc;
+  --bg-surface-hover: #e2e8f0;
+
+  --ink-primary: #0f172a;
+  --ink-secondary: #334155;
+  --ink-muted: #526176;
+
+  --border-hairline: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(15, 23, 42, 0.22);
+
+  --accent: #2563eb;
+  --accent-solid: #1d4ed8;
+  --accent-ink: #1e40af;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --accent-hover: #1e40af;
+
+  --selection-bg: #e6effb;
+  --selection-ink: #1e3a8a;
+  --selection-border: #b6cbee;
+
+  --badge-cyan-bg: #ecfeff;
+  --badge-cyan-ink: #155e75;
+  --badge-cyan-border: #a5dfe7;
+  --badge-blue-bg: #eff6ff;
+  --badge-blue-ink: #1e40af;
+  --badge-blue-border: #bfdbfe;
+  --badge-indigo-bg: #eef2ff;
+  --badge-indigo-ink: #3730a3;
+  --badge-indigo-border: #c7d2fe;
+  --badge-critical-bg: #fff1f2;
+  --badge-critical-ink: #9f1239;
+  --badge-critical-border: #fecdd3;
+
+  --risk-1: #fff5f0;
+  --risk-2: #fee0d2;
+  --risk-3: #fcbba1;
+  --risk-4: #fc9272;
+  --risk-5: #fb6a4a;
+  --risk-6: #ef3b2c;
+  --risk-7: #cb181d;
+  --risk-8: #99000d;
+
+  --risk-class-1: #ffffb2;
+  --risk-class-2: #fecc5c;
+  --risk-class-3: #fd8d3c;
+  --risk-class-4: #f03b20;
+  --risk-class-5: #bd0026;
+  --risk-class-none: #cbd5e1;
+
+  --status-good: #059669;
+  --status-warning: #d97706;
+  --status-serious: #ea580c;
+  --status-critical: #dc2626;
+  --status-good-ink: #166534;
+  --status-warning-ink: #92400e;
+  --status-critical-ink: #b91c1c;
+
+  --brand-navy: #1e3a8a;
+  --brand-blue: #2563eb;
+  --brand-blue-hover: #1d4ed8;
+  --brand-cyan: #0284c7;
+  --brand-coral: #dc2626;
+  --brand-coral-hover: #b91c1c;
 
   --font-sans: "Be Vietnam Pro", "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Plus Jakarta Sans", "Be Vietnam Pro", sans-serif;
@@ -68,17 +164,62 @@
   border-color: var(--border-hairline);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ============================================================
+   Enhanced Medical-Tech Ambient Background (Dark Mode)
+   ============================================================ */
 html,
 body {
-  background: var(--bg-page);
+  background-color: #040814;
   background-image:
-    radial-gradient(circle at 10% 10%, rgba(57, 135, 229, 0.07) 0px, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(203, 24, 29, 0.04) 0px, transparent 45%),
-    radial-gradient(circle at 50% 20%, rgba(30, 41, 59, 0.25) 0px, transparent 60%);
+    radial-gradient(
+      circle at 50% -5%,
+      rgba(37, 99, 235, 0.32) 0%,
+      rgba(14, 165, 233, 0.16) 35%,
+      transparent 65%
+    ),
+    radial-gradient(
+      circle at 92% 28%,
+      rgba(6, 182, 212, 0.22) 0%,
+      rgba(14, 165, 233, 0.08) 40%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 8% 68%,
+      rgba(239, 68, 68, 0.16) 0%,
+      rgba(220, 38, 38, 0.05) 45%,
+      transparent 65%
+    ),
+    radial-gradient(circle at 85% 90%, rgba(99, 102, 241, 0.14) 0%, transparent 50%),
+    linear-gradient(
+      to bottom,
+      rgba(4, 8, 20, 0.35) 0%,
+      rgba(3, 7, 18, 0.85) 60%,
+      rgba(2, 6, 16, 0.98) 100%
+    ),
+    radial-gradient(rgba(56, 189, 248, 0.1) 1.2px, transparent 1.2px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    36px 36px;
   background-attachment: fixed;
   color: var(--ink-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  max-width: 100vw;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 body {
@@ -86,12 +227,39 @@ body {
   min-height: 100vh;
 }
 
+/* ============================================================
+   Clean High-Tech Ambient Background (Light Mode)
+   ============================================================ */
+[data-theme="light"],
+[data-theme="light"] body {
+  background-color: #f1f5f9;
+  background-image:
+    radial-gradient(
+      circle at 50% -5%,
+      rgba(37, 99, 235, 0.08) 0%,
+      rgba(14, 165, 233, 0.04) 35%,
+      transparent 65%
+    ),
+    radial-gradient(circle at 92% 28%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 8% 68%, rgba(239, 68, 68, 0.03) 0%, transparent 50%),
+    linear-gradient(to bottom, rgba(241, 245, 249, 0.8) 0%, rgba(241, 245, 249, 0.98) 100%),
+    radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    36px 36px;
+  background-attachment: fixed;
+  color: var(--ink-primary);
+}
+
 ::selection {
   background: var(--accent-soft);
   color: var(--accent-ink);
 }
 
-/* thanh scrollbar mảnh, hợp tông tối */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -107,11 +275,71 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.2);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.35);
+}
+
 .font-display {
   font-family: var(--font-display);
 }
 
-/* kính mờ (glassmorphism) hiện đại — hiệu ứng bóng nhẹ và viền bắt sáng */
+/* Selected controls and navigation share a readable, restrained theme palette. */
+.segmented-option {
+  border: 1px solid transparent;
+  color: var(--ink-secondary);
+}
+
+.segmented-option:hover {
+  color: var(--ink-primary);
+  background-color: var(--bg-surface-hover);
+}
+
+.peer:checked + .segmented-option {
+  background-color: var(--selection-bg);
+  border-color: var(--selection-border);
+  color: var(--selection-ink);
+  font-weight: 600;
+}
+
+.console-nav-selection {
+  background-color: var(--selection-bg);
+  border-left: 2px solid var(--selection-border);
+}
+
+.ui-badge {
+  background-color: var(--badge-bg);
+  border-color: var(--badge-border);
+  color: var(--badge-ink);
+}
+
+.ui-badge-cyan {
+  --badge-bg: var(--badge-cyan-bg);
+  --badge-ink: var(--badge-cyan-ink);
+  --badge-border: var(--badge-cyan-border);
+}
+
+.ui-badge-blue {
+  --badge-bg: var(--badge-blue-bg);
+  --badge-ink: var(--badge-blue-ink);
+  --badge-border: var(--badge-blue-border);
+}
+
+.ui-badge-indigo {
+  --badge-bg: var(--badge-indigo-bg);
+  --badge-ink: var(--badge-indigo-ink);
+  --badge-border: var(--badge-indigo-border);
+}
+
+.ui-badge-critical {
+  --badge-bg: var(--badge-critical-bg);
+  --badge-ink: var(--badge-critical-ink);
+  --badge-border: var(--badge-critical-border);
+}
+
+/* Glassmorphism restrained */
 .glass-panel {
   background: color-mix(in srgb, var(--bg-surface) 88%, transparent);
   backdrop-filter: blur(16px);
@@ -174,10 +402,10 @@ body {
 
 .bg-grid-pattern {
   background-image:
-    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.15) 0%, transparent 60%),
-    radial-gradient(circle at 100% 80%, rgba(239, 68, 68, 0.08) 0%, transparent 50%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 100% 80%, rgba(239, 68, 68, 0.12) 0%, transparent 50%),
+    linear-gradient(to right, rgba(56, 189, 248, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.06) 1px, transparent 1px);
   background-size:
     100% 100%,
     100% 100%,
@@ -193,13 +421,472 @@ body {
   box-shadow: 0 0 50px -10px rgba(239, 68, 68, 0.35);
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+/* ============================================================
+   3D Perspective & Motion Utilities (Hero Hologram & Cards)
+   ============================================================ */
+.perspective-1000 {
+  perspective: 1000px;
+}
+.perspective-1200 {
+  perspective: 1200px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+@keyframes spin-3d-slow {
+  0% {
+    transform: rotateY(0deg) rotateX(15deg);
+  }
+  100% {
+    transform: rotateY(360deg) rotateX(15deg);
+  }
+}
+
+@keyframes orbit-reverse-3d {
+  0% {
+    transform: rotateZ(0deg) rotateX(65deg);
+  }
+  100% {
+    transform: rotateZ(-360deg) rotateX(65deg);
+  }
+}
+
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-3d-slow {
+  animation: spin-3d-slow 28s linear infinite;
+}
+
+.animate-orbit-reverse-3d {
+  animation: orbit-reverse-3d 18s linear infinite;
+}
+
+.animate-radar-sweep {
+  animation: radar-sweep 8s linear infinite;
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes photon-flow-right {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(300%);
+    opacity: 0;
+  }
+}
+
+@keyframes photon-flow-left {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-300%);
+    opacity: 0;
+  }
+}
+
+.animate-text-shimmer {
+  background-size: 200% 200%;
+  animation: text-shimmer 4s ease infinite;
+}
+
+.animate-photon-flow-right {
+  animation: photon-flow-right 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-photon-flow-left {
+  animation: photon-flow-left 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-3d-slow,
+  .animate-orbit-reverse-3d,
+  .animate-radar-sweep,
+  .animate-shimmer,
+  .animate-text-shimmer,
+  .animate-photon-flow-right,
+  .animate-photon-flow-left {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   Light Mode Overrides & Adaptive Theming Rules
+   ============================================================ */
+[data-theme="light"] {
+  /* 1. Global Surfaces & Cards */
+  .glass-panel {
+    background: #ffffff !important;
+    border-color: rgba(226, 232, 240, 0.95) !important;
+    box-shadow:
+      0 1px 3px 0 rgba(15, 23, 42, 0.04),
+      0 4px 14px -2px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  .glass-panel-elevated {
+    background: #ffffff !important;
+    border-color: rgba(203, 213, 225, 0.85) !important;
+    box-shadow:
+      0 4px 6px -1px rgba(15, 23, 42, 0.05),
+      0 12px 28px -4px rgba(15, 23, 42, 0.07) !important;
+  }
+
+  /* Eliminate all dark gradients in cards across the entire app */
+  [class*="to-slate-950"],
+  [class*="to-slate-900"],
+  [class*="to-slate-800"],
+  [class*="bg-slate-950"],
+  [class*="bg-slate-900"],
+  [class*="bg-slate-900/"],
+  [class*="bg-slate-950/"] {
+    background-image: none !important;
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(226, 232, 240, 0.95) !important;
+  }
+
+  /* Inner container slots (secondary grey surfaces) */
+  .rounded-xl.bg-slate-950\/80,
+  .rounded-xl.bg-slate-900\/50,
+  .rounded-2xl.bg-slate-900\/50,
+  .rounded-xl.bg-slate-900\/60,
+  [class*="bg-slate-900/40"],
+  [class*="bg-slate-900/60"] {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .border-slate-800,
+  .border-slate-800\/80,
+  .border-slate-800\/60,
+  .border-slate-800\/40,
+  .border-slate-700,
+  .border-slate-700\/80,
+  .border-slate-700\/60 {
+    border-color: rgba(226, 232, 240, 0.95) !important;
+  }
+
+  /* 2. Typography */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .font-display {
+    color: #0f172a !important;
+  }
+
+  /* Protect colored gradient text (e.g. rainbow accents) */
+  .bg-clip-text {
+    background-image: linear-gradient(100deg, #1d4ed8, #0e7490, #b91c1c) !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+
+  .text-white {
+    color: #0f172a;
+  }
+
+  .text-slate-100 {
+    color: #0f172a !important;
+  }
+  .text-slate-200 {
+    color: #1e293b !important;
+  }
+  .text-slate-300 {
+    color: #334155 !important;
+  }
+  .text-slate-400 {
+    color: #526176 !important;
+  }
+  .text-slate-500 {
+    color: #526176 !important;
+  }
+  p {
+    color: #475569 !important;
+  }
+
+  /* High-contrast accessible badges & status inks in Light Mode */
+  .text-cyan-300,
+  .text-cyan-400 {
+    color: #0e7490 !important;
+  }
+  .text-blue-300,
+  .text-blue-400 {
+    color: #1d4ed8 !important; /* Blue 700 */
+  }
+  .text-emerald-300,
+  .text-emerald-400 {
+    color: #047857 !important;
+  }
+  .text-amber-300,
+  .text-amber-400 {
+    color: #b45309 !important; /* Amber 700 */
+  }
+  .text-purple-300,
+  .text-purple-400 {
+    color: #7e22ce !important; /* Purple 700 */
+  }
+  .text-rose-300,
+  .text-rose-400 {
+    color: #e11d48 !important; /* Rose 600 */
+  }
+
+  /* Badge border and backgrounds in Light Mode */
+  .border-cyan-500\/30,
+  .border-cyan-500\/20,
+  .border-cyan-500\/40,
+  .border-cyan-400\/40 {
+    border-color: rgba(2, 132, 199, 0.3) !important;
+  }
+  .border-emerald-500\/20,
+  .border-emerald-500\/30 {
+    border-color: rgba(5, 150, 105, 0.3) !important;
+  }
+  .border-amber-500\/30 {
+    border-color: rgba(180, 83, 9, 0.3) !important;
+  }
+  .border-blue-500\/30,
+  .border-blue-500\/40 {
+    border-color: rgba(29, 78, 216, 0.3) !important;
+  }
+
+  .bg-cyan-500\/10,
+  .bg-cyan-500\/15,
+  .bg-cyan-500\/20 {
+    background-color: rgba(2, 132, 199, 0.08) !important;
+  }
+  .bg-emerald-500\/10,
+  .bg-emerald-500\/15 {
+    background-color: rgba(5, 150, 105, 0.08) !important;
+  }
+  .bg-amber-500\/10 {
+    background-color: rgba(180, 83, 9, 0.08) !important;
+  }
+  .bg-blue-500\/10,
+  .bg-blue-500\/15,
+  .bg-blue-500\/20 {
+    background-color: rgba(29, 78, 216, 0.08) !important;
+  }
+
+  /* 3. Solid Buttons & Action Controls */
+  a.bg-gradient-to-r,
+  button.bg-gradient-to-r,
+  a.bg-blue-600,
+  button.bg-blue-600,
+  a[class*="from-blue-600"],
+  button[class*="from-blue-600"] {
+    background-image: linear-gradient(to right, #2563eb, #0284c7) !important;
+    color: #ffffff !important;
+  }
+  a.bg-gradient-to-r *,
+  button.bg-gradient-to-r *,
+  a.bg-blue-600 *,
+  button.bg-blue-600 *,
+  a[class*="from-blue-600"] *,
+  button[class*="from-blue-600"] *,
+  .role-avatar,
+  .role-avatar * {
+    color: #ffffff !important;
+  }
+
+  .landing-secondary-link {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  /* 4. 3D Holographic Globe in Light Mode */
+  div[style*="preserve-3d"] > div.rounded-full.border.border-blue-500\/20 {
+    background: radial-gradient(
+      circle at center,
+      rgba(14, 165, 233, 0.12) 0%,
+      rgba(37, 99, 235, 0.05) 50%,
+      rgba(240, 249, 255, 0.8) 100%
+    ) !important;
+    border-color: rgba(37, 99, 235, 0.3) !important;
+    box-shadow: 0 0 60px rgba(14, 165, 233, 0.18) !important;
+  }
+
+  /* Globe HUD Telemetry Pills */
+  div[style*="translateZ(50px)"],
+  div[style*="translateZ(45px)"],
+  div[style*="translateZ(85px)"] > div,
+  div[style*="rotateX(-65deg)"] {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1) !important;
+  }
+  div[style*="translateZ(50px)"] div,
+  div[style*="translateZ(45px)"] div {
+    color: #0f172a !important;
+  }
+
+  /* 5. Stat Tiles */
+  .tabular-nums {
+    background-image: none !important;
+    -webkit-text-fill-color: initial !important;
+  }
+  [class*="border-cyan"] .tabular-nums {
+    color: #0284c7 !important;
+  }
+  [class*="border-blue"] .tabular-nums {
+    color: #2563eb !important;
+  }
+  [class*="border-emerald"] .tabular-nums {
+    color: #059669 !important;
+  }
+  [class*="border-red"] .tabular-nums {
+    color: #dc2626 !important;
+  }
+
+  span.rounded-md.border-slate-800\/80,
+  span.rounded-md[class*="bg-slate-900"],
+  [class*="to-slate-950"] span.font-mono {
+    background-color: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+    color: #334155 !important;
+  }
+
+  /* 6. Hero Command Center */
+  button[class*="bg-blue-950"] {
+    background-color: #eff6ff !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15) !important;
+  }
+  button[class*="bg-blue-950"] span {
+    color: #1e3a8a !important;
+  }
+
+  /* 7. Verification Ribbon */
+  div[class*="rounded-2xl"][class*="bg-slate-950\/70"] {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  /* 8. Team Cards */
+  #team .group.relative {
+    background-image: none !important;
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(226, 232, 240, 0.95) !important;
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06) !important;
+  }
+  #team h3 {
+    color: #0f172a !important;
+  }
+  #team p,
+  #team span {
+    color: #475569 !important;
+  }
+  #team .font-display {
+    color: #0f172a !important;
+  }
+
+  /* 9. Roadmap Cards */
+  #roadmap [class*="rounded-2xl"] {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(226, 232, 240, 0.95) !important;
+  }
+
+  /* 10. FAQ, Timeline, Framework */
+  #faq [class*="rounded-2xl"],
+  #timeline [class*="rounded-2xl"],
+  #timeline [class*="rounded-3xl"],
+  #framework [class*="rounded-2xl"] {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(226, 232, 240, 0.95) !important;
+  }
+
+  .bg-grid-pattern {
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.1) 0%, transparent 60%),
+      radial-gradient(circle at 100% 80%, rgba(239, 68, 68, 0.05) 0%, transparent 50%),
+      linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+  }
+
+  .leaflet-popup-content-wrapper,
+  .leaflet-popup-tip {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12) !important;
+  }
+
+  .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.85) !important;
+    color: #64748b !important;
+  }
+  .leaflet-control-attribution a {
+    color: #2563eb !important;
+  }
+}
+
 @media print {
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
   body {
     background-color: #ffffff !important;
     color: #111827 !important;
+    font-size: 13pt;
   }
   header,
   nav,
+  aside,
+  button,
   .print\:hidden {
     display: none !important;
   }
@@ -207,8 +894,8 @@ body {
   .glass-panel-elevated,
   .rounded-2xl,
   .rounded-xl {
-    background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
     color: #111827 !important;
   }

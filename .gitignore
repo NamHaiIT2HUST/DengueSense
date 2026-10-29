@@ -62,3 +62,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 *.log
+
+# --- Documentation & Test Exports ---
+*.pdf
+!Huong_Dan_Su_Dung_Va_Kiem_Thu_DengueSense_Theo_Role.pdf
+docs-export/

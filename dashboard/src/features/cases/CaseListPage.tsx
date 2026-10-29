@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Folder, FolderPlus, ArrowRight } from "lucide-react";
+import { Folder, FolderPlus, ArrowRight, Target } from "lucide-react";
 
 import { useCases, useCreateCase, type Case } from "@/entities/draft";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
@@ -16,7 +16,7 @@ import { TextField } from "@/shared/ui/TextField";
 
 type StatusFilter = "all" | "open" | "completed" | "archived";
 
-const OFFICER_ROLES = ["officer", "analyst", "approver", "admin"] as const;
+const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
 export function CaseListPage() {
   const router = useRouter();
@@ -64,19 +64,29 @@ export function CaseListPage() {
           <h1 className="font-display text-3xl font-semibold text-white">{vi.cases.title}</h1>
           <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.cases.lead}</p>
         </div>
-        {canCreate ? (
+        <div className="flex items-center gap-2.5">
           <Button
-            variant="primary"
-            className="gap-2"
-            onClick={() => {
-              setNewTitle("");
-              setIsCreating(true);
-            }}
+            variant="secondary"
+            className="gap-2 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
           >
-            <FolderPlus size={16} />
-            {vi.cases.createBtn}
+            <Target size={16} className="text-red-500" />
+            Kịch bản Diễn tập
           </Button>
-        ) : null}
+          {canCreate ? (
+            <Button
+              variant="primary"
+              className="gap-2"
+              onClick={() => {
+                setNewTitle("");
+                setIsCreating(true);
+              }}
+            >
+              <FolderPlus size={16} />
+              {vi.cases.createBtn}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {/* KPI Stats */}
@@ -202,8 +212,8 @@ export function CaseListPage() {
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           isOpen
-                            ? "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[#fcd34d]"
-                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[#4ade80]"
+                            ? "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[var(--status-warning-ink)]"
+                            : "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[var(--status-good-ink)]"
                         }`}
                       >
                         {vi.cases.statuses[c.status] ?? c.status}

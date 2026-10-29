@@ -21,7 +21,7 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-const CREATE_ROLES = ["analyst", "officer", "approver", "data_manager", "admin"] as const;
+const CREATE_ROLES = ["analyst", "admin"] as const;
 
 export function ForecastRunsPage() {
   const runs = useForecastRuns();

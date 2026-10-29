@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatTiles } from "./components/StatTiles";
+import { ProductSection } from "./components/ProductSection";
 import { ProblemSolutionFramework } from "./components/ProblemSolutionFramework";
 import { OutbreakTimeline } from "./components/OutbreakTimeline";
 import { ProvinceRanking } from "./components/ProvinceRanking";
@@ -12,6 +13,7 @@ import { ComparisonSection } from "./components/ComparisonSection";
 import { FaqSection } from "./components/FaqSection";
 import { RoadmapStrip } from "./components/RoadmapStrip";
 import { SectionHeader } from "./components/SectionHeader";
+import { TeamSection } from "./components/TeamSection";
 import { CtaBanner } from "./components/CtaBanner";
 import { Footer } from "./components/Footer";
 import { useRiskSummary } from "./model/useRiskSummary";
@@ -55,52 +57,58 @@ export function LandingPage() {
   if (isError || !data) return <ErrorScreen message="Không tải được dữ liệu rủi ro." />;
 
   return (
-    <>
+    <div className="min-h-screen w-full">
       <Navbar />
-      <Hero />
+      <div className="w-full overflow-x-clip">
+        <Hero />
 
-      <main className="mx-auto max-w-7xl space-y-28 px-6 pb-28">
-        <section>
-          <StatTiles provinces={data.provinces} />
-        </section>
+        <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-clip">
+          <section>
+            <StatTiles provinces={data.provinces} />
+          </section>
 
-        <ProblemSolutionFramework />
+          <ProductSection />
 
-        <OutbreakTimeline />
+          <ProblemSolutionFramework />
 
-        <InteractiveLayers />
+          <OutbreakTimeline />
 
-        <section id="map">
-          <SectionHeader
-            eyebrow="Dữ liệu thật, không phải mock"
-            title="Bản đồ rủi ro theo 34 tỉnh thành"
-            desc={`Tổng hợp từ ${data.meta.window_start} đến ${data.meta.window_end}. ${data.meta.note}`}
-          />
-          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-            <Suspense fallback={<MapFallback />}>
-              <RiskMap provinces={data.provinces} />
-            </Suspense>
-            <ProvinceRanking provinces={data.provinces} />
-          </div>
-        </section>
+          <InteractiveLayers />
 
-        <ComparisonSection />
+          <section id="map">
+            <SectionHeader
+              eyebrow="Giám sát dịch tễ không gian"
+              title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
+              desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
+            />
+            <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+              <Suspense fallback={<MapFallback />}>
+                <RiskMap provinces={data.provinces} />
+              </Suspense>
+              <ProvinceRanking provinces={data.provinces} />
+            </div>
+          </section>
 
-        <FaqSection />
+          <ComparisonSection />
 
-        <section id="roadmap">
-          <SectionHeader
-            eyebrow="Đang xây dựng công khai"
-            title="Lộ trình kỹ thuật"
-            desc="Theo dõi chi tiết tại ROADMAP.md — mỗi phase có cổng nghiệm thu rõ ràng."
-          />
-          <RoadmapStrip />
-        </section>
+          <section id="roadmap">
+            <SectionHeader
+              eyebrow="Kế hoạch triển khai toàn diện"
+              title="Lộ Trình Phát Triển & Triển Khai Thực Địa"
+              desc="Kế hoạch nghiên cứu R&D, kiểm chứng thực địa tại các bệnh viện và chuyển giao công nghệ cho các cơ sở y tế dự phòng."
+            />
+            <RoadmapStrip />
+          </section>
 
-        <CtaBanner />
-      </main>
+          <TeamSection />
+
+          <FaqSection />
+
+          <CtaBanner />
+        </main>
+      </div>
 
       <Footer />
-    </>
+    </div>
   );
 }
