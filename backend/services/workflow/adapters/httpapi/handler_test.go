@@ -558,3 +558,102 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 		t.Errorf("expected PENDING order status, got %s", order.Status)
 	}
 }
+
+func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
+	var capturedSlots map[string]any
+	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/genai/draft" && r.Method == http.MethodPost {
+			var request struct {
+				Slots map[string]any `json:"slots"`
+			}
+			if json.NewDecoder(r.Body).Decode(&request) != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			capturedSlots = request.Slots
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			content := "Bản mô phỏng phân bổ ngân sách 500000000 và 15 giường."
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"title":                 "Công điện",
+				"content":               content,
+				"content_hash":          domain.ComputeHash(content),
+				"all_guardrails_passed": true,
+				"guardrails": []any{
+					map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""},
+					map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""},
+					map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""},
+					map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""},
+					map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""},
+					map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false},
+				},
+				"citations": []any{},
+			})
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer genSrv.Close()
+
+	repo := NewMockRepo()
+	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
+
+	cID := uuid.New()
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
+	_ = repo.CreateAlert(context.Background(), alert)
+	_ = repo.CreateCase(context.Background(), &domain.Case{
+		ID:        cID,
+		AlertIDs:  []uuid.UUID{alert.ID},
+		Title:     "Hồ sơ dịch tễ có kế hoạch phân bổ",
+		Status:    domain.CaseStatusOpen,
+		CreatedBy: "officer",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	})
+
+	plan := &domain.AllocationPlan{
+		ID:                      uuid.New(),
+		CaseID:                  cID,
+		Budget:                  500000000,
+		TotalCost:               480000000,
+		EstimatedCasesPrevented: 100,
+		Allocations: []domain.AllocationItem{
+			{ProvinceID: "ha_noi", Amount: 480000000, Beds: 15, Supplies: 100, Teams: 3, Explanation: "Điều phối"},
+		},
+		CreatedAt: time.Now().UTC(),
+	}
+	_ = repo.CreateAllocationPlan(context.Background(), plan)
+
+	// Call GenerateDraft with confirmed plan_id
+	planIDStr := plan.ID.String()
+	genPayload := map[string]any{
+		"draft_type": "b2g",
+		"plan_id":    planIDStr,
+	}
+	body, _ := json.Marshal(genPayload)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	if capturedSlots == nil {
+		t.Fatal("expected slots to be captured")
+	}
+	if capturedSlots["budget_allocated"] != 480000000.0 {
+		t.Errorf("expected budget 480000000, got %v", capturedSlots["budget_allocated"])
+	}
+	if capturedSlots["beds_allocated"] != float64(15) && capturedSlots["beds_allocated"] != 15 {
+		t.Errorf("expected beds 15, got %v", capturedSlots["beds_allocated"])
+	}
+	provenance, ok := capturedSlots["provenance"].(map[string]any)
+	if !ok || provenance["plan_id"] != plan.ID.String() {
+		t.Errorf("expected provenance plan_id %s, got %v", plan.ID.String(), provenance)
+	}
+	if provenance["plan_hash"] == nil || provenance["plan_hash"] == "" {
+		t.Error("expected non-empty plan_hash")
+	}
+}

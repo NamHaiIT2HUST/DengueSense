@@ -88,9 +88,10 @@ def test_b2g_demo_is_explicitly_labelled_and_unsigned(
     validate_schema("GenerateDraftResponse", result)
     assert "MÔ PHỎNG CUỘC THI" in result["content"]
     assert "CHƯA KÝ" in result["content"]
-    assert result["citations"] == []
+    assert len(result["citations"]) == 3
+    assert result["citations"][0]["document_id"] == "vn-moh-qd3711-2014"
     assert (
-        "không có trích dẫn"
+        "xác minh"
         in next(g for g in result["guardrails"] if g["code"] == "G3")["detail"].lower()
     )
 

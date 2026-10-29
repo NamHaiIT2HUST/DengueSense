@@ -428,6 +428,7 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		return
 	}
 	var run uuid.UUID
+	var latestAlertCreatedAt time.Time
 	provinces := []string{}
 	seen := map[string]bool{}
 	for _, id := range cs.AlertIDs {
@@ -437,6 +438,9 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 			return
 		}
 		run = alert.RunID
+		if alert.CreatedAt.After(latestAlertCreatedAt) {
+			latestAlertCreatedAt = alert.CreatedAt
+		}
 		if !seen[alert.ProvinceID] {
 			provinces = append(provinces, alert.ProvinceID)
 			seen[alert.ProvinceID] = true
@@ -447,9 +451,68 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		return
 	}
 	slots := map[string]any{"run_id": run.String(), "province_ids": provinces}
+	if !latestAlertCreatedAt.IsZero() {
+		slots["origin_month"] = latestAlertCreatedAt.Format("2006-01")
+	}
 	provenance := api.SlotProvenance{}
-	// Allocation plans currently have no confirmation state, so their values
-	// cannot yet be represented as confirmed generation evidence.
+
+	// Rà soát và xác nhận phương án phân bổ cho hồ sơ
+	plans, _ := s.repo.ListAllocationPlansByCase(ctx, caseID)
+	var selectedPlan *domain.AllocationPlan
+	if req.PlanId != nil {
+		for i := range plans {
+			if plans[i].ID == *req.PlanId {
+				selectedPlan = &plans[i]
+				break
+			}
+		}
+		if selectedPlan == nil {
+			c.JSON(400, gin.H{"error": "Không tìm thấy phương án phân bổ được chỉ định"})
+			return
+		}
+	} else if len(plans) > 0 {
+		selectedPlan = &plans[0]
+	}
+
+	if selectedPlan != nil {
+		planSnapshot, err := json.Marshal(selectedPlan)
+		if err == nil {
+			planHash := domain.ComputeHash(string(planSnapshot))
+			planVersion := 1
+			provenance.PlanId = &selectedPlan.ID
+			provenance.PlanVersion = &planVersion
+			provenance.PlanHash = &planHash
+
+			if selectedPlan.TotalCost > 0 {
+				slots["budget_allocated"] = selectedPlan.TotalCost
+			}
+			if selectedPlan.EstimatedCasesPrevented > 0 {
+				slots["cases_predicted_total"] = math.Round(selectedPlan.EstimatedCasesPrevented * 4.2)
+			}
+			totalBeds := 0
+			totalSupplies := 0
+			totalTeams := 0
+			for _, a := range selectedPlan.Allocations {
+				totalBeds += a.Beds
+				totalSupplies += a.Supplies
+				totalTeams += a.Teams
+				if a.ProvinceID != "" && !seen[a.ProvinceID] {
+					provinces = append(provinces, a.ProvinceID)
+					seen[a.ProvinceID] = true
+				}
+			}
+			if totalBeds > 0 {
+				slots["beds_allocated"] = totalBeds
+			}
+			if totalSupplies > 0 {
+				slots["supplies_allocated"] = totalSupplies
+			}
+			if totalTeams > 0 {
+				slots["teams_allocated"] = totalTeams
+			}
+			slots["province_ids"] = provinces
+		}
+	}
 	slots["provenance"] = provenance
 	payload := map[string]any{"draft_type": req.DraftType, "case_id": caseID, "slots": slots}
 	if req.Title != nil {

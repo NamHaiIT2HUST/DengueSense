@@ -1042,6 +1042,7 @@ type ForecastRun struct {
 type GenerateDraftCaseRequest struct {
 	DraftType         GenerateDraftCaseRequestDraftType `json:"draft_type"`
 	ExtraInstructions *string                           `json:"extra_instructions,omitempty"`
+	PlanId            *openapi_types.UUID               `json:"plan_id,omitempty"`
 	Title             *string                           `json:"title,omitempty"`
 }
 

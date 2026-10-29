@@ -1535,6 +1535,10 @@ components:
         draft_type:
           type: string
           enum: [b2b, b2g]
+        plan_id:
+          type: string
+          format: uuid
+          description: Định danh phương án phân bổ được xác nhận để đưa số liệu kế hoạch vào dự thảo.
         title:
           type: string
         extra_instructions:

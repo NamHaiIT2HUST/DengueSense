@@ -1079,6 +1079,7 @@ export interface components {
         GenerateDraftCaseRequest: {
             /** @enum {string} */
             draft_type: "b2b" | "b2g";
+            plan_id?: string;
             title?: string;
             extra_instructions?: string;
         };

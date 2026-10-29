@@ -98,13 +98,21 @@ export function CaseDetailPage() {
   }
 
   async function handleGenerateDraft() {
-    const body: { draft_type: "b2g" | "b2b"; title: string; extra_instructions?: string } = {
+    const body: {
+      draft_type: "b2g" | "b2b";
+      title: string;
+      extra_instructions?: string;
+      plan_id?: string;
+    } = {
       draft_type: draftType,
       title:
         draftType === "b2g"
           ? "Công điện khẩn phòng chống dịch Sốt xuất huyết"
           : "Báo cáo giám sát dịch tễ",
     };
+    if (caseData?.latest_plan_id) {
+      body.plan_id = caseData.latest_plan_id;
+    }
     if (extraInstructions.trim()) {
       body.extra_instructions = extraInstructions.trim();
     }
