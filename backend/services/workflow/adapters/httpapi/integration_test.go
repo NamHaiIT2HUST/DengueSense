@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,9 +26,9 @@ import (
 
 // Run only against an explicitly provisioned disposable database and GenAI service.
 func TestIntegrationGenAIAndPostgres(t *testing.T) {
-	dsn, genURL, token := os.Getenv("WORKFLOW_INTEGRATION_DB"), os.Getenv("WORKFLOW_INTEGRATION_GENAI"), os.Getenv("WORKFLOW_INTEGRATION_TOKEN")
-	gatewayToken, publicKey := os.Getenv("WORKFLOW_INTEGRATION_GATEWAY_TOKEN"), os.Getenv("GENAI_JWT_PUBLIC_KEY")
-	if dsn == "" || genURL == "" || token == "" || gatewayToken == "" || publicKey == "" {
+	dsn, genURL, identityURL := os.Getenv("WORKFLOW_INTEGRATION_DB"), os.Getenv("WORKFLOW_INTEGRATION_GENAI"), os.Getenv("WORKFLOW_INTEGRATION_IDENTITY")
+	workflowSecret, gatewaySecret, publicKey := os.Getenv("WORKFLOW_INTEGRATION_SECRET"), os.Getenv("WORKFLOW_INTEGRATION_GATEWAY_SECRET"), os.Getenv("GENAI_JWT_PUBLIC_KEY")
+	if dsn == "" || genURL == "" || identityURL == "" || workflowSecret == "" || gatewaySecret == "" || publicKey == "" {
 		t.Skip("integration environment not configured")
 	}
 	if err := postgres.MigrateUp(dsn); err != nil {
@@ -50,16 +51,28 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 	}
 	gin.SetMode(gin.TestMode)
 	router := gin.New()
-	identity := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var request map[string]string
-		if r.URL.Path != "/internal/v1/service-tokens" || json.NewDecoder(r.Body).Decode(&request) != nil || request["service"] != "workflow" || request["audience"] != "genai" || request["client_secret"] != "integration-secret" {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		_ = json.NewEncoder(w).Encode(map[string]string{"access_token": token})
-	}))
-	defer identity.Close()
-	source := httpapi.IdentityTokenSource(identity.URL, "integration-secret", identity.Client())
+	identityClient := &http.Client{Timeout: 5 * time.Second}
+	tokenBody, err := json.Marshal(map[string]string{"service": "gateway", "audience": "workflow", "client_secret": gatewaySecret})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenReq, err := http.NewRequestWithContext(ctx, http.MethodPost, identityURL+"/internal/v1/service-tokens", bytes.NewReader(tokenBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenReq.Header.Set("Content-Type", "application/json")
+	tokenResp, err := identityClient.Do(tokenReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tokenResp.Body.Close()
+	var issued struct {
+		AccessToken string `json:"access_token"`
+	}
+	if tokenResp.StatusCode != http.StatusOK || json.NewDecoder(io.LimitReader(tokenResp.Body, 65536)).Decode(&issued) != nil || issued.AccessToken == "" {
+		t.Fatalf("identity failed to issue gateway token: status=%d", tokenResp.StatusCode)
+	}
+	source := httpapi.IdentityTokenSource(identityURL, workflowSecret, identityClient)
 	server := httpapi.NewServer(app.NewWorkflowService(repo, nil), repo, httpapi.WithGenAIURL(genURL), httpapi.WithGenAITokenSource(source))
 	key, err := authx.ParsePublicKey(publicKey)
 	if err != nil {
@@ -74,7 +87,7 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 		t.Helper()
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", c.ID), bytes.NewBufferString(fmt.Sprintf(`{"draft_type":%q}`, kind)))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+gatewayToken)
+		req.Header.Set("Authorization", "Bearer "+issued.AccessToken)
 		result := httptest.NewRecorder()
 		router.ServeHTTP(result, req)
 		return result
