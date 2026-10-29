@@ -116,3 +116,18 @@ def test_rejects_token_for_other_service(monkeypatch: pytest.MonkeyPatch) -> Non
         headers={"Authorization": "Bearer " + token},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.parametrize("audience,ttl", [("forecast", 300), ("genai", -300)])
+def test_rejects_wrong_audience_and_expired_token(
+    monkeypatch: pytest.MonkeyPatch, audience: str, ttl: int
+) -> None:
+    signer = Signer()
+    monkeypatch.setenv("GENAI_JWT_PUBLIC_KEY", signer.public_b64)
+    token = signer.service_token(audience, sub="workflow", ttl=ttl)
+    response = client.post(
+        "/internal/v1/genai/draft",
+        json=payload(),
+        headers={"Authorization": "Bearer " + token},
+    )
+    assert response.status_code == 401
