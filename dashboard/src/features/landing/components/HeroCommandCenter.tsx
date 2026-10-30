@@ -388,7 +388,7 @@ export function HeroCommandCenter() {
               <div className="lg:col-span-5 space-y-4">
                 <div className="space-y-1">
                   <span className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-300">
-                    GenAI RAG - Chuẩn Thể Thức NĐ 30/2020
+                    GenAI Soạn Thảo - Chuẩn Thể Thức NĐ 30/2020
                   </span>
                   <h4 className="font-display text-xl font-bold text-white">
                     Soạn Thảo Dự Thảo Công Điện B2G

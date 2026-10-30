@@ -12,7 +12,7 @@ const PILLARS = [
     icon: Radar,
     pillarNumber: "01",
     pillar: "Trụ Cột 01 - Cảnh Báo Sớm",
-    badge: "Độ chính xác 89,5%",
+    badge: "ROC-AUC 0.895",
     title: "Dự báo Dịch tễ & Khí hậu ERA5",
     desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
     color: "from-cyan-950/40 via-slate-900/90 to-slate-950/95 border-cyan-500/30 text-cyan-400",
@@ -44,7 +44,7 @@ const PILLARS = [
     pillar: "Trụ Cột 03 - Điều Phối Hành Chính",
     badge: "Chuẩn Thể Thức NĐ 30/2020",
     title: "Tự Động Hóa Công Điện Khẩn",
-    desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
+    desc: "GenAI tự động sinh dự thảo công văn chỉ đạo B2G và báo cáo B2B, tích hợp Guardrails G1-G6 đối soát khóa cứng số liệu và trích dẫn.",
     color:
       "from-indigo-950/40 via-slate-900/90 to-slate-950/95 border-indigo-500/30 text-indigo-300",
     hoverBorder: "hover:border-indigo-400/60 hover:shadow-[0_16px_50px_rgba(99,102,241,0.25)]",
@@ -52,7 +52,7 @@ const PILLARS = [
     iconBg:
       "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
     badgeStyle: "ui-badge ui-badge-indigo",
-    tag: "Guardrail G1 RAG",
+    tag: "Guardrails G1-G6",
   },
 ];
 

@@ -44,5 +44,5 @@ This document contains the verified legal citations used by the DengueSense Laye
 - **Provision**: `Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử`
 - **Verbatim Quote**:
   > *"Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy."*
-- **Source URL**: `https://vanban.chinhphu.vn/default.aspx?docid=199514`
+- **Source URL**: `https://vanban.chinhphu.vn/default.aspx?docid=199378&pageid=27160`
 - **Allowed Hosts**: `vanban.chinhphu.vn`, `chinhphu.vn`

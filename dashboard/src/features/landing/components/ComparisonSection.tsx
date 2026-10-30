@@ -18,7 +18,7 @@ const COMPARISONS = [
     traditional:
       "Dự đoán định tính theo kinh nghiệm chuyên gia, dễ sai lệch ở mùa dịch bất thường.",
     denguesense:
-      "89.5% độ chính xác định lượng, kiểm chứng độc lập trên 6 mùa dịch thực tế (2005–2010).",
+      "ROC-AUC 0.895 (PR-AUC 0.52 so với mức nền 0.18), kiểm chứng trên 6 mùa dịch thực tế (2005–2010).",
   },
   {
     criterion: "Phương pháp phân bổ nguồn lực",
@@ -36,7 +36,7 @@ const COMPARISONS = [
     criterion: "Soạn thảo công văn chỉ đạo",
     traditional: "Mất 2–3 ngày soạn thảo và thẩm định qua nhiều cấp trung gian.",
     denguesense:
-      "GenAI RAG tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
+      "GenAI Guardrails tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
   },
   {
     criterion: "Kiểm soát an toàn thông tin & ảo giác",

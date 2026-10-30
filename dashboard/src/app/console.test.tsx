@@ -311,4 +311,13 @@ describe("điều hướng console", () => {
     expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
   });
+
+  it("officer deep-link trực tiếp vào /app/ho-so/$caseId hiển thị đúng chi tiết hồ sơ thay vì danh sách", async () => {
+    renderApp("/app/ho-so/case-south-2010-06", { store: signedIn("officer") });
+    expect(
+      await screen.findByRole("heading", {
+        name: "Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)",
+      })
+    ).toBeInTheDocument();
+  });
 });

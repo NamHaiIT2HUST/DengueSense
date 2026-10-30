@@ -386,14 +386,14 @@ export function InteractiveLayers() {
               <div className="lg:col-span-6 space-y-4 text-left">
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-300">
                   <FileText size={13} />
-                  <span>GenAI RAG & Chuẩn Thể Thức Nhà Nước</span>
+                  <span>GenAI Soạn Thảo & Chuẩn Thể Thức Nhà Nước</span>
                 </div>
                 <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
                   Soạn Thảo Công Điện Khẩn Từ 2 Ngày Xuống 5 Phút
                 </h3>
                 <p className="text-slate-300 text-sm leading-relaxed">
-                  Trợ lý GenAI ứng dụng mô hình RAG tự động sinh dự thảo công điện B2G theo đúng thể
-                  thức <strong>Nghị định 30/2020/NĐ-CP</strong> và căn cứ điều hành{" "}
+                  Trợ lý GenAI ứng dụng kiểm soát Guardrails tự động sinh dự thảo công điện B2G theo
+                  đúng thể thức <strong>Nghị định 30/2020/NĐ-CP</strong> và căn cứ điều hành{" "}
                   <strong>Quyết định 02/2016/QĐ-TTg</strong>.
                 </p>
                 <div className="space-y-3 text-xs sm:text-sm text-slate-300">
