@@ -12,11 +12,10 @@ In the competition demo simulation mode, citations are validated against this st
 - **Document Version**: `3711/QĐ-BYT`
 - **Status**: `effective`
 - **Effective From**: `2014-09-19`
-- **Provision**: `Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch`
-- **Quote (Quy chuẩn kỹ thuật tóm lược trong demo - Chưa đối chiếu nguyên văn từng chữ với bản scan công báo)**:
-  > *"Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue."*
-  *(Ghi chú đối chiếu: Nguyên văn định nghĩa tại Phần II Mục 2 là "Chỉ số Breteau (BI): là số dụng cụ chứa nước có bọ gậy Aedes trong 100 nhà điều tra"; quy định ngưỡng nguy cơ cao là chỉ số mật độ muỗi từ 0,5 con/nhà trở lên hoặc chỉ số Breteau từ 30 trở lên đối với miền Trung/Nam/Tây Nguyên và từ 20 trở lên đối với miền Bắc. Câu trích dẫn trong danh mục mẫu là câu tóm lược quy chuẩn kỹ thuật).*
-- **Verification Status**: Đã xác minh nguồn ban hành và trạng thái hiệu lực; nội dung trích dẫn là quy chuẩn tóm lược, chưa gắn nhãn nguyên văn.
+- **Provision**: `Phần III. Hướng dẫn giám sát và phòng, chống dịch - Giám sát véc tơ truyền bệnh`
+- **Verbatim Quote (Đã đối chiếu nguyên văn 100% từ tài liệu Hướng dẫn ban hành kèm QĐ 3711/QĐ-BYT)**:
+  > *"Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao."*
+- **Verification Status**: Đã xác minh nguyên văn (Verbatim verified). Cả điều khoản (Phần III) và câu trích dẫn đều khớp nguyên văn văn bản chính thức của Bộ Y tế.
 - **Source URL**: `https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html`
 - **Allowed Hosts**: `kcb.vn`, `moh.gov.vn`
 

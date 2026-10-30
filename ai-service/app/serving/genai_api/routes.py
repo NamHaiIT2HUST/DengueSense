@@ -66,8 +66,8 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2014-09-19",
         "effective_to": None,
-        "provision": "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-        "quote": "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+        "provision": "Phần III. Hướng dẫn giám sát và phòng, chống dịch - Giám sát véc tơ truyền bệnh",
+        "quote": "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
         "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
     },
     {

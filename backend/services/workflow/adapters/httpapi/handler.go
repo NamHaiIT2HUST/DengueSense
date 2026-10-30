@@ -663,8 +663,8 @@ var knownLegalCitations = map[string]verifiedCitationRule{
 	"vn-moh-qd3711-2014": {
 		issuer:          "Bộ Y tế",
 		documentVersion: "3711/QĐ-BYT",
-		provisionSub:    "Phần II, Mục 2",
-		exactQuote:      "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+		provisionSub:    "Phần III",
+		exactQuote:      "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
 		sourceHosts:     []string{"kcb.vn", "moh.gov.vn"},
 	},
 	"vn-qd02-2016": {

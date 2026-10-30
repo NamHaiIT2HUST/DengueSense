@@ -66,7 +66,7 @@ Under no circumstances should the backend or AI service allow dynamic, unverifie
    - Must use exact map lookup: `rule, ok := knownLegalCitations[docID]`.
    - **Never** use substring heuristics (`strings.Contains(docID, "3711")` is strictly prohibited). Counterfeit IDs like `vn-custom-3711` must return HTTP 502.
 2. **Official Document IDs & Clauses**:
-   - `vn-moh-qd3711-2014`: Quyết định 3711/QĐ-BYT (Phần II, Mục 2 — Ngưỡng Breteau Index $\ge$ 30).
+   - `vn-moh-qd3711-2014`: Quyết định 3711/QĐ-BYT (Phần III — Giám sát véc tơ truyền bệnh & Ngưỡng nguy cơ cao $\ge$ 30).
    - `vn-qd02-2016`: Quyết định 02/2016/QĐ-TTg (Điều 2, Khoản 2, Điểm a — Điều kiện công bố dịch bệnh truyền nhiễm).
    - `vn-nd30-2020`: Nghị định 30/2020/NĐ-CP (Điều 5, Khoản 1 — Giá trị pháp lý của văn bản điện tử ký số).
 3. **URL Hostname Whitelist**:
