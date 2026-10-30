@@ -12,7 +12,22 @@ description: >-
 
 > [!IMPORTANT]
 > Always run the full quality gate **before every commit**: format → lint → typecheck → depcruise → vitest → playwright.
-> All 248 Vitest tests and 47 Playwright E2E scenarios must stay green.
+> All 249 Vitest tests, 515+ Python tests, and Go backend test suites must stay green.
+
+---
+
+## Modular Skills Ecosystem
+
+DengueSense uses a modular, progressive-disclosure skill architecture adhering to the **Agent Skills open specification** (`agentskills.io`):
+
+| Skill Name | Purpose & Domain | Trigger When |
+|---|---|---|
+| [`denguesense-quality-gate`](../denguesense-quality-gate/SKILL.md) | Enforces monorepo quality gates & CI/CD checks | Running pre-commit / pre-PR checks, debugging test failures |
+| [`denguesense-layer3-genai`](../denguesense-layer3-genai/SKILL.md) | Layer 3 GenAI dispatches, 6 Guardrails (G1-G6), legal citations | Generating B2G dispatches, modifying legal rules, 4-eyes approval |
+| [`denguesense-layer1-forecast`](../denguesense-layer1-forecast/SKILL.md) | Outbreak prediction, SEIR-V compartmental model, Conformal intervals | Modifying ML models, climate features, or epidemiological parameters |
+| [`denguesense-fsd-frontend`](../denguesense-fsd-frontend/SKILL.md) | React 19 + TypeScript Feature-Sliced Design dashboard | Developing UI components, enforcing FSD layers, fixing TypeScript/hooks |
+| [`denguesense-backend-contracts`](../denguesense-backend-contracts/SKILL.md) | Go 1.24 microservices, OpenAPI contracts, PostgreSQL migrations | Editing API schemas, Go Clean Architecture handlers, SQL migrations |
+| [`denguesense-e2e-workflows`](../denguesense-e2e-workflows/SKILL.md) | Closed-loop operational journeys across 4 user personas | Validating full user flow, testing RBAC, rehearsing demo pitches |
 
 ---
 

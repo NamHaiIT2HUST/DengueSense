@@ -1,0 +1,50 @@
+{
+  "draft_type": "b2g",
+  "title": "DỰ THẢO (MÔ PHỎNG): CÔNG ĐIỆN VỀ VIỆC TĂNG CƯỜNG PHÒNG CHỐNG DỊCH SỐT XUẤT HUYẾT DENGUE TẠI HÀ NỘI",
+  "content": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\n[BẢN DỰ THẢO - MÔ PHỎNG CUỘC THI - CHƯA KÝ]\nSố: .../CĐ-BYT\n\nCÔNG ĐIỆN\nVề việc triển khai các biện pháp cấp bách phòng, chống dịch sốt xuất huyết Dengue\n\nKính gửi: Ủy ban nhân dân Thành phố Hà Nội;\nSở Y tế Thành phố Hà Nội;\nTrung tâm Kiểm soát bệnh tật (CDC) Hà Nội.\n\nCăn cứ Quyết định số 3711/QĐ-BYT ngày 19/09/2014 của Bộ Y tế về việc ban hành Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue;\nCăn cứ Quyết định số 02/2016/QĐ-TTg ngày 28/01/2016 của Thủ tướng Chính phủ quy định điều kiện công bố dịch, công bố hết dịch bệnh truyền nhiễm;\nCăn cứ Nghị định số 30/2020/NĐ-CP ngày 05/03/2020 của Chính phủ về công tác văn thư;\n\nTheo hệ thống giám sát và dự báo dịch bệnh DengueSense, tình hình diễn biến dịch sốt xuất huyết tại địa bàn Thành phố Hà Nội đang ở mức cảnh báo cao. Để chủ động ngăn chặn nguy cơ bùng phát dịch trên diện rộng, bảo vệ sức khỏe nhân dân, Bộ Y tế yêu cầu:\n\n1. Kích hoạt phương án phân bổ nguồn lực khẩn cấp theo snapshot đã được xác nhận (Mã phương án: plan-demo-001).\n2. Tập trung xử lý triệt để các ổ dịch tại các khu vực có Chỉ số Breteau (BI) >= 30 theo đúng quy định tại QĐ 3711/QĐ-BYT.\n3. Huy động đội ngũ y tế cơ sở, cộng tác viên tổ chức chiến dịch diệt lăng quăng/bọ gậy và phun hóa chất diệt muỗi diện rộng.\n\nNơi nhận:\n- Như trên;\n- Bộ trưởng (để báo cáo);\n- Lưu: VT, Cục YTXH.",
+  "content_hash": "a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890",
+  "all_guardrails_passed": true,
+  "guardrails": [
+    {"code": "G1", "name": "Số liệu", "passed": true, "detail": "Số liệu lấy từ thông số phương án phân bổ được xác nhận và cảnh báo đính kèm trong hồ sơ (dữ liệu demo mô phỏng cuộc thi; chưa đối chiếu trực tiếp với pipeline dự báo).", "blocking": true},
+    {"code": "G2", "name": "Địa danh", "passed": true, "detail": "Địa danh khớp danh mục.", "blocking": true},
+    {"code": "G3", "name": "Căn cứ pháp lý", "passed": true, "detail": "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc).", "blocking": true},
+    {"code": "G4", "name": "Thể thức", "passed": true, "detail": "Mẫu mô phỏng có đủ mục trình bày; số, ngày và chữ ký chưa được cấp.", "blocking": true},
+    {"code": "G5", "name": "Nội dung an toàn", "passed": true, "detail": "Mẫu không chứa chỉ định y khoa hoặc nội dung tự do.", "blocking": true},
+    {"code": "G6", "name": "Độ dài", "passed": true, "detail": "Cán bộ cần rà soát độ dài.", "blocking": false}
+  ],
+  "citations": [
+    {
+      "document_id": "vn-moh-qd3711-2014",
+      "title": "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+      "issuer": "Bộ Y tế",
+      "document_version": "3711/QĐ-BYT",
+      "status": "effective",
+      "effective_from": "2014-09-19",
+      "provision": "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+      "quote": "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+      "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html"
+    },
+    {
+      "document_id": "vn-qd02-2016",
+      "title": "Quy định điều kiện công bố dịch, công bố hết dịch bệnh truyền nhiễm",
+      "issuer": "Thủ tướng Chính phủ",
+      "document_version": "02/2016/QĐ-TTg",
+      "status": "effective",
+      "effective_from": "2016-03-15",
+      "provision": "Điều 2, Khoản 2, Điểm a. Điều kiện công bố dịch bệnh truyền nhiễm đối với bệnh truyền nhiễm thuộc nhóm B và nhóm C",
+      "quote": "Một xã, phường, thị trấn (sau đây gọi tắt là xã) được coi là có dịch khi có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ 03 năm gần nhất;",
+      "source_url": "https://congbao.chinhphu.vn/tai-ve-van-ban-so-02-2016-qd-ttg-19018-13534?format=pdf"
+    },
+    {
+      "document_id": "vn-nd30-2020",
+      "title": "Nghị định về công tác văn thư",
+      "issuer": "Chính phủ",
+      "document_version": "30/2020/NĐ-CP",
+      "status": "effective",
+      "effective_from": "2020-03-05",
+      "provision": "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
+      "quote": "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
+      "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=199514"
+    }
+  ]
+}
