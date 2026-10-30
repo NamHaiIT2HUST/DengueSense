@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Trích dẫn thuộc danh mục mẫu demo cuộc thi (đối soát nguyên văn từng điều khoản với Công báo Chính phủ và Cổng TTĐT Bộ Y tế; hệ thống chưa tích hợp RAG tra cứu động toàn văn)."
+                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

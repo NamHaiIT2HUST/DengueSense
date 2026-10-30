@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -607,7 +608,7 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		Citations   []api.Citation       `json:"citations"`
 		ModelUsed   *string              `json:"model_used"`
 	}
-	if json.NewDecoder(response.Body).Decode(&result) != nil || result.Title == "" || result.Content == "" || result.ContentHash != domain.ComputeHash(result.Content) || result.AllPassed == nil || !*result.AllPassed || result.Guardrails == nil || result.Citations == nil || !validGuardrails(result.Guardrails) || hasBlockingFailure(result.Guardrails) || !validCitations(result.Citations) {
+	if json.NewDecoder(response.Body).Decode(&result) != nil || result.Title == "" || result.Content == "" || result.ContentHash != domain.ComputeHash(result.Content) || result.AllPassed == nil || !*result.AllPassed || result.Guardrails == nil || result.Citations == nil || !validGuardrails(result.Guardrails) || hasBlockingFailure(result.Guardrails) || !validCitations(string(req.DraftType), result.Citations) {
 		c.JSON(502, gin.H{"error": "Phản hồi GenAI không hợp lệ"})
 		return
 	}
@@ -696,7 +697,11 @@ func matchCitationRule(docID string) (verifiedCitationRule, bool) {
 	return rule, ok
 }
 
-func validCitations(citations []api.Citation) bool {
+func validCitations(draftType string, citations []api.Citation) bool {
+	// Văn bản chỉ đạo B2G bắt buộc phải có trích dẫn căn cứ pháp lý
+	if draftType == "b2g" && len(citations) == 0 {
+		return false
+	}
 	for _, c := range citations {
 		if c.DocumentId == "" || c.Title == "" || c.Issuer == "" || c.DocumentVersion == "" || string(c.Status) != "effective" || c.Provision == "" || c.Quote == "" || c.SourceUrl == "" {
 			return false
@@ -704,35 +709,43 @@ func validCitations(citations []api.Citation) bool {
 		if !strings.HasPrefix(c.DocumentId, "vn-") {
 			return false
 		}
-		if !strings.HasPrefix(c.SourceUrl, "https://") {
+		u, err := url.Parse(c.SourceUrl)
+		if err != nil || u.Scheme != "https" || u.Hostname() == "" {
 			return false
 		}
+		hostname := strings.ToLower(u.Hostname())
 		if len(strings.TrimSpace(c.Provision)) < 5 || len(strings.TrimSpace(c.Quote)) < 10 {
 			return false
 		}
 
 		// Đối soát nguyên văn và xác thực nguồn với danh mục văn bản mẫu đã kiểm chứng
 		rule, ok := matchCitationRule(c.DocumentId)
-		if ok {
-			if c.Issuer != rule.issuer || c.DocumentVersion != rule.documentVersion {
-				return false
+		if !ok {
+			// Bắt buộc văn bản phải thuộc danh mục đã kiểm chứng
+			return false
+		}
+
+		if c.Issuer != rule.issuer || c.DocumentVersion != rule.documentVersion {
+			return false
+		}
+		if !strings.Contains(c.Provision, rule.provisionSub) {
+			return false
+		}
+		if strings.TrimSpace(c.Quote) != rule.exactQuote {
+			return false
+		}
+
+		// So khớp chính xác hostname được phép (ngăn chặn bypass qua query parameter hoặc domain lồng nhau)
+		hostMatch := false
+		for _, allowed := range rule.sourceHosts {
+			allowed = strings.ToLower(allowed)
+			if hostname == allowed || strings.HasSuffix(hostname, "."+allowed) {
+				hostMatch = true
+				break
 			}
-			if !strings.Contains(c.Provision, rule.provisionSub) {
-				return false
-			}
-			if strings.TrimSpace(c.Quote) != rule.exactQuote {
-				return false
-			}
-			hostMatch := false
-			for _, host := range rule.sourceHosts {
-				if strings.Contains(c.SourceUrl, host) {
-					hostMatch = true
-					break
-				}
-			}
-			if !hostMatch {
-				return false
-			}
+		}
+		if !hostMatch {
+			return false
 		}
 	}
 	return true

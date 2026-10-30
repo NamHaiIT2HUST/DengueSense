@@ -903,3 +903,152 @@ func TestGenerateDraftWithOldConfirmedAndNewDraftPlan(t *testing.T) {
 		t.Errorf("expected provenance plan_id %s, got %v", planOld.ID.String(), provC["plan_id"])
 	}
 }
+
+func TestValidCitations_StrictVerification(t *testing.T) {
+	mockContent := "Nội dung dự thảo mô phỏng"
+	mockHash := domain.ComputeHash(mockContent)
+	allPassed := true
+	guardrails := []any{
+		map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""},
+		map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""},
+		map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""},
+		map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""},
+		map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""},
+		map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false},
+	}
+
+	for _, tc := range []struct {
+		name       string
+		draftType  string
+		citations  []any
+		wantStatus int
+	}{
+		{
+			name:       "b2g empty citations rejected",
+			draftType:  "b2g",
+			citations:  []any{},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:       "b2b empty citations allowed",
+			draftType:  "b2b",
+			citations:  []any{},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name:      "uncatalogued document_id rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-custom-random-law",
+					"title":            "Luật lạ",
+					"issuer":           "Cơ quan",
+					"document_version": "99/2026",
+					"status":           "effective",
+					"provision":        "Điều 1. Phạm vi",
+					"quote":            "Đây là trích dẫn giả mạo không thuộc danh mục.",
+					"source_url":       "https://kcb.vn/van-ban/123",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "domain bypass via query param rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+					"source_url":       "https://evil-attacker.com/?source=kcb.vn",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "domain bypass via deceptive subdomain rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+					"source_url":       "https://kcb.vn.attacker-domain.org/doc",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "tampered quote rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 99 trở lên mới là nguy cơ bùng phát dịch.",
+					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "valid citation accepted",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(w).Encode(map[string]any{
+					"title":                 "Dự thảo test",
+					"content":               mockContent,
+					"content_hash":          mockHash,
+					"all_guardrails_passed": &allPassed,
+					"guardrails":            guardrails,
+					"citations":             tc.citations,
+				})
+			}))
+			defer genSrv.Close()
+
+			repo := NewMockRepo()
+			r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
+			cID := uuid.New()
+			alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
+			_ = repo.CreateAlert(context.Background(), alert)
+			_ = repo.CreateCase(context.Background(), &domain.Case{ID: cID, CreatedBy: "officer", AlertIDs: []uuid.UUID{alert.ID}})
+
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewBufferString(fmt.Sprintf(`{"draft_type":%q}`, tc.draftType)))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			if w.Code != tc.wantStatus {
+				t.Fatalf("expected status %d, got %d: %s", tc.wantStatus, w.Code, w.Body.String())
+			}
+		})
+	}
+}
