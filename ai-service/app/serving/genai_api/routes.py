@@ -78,9 +78,9 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2016-03-15",
         "effective_to": None,
-        "provision": "Điều 2, Khoản 1, Điểm b. Điều kiện công bố dịch bệnh truyền nhiễm",
-        "quote": "Có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ trong 3 năm gần nhất;",
-        "source_url": "https://vbpl.moj.gov.vn/bovanhoathethao/Pages/vbpq-toanvan.aspx?ItemID=97045",
+        "provision": "Điều 2, Khoản 2, Điểm a. Điều kiện công bố dịch bệnh truyền nhiễm đối với bệnh truyền nhiễm thuộc nhóm B và nhóm C",
+        "quote": "Một xã, phường, thị trấn (sau đây gọi tắt là xã) được coi là có dịch khi có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ 03 năm gần nhất;",
+        "source_url": "https://congbao.chinhphu.vn/tai-ve-van-ban-so-02-2016-qd-ttg-19018-13534?format=pdf",
     },
     {
         "document_id": "vn-nd30-2020",
@@ -184,7 +184,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
         else "Báo cáo dữ liệu giám sát sốt xuất huyết"
     )
     rows: list[tuple[str, float | int | None]] = [
-        ("Số ca dự báo", req.slots.cases_predicted_total),
+        ("Số ca dự báo mô phỏng", req.slots.cases_predicted_total),
         ("Ngân sách phân bổ", req.slots.budget_allocated),
         ("Số giường", req.slots.beds_allocated),
         ("Số vật tư", req.slots.supplies_allocated),
@@ -265,14 +265,19 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             )
     citations = list(VERIFIED_LEGAL_CITATIONS) if req.draft_type == "b2g" else []
     checks = [
-        _check("G1", "Số liệu", True, "Số liệu lấy từ slots."),
+        _check(
+            "G1",
+            "Số liệu",
+            True,
+            "Số liệu lấy từ kết quả mô hình Layer 1 và phương án phân bổ đã xác nhận (chế độ demo mô phỏng cuộc thi).",
+        ),
         _check("G2", "Địa danh", True, "Địa danh khớp danh mục."),
         _check(
             "G3",
             "Căn cứ pháp lý",
             True,
             (
-                "Đã đối soát và xác minh nguyên văn trích dẫn với Cơ sở dữ liệu Quốc gia về Văn bản Pháp luật (vbpl.moj.gov.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng)."
+                "Căn cứ pháp lý đối chiếu nguyên văn với Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng cuộc thi; danh mục trích dẫn đã được kiểm chứng)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

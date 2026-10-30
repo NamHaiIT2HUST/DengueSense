@@ -396,9 +396,17 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 // ConfirmAllocationPlan implements api.ServerInterface
 func (s *Server) ConfirmAllocationPlan(c *gin.Context, caseId uuid.UUID, planId uuid.UUID) {
 	ctx := c.Request.Context()
-	confirmedBy := "officer"
-	if caller := c.GetString("user_id"); caller != "" {
+	var confirmedBy string
+	if actor, ok := authx.ActorFrom(ctx); ok && actor.ID != "" {
+		confirmedBy = actor.ID
+	} else if id := strings.TrimSpace(c.GetHeader(authx.HeaderActorID)); id != "" {
+		confirmedBy = id
+	} else if caller := c.GetString("user_id"); caller != "" {
 		confirmedBy = caller
+	}
+	if confirmedBy == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Không xác định được danh tính người xác nhận"})
+		return
 	}
 	plan, err := s.repo.ConfirmAllocationPlan(ctx, caseId, planId, confirmedBy)
 	if err != nil {
@@ -662,6 +670,18 @@ func validCitations(citations []api.Citation) bool {
 		}
 		if len(strings.TrimSpace(c.Provision)) < 5 || len(strings.TrimSpace(c.Quote)) < 10 {
 			return false
+		}
+		// Đối soát chuyên sâu với QĐ 02/2016/QĐ-TTg theo Công báo Chính phủ
+		if strings.Contains(c.DocumentId, "02-2016") {
+			if !strings.Contains(c.Provision, "Điều 2") || !strings.Contains(c.Provision, "Khoản 2") || !strings.Contains(c.Provision, "Điểm a") {
+				return false
+			}
+			if !strings.Contains(c.Quote, "Một xã, phường, thị trấn") || !strings.Contains(c.Quote, "03 năm gần nhất") {
+				return false
+			}
+			if !strings.Contains(c.SourceUrl, "congbao.chinhphu.vn") && !strings.Contains(c.SourceUrl, "vbpl.moj.gov.vn") {
+				return false
+			}
 		}
 	}
 	return true

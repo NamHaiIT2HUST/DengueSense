@@ -92,9 +92,13 @@ def test_b2g_demo_is_explicitly_labelled_and_unsigned(
     assert result["citations"][0]["document_id"] == "vn-moh-qd3711-2014"
     assert result["citations"][1]["document_version"] == "02/2016/QĐ-TTg"
     assert "Điều 2" in result["citations"][1]["provision"]
-    assert "vượt quá số mắc trung bình" in result["citations"][1]["quote"]
+    assert "Khoản 2" in result["citations"][1]["provision"]
+    assert "Điểm a" in result["citations"][1]["provision"]
+    assert "Một xã, phường, thị trấn" in result["citations"][1]["quote"]
+    assert "03 năm gần nhất" in result["citations"][1]["quote"]
+    assert "congbao.chinhphu.vn" in result["citations"][1]["source_url"]
     assert (
-        "xác minh"
+        "công báo chính phủ"
         in next(g for g in result["guardrails"] if g["code"] == "G3")["detail"].lower()
     )
 

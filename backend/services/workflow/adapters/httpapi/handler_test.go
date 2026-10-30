@@ -132,11 +132,13 @@ func (m *MockRepo) ConfirmAllocationPlan(_ context.Context, caseID, planID uuid.
 	plans := m.allocationPlans[caseID]
 	for i := range plans {
 		if plans[i].ID == planID {
-			now := time.Now().UTC()
-			plans[i].Status = domain.AllocationPlanStatusConfirmed
-			plans[i].ConfirmedBy = &confirmedBy
-			plans[i].ConfirmedAt = &now
-			m.allocationPlans[caseID] = plans
+			if plans[i].Status != domain.AllocationPlanStatusConfirmed {
+				now := time.Now().UTC()
+				plans[i].Status = domain.AllocationPlanStatusConfirmed
+				plans[i].ConfirmedBy = &confirmedBy
+				plans[i].ConfirmedAt = &now
+				m.allocationPlans[caseID] = plans
+			}
 			ret := plans[i]
 			return &ret, nil
 		}
@@ -635,9 +637,9 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 						"issuer":           "Thủ tướng Chính phủ",
 						"document_version": "02/2016/QĐ-TTg",
 						"status":           "effective",
-						"provision":        "Điều 2, Khoản 1, Điểm b. Điều kiện công bố dịch bệnh truyền nhiễm",
-						"quote":            "Có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ trong 3 năm gần nhất;",
-						"source_url":       "https://vbpl.moj.gov.vn/bovanhoathethao/Pages/vbpq-toanvan.aspx?ItemID=97045",
+						"provision":        "Điều 2, Khoản 2, Điểm a. Điều kiện công bố dịch bệnh truyền nhiễm đối với bệnh truyền nhiễm thuộc nhóm B và nhóm C",
+						"quote":            "Một xã, phường, thị trấn (sau đây gọi tắt là xã) được coi là có dịch khi có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ 03 năm gần nhất;",
+						"source_url":       "https://congbao.chinhphu.vn/tai-ve-van-ban-so-02-2016-qd-ttg-19018-13534?format=pdf",
 					},
 				},
 			})
@@ -694,8 +696,9 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 		t.Fatalf("expected 400 for unconfirmed plan, got %d: %s", w.Code, w.Body.String())
 	}
 
-	// Step 2: Confirm plan via endpoint
+	// Step 2: Confirm plan via endpoint with authenticated actor ID
 	confirmReq := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans/%s/confirm", cID, planIDStr), nil)
+	confirmReq.Header.Set(authx.HeaderActorID, "officer_xuly_01")
 	wConfirm := httptest.NewRecorder()
 	r.ServeHTTP(wConfirm, confirmReq)
 	if wConfirm.Code != http.StatusOK {
@@ -707,6 +710,29 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 	}
 	if confirmedPlan.Status != api.Confirmed {
 		t.Fatalf("expected confirmed status, got %s", confirmedPlan.Status)
+	}
+	if confirmedPlan.ConfirmedBy == nil || *confirmedPlan.ConfirmedBy != "officer_xuly_01" {
+		t.Fatalf("expected confirmed_by officer_xuly_01, got %v", confirmedPlan.ConfirmedBy)
+	}
+	if confirmedPlan.ConfirmedAt == nil {
+		t.Fatal("expected non-nil confirmed_at")
+	}
+
+	// Step 2b: Test idempotency and snapshot immutability when re-confirming
+	confirmReq2 := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans/%s/confirm", cID, planIDStr), nil)
+	confirmReq2.Header.Set(authx.HeaderActorID, "other_actor_99")
+	wConfirm2 := httptest.NewRecorder()
+	r.ServeHTTP(wConfirm2, confirmReq2)
+	if wConfirm2.Code != http.StatusOK {
+		t.Fatalf("expected 200 on idempotent re-confirm, got %d: %s", wConfirm2.Code, wConfirm2.Body.String())
+	}
+	var confirmedPlan2 api.AllocationPlan
+	_ = json.Unmarshal(wConfirm2.Body.Bytes(), &confirmedPlan2)
+	if confirmedPlan2.ConfirmedBy == nil || *confirmedPlan2.ConfirmedBy != "officer_xuly_01" {
+		t.Fatalf("immutable plan must retain original confirmed_by, got %v", confirmedPlan2.ConfirmedBy)
+	}
+	if !confirmedPlan2.ConfirmedAt.Equal(*confirmedPlan.ConfirmedAt) {
+		t.Fatalf("immutable plan must retain original confirmed_at: %v vs %v", confirmedPlan2.ConfirmedAt, confirmedPlan.ConfirmedAt)
 	}
 
 	// Step 3: Call GenerateDraft with CONFIRMED plan_id -> should succeed with 201

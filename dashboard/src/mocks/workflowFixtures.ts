@@ -64,8 +64,31 @@ export const planSouth01: AllocationPlan = {
   created_at: "2010-06-02T14:00:00Z",
 };
 
+export const planCentral01: AllocationPlan = {
+  id: "plan-central-01",
+  case_id: "case-central-2010-06",
+  budget: 500_000_000,
+  total_cost: 480_000_000,
+  estimated_cases_prevented: 180,
+  allocations: [
+    {
+      province_id: "da_nang",
+      amount: 480_000_000,
+      explanation: "Dự phòng vùng trọng điểm miền Trung",
+      beds: 30,
+      supplies: 150,
+      teams: 2,
+      cases_pred: 350,
+    },
+  ],
+  status: "draft",
+  version: 1,
+  created_at: "2010-06-03T11:00:00Z",
+};
+
 export const plansFixture: Record<string, AllocationPlan> = {
   "plan-south-01": planSouth01,
+  "plan-central-01": planCentral01,
 };
 
 export const casesFixture: CaseDetail[] = [
@@ -89,6 +112,8 @@ export const casesFixture: CaseDetail[] = [
     created_by: "officer",
     created_at: "2010-06-03T10:00:00Z",
     alert_ids: ["alert-danang-01"],
+    latest_plan_id: "plan-central-01",
+    latest_plan: planCentral01,
   },
 ];
 

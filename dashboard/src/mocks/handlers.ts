@@ -642,6 +642,10 @@ export function createHandlers(
         plan.status = "confirmed";
         plan.confirmed_by = "officer";
         plan.confirmed_at = new Date().toISOString();
+        const found = cases.find((c) => c.id === params.caseId);
+        if (found && found.latest_plan?.id === plan.id) {
+          found.latest_plan = { ...plan };
+        }
         return HttpResponse.json(plan, { status: 200 });
       }
     ),

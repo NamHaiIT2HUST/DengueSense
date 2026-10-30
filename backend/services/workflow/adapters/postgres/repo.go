@@ -240,17 +240,29 @@ func (r *Repo) ListAllocationPlansByCase(ctx context.Context, caseID uuid.UUID) 
 
 func (r *Repo) ConfirmAllocationPlan(ctx context.Context, caseID, planID uuid.UUID, confirmedBy string) (*domain.AllocationPlan, error) {
 	now := time.Now().UTC()
+	// Chỉ chuyển đổi trạng thái nếu plan đang là 'draft'.
+	// Đảm bảo tính bất biến: nếu đã 'confirmed', giữ nguyên confirmed_at và confirmed_by để không thay đổi hash snapshot.
 	query := `UPDATE allocation_plans 
 	          SET status = 'confirmed', confirmed_by = $1, confirmed_at = $2 
-	          WHERE id = $3 AND case_id = $4 
+	          WHERE id = $3 AND case_id = $4 AND status = 'draft' 
 	          RETURNING id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at, status, version, confirmed_by, confirmed_at`
 	var p domain.AllocationPlan
 	var allocBytes []byte
 	err := r.db.QueryRow(ctx, query, confirmedBy, now, planID, caseID).Scan(
 		&p.ID, &p.CaseID, &p.Budget, &p.TotalCost, &p.EstimatedCasesPrevented, &allocBytes, &p.CreatedAt, &p.Status, &p.Version, &p.ConfirmedBy, &p.ConfirmedAt,
 	)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		_ = json.Unmarshal(allocBytes, &p.Allocations)
+		return &p, nil
+	}
+
+	// Nếu không có dòng nào được update, kiểm tra xem plan đã được xác nhận từ trước hay chưa (trả về snapshot bất biến)
+	getErr := r.db.QueryRow(ctx, `SELECT id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at, status, version, confirmed_by, confirmed_at 
+	                              FROM allocation_plans WHERE id = $1 AND case_id = $2`, planID, caseID).Scan(
+		&p.ID, &p.CaseID, &p.Budget, &p.TotalCost, &p.EstimatedCasesPrevented, &allocBytes, &p.CreatedAt, &p.Status, &p.Version, &p.ConfirmedBy, &p.ConfirmedAt,
+	)
+	if getErr != nil {
+		return nil, getErr
 	}
 	_ = json.Unmarshal(allocBytes, &p.Allocations)
 	return &p, nil
