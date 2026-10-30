@@ -607,6 +607,8 @@ export function createHandlers(
         budget: body.budget,
         total_cost: totalCost,
         estimated_cases_prevented: estPrevented,
+        status: "draft",
+        version: 1,
         allocations: items.map((it, idx) => {
           const costShare = Math.round(totalCost / Math.max(1, items.length));
           const beds = Math.max(10, Math.round(costShare / 12_500_000));
@@ -628,6 +630,25 @@ export function createHandlers(
       found.latest_plan = newPlan;
       return HttpResponse.json(newPlan, { status: 201 });
     }),
+
+    http.post(
+      `${base}/cases/:caseId/allocation-plans/:planId/confirm`,
+      async ({ request, params }) => {
+        if (!authed(request)) return unauthenticated();
+        const plan = plans.get(params.planId as string);
+        if (!plan || plan.case_id !== params.caseId) {
+          return problem(404, "workflow.plan_not_found", "Không tìm thấy phương án phân bổ");
+        }
+        plan.status = "confirmed";
+        plan.confirmed_by = "officer";
+        plan.confirmed_at = new Date().toISOString();
+        const found = cases.find((c) => c.id === params.caseId);
+        if (found && found.latest_plan?.id === plan.id) {
+          found.latest_plan = { ...plan };
+        }
+        return HttpResponse.json(plan, { status: 200 });
+      }
+    ),
 
     // ----- workflow: drafts -----
     http.post(`${base}/cases/:caseId/drafts`, async ({ request, params }) => {

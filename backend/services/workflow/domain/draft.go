@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -37,17 +38,18 @@ const (
 )
 
 type DispatchDraft struct {
-	ID          uuid.UUID
-	CaseID      uuid.UUID
-	Version     int
-	DraftType   DraftType
-	Title       string
-	Content     string
-	ContentHash string
-	Status      DraftStatus
-	CreatedBy   string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                 uuid.UUID
+	CaseID             uuid.UUID
+	Version            int
+	DraftType          DraftType
+	Title              string
+	Content            string
+	ContentHash        string
+	GenerationEvidence json.RawMessage
+	Status             DraftStatus
+	CreatedBy          string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type ReviewAction string

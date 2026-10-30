@@ -96,6 +96,28 @@ export function useCreateAllocationPlan(caseId: string) {
   });
 }
 
+/** Xác nhận phương án phân bổ nguồn lực. */
+export function useConfirmAllocationPlan(caseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (planId: string) => {
+      const key = newIdempotencyKey();
+      return unwrap(
+        await api.POST("/cases/{case_id}/allocation-plans/{plan_id}/confirm", {
+          params: {
+            path: { case_id: caseId, plan_id: planId },
+          },
+          headers: { [HEADER_IDEMPOTENCY_KEY]: key },
+        })
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+  });
+}
+
 /** Chi tiết dự thảo văn bản chỉ đạo. */
 export function useDraft(draftId: string | undefined) {
   return useQuery({

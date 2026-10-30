@@ -222,6 +222,10 @@ func (b *backends) workflowHandler() http.Handler {
 		b.record(r)
 		writeJSON(w, 201, `{"id":"`+runID+`","title":"Case 1","status":"open","created_by":"`+userID+`","created_at":"2026-10-01T00:00:00Z"}`)
 	})
+	mux.HandleFunc("POST /internal/v1/workflow/cases/{case_id}/allocation-plans/{plan_id}/confirm", func(w http.ResponseWriter, r *http.Request) {
+		b.record(r)
+		writeJSON(w, 200, `{"id":"`+runID+`","case_id":"`+runID+`","budget":1000000000,"total_cost":950000000,"status":"confirmed","version":1,"confirmed_by":"`+r.Header.Get(authx.HeaderActorID)+`"}`)
+	})
 	mux.HandleFunc("POST /internal/v1/workflow/drafts/{id}/reviews", func(w http.ResponseWriter, r *http.Request) {
 		b.record(r)
 		writeJSON(w, 200, `{"id":"`+runID+`","draft_id":"`+runID+`","draft_version":1,"reviewer_id":"`+userID+`","action":"approve","reviewed_at":"2026-10-01T00:00:00Z","draft_status":"APPROVED"}`)
@@ -665,4 +669,20 @@ func TestWorkflow_ReviewRequiresApproverRole(t *testing.T) {
 	w = e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleApprover), body)
 	require.Equal(t, 200, w.Code)
 	assert.Len(t, e.b.callsTo("/internal/v1/workflow/drafts/"+runID+"/reviews"), 1)
+}
+
+func TestWorkflow_ConfirmAllocationPlanForwardsActorIdentity(t *testing.T) {
+	e := newEnv(t, nil)
+
+	// Viewer cannot confirm (403)
+	w := e.do("POST", "/api/v1/cases/"+runID+"/allocation-plans/"+runID+"/confirm", e.user(t, authx.RoleViewer), "")
+	require.Equal(t, 403, w.Code)
+
+	// Officer confirms successfully (200) and forwards actor identity
+	w = e.do("POST", "/api/v1/cases/"+runID+"/allocation-plans/"+runID+"/confirm", e.user(t, authx.RoleOfficer), "")
+	require.Equal(t, 200, w.Code)
+
+	calls := e.b.callsTo("/internal/v1/workflow/cases/" + runID + "/allocation-plans/" + runID + "/confirm")
+	require.Len(t, calls, 1)
+	assert.Equal(t, userID, calls[0].Header.Get(authx.HeaderActorID))
 }

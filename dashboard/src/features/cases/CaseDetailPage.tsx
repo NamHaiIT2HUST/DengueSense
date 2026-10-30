@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Bot,
+  CheckCircle2,
   Download,
   FileEdit,
   FileText,
@@ -17,6 +18,7 @@ import {
 import { useAlerts } from "@/entities/alert";
 import {
   useCase,
+  useConfirmAllocationPlan,
   useCreateAllocationPlan,
   useCreateDraft,
   useDraft,
@@ -57,6 +59,7 @@ export function CaseDetailPage() {
   const [budgetInput, setBudgetInput] = useState("1000000000"); // 1 tỷ mặc định
   const [showTransferModal, setShowTransferModal] = useState(false);
   const createAllocationMutation = useCreateAllocationPlan(caseId);
+  const confirmPlanMutation = useConfirmAllocationPlan(caseId);
 
   // States cho modal AI sinh dự thảo
   const [isGenerating, setIsGenerating] = useState(false);
@@ -98,13 +101,21 @@ export function CaseDetailPage() {
   }
 
   async function handleGenerateDraft() {
-    const body: { draft_type: "b2g" | "b2b"; title: string; extra_instructions?: string } = {
+    const body: {
+      draft_type: "b2g" | "b2b";
+      title: string;
+      extra_instructions?: string;
+      plan_id?: string;
+    } = {
       draft_type: draftType,
       title:
         draftType === "b2g"
           ? "Công điện khẩn phòng chống dịch Sốt xuất huyết"
           : "Báo cáo giám sát dịch tễ",
     };
+    if (caseData?.latest_plan && caseData.latest_plan.status === "confirmed") {
+      body.plan_id = caseData.latest_plan.id;
+    }
     if (extraInstructions.trim()) {
       body.extra_instructions = extraInstructions.trim();
     }
@@ -304,15 +315,44 @@ export function CaseDetailPage() {
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
-              <PieChart size={18} className="text-[var(--accent)]" />
-              {vi.cases.detail.allocationPlan}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
+                <PieChart size={18} className="text-[var(--accent)]" />
+                {vi.cases.detail.allocationPlan}
+              </h2>
+              {caseData?.latest_plan &&
+                (caseData.latest_plan.status === "confirmed" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-good)_18%,transparent)] dark:text-[#4ade80]">
+                    <CheckCircle2 size={12} strokeWidth={2.5} />
+                    Đã xác nhận (v{caseData.latest_plan.version})
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-amber-50 text-amber-900 border border-amber-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-warning)_18%,transparent)] dark:text-[#fbbf24]">
+                    Bản nháp (chưa xác nhận)
+                  </span>
+                ))}
+            </div>
             <p className="text-xs text-[var(--ink-secondary)] mt-0.5">{vi.allocation.lead}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {caseData?.latest_plan && (
               <>
+                {canAct && caseData.latest_plan.status !== "confirmed" && (
+                  <Button
+                    variant="primary"
+                    className="px-3 py-1 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    disabled={confirmPlanMutation.isPending}
+                    onClick={async () => {
+                      if (caseData.latest_plan) {
+                        await confirmPlanMutation.mutateAsync(caseData.latest_plan.id);
+                      }
+                    }}
+                    title="Xác nhận phương án phân bổ để đưa số liệu vào dự thảo văn bản"
+                  >
+                    <CheckCircle2 size={14} />
+                    {confirmPlanMutation.isPending ? "Đang xác nhận..." : "Xác nhận phương án"}
+                  </Button>
+                )}
                 <Button
                   variant="secondary"
                   className="px-3 py-1 text-xs gap-1.5"
@@ -561,6 +601,46 @@ export function CaseDetailPage() {
         onCancel={() => setIsGenerating(false)}
       >
         <div className="space-y-3">
+          {caseData?.latest_plan &&
+            (caseData.latest_plan.status === "confirmed" ? (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs text-emerald-900 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:text-emerald-300 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                  <span>
+                    Đính kèm phương án phân bổ v{caseData.latest_plan.version} (
+                    {formatCurrency(caseData.latest_plan.total_cost)})
+                  </span>
+                </div>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                  Đã xác nhận
+                </span>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-xs text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300 flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    Phương án phân bổ hiện tại đang là bản nháp. Dự thảo sẽ không có bảng số liệu
+                    phân bổ trừ khi được xác nhận.
+                  </span>
+                </div>
+                {canAct && (
+                  <Button
+                    variant="secondary"
+                    className="self-end px-2.5 py-1 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200"
+                    disabled={confirmPlanMutation.isPending}
+                    onClick={async () => {
+                      if (caseData.latest_plan) {
+                        await confirmPlanMutation.mutateAsync(caseData.latest_plan.id);
+                      }
+                    }}
+                  >
+                    <CheckCircle2 size={12} className="mr-1" />
+                    {confirmPlanMutation.isPending ? "Đang xác nhận..." : "Xác nhận phương án ngay"}
+                  </Button>
+                )}
+              </div>
+            ))}
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-secondary)] mb-1">
               {vi.drafts.generateModal.draftType}

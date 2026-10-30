@@ -34,6 +34,24 @@ func (e AlertStatus) Valid() bool {
 	}
 }
 
+// Defines values for AllocationPlanStatus.
+const (
+	Confirmed AllocationPlanStatus = "confirmed"
+	Draft     AllocationPlanStatus = "draft"
+)
+
+// Valid indicates whether the value is a known member of the AllocationPlanStatus enum.
+func (e AllocationPlanStatus) Valid() bool {
+	switch e {
+	case Confirmed:
+		return true
+	case Draft:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CaseStatus.
 const (
 	CaseStatusArchived  CaseStatus = "archived"
@@ -70,6 +88,21 @@ func (e CaseDetailStatus) Valid() bool {
 	case CaseDetailStatusCompleted:
 		return true
 	case CaseDetailStatusOpen:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CitationStatus.
+const (
+	Effective CitationStatus = "effective"
+)
+
+// Valid indicates whether the value is a known member of the CitationStatus enum.
+func (e CitationStatus) Valid() bool {
+	switch e {
+	case Effective:
 		return true
 	default:
 		return false
@@ -138,25 +171,25 @@ func (e DispatchDraftDraftType) Valid() bool {
 
 // Defines values for DispatchDraftStatus.
 const (
-	APPROVED         DispatchDraftStatus = "APPROVED"
-	CHANGESREQUESTED DispatchDraftStatus = "CHANGES_REQUESTED"
-	DRAFT            DispatchDraftStatus = "DRAFT"
-	PENDINGREVIEW    DispatchDraftStatus = "PENDING_REVIEW"
-	REJECTED         DispatchDraftStatus = "REJECTED"
+	DispatchDraftStatusAPPROVED         DispatchDraftStatus = "APPROVED"
+	DispatchDraftStatusCHANGESREQUESTED DispatchDraftStatus = "CHANGES_REQUESTED"
+	DispatchDraftStatusDRAFT            DispatchDraftStatus = "DRAFT"
+	DispatchDraftStatusPENDINGREVIEW    DispatchDraftStatus = "PENDING_REVIEW"
+	DispatchDraftStatusREJECTED         DispatchDraftStatus = "REJECTED"
 )
 
 // Valid indicates whether the value is a known member of the DispatchDraftStatus enum.
 func (e DispatchDraftStatus) Valid() bool {
 	switch e {
-	case APPROVED:
+	case DispatchDraftStatusAPPROVED:
 		return true
-	case CHANGESREQUESTED:
+	case DispatchDraftStatusCHANGESREQUESTED:
 		return true
-	case DRAFT:
+	case DispatchDraftStatusDRAFT:
 		return true
-	case PENDINGREVIEW:
+	case DispatchDraftStatusPENDINGREVIEW:
 		return true
-	case REJECTED:
+	case DispatchDraftStatusREJECTED:
 		return true
 	default:
 		return false
@@ -253,6 +286,51 @@ func (e GenerateDraftCaseRequestDraftType) Valid() bool {
 	}
 }
 
+// Defines values for GeneratedDispatchDraftDraftType.
+const (
+	GeneratedDispatchDraftDraftTypeB2b GeneratedDispatchDraftDraftType = "b2b"
+	GeneratedDispatchDraftDraftTypeB2g GeneratedDispatchDraftDraftType = "b2g"
+)
+
+// Valid indicates whether the value is a known member of the GeneratedDispatchDraftDraftType enum.
+func (e GeneratedDispatchDraftDraftType) Valid() bool {
+	switch e {
+	case GeneratedDispatchDraftDraftTypeB2b:
+		return true
+	case GeneratedDispatchDraftDraftTypeB2g:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GeneratedDispatchDraftStatus.
+const (
+	GeneratedDispatchDraftStatusAPPROVED         GeneratedDispatchDraftStatus = "APPROVED"
+	GeneratedDispatchDraftStatusCHANGESREQUESTED GeneratedDispatchDraftStatus = "CHANGES_REQUESTED"
+	GeneratedDispatchDraftStatusDRAFT            GeneratedDispatchDraftStatus = "DRAFT"
+	GeneratedDispatchDraftStatusPENDINGREVIEW    GeneratedDispatchDraftStatus = "PENDING_REVIEW"
+	GeneratedDispatchDraftStatusREJECTED         GeneratedDispatchDraftStatus = "REJECTED"
+)
+
+// Valid indicates whether the value is a known member of the GeneratedDispatchDraftStatus enum.
+func (e GeneratedDispatchDraftStatus) Valid() bool {
+	switch e {
+	case GeneratedDispatchDraftStatusAPPROVED:
+		return true
+	case GeneratedDispatchDraftStatusCHANGESREQUESTED:
+		return true
+	case GeneratedDispatchDraftStatusDRAFT:
+		return true
+	case GeneratedDispatchDraftStatusPENDINGREVIEW:
+		return true
+	case GeneratedDispatchDraftStatusREJECTED:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GeoJsonFeatureCollectionFeaturesType.
 const (
 	Feature GeoJsonFeatureCollectionFeaturesType = "Feature"
@@ -277,6 +355,36 @@ const (
 func (e GeoJsonFeatureCollectionType) Valid() bool {
 	switch e {
 	case FeatureCollection:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GuardrailCheckCode.
+const (
+	G1 GuardrailCheckCode = "G1"
+	G2 GuardrailCheckCode = "G2"
+	G3 GuardrailCheckCode = "G3"
+	G4 GuardrailCheckCode = "G4"
+	G5 GuardrailCheckCode = "G5"
+	G6 GuardrailCheckCode = "G6"
+)
+
+// Valid indicates whether the value is a known member of the GuardrailCheckCode enum.
+func (e GuardrailCheckCode) Valid() bool {
+	switch e {
+	case G1:
+		return true
+	case G2:
+		return true
+	case G3:
+		return true
+	case G4:
+		return true
+	case G5:
+		return true
+	case G6:
 		return true
 	default:
 		return false
@@ -631,20 +739,28 @@ type AlertStatus string
 // AllocationPlan defines model for AllocationPlan.
 type AllocationPlan struct {
 	Allocations []struct {
-		Amount      float64 `json:"amount"`
-		Beds        *int    `json:"beds,omitempty"`
-		Explanation string  `json:"explanation"`
-		ProvinceId  string  `json:"province_id"`
-		Supplies    *int    `json:"supplies,omitempty"`
-		Teams       *int    `json:"teams,omitempty"`
+		Amount      float64  `json:"amount"`
+		Beds        *int     `json:"beds,omitempty"`
+		CasesPred   *float64 `json:"cases_pred,omitempty"`
+		Explanation string   `json:"explanation"`
+		ProvinceId  string   `json:"province_id"`
+		Supplies    *int     `json:"supplies,omitempty"`
+		Teams       *int     `json:"teams,omitempty"`
 	} `json:"allocations"`
-	Budget                  float64            `json:"budget"`
-	CaseId                  openapi_types.UUID `json:"case_id"`
-	CreatedAt               time.Time          `json:"created_at"`
-	EstimatedCasesPrevented float64            `json:"estimated_cases_prevented"`
-	Id                      openapi_types.UUID `json:"id"`
-	TotalCost               float64            `json:"total_cost"`
+	Budget                  float64              `json:"budget"`
+	CaseId                  openapi_types.UUID   `json:"case_id"`
+	ConfirmedAt             *time.Time           `json:"confirmed_at,omitempty"`
+	ConfirmedBy             *string              `json:"confirmed_by,omitempty"`
+	CreatedAt               time.Time            `json:"created_at"`
+	EstimatedCasesPrevented float64              `json:"estimated_cases_prevented"`
+	Id                      openapi_types.UUID   `json:"id"`
+	Status                  AllocationPlanStatus `json:"status"`
+	TotalCost               float64              `json:"total_cost"`
+	Version                 int                  `json:"version"`
 }
+
+// AllocationPlanStatus defines model for AllocationPlan.Status.
+type AllocationPlanStatus string
 
 // Case defines model for Case.
 type Case struct {
@@ -679,6 +795,38 @@ type CaseDetail struct {
 
 // CaseDetailStatus defines model for CaseDetail.Status.
 type CaseDetailStatus string
+
+// Citation Citation đã xác minh trước khi draft thành công được trả. status=effective biểu thị hiệu lực tại thời điểm sinh; lịch sử giữ nguyên trạng thái tại thời điểm sinh.
+type Citation struct {
+	// DocumentId Định danh ổn định của văn bản trong kho tri thức.
+	DocumentId string `json:"document_id"`
+
+	// DocumentVersion Số/ký hiệu hoặc phiên bản văn bản được truy hồi.
+	DocumentVersion string `json:"document_version"`
+
+	// EffectiveFrom Ngày bắt đầu hiệu lực theo metadata kho tri thức; null nếu văn bản không công bố ngày.
+	EffectiveFrom *openapi_types.Date `json:"effective_from"`
+
+	// EffectiveTo Ngày kết thúc hiệu lực theo metadata kho tri thức; null nếu còn hiệu lực không xác định ngày kết thúc.
+	EffectiveTo *openapi_types.Date `json:"effective_to"`
+	Issuer      string              `json:"issuer"`
+
+	// Provision Điều/Khoản/Mục cụ thể trong tài liệu.
+	Provision string `json:"provision"`
+
+	// Quote Trích đoạn trong đúng điều khoản nêu trên.
+	Quote string `json:"quote"`
+
+	// SourceUrl URL hoặc URI ổn định để mở văn bản nguồn.
+	SourceUrl string `json:"source_url"`
+
+	// Status Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+	Status CitationStatus `json:"status"`
+	Title  string         `json:"title"`
+}
+
+// CitationStatus Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+type CitationStatus string
 
 // CreateAllocationPlanRequest defines model for CreateAllocationPlanRequest.
 type CreateAllocationPlanRequest struct {
@@ -755,11 +903,14 @@ type DispatchDraft struct {
 	CreatedAt   time.Time              `json:"created_at"`
 	CreatedBy   string                 `json:"created_by"`
 	DraftType   DispatchDraftDraftType `json:"draft_type"`
-	Id          openapi_types.UUID     `json:"id"`
-	Status      DispatchDraftStatus    `json:"status"`
-	Title       string                 `json:"title"`
-	UpdatedAt   time.Time              `json:"updated_at"`
-	Version     int                    `json:"version"`
+
+	// GenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+	GenerationEvidence *DraftGenerationEvidence `json:"generation_evidence,omitempty"`
+	Id                 openapi_types.UUID       `json:"id"`
+	Status             DispatchDraftStatus      `json:"status"`
+	Title              string                   `json:"title"`
+	UpdatedAt          time.Time                `json:"updated_at"`
+	Version            int                      `json:"version"`
 }
 
 // DispatchDraftDraftType defines model for DispatchDraft.DraftType.
@@ -787,6 +938,19 @@ type DispatchOrderStatus string
 type DispatchOrderRequest struct {
 	DispatchedBy string `json:"dispatched_by"`
 	Recipient    string `json:"recipient"`
+}
+
+// DraftGenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+type DraftGenerationEvidence struct {
+	Citations   []Citation       `json:"citations"`
+	ContentHash string           `json:"content_hash"`
+	Guardrails  []GuardrailCheck `json:"guardrails"`
+
+	// ModelUsed Tên model thật sự đã gọi; bỏ trống nếu dùng template.
+	ModelUsed *string `json:"model_used,omitempty"`
+
+	// SourceProvenance Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
+	SourceProvenance SlotProvenance `json:"source_provenance"`
 }
 
 // Explanation defines model for Explanation.
@@ -904,11 +1068,38 @@ type ForecastRun struct {
 type GenerateDraftCaseRequest struct {
 	DraftType         GenerateDraftCaseRequestDraftType `json:"draft_type"`
 	ExtraInstructions *string                           `json:"extra_instructions,omitempty"`
-	Title             *string                           `json:"title,omitempty"`
+
+	// PlanId Định danh phương án phân bổ được xác nhận để đưa số liệu kế hoạch vào dự thảo.
+	PlanId *openapi_types.UUID `json:"plan_id,omitempty"`
+	Title  *string             `json:"title,omitempty"`
 }
 
 // GenerateDraftCaseRequestDraftType defines model for GenerateDraftCaseRequest.DraftType.
 type GenerateDraftCaseRequestDraftType string
+
+// GeneratedDispatchDraft defines model for GeneratedDispatchDraft.
+type GeneratedDispatchDraft struct {
+	CaseId      openapi_types.UUID              `json:"case_id"`
+	Content     string                          `json:"content"`
+	ContentHash string                          `json:"content_hash"`
+	CreatedAt   time.Time                       `json:"created_at"`
+	CreatedBy   string                          `json:"created_by"`
+	DraftType   GeneratedDispatchDraftDraftType `json:"draft_type"`
+
+	// GenerationEvidence Bằng chứng tối thiểu để review và truy vết, gắn với content_hash lúc AI tạo; giữ nguyên như lịch sử khi cán bộ sửa draft. Không chứa raw slots, prompt hoặc payload truy hồi nội bộ.
+	GenerationEvidence DraftGenerationEvidence      `json:"generation_evidence"`
+	Id                 openapi_types.UUID           `json:"id"`
+	Status             GeneratedDispatchDraftStatus `json:"status"`
+	Title              string                       `json:"title"`
+	UpdatedAt          time.Time                    `json:"updated_at"`
+	Version            int                          `json:"version"`
+}
+
+// GeneratedDispatchDraftDraftType defines model for GeneratedDispatchDraft.DraftType.
+type GeneratedDispatchDraftDraftType string
+
+// GeneratedDispatchDraftStatus defines model for GeneratedDispatchDraft.Status.
+type GeneratedDispatchDraftStatus string
 
 // GeoJsonFeatureCollection defines model for GeoJsonFeatureCollection.
 type GeoJsonFeatureCollection struct {
@@ -934,6 +1125,52 @@ type GeoJsonFeatureCollectionFeaturesType string
 
 // GeoJsonFeatureCollectionType defines model for GeoJsonFeatureCollection.Type.
 type GeoJsonFeatureCollectionType string
+
+// GuardrailBlockedProblem defines model for GuardrailBlockedProblem.
+type GuardrailBlockedProblem struct {
+	// Code Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+	//
+	// Examples: common.validation_error
+	Code   string  `json:"code"`
+	Detail *string `json:"detail,omitempty"`
+	Errors *[]struct {
+		Field   string `json:"field"`
+		Message string `json:"message"`
+	} `json:"errors,omitempty"`
+
+	// Guardrails Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn.
+	Guardrails []GuardrailCheck `json:"guardrails"`
+	Instance   *string          `json:"instance,omitempty"`
+	RequestId  string           `json:"request_id"`
+	Status     int              `json:"status"`
+	Title      string           `json:"title"`
+	Type       string           `json:"type"`
+}
+
+// GuardrailCheck defines model for GuardrailCheck.
+type GuardrailCheck struct {
+	// Blocking Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6). passed chỉ mô tả kết quả kiểm tra; draft bị chặn khi và chỉ khi có mục passed=false và blocking=true.
+	Blocking *bool `json:"blocking,omitempty"`
+
+	// Code G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+	// G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+	// G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+	// G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+	// G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+	// G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+	Code   GuardrailCheckCode `json:"code"`
+	Detail string             `json:"detail"`
+	Name   string             `json:"name"`
+	Passed bool               `json:"passed"`
+}
+
+// GuardrailCheckCode G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+// G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+// G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+// G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+// G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+// G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
+type GuardrailCheckCode string
 
 // Horizon Tầm dự báo — số tháng tính từ tháng neo (`origin_month`).
 type Horizon int
@@ -1206,6 +1443,27 @@ type RunMode string
 
 // RunStatus defines model for RunStatus.
 type RunStatus string
+
+// SlotProvenance Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
+type SlotProvenance struct {
+	// DataVersion Phiên bản dữ liệu của run_id nếu workflow có.
+	DataVersion *string `json:"data_version,omitempty"`
+
+	// ModelVersion Phiên bản model của run_id nếu workflow có.
+	ModelVersion *string `json:"model_version,omitempty"`
+
+	// PlanHash SHA-256 của snapshot kế hoạch nếu workflow có.
+	PlanHash *string `json:"plan_hash,omitempty"`
+
+	// PlanId Kế hoạch phân bổ đã xác nhận nếu có.
+	PlanId *openapi_types.UUID `json:"plan_id,omitempty"`
+
+	// PlanVersion Phiên bản kế hoạch nếu có.
+	PlanVersion *int `json:"plan_version,omitempty"`
+
+	// SourceFlags Cờ nguồn/dữ liệu của snapshot nếu workflow có.
+	SourceFlags *[]string `json:"source_flags,omitempty"`
+}
 
 // SubmitReviewRequest defines model for SubmitReviewRequest.
 type SubmitReviewRequest struct {
@@ -1486,6 +1744,9 @@ type ServerInterface interface {
 	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
 	// (POST /cases/{case_id}/allocation-plans)
 	CreateAllocationPlan(c *gin.Context, caseId openapi_types.UUID)
+	// ConfirmAllocationPlan Xác nhận phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /cases/{case_id}/allocation-plans/{plan_id}/confirm)
+	ConfirmAllocationPlan(c *gin.Context, caseId openapi_types.UUID, planId openapi_types.UUID)
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /cases/{case_id}/drafts)
 	CreateDraft(c *gin.Context, caseId openapi_types.UUID)
@@ -1750,6 +2011,40 @@ func (siw *ServerInterfaceWrapper) CreateAllocationPlan(c *gin.Context) {
 	}
 
 	siw.Handler.CreateAllocationPlan(c, caseId)
+}
+
+// ConfirmAllocationPlan operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmAllocationPlan(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "plan_id" -------------
+	var planId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "plan_id", c.Param("plan_id"), &planId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter plan_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ConfirmAllocationPlan(c, caseId, planId)
 }
 
 // CreateDraft operation middleware
@@ -2394,6 +2689,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/cases", wrapper.CreateCase)
 	router.GET(options.BaseURL+"/cases/:case_id", wrapper.GetCase)
 	router.POST(options.BaseURL+"/cases/:case_id/allocation-plans", wrapper.CreateAllocationPlan)
+	router.POST(options.BaseURL+"/cases/:case_id/allocation-plans/:plan_id/confirm", wrapper.ConfirmAllocationPlan)
 	router.POST(options.BaseURL+"/cases/:case_id/drafts", wrapper.CreateDraft)
 	router.POST(options.BaseURL+"/cases/:case_id/drafts/generate", wrapper.GenerateDraftForCase)
 	router.GET(options.BaseURL+"/drafts/:draft_id", wrapper.GetDraft)
@@ -2982,6 +3278,93 @@ func (response CreateAllocationPlan404ApplicationProblemPlusJSONResponse) VisitC
 	return err
 }
 
+type ConfirmAllocationPlanRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	PlanId openapi_types.UUID `json:"plan_id"`
+}
+
+type ConfirmAllocationPlanResponseObject interface {
+	VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error
+}
+
+type ConfirmAllocationPlan200JSONResponse AllocationPlan
+
+func (response ConfirmAllocationPlan200JSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAllocationPlan400ApplicationProblemPlusJSONResponse struct {
+	ValidationErrorApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAllocationPlan400ApplicationProblemPlusJSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAllocationPlan401ApplicationProblemPlusJSONResponse struct {
+	UnauthorizedApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAllocationPlan401ApplicationProblemPlusJSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAllocationPlan403ApplicationProblemPlusJSONResponse struct {
+	ForbiddenApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAllocationPlan403ApplicationProblemPlusJSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAllocationPlan404ApplicationProblemPlusJSONResponse struct {
+	NotFoundApplicationProblemPlusJSONResponse
+}
+
+func (response ConfirmAllocationPlan404ApplicationProblemPlusJSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type CreateDraftRequestObject struct {
 	CaseId openapi_types.UUID `json:"case_id"`
 	Body   *CreateDraftJSONRequestBody
@@ -3078,7 +3461,7 @@ type GenerateDraftForCaseResponseObject interface {
 	VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error
 }
 
-type GenerateDraftForCase201JSONResponse DispatchDraft
+type GenerateDraftForCase201JSONResponse GeneratedDispatchDraft
 
 func (response GenerateDraftForCase201JSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
 
@@ -3152,6 +3535,20 @@ func (response GenerateDraftForCase404ApplicationProblemPlusJSONResponse) VisitG
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GenerateDraftForCase422ApplicationProblemPlusJSONResponse GuardrailBlockedProblem
+
+func (response GenerateDraftForCase422ApplicationProblemPlusJSONResponse) VisitGenerateDraftForCaseResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -4343,6 +4740,9 @@ type StrictServerInterface interface {
 	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
 	// (POST /cases/{case_id}/allocation-plans)
 	CreateAllocationPlan(ctx context.Context, request CreateAllocationPlanRequestObject) (CreateAllocationPlanResponseObject, error)
+	// ConfirmAllocationPlan Xác nhận phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /cases/{case_id}/allocation-plans/{plan_id}/confirm)
+	ConfirmAllocationPlan(ctx context.Context, request ConfirmAllocationPlanRequestObject) (ConfirmAllocationPlanResponseObject, error)
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /cases/{case_id}/drafts)
 	CreateDraft(ctx context.Context, request CreateDraftRequestObject) (CreateDraftResponseObject, error)
@@ -4708,6 +5108,33 @@ func (sh *strictHandler) CreateAllocationPlan(ctx *gin.Context, caseId openapi_t
 		sh.options.HandlerErrorFunc(ctx, err)
 	} else if validResponse, ok := response.(CreateAllocationPlanResponseObject); ok {
 		if err := validResponse.VisitCreateAllocationPlanResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ConfirmAllocationPlan operation middleware
+func (sh *strictHandler) ConfirmAllocationPlan(ctx *gin.Context, caseId openapi_types.UUID, planId openapi_types.UUID) {
+	var request ConfirmAllocationPlanRequestObject
+
+	request.CaseId = caseId
+	request.PlanId = planId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ConfirmAllocationPlan(ctx, request.(ConfirmAllocationPlanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ConfirmAllocationPlan")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ConfirmAllocationPlanResponseObject); ok {
+		if err := validResponse.VisitConfirmAllocationPlanResponse(ctx.Writer); err != nil {
 			sh.options.ResponseErrorHandlerFunc(ctx, err)
 		}
 	} else if response != nil {

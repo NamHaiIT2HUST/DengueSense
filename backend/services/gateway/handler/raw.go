@@ -75,6 +75,8 @@ func (r Raw) VisitGetCaseResponse(w http.ResponseWriter) error { return r.write(
 
 func (r Raw) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error { return r.write(w) }
 
+func (r Raw) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error { return r.write(w) }
+
 func (r Raw) VisitCreateDraftResponse(w http.ResponseWriter) error { return r.write(w) }
 
 func (r Raw) VisitGetDraftResponse(w http.ResponseWriter) error { return r.write(w) }

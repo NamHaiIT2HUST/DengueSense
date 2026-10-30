@@ -233,4 +233,20 @@ describe("CaseDetailPage (S7 Chi tiết hồ sơ & S8 Phân bổ nguồn lực)"
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
   });
+
+  it("cho phép officer xác nhận phương án phân bổ từ giao diện", async () => {
+    const user = userEvent.setup();
+    renderCaseDetail("case-central-2010-06");
+
+    expect(await screen.findByText("Bản nháp (chưa xác nhận)")).toBeInTheDocument();
+
+    const confirmBtn = screen.getByRole("button", { name: /Xác nhận phương án/i });
+    expect(confirmBtn).toBeInTheDocument();
+
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Đã xác nhận \(v1\)/i)).toBeInTheDocument();
+    });
+  });
 });

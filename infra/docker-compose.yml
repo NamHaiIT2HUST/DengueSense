@@ -79,6 +79,7 @@ services:
       GATEWAY_FORECAST_URL: "http://forecast:8001"
       GATEWAY_WORKFLOW_URL: "http://workflow:8001"
       GATEWAY_SERVICE_CLIENT_SECRET: "${GATEWAY_SERVICE_CLIENT_SECRET:?thiếu GATEWAY_SERVICE_CLIENT_SECRET - xem infra/README.md}"
+      GATEWAY_UPSTREAM_TIMEOUT: "${GATEWAY_UPSTREAM_TIMEOUT:-5s}"
       # Cookie refresh luôn có cờ Secure trừ khi tắt tường minh (chỉ dev qua http với tên miền khác localhost).
       GATEWAY_COOKIE_SECURE: "${GATEWAY_COOKIE_SECURE:-true}"
     depends_on:
@@ -137,6 +138,7 @@ services:
       # SHA-256 của client_secret từng service (bí mật gốc nằm ở phía service gọi, không ở đây).
       IDENTITY_SERVICE_SECRET_SHA256_GATEWAY: "${IDENTITY_SERVICE_SECRET_SHA256_GATEWAY:-}"
       IDENTITY_SERVICE_SECRET_SHA256_FORECAST: "${IDENTITY_SERVICE_SECRET_SHA256_FORECAST:-}"
+      IDENTITY_SERVICE_SECRET_SHA256_WORKFLOW: "${IDENTITY_SERVICE_SECRET_SHA256_WORKFLOW:-}"
     depends_on:
       identity-migrate:
         condition: service_completed_successfully
@@ -307,6 +309,9 @@ services:
       NATS_URL: nats://nats:4222
       FORECAST_API_URL: http://forecast:8001/internal/v1
       GENAI_API_URL: http://genai:8001/internal/v1
+      WORKFLOW_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY}"
+      WORKFLOW_IDENTITY_URL: http://identity:8081
+      WORKFLOW_SERVICE_CLIENT_SECRET: "${WORKFLOW_SERVICE_CLIENT_SECRET:-}"
       OPTIMIZE_API_URL: http://optimize:8001/internal/v1
     depends_on:
       workflow-migrate:
@@ -398,6 +403,10 @@ services:
         VERSION: ${BUILD_VERSION:-dev}
     image: denguesense/genai:${BUILD_VERSION:-dev}
     restart: unless-stopped
+    environment:
+      GENAI_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GENAI_DEMO_MODE: "${GENAI_DEMO_MODE:-false}"
     command: ["uvicorn", "app.serving.genai_api.main:app", "--host", "0.0.0.0", "--port", "8001", "--no-access-log"]
     networks: [core]
     read_only: true

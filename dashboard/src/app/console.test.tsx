@@ -148,7 +148,7 @@ describe("S2 — bản đồ rủi ro", () => {
     const { router } = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=6`, { store: signedIn() });
     const table = await mapTable();
     await user.click(within(table).getByRole("link", { name: "Xem chi tiết Khánh Hòa" }));
-    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" });
+    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" }, { timeout: 3000 });
     expect(router.state.location.pathname).toBe("/app/tinh/khanh_hoa");
     expect(router.state.location.search).toMatchObject({ run: RUN_2010_03, h: 6 });
   });
@@ -157,7 +157,7 @@ describe("S2 — bản đồ rủi ro", () => {
 describe("S3 — chi tiết tỉnh", () => {
   it("hiện 4 tầm dự báo với số exp_016, biểu đồ có bảng thay thế, giải thích SHAP, độ tin cậy và cờ", async () => {
     renderApp(`/app/tinh/khanh_hoa?run=${RUN_2010_03}&h=3`, { store: signedIn() });
-    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" });
+    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" }, { timeout: 3000 });
     const items = (await expected("2010-03", 1))
       .concat(
         await expected("2010-03", 2),

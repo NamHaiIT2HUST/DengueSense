@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: DengueSense genai — API nội bộ
-  version: 1.0.0-draft.1
+  version: 1.0.0-draft.2
   description: |
     Service `genai` (Layer 3, Python/FastAPI): RAG sinh dự thảo văn bản chỉ đạo/báo cáo y tế và bộ kiểm soát Guardrails G1-G6.
 servers:
@@ -23,11 +23,21 @@ paths:
               $ref: "#/components/schemas/GenerateDraftRequest"
       responses:
         "200":
-          description: Dự thảo được sinh thành công
+          description: Trả draft nếu không có guardrail chặn. G6 có thể trả passed=false với blocking=false để yêu cầu rà soát thủ công.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenerateDraftResponse"
+        "401":
+          description: Thiếu hoặc sai token dịch vụ.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+        "422":
+          description: Guardrail chặn; không có nội dung dự thảo trong response.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/GuardrailBlockedProblem" }
 
 components:
   securitySchemes:
@@ -46,12 +56,16 @@ components:
           description: |
             b2b: Báo cáo chuyên môn y tế / dịch tễ nội bộ.
             b2g: Công điện / văn bản chỉ đạo điều hành gửi lãnh đạo, cơ quan ban ngành.
+        case_id:
+          type: string
+          format: uuid
+          description: Hồ sơ workflow liên quan; không thay thế nguồn dữ liệu hoặc provenance đã xác thực trong slots.
         title:
           type: string
           description: Tiêu đề gợi ý (nếu có)
         slots:
           type: object
-          description: Các slot số liệu đã khóa từ Layer 1 (Dự báo) và Layer 2 (Phân bổ)
+          description: Workflow là nguồn xác thực duy nhất; dựng các giá trị có sẵn từ snapshot Layer 1/2 và kế hoạch phân bổ. Không nhận dữ liệu do người dùng hoặc LLM tự khai làm bằng chứng. Chỉ run_id và province_ids bắt buộc; các slot còn lại tùy chọn khi nguồn tương ứng chưa có.
           required: [province_ids, run_id]
           properties:
             run_id:
@@ -68,13 +82,24 @@ components:
               type: number
             budget_allocated:
               type: number
+            beds_allocated:
+              type: integer
+              minimum: 0
+            supplies_allocated:
+              type: integer
+              minimum: 0
+            teams_allocated:
+              type: integer
+              minimum: 0
             summary_points:
               type: array
               items:
                 type: string
+            provenance:
+              $ref: "#/components/schemas/SlotProvenance"
         extra_instructions:
           type: string
-          description: Ghi chú bổ sung từ Officer soạn thảo
+          description: Ghi chú trình bày từ Officer; không được dùng làm bằng chứng dữ liệu, địa danh hoặc căn cứ pháp lý.
 
     GuardrailCheck:
       type: object
@@ -84,22 +109,26 @@ components:
           type: string
           enum: [G1, G2, G3, G4, G5, G6]
           description: |
-            G1: Không chẩn đoán bệnh cá nhân.
-            G2: Khớp số liệu định lượng với Layer 1 & 2.
-            G3: Kiểm soát giọng văn, không gây hoang mang dư luận.
-            G4: Trích dẫn quy chuẩn Bộ Y tế / căn cứ pháp lý.
-            G5: Không bịa đặt chính sách / ảo giác chính sách.
-            G6: Bảo vệ bí mật thông tin cá nhân (PII).
+            G1: Không có số liệu ngoài tập giá trị được xác nhận từ slots Layer 1/2.
+            G2: Mọi địa danh khớp danh mục hành chính hợp lệ.
+            G3: Mọi trích dẫn tồn tại trong kho, đúng điều khoản và còn hiệu lực.
+            G4: Đủ thành phần thể thức bắt buộc theo loại văn bản.
+            G5: Không có chẩn đoán cá nhân, chỉ định thuốc/liều dùng, khuyến cáo ngoài phạm vi được duyệt hoặc PII.
+            G6: Đánh dấu để cán bộ rà soát khi độ dài ngoài khoảng kỳ vọng; không tự chặn.
         name:
           type: string
         passed:
           type: boolean
         detail:
           type: string
+        blocking:
+          type: boolean
+          default: true
+          description: Mặc định true nếu không truyền. false biểu thị cờ rà soát thủ công, không tự chặn draft (dùng cho G6). passed chỉ mô tả kết quả kiểm tra; draft bị chặn khi và chỉ khi có mục passed=false và blocking=true.
 
     GenerateDraftResponse:
       type: object
-      required: [title, content, all_guardrails_passed, guardrails]
+      required: [title, content, all_guardrails_passed, guardrails, content_hash, citations]
       properties:
         title:
           type: string
@@ -108,7 +137,97 @@ components:
           description: Văn bản dự thảo hoàn chỉnh
         all_guardrails_passed:
           type: boolean
+          description: true khi không có mục guardrails nào đồng thời passed=false và blocking=true; false khi tồn tại ít nhất một mục như vậy. Cờ passed=false với blocking=false (như G6) không làm giá trị này false.
         guardrails:
           type: array
           items:
             $ref: "#/components/schemas/GuardrailCheck"
+        draft_type:
+          type: string
+          enum: [b2b, b2g]
+        content_hash:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+          description: SHA-256 của UTF-8 content.
+        citations:
+          type: array
+          description: Chỉ chứa nguồn được truy hồi và kiểm tra hiệu lực; không được tạo từ văn bản của LLM.
+          items:
+            $ref: "#/components/schemas/Citation"
+        model_used:
+          type: string
+          description: Tên model thật sự đã gọi; bỏ trống khi dùng template hoặc không có LLM.
+
+    SlotProvenance:
+      type: object
+      description: Tham chiếu do workflow ghi nhận từ nguồn Layer 1/2. Mọi thuộc tính tùy chọn; chỉ gửi định danh nguồn mà workflow thực sự có. Không chứa giá trị slot, prompt hoặc payload nội bộ.
+      properties:
+        model_version: { type: string, description: Phiên bản model của run_id nếu workflow có. }
+        data_version: { type: string, description: Phiên bản dữ liệu của run_id nếu workflow có. }
+        plan_id: { type: string, format: uuid, description: Kế hoạch phân bổ đã xác nhận nếu có. }
+        plan_version: { type: integer, minimum: 1, description: Phiên bản kế hoạch nếu có. }
+        plan_hash:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+          description: SHA-256 của snapshot kế hoạch nếu workflow có.
+        source_flags:
+          type: array
+          description: Cờ nguồn/dữ liệu của snapshot nếu workflow có.
+          items: { type: string }
+
+    Citation:
+      type: object
+      required: [document_id, title, issuer, document_version, status, effective_from, effective_to, provision, quote, source_url]
+      description: Citation đã xác minh trước khi draft thành công được trả. status=effective biểu thị hiệu lực tại thời điểm sinh; lịch sử giữ nguyên trạng thái tại thời điểm sinh.
+      properties:
+        document_id: { type: string, description: Định danh ổn định của văn bản trong kho tri thức. }
+        title: { type: string }
+        issuer: { type: string }
+        document_version: { type: string, description: Số/ký hiệu hoặc phiên bản văn bản được truy hồi. }
+        status:
+          type: string
+          const: effective
+          description: Chỉ citation còn hiệu lực tại thời điểm sinh mới được trả trong response thành công.
+        effective_from: { type: [string, "null"], format: date, description: Ngày bắt đầu hiệu lực theo metadata kho tri thức; null nếu văn bản không công bố ngày. }
+        effective_to: { type: [string, "null"], format: date, description: Ngày kết thúc hiệu lực theo metadata kho tri thức; null nếu còn hiệu lực không xác định ngày kết thúc. }
+        provision:
+          type: string
+          description: Điều/Khoản/Mục cụ thể trong tài liệu.
+        quote: { type: string, description: Trích đoạn trong đúng điều khoản nêu trên. }
+        source_url: { type: string, format: uri, description: URL hoặc URI ổn định để mở văn bản nguồn. }
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details (docs/09 §6.3).
+      required: [type, title, status, code, request_id]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        code:
+          type: string
+          description: Mã lỗi ổn định dạng `<service>.<snake_case>` — danh mục ở contracts/errors.md.
+          examples: ["common.validation_error"]
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }
+
+    GuardrailBlockedProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          required: [guardrails]
+          properties:
+            guardrails:
+              type: array
+              description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn.
+              items:
+                $ref: "#/components/schemas/GuardrailCheck"
