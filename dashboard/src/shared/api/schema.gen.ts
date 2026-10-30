@@ -413,6 +413,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/cases/{case_id}/allocation-plans/{plan_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Xác nhận phương án phân bổ nguồn lực cho hồ sơ */
+        post: operations["confirmAllocationPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/cases/{case_id}/drafts": {
         parameters: {
             query?: never;
@@ -958,7 +975,19 @@ export interface components {
                 beds?: number;
                 supplies?: number;
                 teams?: number;
+                /** Format: double */
+                cases_pred?: number;
             }[];
+            /**
+             * @default draft
+             * @enum {string}
+             */
+            status: "draft" | "confirmed";
+            /** @default 1 */
+            version: number;
+            confirmed_by?: string;
+            /** Format: date-time */
+            confirmed_at?: string;
             /** Format: date-time */
             created_at: string;
         };
@@ -1834,6 +1863,33 @@ export interface operations {
         responses: {
             /** @description Tạo phương án thành công. */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllocationPlan"];
+                };
+            };
+            400: components["responses"]["ValidationError"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    confirmAllocationPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Xác nhận phương án thành công. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

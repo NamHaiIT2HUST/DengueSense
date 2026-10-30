@@ -317,6 +317,13 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 							totalCost = optResp.TotalCost
 							prevented = optResp.EstimatedCasesPrevented
 							for _, a := range optResp.Allocations {
+								var casesPred float64
+								for _, reqItem := range req.Items {
+									if reqItem.ProvinceId == a.ProvinceID {
+										casesPred = reqItem.CasesPred
+										break
+									}
+								}
 								allocItems = append(allocItems, domain.AllocationItem{
 									ProvinceID:  a.ProvinceID,
 									Amount:      a.Amount,
@@ -324,6 +331,7 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 									Beds:        a.Beds,
 									Supplies:    a.Supplies,
 									Teams:       a.Teams,
+									CasesPred:   casesPred,
 								})
 							}
 							calledOptimize = true
@@ -357,6 +365,7 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 					Beds:        beds,
 					Supplies:    supplies,
 					Teams:       teams,
+					CasesPred:   it.CasesPred,
 				})
 				totalCost += it.Cost
 				prevented += it.CasesPred * 0.28
@@ -371,6 +380,8 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 		TotalCost:               totalCost,
 		EstimatedCasesPrevented: prevented,
 		Allocations:             allocItems,
+		Status:                  domain.AllocationPlanStatusDraft,
+		Version:                 1,
 		CreatedAt:               time.Now().UTC(),
 	}
 
@@ -380,6 +391,21 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 	}
 
 	c.JSON(http.StatusCreated, mapPlanToAPI(plan))
+}
+
+// ConfirmAllocationPlan implements api.ServerInterface
+func (s *Server) ConfirmAllocationPlan(c *gin.Context, caseId uuid.UUID, planId uuid.UUID) {
+	ctx := c.Request.Context()
+	confirmedBy := "officer"
+	if caller := c.GetString("user_id"); caller != "" {
+		confirmedBy = caller
+	}
+	plan, err := s.repo.ConfirmAllocationPlan(ctx, caseId, planId, confirmedBy)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hoặc không thể xác nhận phương án phân bổ"})
+		return
+	}
+	c.JSON(http.StatusOK, mapPlanToAPI(plan))
 }
 
 // ---------------------------------------------------------------------
@@ -451,9 +477,6 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		return
 	}
 	slots := map[string]any{"run_id": run.String(), "province_ids": provinces}
-	if !latestAlertCreatedAt.IsZero() {
-		slots["origin_month"] = latestAlertCreatedAt.Format("2006-01")
-	}
 	provenance := api.SlotProvenance{}
 
 	// Rà soát và xác nhận phương án phân bổ cho hồ sơ
@@ -470,15 +493,27 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 			c.JSON(400, gin.H{"error": "Không tìm thấy phương án phân bổ được chỉ định"})
 			return
 		}
-	} else if len(plans) > 0 {
-		selectedPlan = &plans[0]
+		if selectedPlan.Status != domain.AllocationPlanStatusConfirmed {
+			c.JSON(400, gin.H{"error": "Phương án phân bổ chưa được xác nhận"})
+			return
+		}
+	} else {
+		for i := range plans {
+			if plans[i].Status == domain.AllocationPlanStatusConfirmed {
+				selectedPlan = &plans[i]
+				break
+			}
+		}
 	}
 
 	if selectedPlan != nil {
 		planSnapshot, err := json.Marshal(selectedPlan)
 		if err == nil {
 			planHash := domain.ComputeHash(string(planSnapshot))
-			planVersion := 1
+			planVersion := selectedPlan.Version
+			if planVersion <= 0 {
+				planVersion = 1
+			}
 			provenance.PlanId = &selectedPlan.ID
 			provenance.PlanVersion = &planVersion
 			provenance.PlanHash = &planHash
@@ -486,8 +521,12 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 			if selectedPlan.TotalCost > 0 {
 				slots["budget_allocated"] = selectedPlan.TotalCost
 			}
-			if selectedPlan.EstimatedCasesPrevented > 0 {
-				slots["cases_predicted_total"] = math.Round(selectedPlan.EstimatedCasesPrevented * 4.2)
+			totalCasesPred := 0.0
+			for _, a := range selectedPlan.Allocations {
+				totalCasesPred += a.CasesPred
+			}
+			if totalCasesPred > 0 {
+				slots["cases_predicted_total"] = math.Round(totalCasesPred)
 			}
 			totalBeds := 0
 			totalSupplies := 0
@@ -613,6 +652,15 @@ func validGuardrails(checks []api.GuardrailCheck) bool {
 func validCitations(citations []api.Citation) bool {
 	for _, c := range citations {
 		if c.DocumentId == "" || c.Title == "" || c.Issuer == "" || c.DocumentVersion == "" || string(c.Status) != "effective" || c.Provision == "" || c.Quote == "" || c.SourceUrl == "" {
+			return false
+		}
+		if !strings.HasPrefix(c.DocumentId, "vn-") {
+			return false
+		}
+		if !strings.HasPrefix(c.SourceUrl, "https://") {
+			return false
+		}
+		if len(strings.TrimSpace(c.Provision)) < 5 || len(strings.TrimSpace(c.Quote)) < 10 {
 			return false
 		}
 	}
@@ -800,21 +848,23 @@ func mapDraftToAPI(d *domain.DispatchDraft) api.DispatchDraft {
 
 func mapPlanToAPI(plan *domain.AllocationPlan) api.AllocationPlan {
 	var apiAllocs []struct {
-		Amount      float64 `json:"amount"`
-		Beds        *int    `json:"beds,omitempty"`
-		Explanation string  `json:"explanation"`
-		ProvinceId  string  `json:"province_id"`
-		Supplies    *int    `json:"supplies,omitempty"`
-		Teams       *int    `json:"teams,omitempty"`
+		Amount      float64  `json:"amount"`
+		Beds        *int     `json:"beds,omitempty"`
+		CasesPred   *float64 `json:"cases_pred,omitempty"`
+		Explanation string   `json:"explanation"`
+		ProvinceId  string   `json:"province_id"`
+		Supplies    *int     `json:"supplies,omitempty"`
+		Teams       *int     `json:"teams,omitempty"`
 	}
 	for _, a := range plan.Allocations {
 		item := struct {
-			Amount      float64 `json:"amount"`
-			Beds        *int    `json:"beds,omitempty"`
-			Explanation string  `json:"explanation"`
-			ProvinceId  string  `json:"province_id"`
-			Supplies    *int    `json:"supplies,omitempty"`
-			Teams       *int    `json:"teams,omitempty"`
+			Amount      float64  `json:"amount"`
+			Beds        *int     `json:"beds,omitempty"`
+			CasesPred   *float64 `json:"cases_pred,omitempty"`
+			Explanation string   `json:"explanation"`
+			ProvinceId  string   `json:"province_id"`
+			Supplies    *int     `json:"supplies,omitempty"`
+			Teams       *int     `json:"teams,omitempty"`
 		}{
 			ProvinceId:  a.ProvinceID,
 			Amount:      a.Amount,
@@ -832,7 +882,20 @@ func mapPlanToAPI(plan *domain.AllocationPlan) api.AllocationPlan {
 			teams := a.Teams
 			item.Teams = &teams
 		}
+		if a.CasesPred > 0 {
+			cases := a.CasesPred
+			item.CasesPred = &cases
+		}
 		apiAllocs = append(apiAllocs, item)
+	}
+
+	status := api.Draft
+	if plan.Status == domain.AllocationPlanStatusConfirmed {
+		status = api.Confirmed
+	}
+	version := plan.Version
+	if version <= 0 {
+		version = 1
 	}
 
 	return api.AllocationPlan{
@@ -842,6 +905,10 @@ func mapPlanToAPI(plan *domain.AllocationPlan) api.AllocationPlan {
 		TotalCost:               plan.TotalCost,
 		EstimatedCasesPrevented: plan.EstimatedCasesPrevented,
 		Allocations:             apiAllocs,
+		Status:                  status,
+		Version:                 version,
+		ConfirmedBy:             plan.ConfirmedBy,
+		ConfirmedAt:             plan.ConfirmedAt,
 		CreatedAt:               plan.CreatedAt,
 	}
 }

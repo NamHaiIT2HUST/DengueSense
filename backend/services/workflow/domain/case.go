@@ -15,6 +15,13 @@ const (
 	CaseStatusArchived  CaseStatus = "archived"
 )
 
+type AllocationPlanStatus string
+
+const (
+	AllocationPlanStatusDraft     AllocationPlanStatus = "draft"
+	AllocationPlanStatusConfirmed AllocationPlanStatus = "confirmed"
+)
+
 type Case struct {
 	ID        uuid.UUID
 	Title     string
@@ -32,6 +39,7 @@ type AllocationItem struct {
 	Beds        int     `json:"beds,omitempty"`
 	Supplies    int     `json:"supplies,omitempty"`
 	Teams       int     `json:"teams,omitempty"`
+	CasesPred   float64 `json:"cases_pred,omitempty"`
 }
 
 type AllocationPlan struct {
@@ -41,6 +49,10 @@ type AllocationPlan struct {
 	TotalCost               float64
 	EstimatedCasesPrevented float64
 	Allocations             []AllocationItem
+	Status                  AllocationPlanStatus
+	Version                 int
+	ConfirmedBy             *string
+	ConfirmedAt             *time.Time
 	CreatedAt               time.Time
 }
 
@@ -53,4 +65,5 @@ type CaseRepository interface {
 
 	CreateAllocationPlan(ctx context.Context, plan *AllocationPlan) error
 	ListAllocationPlansByCase(ctx context.Context, caseID uuid.UUID) ([]AllocationPlan, error)
+	ConfirmAllocationPlan(ctx context.Context, caseID, planID uuid.UUID, confirmedBy string) (*AllocationPlan, error)
 }

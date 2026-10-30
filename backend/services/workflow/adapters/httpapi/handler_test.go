@@ -128,6 +128,22 @@ func (m *MockRepo) ListAllocationPlansByCase(_ context.Context, caseID uuid.UUID
 	return m.allocationPlans[caseID], nil
 }
 
+func (m *MockRepo) ConfirmAllocationPlan(_ context.Context, caseID, planID uuid.UUID, confirmedBy string) (*domain.AllocationPlan, error) {
+	plans := m.allocationPlans[caseID]
+	for i := range plans {
+		if plans[i].ID == planID {
+			now := time.Now().UTC()
+			plans[i].Status = domain.AllocationPlanStatusConfirmed
+			plans[i].ConfirmedBy = &confirmedBy
+			plans[i].ConfirmedAt = &now
+			m.allocationPlans[caseID] = plans
+			ret := plans[i]
+			return &ret, nil
+		}
+	}
+	return nil, fmt.Errorf("plan not found")
+}
+
 func (m *MockRepo) CreateDraft(_ context.Context, draft *domain.DispatchDraft) error {
 	m.drafts[draft.ID] = draft
 	return nil
@@ -454,7 +470,32 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			content := "Kính gửi UBND TP: Đề xuất triển khai biện pháp khẩn cấp theo Quyết định 3711/QĐ-BYT."
-			_ = json.NewEncoder(w).Encode(map[string]any{"title": "Công điện", "content": content, "content_hash": domain.ComputeHash(content), "all_guardrails_passed": true, "guardrails": []any{map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""}, map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""}, map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""}, map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""}, map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""}, map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false}}, "citations": []any{}})
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"title":                 "Công điện",
+				"content":               content,
+				"content_hash":          domain.ComputeHash(content),
+				"all_guardrails_passed": true,
+				"guardrails": []any{
+					map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""},
+					map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""},
+					map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""},
+					map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""},
+					map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""},
+					map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false},
+				},
+				"citations": []any{
+					map[string]any{
+						"document_id":      "vn-moh-qd3711-2014",
+						"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+						"issuer":           "Bộ Y tế",
+						"document_version": "3711/QĐ-BYT",
+						"status":           "effective",
+						"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+						"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+						"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+					},
+				},
+			})
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)
@@ -587,7 +628,18 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 					map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""},
 					map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false},
 				},
-				"citations": []any{},
+				"citations": []any{
+					map[string]any{
+						"document_id":      "vn-ttg-qd02-2016",
+						"title":            "Quy định điều kiện công bố dịch, công bố hết dịch bệnh truyền nhiễm",
+						"issuer":           "Thủ tướng Chính phủ",
+						"document_version": "02/2016/QĐ-TTg",
+						"status":           "effective",
+						"provision":        "Điều 2, Khoản 1, Điểm b. Điều kiện công bố dịch bệnh truyền nhiễm",
+						"quote":            "Có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ trong 3 năm gần nhất;",
+						"source_url":       "https://vbpl.moj.gov.vn/bovanhoathethao/Pages/vbpq-toanvan.aspx?ItemID=97045",
+					},
+				},
 			})
 			return
 		}
@@ -618,13 +670,15 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 		TotalCost:               480000000,
 		EstimatedCasesPrevented: 100,
 		Allocations: []domain.AllocationItem{
-			{ProvinceID: "ha_noi", Amount: 480000000, Beds: 15, Supplies: 100, Teams: 3, Explanation: "Điều phối"},
+			{ProvinceID: "ha_noi", Amount: 480000000, Beds: 15, Supplies: 100, Teams: 3, CasesPred: 120, Explanation: "Điều phối"},
 		},
+		Status:    domain.AllocationPlanStatusDraft,
+		Version:   1,
 		CreatedAt: time.Now().UTC(),
 	}
 	_ = repo.CreateAllocationPlan(context.Background(), plan)
 
-	// Call GenerateDraft with confirmed plan_id
+	// Step 1: Call GenerateDraft with UNCONFIRMED plan_id -> should return 400
 	planIDStr := plan.ID.String()
 	genPayload := map[string]any{
 		"draft_type": "b2g",
@@ -634,6 +688,31 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for unconfirmed plan, got %d: %s", w.Code, w.Body.String())
+	}
+
+	// Step 2: Confirm plan via endpoint
+	confirmReq := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans/%s/confirm", cID, planIDStr), nil)
+	wConfirm := httptest.NewRecorder()
+	r.ServeHTTP(wConfirm, confirmReq)
+	if wConfirm.Code != http.StatusOK {
+		t.Fatalf("expected 200 on confirm, got %d: %s", wConfirm.Code, wConfirm.Body.String())
+	}
+	var confirmedPlan api.AllocationPlan
+	if err := json.Unmarshal(wConfirm.Body.Bytes(), &confirmedPlan); err != nil {
+		t.Fatalf("failed to decode confirmed plan: %v", err)
+	}
+	if confirmedPlan.Status != api.Confirmed {
+		t.Fatalf("expected confirmed status, got %s", confirmedPlan.Status)
+	}
+
+	// Step 3: Call GenerateDraft with CONFIRMED plan_id -> should succeed with 201
+	req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusCreated {
@@ -649,9 +728,26 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 	if capturedSlots["beds_allocated"] != float64(15) && capturedSlots["beds_allocated"] != 15 {
 		t.Errorf("expected beds 15, got %v", capturedSlots["beds_allocated"])
 	}
+	if capturedSlots["supplies_allocated"] != float64(100) && capturedSlots["supplies_allocated"] != 100 {
+		t.Errorf("expected supplies 100, got %v", capturedSlots["supplies_allocated"])
+	}
+	if capturedSlots["teams_allocated"] != float64(3) && capturedSlots["teams_allocated"] != 3 {
+		t.Errorf("expected teams 3, got %v", capturedSlots["teams_allocated"])
+	}
+	// Verify that predicted cases matches CasesPred (120), NOT estimated_cases_prevented * 4.2 (420)
+	if capturedSlots["cases_predicted_total"] != float64(120) {
+		t.Errorf("expected cases_predicted_total 120 from CasesPred, got %v", capturedSlots["cases_predicted_total"])
+	}
+	// Verify alert creation month is NOT mislabeled as origin_month
+	if capturedSlots["origin_month"] != nil {
+		t.Errorf("expected origin_month to be nil when not from forecast model, got %v", capturedSlots["origin_month"])
+	}
 	provenance, ok := capturedSlots["provenance"].(map[string]any)
 	if !ok || provenance["plan_id"] != plan.ID.String() {
 		t.Errorf("expected provenance plan_id %s, got %v", plan.ID.String(), provenance)
+	}
+	if provenance["plan_version"] != float64(1) {
+		t.Errorf("expected provenance plan_version 1, got %v", provenance["plan_version"])
 	}
 	if provenance["plan_hash"] == nil || provenance["plan_hash"] == "" {
 		t.Error("expected non-empty plan_hash")

@@ -66,8 +66,8 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2014-09-19",
         "effective_to": None,
-        "provision": "Mục IV. Giám sát véc tơ truyền bệnh và xử lý ổ dịch",
-        "quote": "Chỉ số mật độ muỗi (DI), chỉ số nhà có bọ gậy (HI), chỉ số Breteau (BI >= 30) là ngưỡng nguy cơ bùng phát dịch cần triển khai ngay các biện pháp can thiệp xử lý ổ dịch.",
+        "provision": "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+        "quote": "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
         "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
     },
     {
@@ -78,9 +78,9 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2016-03-15",
         "effective_to": None,
-        "provision": "Điều 3. Điều kiện công bố dịch bệnh truyền nhiễm",
-        "quote": "Bệnh truyền nhiễm thuộc nhóm B có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ trong 3 năm gần nhất hoặc khi có diễn biến bất thường.",
-        "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=183327",
+        "provision": "Điều 2, Khoản 1, Điểm b. Điều kiện công bố dịch bệnh truyền nhiễm",
+        "quote": "Có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ trong 3 năm gần nhất;",
+        "source_url": "https://vbpl.moj.gov.vn/bovanhoathethao/Pages/vbpq-toanvan.aspx?ItemID=97045",
     },
     {
         "document_id": "vn-nd30-2020",
@@ -90,8 +90,8 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2020-03-05",
         "effective_to": None,
-        "provision": "Điều 10 và Phụ lục I - Thể thức văn bản hành chính",
-        "quote": "Văn bản hành chính điện tử phải có đầy đủ thể thức, số hiệu, ngày tháng năm, thẩm quyền ban hành và chữ ký số hợp lệ theo quy định pháp luật.",
+        "provision": "Điều 8, Khoản 1 và Điều 12, Khoản 6. Thể thức văn bản và ký số văn bản điện tử",
+        "quote": "Văn bản điện tử phải có chữ ký số của người có thẩm quyền và chữ ký số của cơ quan, tổ chức theo quy định của pháp luật.",
         "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=199514",
     },
 ]
@@ -209,7 +209,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
         "Địa bàn: " + ", ".join(provinces[code] for code in req.slots.province_ids)
     )
     if req.slots.origin_month:
-        lines.append("Tháng dự báo: " + req.slots.origin_month)
+        lines.append("Tháng neo dự báo: " + req.slots.origin_month)
     lines.extend(f"{label}: {value}" for label, value in rows if value is not None)
     lines.append(
         {
@@ -272,7 +272,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Đã đối soát và xác minh trích dẫn pháp lý với kho văn bản quy phạm pháp luật hiệu lực."
+                "Đã đối soát và xác minh nguyên văn trích dẫn với Cơ sở dữ liệu Quốc gia về Văn bản Pháp luật (vbpl.moj.gov.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

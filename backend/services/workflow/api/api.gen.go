@@ -34,6 +34,24 @@ func (e AlertStatus) Valid() bool {
 	}
 }
 
+// Defines values for AllocationPlanStatus.
+const (
+	Confirmed AllocationPlanStatus = "confirmed"
+	Draft     AllocationPlanStatus = "draft"
+)
+
+// Valid indicates whether the value is a known member of the AllocationPlanStatus enum.
+func (e AllocationPlanStatus) Valid() bool {
+	switch e {
+	case Confirmed:
+		return true
+	case Draft:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CaseStatus.
 const (
 	CaseStatusArchived  CaseStatus = "archived"
@@ -373,20 +391,28 @@ type AlertStatus string
 // AllocationPlan defines model for AllocationPlan.
 type AllocationPlan struct {
 	Allocations []struct {
-		Amount      float64 `json:"amount"`
-		Beds        *int    `json:"beds,omitempty"`
-		Explanation string  `json:"explanation"`
-		ProvinceId  string  `json:"province_id"`
-		Supplies    *int    `json:"supplies,omitempty"`
-		Teams       *int    `json:"teams,omitempty"`
+		Amount      float64  `json:"amount"`
+		Beds        *int     `json:"beds,omitempty"`
+		CasesPred   *float64 `json:"cases_pred,omitempty"`
+		Explanation string   `json:"explanation"`
+		ProvinceId  string   `json:"province_id"`
+		Supplies    *int     `json:"supplies,omitempty"`
+		Teams       *int     `json:"teams,omitempty"`
 	} `json:"allocations"`
-	Budget                  float64            `json:"budget"`
-	CaseId                  openapi_types.UUID `json:"case_id"`
-	CreatedAt               time.Time          `json:"created_at"`
-	EstimatedCasesPrevented float64            `json:"estimated_cases_prevented"`
-	Id                      openapi_types.UUID `json:"id"`
-	TotalCost               float64            `json:"total_cost"`
+	Budget                  float64              `json:"budget"`
+	CaseId                  openapi_types.UUID   `json:"case_id"`
+	ConfirmedAt             *time.Time           `json:"confirmed_at,omitempty"`
+	ConfirmedBy             *string              `json:"confirmed_by,omitempty"`
+	CreatedAt               time.Time            `json:"created_at"`
+	EstimatedCasesPrevented float64              `json:"estimated_cases_prevented"`
+	Id                      openapi_types.UUID   `json:"id"`
+	Status                  AllocationPlanStatus `json:"status"`
+	TotalCost               float64              `json:"total_cost"`
+	Version                 int                  `json:"version"`
 }
+
+// AllocationPlanStatus defines model for AllocationPlan.Status.
+type AllocationPlanStatus string
 
 // Case defines model for Case.
 type Case struct {
@@ -756,6 +782,9 @@ type ServerInterface interface {
 	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
 	// (POST /internal/v1/workflow/cases/{case_id}/allocation-plans)
 	CreateAllocationPlan(c *gin.Context, caseId openapi_types.UUID)
+	// ConfirmAllocationPlan Xác nhận phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /internal/v1/workflow/cases/{case_id}/allocation-plans/{plan_id}/confirm)
+	ConfirmAllocationPlan(c *gin.Context, caseId openapi_types.UUID, planId openapi_types.UUID)
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /internal/v1/workflow/cases/{case_id}/drafts)
 	CreateDraft(c *gin.Context, caseId openapi_types.UUID)
@@ -933,6 +962,40 @@ func (siw *ServerInterfaceWrapper) CreateAllocationPlan(c *gin.Context) {
 	}
 
 	siw.Handler.CreateAllocationPlan(c, caseId)
+}
+
+// ConfirmAllocationPlan operation middleware
+func (siw *ServerInterfaceWrapper) ConfirmAllocationPlan(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "case_id" -------------
+	var caseId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "case_id", c.Param("case_id"), &caseId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter case_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "plan_id" -------------
+	var planId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "plan_id", c.Param("plan_id"), &planId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter plan_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ConfirmAllocationPlan(c, caseId, planId)
 }
 
 // CreateDraft operation middleware
@@ -1118,6 +1181,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases", wrapper.CreateCase)
 	router.GET(options.BaseURL+"/internal/v1/workflow/cases/:case_id", wrapper.GetCase)
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/allocation-plans", wrapper.CreateAllocationPlan)
+	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/allocation-plans/:plan_id/confirm", wrapper.ConfirmAllocationPlan)
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/drafts", wrapper.CreateDraft)
 	router.POST(options.BaseURL+"/internal/v1/workflow/cases/:case_id/drafts/generate", wrapper.GenerateDraftForCase)
 	router.GET(options.BaseURL+"/internal/v1/workflow/drafts/:draft_id", wrapper.GetDraft)
@@ -1259,6 +1323,45 @@ func (response CreateAllocationPlan201JSONResponse) VisitCreateAllocationPlanRes
 	w.WriteHeader(201)
 	_, err := buf.WriteTo(w)
 	return err
+}
+
+type ConfirmAllocationPlanRequestObject struct {
+	CaseId openapi_types.UUID `json:"case_id"`
+	PlanId openapi_types.UUID `json:"plan_id"`
+}
+
+type ConfirmAllocationPlanResponseObject interface {
+	VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error
+}
+
+type ConfirmAllocationPlan200JSONResponse AllocationPlan
+
+func (response ConfirmAllocationPlan200JSONResponse) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ConfirmAllocationPlan400Response struct {
+}
+
+func (response ConfirmAllocationPlan400Response) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type ConfirmAllocationPlan404Response struct {
+}
+
+func (response ConfirmAllocationPlan404Response) VisitConfirmAllocationPlanResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
 }
 
 type CreateDraftRequestObject struct {
@@ -1448,6 +1551,9 @@ type StrictServerInterface interface {
 	// CreateAllocationPlan Tạo phương án phân bổ nguồn lực cho hồ sơ
 	// (POST /internal/v1/workflow/cases/{case_id}/allocation-plans)
 	CreateAllocationPlan(ctx context.Context, request CreateAllocationPlanRequestObject) (CreateAllocationPlanResponseObject, error)
+	// ConfirmAllocationPlan Xác nhận phương án phân bổ nguồn lực cho hồ sơ
+	// (POST /internal/v1/workflow/cases/{case_id}/allocation-plans/{plan_id}/confirm)
+	ConfirmAllocationPlan(ctx context.Context, request ConfirmAllocationPlanRequestObject) (ConfirmAllocationPlanResponseObject, error)
 	// CreateDraft Tạo dự thảo văn bản cho hồ sơ (B2B hoặc B2G)
 	// (POST /internal/v1/workflow/cases/{case_id}/drafts)
 	CreateDraft(ctx context.Context, request CreateDraftRequestObject) (CreateDraftResponseObject, error)
@@ -1686,6 +1792,33 @@ func (sh *strictHandler) CreateAllocationPlan(ctx *gin.Context, caseId openapi_t
 		sh.options.HandlerErrorFunc(ctx, err)
 	} else if validResponse, ok := response.(CreateAllocationPlanResponseObject); ok {
 		if err := validResponse.VisitCreateAllocationPlanResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ConfirmAllocationPlan operation middleware
+func (sh *strictHandler) ConfirmAllocationPlan(ctx *gin.Context, caseId openapi_types.UUID, planId openapi_types.UUID) {
+	var request ConfirmAllocationPlanRequestObject
+
+	request.CaseId = caseId
+	request.PlanId = planId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ConfirmAllocationPlan(ctx, request.(ConfirmAllocationPlanRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ConfirmAllocationPlan")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ConfirmAllocationPlanResponseObject); ok {
+		if err := validResponse.VisitConfirmAllocationPlanResponse(ctx.Writer); err != nil {
 			sh.options.ResponseErrorHandlerFunc(ctx, err)
 		}
 	} else if response != nil {

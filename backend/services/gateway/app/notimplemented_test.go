@@ -113,6 +113,10 @@ func (notImplemented) CreateAllocationPlan(context.Context, api.CreateAllocation
 	return nil, httpx.NotImplemented()
 }
 
+func (notImplemented) ConfirmAllocationPlan(context.Context, api.ConfirmAllocationPlanRequestObject) (api.ConfirmAllocationPlanResponseObject, error) {
+	return nil, httpx.NotImplemented()
+}
+
 func (notImplemented) CreateDraft(context.Context, api.CreateDraftRequestObject) (api.CreateDraftResponseObject, error) {
 	return nil, httpx.NotImplemented()
 }

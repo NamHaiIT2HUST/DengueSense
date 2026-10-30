@@ -45,6 +45,7 @@ export const planSouth01: AllocationPlan = {
       beds: 80,
       supplies: 450,
       teams: 6,
+      cases_pred: 1000,
     },
     {
       province_id: "an_giang",
@@ -53,8 +54,13 @@ export const planSouth01: AllocationPlan = {
       beds: 40,
       supplies: 280,
       teams: 3,
+      cases_pred: 500,
     },
   ],
+  status: "confirmed",
+  version: 1,
+  confirmed_by: "officer",
+  confirmed_at: "2010-06-02T15:00:00Z",
   created_at: "2010-06-02T14:00:00Z",
 };
 

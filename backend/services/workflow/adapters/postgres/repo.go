@@ -204,14 +204,21 @@ func (r *Repo) CreateAllocationPlan(ctx context.Context, plan *domain.Allocation
 		return fmt.Errorf("không thể serialize allocations: %w", err)
 	}
 
-	query := `INSERT INTO allocation_plans (id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at)
-	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	_, err = r.db.Exec(ctx, query, plan.ID, plan.CaseID, plan.Budget, plan.TotalCost, plan.EstimatedCasesPrevented, allocBytes, plan.CreatedAt)
+	if plan.Status == "" {
+		plan.Status = domain.AllocationPlanStatusDraft
+	}
+	if plan.Version <= 0 {
+		plan.Version = 1
+	}
+
+	query := `INSERT INTO allocation_plans (id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at, status, version, confirmed_by, confirmed_at)
+	          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`
+	_, err = r.db.Exec(ctx, query, plan.ID, plan.CaseID, plan.Budget, plan.TotalCost, plan.EstimatedCasesPrevented, allocBytes, plan.CreatedAt, plan.Status, plan.Version, plan.ConfirmedBy, plan.ConfirmedAt)
 	return err
 }
 
 func (r *Repo) ListAllocationPlansByCase(ctx context.Context, caseID uuid.UUID) ([]domain.AllocationPlan, error) {
-	rows, err := r.db.Query(ctx, `SELECT id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at 
+	rows, err := r.db.Query(ctx, `SELECT id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at, status, version, confirmed_by, confirmed_at 
 	                             FROM allocation_plans WHERE case_id = $1 ORDER BY created_at DESC`, caseID)
 	if err != nil {
 		return nil, err
@@ -222,13 +229,31 @@ func (r *Repo) ListAllocationPlansByCase(ctx context.Context, caseID uuid.UUID) 
 	for rows.Next() {
 		var p domain.AllocationPlan
 		var allocBytes []byte
-		if err := rows.Scan(&p.ID, &p.CaseID, &p.Budget, &p.TotalCost, &p.EstimatedCasesPrevented, &allocBytes, &p.CreatedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.CaseID, &p.Budget, &p.TotalCost, &p.EstimatedCasesPrevented, &allocBytes, &p.CreatedAt, &p.Status, &p.Version, &p.ConfirmedBy, &p.ConfirmedAt); err != nil {
 			return nil, err
 		}
 		_ = json.Unmarshal(allocBytes, &p.Allocations)
 		plans = append(plans, p)
 	}
 	return plans, rows.Err()
+}
+
+func (r *Repo) ConfirmAllocationPlan(ctx context.Context, caseID, planID uuid.UUID, confirmedBy string) (*domain.AllocationPlan, error) {
+	now := time.Now().UTC()
+	query := `UPDATE allocation_plans 
+	          SET status = 'confirmed', confirmed_by = $1, confirmed_at = $2 
+	          WHERE id = $3 AND case_id = $4 
+	          RETURNING id, case_id, budget, total_cost, estimated_cases_prevented, allocations, created_at, status, version, confirmed_by, confirmed_at`
+	var p domain.AllocationPlan
+	var allocBytes []byte
+	err := r.db.QueryRow(ctx, query, confirmedBy, now, planID, caseID).Scan(
+		&p.ID, &p.CaseID, &p.Budget, &p.TotalCost, &p.EstimatedCasesPrevented, &allocBytes, &p.CreatedAt, &p.Status, &p.Version, &p.ConfirmedBy, &p.ConfirmedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	_ = json.Unmarshal(allocBytes, &p.Allocations)
+	return &p, nil
 }
 
 // ---------------------------------------------------------------------
