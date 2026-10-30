@@ -112,6 +112,9 @@ operations:
   createAllocationPlan:
     min_role: officer
     upstream: [workflow.createAllocationPlan]
+  confirmAllocationPlan:
+    min_role: officer
+    upstream: [workflow.confirmAllocationPlan]
   createDraft:
     min_role: officer
     upstream: [workflow.createDraft]
