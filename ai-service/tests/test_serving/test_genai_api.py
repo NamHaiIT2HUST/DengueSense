@@ -97,6 +97,11 @@ def test_b2g_demo_is_explicitly_labelled_and_unsigned(
     assert "Một xã, phường, thị trấn" in result["citations"][1]["quote"]
     assert "03 năm gần nhất" in result["citations"][1]["quote"]
     assert "congbao.chinhphu.vn" in result["citations"][1]["source_url"]
+    assert result["citations"][2]["document_id"] == "vn-nd30-2020"
+    assert result["citations"][2]["document_version"] == "30/2020/NĐ-CP"
+    assert "Điều 5" in result["citations"][2]["provision"]
+    assert "Khoản 1" in result["citations"][2]["provision"]
+    assert "giá trị pháp lý như bản gốc" in result["citations"][2]["quote"]
     assert (
         "công báo chính phủ"
         in next(g for g in result["guardrails"] if g["code"] == "G3")["detail"].lower()

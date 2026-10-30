@@ -90,8 +90,8 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2020-03-05",
         "effective_to": None,
-        "provision": "Điều 8, Khoản 1 và Điều 12, Khoản 6. Thể thức văn bản và ký số văn bản điện tử",
-        "quote": "Văn bản điện tử phải có chữ ký số của người có thẩm quyền và chữ ký số của cơ quan, tổ chức theo quy định của pháp luật.",
+        "provision": "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
+        "quote": "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
         "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=199514",
     },
 ]
@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc)."
+                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

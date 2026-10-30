@@ -677,22 +677,13 @@ var knownLegalCitations = map[string]verifiedCitationRule{
 	"vn-nd30-2020": {
 		issuer:          "Chính phủ",
 		documentVersion: "30/2020/NĐ-CP",
-		provisionSub:    "Điều 8",
-		exactQuote:      "Văn bản điện tử phải có chữ ký số của người có thẩm quyền và chữ ký số của cơ quan, tổ chức theo quy định của pháp luật.",
+		provisionSub:    "Điều 5, Khoản 1",
+		exactQuote:      "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
 		sourceHosts:     []string{"vanban.chinhphu.vn", "chinhphu.vn"},
 	},
 }
 
 func matchCitationRule(docID string) (verifiedCitationRule, bool) {
-	if strings.Contains(docID, "3711") {
-		return knownLegalCitations["vn-moh-qd3711-2014"], true
-	}
-	if strings.Contains(docID, "02-2016") {
-		return knownLegalCitations["vn-qd02-2016"], true
-	}
-	if strings.Contains(docID, "30-2020") {
-		return knownLegalCitations["vn-nd30-2020"], true
-	}
 	rule, ok := knownLegalCitations[docID]
 	return rule, ok
 }

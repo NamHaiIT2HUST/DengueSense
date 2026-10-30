@@ -632,7 +632,7 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 				},
 				"citations": []any{
 					map[string]any{
-						"document_id":      "vn-ttg-qd02-2016",
+						"document_id":      "vn-qd02-2016",
 						"title":            "Quy định điều kiện công bố dịch, công bố hết dịch bệnh truyền nhiễm",
 						"issuer":           "Thủ tướng Chính phủ",
 						"document_version": "02/2016/QĐ-TTg",
@@ -1004,6 +1004,57 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 			wantStatus: http.StatusBadGateway,
 		},
 		{
+			name:      "counterfeit 3711 document_id rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-custom-3711",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "counterfeit 02-2016 document_id rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-custom-02-2016",
+					"title":            "Quy định điều kiện công bố dịch, công bố hết dịch bệnh truyền nhiễm",
+					"issuer":           "Thủ tướng Chính phủ",
+					"document_version": "02/2016/QĐ-TTg",
+					"status":           "effective",
+					"provision":        "Điều 2, Khoản 2, Điểm a. Điều kiện công bố dịch bệnh truyền nhiễm đối với bệnh truyền nhiễm thuộc nhóm B và nhóm C",
+					"quote":            "Một xã, phường, thị trấn (sau đây gọi tắt là xã) được coi là có dịch khi có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ 03 năm gần nhất;",
+					"source_url":       "https://congbao.chinhphu.vn/tai-ve-van-ban-so-02-2016-qd-ttg-19018-13534?format=pdf",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "counterfeit 30-2020 document_id rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-custom-30-2020",
+					"title":            "Nghị định về công tác văn thư",
+					"issuer":           "Chính phủ",
+					"document_version": "30/2020/NĐ-CP",
+					"status":           "effective",
+					"provision":        "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
+					"quote":            "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
+					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199514",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
 			name:      "valid citation accepted",
 			draftType: "b2g",
 			citations: []any{
@@ -1016,6 +1067,23 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
 					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
 					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+				},
+			},
+			wantStatus: http.StatusCreated,
+		},
+		{
+			name:      "valid vn-nd30-2020 citation accepted",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-nd30-2020",
+					"title":            "Nghị định về công tác văn thư",
+					"issuer":           "Chính phủ",
+					"document_version": "30/2020/NĐ-CP",
+					"status":           "effective",
+					"provision":        "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
+					"quote":            "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
+					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199514",
 				},
 			},
 			wantStatus: http.StatusCreated,
