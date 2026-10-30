@@ -487,10 +487,10 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 	slots := map[string]any{"run_id": run.String(), "province_ids": provinces}
 	provenance := api.SlotProvenance{}
 
-	// Rà soát và xác nhận phương án phân bổ cho hồ sơ
-	plans, _ := s.repo.ListAllocationPlansByCase(ctx, caseID)
+	// Rà soát và xác nhận phương án phân bổ cho hồ sơ khi client chỉ định cụ thể
 	var selectedPlan *domain.AllocationPlan
 	if req.PlanId != nil {
+		plans, _ := s.repo.ListAllocationPlansByCase(ctx, caseID)
 		for i := range plans {
 			if plans[i].ID == *req.PlanId {
 				selectedPlan = &plans[i]
@@ -504,13 +504,6 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		if selectedPlan.Status != domain.AllocationPlanStatusConfirmed {
 			c.JSON(400, gin.H{"error": "Phương án phân bổ chưa được xác nhận"})
 			return
-		}
-	} else {
-		for i := range plans {
-			if plans[i].Status == domain.AllocationPlanStatusConfirmed {
-				selectedPlan = &plans[i]
-				break
-			}
 		}
 	}
 
@@ -657,6 +650,52 @@ func validGuardrails(checks []api.GuardrailCheck) bool {
 	return len(seen) == 6
 }
 
+type verifiedCitationRule struct {
+	issuer          string
+	documentVersion string
+	provisionSub    string
+	exactQuote      string
+	sourceHosts     []string
+}
+
+var knownLegalCitations = map[string]verifiedCitationRule{
+	"vn-moh-qd3711-2014": {
+		issuer:          "Bộ Y tế",
+		documentVersion: "3711/QĐ-BYT",
+		provisionSub:    "Phần II, Mục 2",
+		exactQuote:      "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+		sourceHosts:     []string{"kcb.vn", "moh.gov.vn"},
+	},
+	"vn-qd02-2016": {
+		issuer:          "Thủ tướng Chính phủ",
+		documentVersion: "02/2016/QĐ-TTg",
+		provisionSub:    "Điều 2, Khoản 2, Điểm a",
+		exactQuote:      "Một xã, phường, thị trấn (sau đây gọi tắt là xã) được coi là có dịch khi có số người mắc bệnh vượt quá số mắc trung bình của tháng cùng kỳ 03 năm gần nhất;",
+		sourceHosts:     []string{"congbao.chinhphu.vn", "vbpl.moj.gov.vn"},
+	},
+	"vn-nd30-2020": {
+		issuer:          "Chính phủ",
+		documentVersion: "30/2020/NĐ-CP",
+		provisionSub:    "Điều 8",
+		exactQuote:      "Văn bản điện tử phải có chữ ký số của người có thẩm quyền và chữ ký số của cơ quan, tổ chức theo quy định của pháp luật.",
+		sourceHosts:     []string{"vanban.chinhphu.vn", "chinhphu.vn"},
+	},
+}
+
+func matchCitationRule(docID string) (verifiedCitationRule, bool) {
+	if strings.Contains(docID, "3711") {
+		return knownLegalCitations["vn-moh-qd3711-2014"], true
+	}
+	if strings.Contains(docID, "02-2016") {
+		return knownLegalCitations["vn-qd02-2016"], true
+	}
+	if strings.Contains(docID, "30-2020") {
+		return knownLegalCitations["vn-nd30-2020"], true
+	}
+	rule, ok := knownLegalCitations[docID]
+	return rule, ok
+}
+
 func validCitations(citations []api.Citation) bool {
 	for _, c := range citations {
 		if c.DocumentId == "" || c.Title == "" || c.Issuer == "" || c.DocumentVersion == "" || string(c.Status) != "effective" || c.Provision == "" || c.Quote == "" || c.SourceUrl == "" {
@@ -671,15 +710,27 @@ func validCitations(citations []api.Citation) bool {
 		if len(strings.TrimSpace(c.Provision)) < 5 || len(strings.TrimSpace(c.Quote)) < 10 {
 			return false
 		}
-		// Đối soát chuyên sâu với QĐ 02/2016/QĐ-TTg theo Công báo Chính phủ
-		if strings.Contains(c.DocumentId, "02-2016") {
-			if !strings.Contains(c.Provision, "Điều 2") || !strings.Contains(c.Provision, "Khoản 2") || !strings.Contains(c.Provision, "Điểm a") {
+
+		// Đối soát nguyên văn và xác thực nguồn với danh mục văn bản mẫu đã kiểm chứng
+		rule, ok := matchCitationRule(c.DocumentId)
+		if ok {
+			if c.Issuer != rule.issuer || c.DocumentVersion != rule.documentVersion {
 				return false
 			}
-			if !strings.Contains(c.Quote, "Một xã, phường, thị trấn") || !strings.Contains(c.Quote, "03 năm gần nhất") {
+			if !strings.Contains(c.Provision, rule.provisionSub) {
 				return false
 			}
-			if !strings.Contains(c.SourceUrl, "congbao.chinhphu.vn") && !strings.Contains(c.SourceUrl, "vbpl.moj.gov.vn") {
+			if strings.TrimSpace(c.Quote) != rule.exactQuote {
+				return false
+			}
+			hostMatch := false
+			for _, host := range rule.sourceHosts {
+				if strings.Contains(c.SourceUrl, host) {
+					hostMatch = true
+					break
+				}
+			}
+			if !hostMatch {
 				return false
 			}
 		}

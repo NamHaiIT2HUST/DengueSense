@@ -269,7 +269,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "G1",
             "Số liệu",
             True,
-            "Số liệu lấy từ kết quả mô hình Layer 1 và phương án phân bổ đã xác nhận (chế độ demo mô phỏng cuộc thi).",
+            "Số liệu lấy từ thông số phương án phân bổ được xác nhận và cảnh báo đính kèm trong hồ sơ (dữ liệu demo mô phỏng cuộc thi; chưa đối chiếu trực tiếp với pipeline dự báo).",
         ),
         _check("G2", "Địa danh", True, "Địa danh khớp danh mục."),
         _check(
@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Căn cứ pháp lý đối chiếu nguyên văn với Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT Bộ Y tế (chế độ demo mô phỏng cuộc thi; danh mục trích dẫn đã được kiểm chứng)."
+                "Trích dẫn thuộc danh mục mẫu demo cuộc thi (đối soát nguyên văn từng điều khoản với Công báo Chính phủ và Cổng TTĐT Bộ Y tế; hệ thống chưa tích hợp RAG tra cứu động toàn văn)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

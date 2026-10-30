@@ -779,3 +779,127 @@ func TestGenerateDraftWithConfirmedAllocationPlan(t *testing.T) {
 		t.Error("expected non-empty plan_hash")
 	}
 }
+
+func TestGenerateDraftWithOldConfirmedAndNewDraftPlan(t *testing.T) {
+	var capturedSlots map[string]any
+	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var reqBody map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&reqBody)
+		if s, ok := reqBody["slots"].(map[string]any); ok {
+			capturedSlots = s
+		}
+		w.Header().Set("Content-Type", "application/json")
+		mockContent := "Nội dung dự thảo mô phỏng"
+		mockHash := domain.ComputeHash(mockContent)
+		allPassed := true
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"title":                 "Công điện điều phối dịch tễ mô phỏng",
+			"content":               mockContent,
+			"content_hash":          mockHash,
+			"all_guardrails_passed": &allPassed,
+			"guardrails": []any{
+				map[string]any{"code": "G1", "name": "data", "passed": true, "detail": ""},
+				map[string]any{"code": "G2", "name": "locations", "passed": true, "detail": ""},
+				map[string]any{"code": "G3", "name": "citations", "passed": true, "detail": ""},
+				map[string]any{"code": "G4", "name": "format", "passed": true, "detail": ""},
+				map[string]any{"code": "G5", "name": "safety", "passed": true, "detail": ""},
+				map[string]any{"code": "G6", "name": "length", "passed": true, "detail": "", "blocking": false},
+			},
+			"citations": []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
+					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+				},
+			},
+		})
+	}))
+	defer genSrv.Close()
+
+	repo := NewMockRepo()
+	r := setupTestServer(repo, httpapi.WithGenAIURL(genSrv.URL))
+
+	cID := uuid.New()
+	alert := &domain.Alert{ID: uuid.New(), RunID: uuid.New(), ProvinceID: "ha_noi"}
+	_ = repo.CreateAlert(context.Background(), alert)
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: cID, CreatedBy: "officer", AlertIDs: []uuid.UUID{alert.ID}})
+
+	// 1. Plan cũ đã xác nhận (version 1)
+	planOld := &domain.AllocationPlan{
+		ID:        uuid.New(),
+		CaseID:    cID,
+		Budget:    100_000_000,
+		TotalCost: 95_000_000,
+		Status:    domain.AllocationPlanStatusConfirmed,
+		Version:   1,
+		Allocations: []domain.AllocationItem{
+			{ProvinceID: "ha_noi", Amount: 95_000_000, CasesPred: 50},
+		},
+	}
+	_ = repo.CreateAllocationPlan(context.Background(), planOld)
+
+	// 2. Plan mới chưa xác nhận (version 2, status draft)
+	planNew := &domain.AllocationPlan{
+		ID:        uuid.New(),
+		CaseID:    cID,
+		Budget:    200_000_000,
+		TotalCost: 190_000_000,
+		Status:    domain.AllocationPlanStatusDraft,
+		Version:   2,
+		Allocations: []domain.AllocationItem{
+			{ProvinceID: "ha_noi", Amount: 190_000_000, CasesPred: 100},
+		},
+	}
+	_ = repo.CreateAllocationPlan(context.Background(), planNew)
+
+	// Kịch bản A: Client KHÔNG gửi plan_id (ví dụ do plan mới nhất là draft)
+	// Backend tuyệt đối KHÔNG tự ý chọn planOld; dự thảo không chứa số liệu phân bổ
+	capturedSlots = nil
+	reqA := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewBufferString(`{"draft_type":"b2g"}`))
+	reqA.Header.Set("Content-Type", "application/json")
+	wA := httptest.NewRecorder()
+	r.ServeHTTP(wA, reqA)
+	if wA.Code != http.StatusCreated {
+		t.Fatalf("expected 201 for draft without plan, got %d: %s", wA.Code, wA.Body.String())
+	}
+	if capturedSlots["budget_allocated"] != nil {
+		t.Errorf("backend must NOT pick old confirmed plan when plan_id is omitted, got budget: %v", capturedSlots["budget_allocated"])
+	}
+	provA, _ := capturedSlots["provenance"].(map[string]any)
+	if provA["plan_id"] != nil {
+		t.Errorf("provenance plan_id must be nil when plan_id omitted, got %v", provA["plan_id"])
+	}
+
+	// Kịch bản B: Client gửi plan_id của planNew (chưa xác nhận) -> phải bị từ chối 400
+	bodyB, _ := json.Marshal(map[string]any{"draft_type": "b2g", "plan_id": planNew.ID})
+	reqB := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewReader(bodyB))
+	reqB.Header.Set("Content-Type", "application/json")
+	wB := httptest.NewRecorder()
+	r.ServeHTTP(wB, reqB)
+	if wB.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 when requesting unconfirmed plan, got %d: %s", wB.Code, wB.Body.String())
+	}
+
+	// Kịch bản C: Client gửi plan_id của planOld (đã xác nhận) -> thành công 201 và chứa số liệu planOld
+	capturedSlots = nil
+	bodyC, _ := json.Marshal(map[string]any{"draft_type": "b2g", "plan_id": planOld.ID})
+	reqC := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", cID), bytes.NewReader(bodyC))
+	reqC.Header.Set("Content-Type", "application/json")
+	wC := httptest.NewRecorder()
+	r.ServeHTTP(wC, reqC)
+	if wC.Code != http.StatusCreated {
+		t.Fatalf("expected 201 when explicitly requesting confirmed plan, got %d: %s", wC.Code, wC.Body.String())
+	}
+	if capturedSlots["budget_allocated"] != 95_000_000.0 {
+		t.Errorf("expected budget 95_000_000, got %v", capturedSlots["budget_allocated"])
+	}
+	provC, _ := capturedSlots["provenance"].(map[string]any)
+	if provC["plan_id"] != planOld.ID.String() {
+		t.Errorf("expected provenance plan_id %s, got %v", planOld.ID.String(), provC["plan_id"])
+	}
+}
