@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc)."
+                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, trong đó QĐ 02/2016 và NĐ 30/2020 đã đối chiếu nguyên văn, QĐ 3711 là tóm lược quy chuẩn kỹ thuật BI; chưa tích hợp RAG tra cứu động văn bản gốc)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

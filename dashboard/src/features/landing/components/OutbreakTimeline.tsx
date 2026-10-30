@@ -91,7 +91,7 @@ const STAGES: TimelineStage[] = [
     metrics: [
       { label: "Thời gian soạn thảo", value: "5 phút", highlight: true },
       { label: "Khóa số liệu Guardrail", value: "100%" },
-      { label: "Ký số điện tử CA", value: "Quy trình 4 mắt" },
+      { label: "Phê duyệt tài liệu", value: "Quy trình 4 mắt" },
     ],
     actionNote:
       "Bảo vệ hệ thống y tế tuyến trên không bị vỡ trận, giảm tối đa tỷ lệ tử vong do sốt xuất huyết.",

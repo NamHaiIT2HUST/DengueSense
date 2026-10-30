@@ -12,7 +12,7 @@ const PILLARS = [
     icon: Radar,
     pillarNumber: "01",
     pillar: "Trụ Cột 01 - Cảnh Báo Sớm",
-    badge: "ROC-AUC 0.895",
+    badge: "ROC-AUC 6 mùa: 0.809",
     title: "Dự báo Dịch tễ & Khí hậu ERA5",
     desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
     color: "from-cyan-950/40 via-slate-900/90 to-slate-950/95 border-cyan-500/30 text-cyan-400",
@@ -102,9 +102,12 @@ export function Hero() {
           className="mx-auto mt-6 max-w-3xl text-balance text-base sm:text-lg leading-relaxed text-slate-300"
         >
           DengueSense là nền tảng AI y tế công cộng khép kín đầu tiên tại Việt Nam:{" "}
-          <strong className="text-white font-semibold">Cảnh báo sớm 1–6 tháng (89.5%)</strong>, tối
-          ưu hoá phân bổ <strong className="text-white font-semibold">3 nguồn lực thiết yếu</strong>{" "}
-          dưới 1 phút và tự động soạn thảo dự thảo công điện điều phối chuẩn{" "}
+          <strong className="text-white font-semibold">
+            Cảnh báo sớm 1–6 tháng (ROC-AUC 6 mùa: 0.809)
+          </strong>
+          , tối ưu hoá phân bổ{" "}
+          <strong className="text-white font-semibold">3 nguồn lực thiết yếu</strong> dưới 1 phút và
+          tự động soạn thảo dự thảo công điện điều phối chuẩn{" "}
           <strong className="text-cyan-400 font-semibold">Nghị định 30/2020/NĐ-CP</strong>.
         </motion.p>
 

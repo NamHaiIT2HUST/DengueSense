@@ -40,14 +40,14 @@ Sốt xuất huyết Dengue (SXH) là bệnh truyền nhiễm lưu hành hàng n
 │ • Nhiệt độ, lượng mưa, ẩm độ   │ • Giải bài toán lợi ích biên giảm dần │ • Chuẩn Nghị định 30/2020/NĐ  │
 │ • Dự báo sớm 1 – 6 tháng       │ • 3 Trụ cột: Giường, Vật tư, Đội lưu  │ • Khóa cứng số liệu (G1)      │
 │ • 34 Tỉnh dịch tễ trọng điểm   │ • Tối ưu theo ràng buộc ngân sách     │ • Bất biến 4 mắt (Four-eyes)  │
-│ • ROC-AUC 0.895 (phân định P75)│ • Thời gian giải < 60 giây            │ • Thẩm định độc lập & Ký duyệt│
+│ • ROC-AUC 6 mùa 0.809 (exp016) │ • Thời gian giải < 60 giây            │ • Thẩm định độc lập & Ký duyệt│
 └────────────────────────────────┴───────────────────────────────────────┴───────────────────────────────┘
 ```
 
 ### 🔹 Layer 1: Dự Báo Dịch Tễ Không - Thời Gian (Spatio-Temporal AI)
-- **Dữ liệu đầu vào đa nguồn:** Tích hợp dữ liệu khí tượng toàn cầu ECMWF ERA5 (lưới $0.25^\circ \times 0.25^\circ$), chỉ số dao động nhiệt độ mặt biển Nino/ONI, dữ liệu dịch tễ giám sát bệnh truyền nhiễm 20 năm tại 34 tỉnh/thành phố trọng điểm.
+- **Dữ liệu đầu vào đa nguồn:** Tích hợp dữ liệu khí tượng toàn cầu ECMWF ERA5 (lưới $0.25^\circ \times 0.25^\circ$), chỉ số dao động nhiệt độ mặt biển Nino/ONI, dữ liệu dịch tễ giám sát bệnh truyền nhiễm thực tế (1994–2010) tại 34 tỉnh/thành phố trọng điểm.
 - **Mô hình tổ hợp M4-R2:** Kết hợp Gradient Boosting (XGBoost) và Random Forest với kỹ thuật trễ thời gian (Lag features: trễ nhiệt độ 1–3 tháng, trễ lượng mưa tích lũy 2–4 tháng phản ánh chu kỳ sinh sản muỗi *Aedes aegypti*).
-- **Hiệu năng kiểm định thực tế:** Đạt **ROC-AUC $0.895$**, **PR-AUC $0.52 \pm 0.17$** (vượt trội so với mức nền dịch tễ $0.18$), cảnh báo bùng phát dịch trước từ 1 đến 6 tháng.
+- **Hiệu năng kiểm định thực tế (exp_016, 2005–2010):** Đạt **ROC-AUC trung bình 6 mùa $0.809 \pm 0.041$** (mùa 2009 đạt $0.857$; mùa khó nhất 2010 đạt $0.758$; PR-AUC $0.65$ so với mức nền $0.35$), cảnh báo bùng phát dịch trước từ 1 đến 6 tháng. Thắng baseline B3 Climatology ở cả 6/6 mùa (MASE gộp $0.515 \pm 0.170$).
 - **Tính minh bạch AI (Honesty & Provenance):** Luôn hiển thị mức nền tự nhiên bên cạnh xác suất dự báo, công khai 12 giới hạn kỹ thuật và độ tin cậy theo từng tiểu vùng địa lý.
 
 ### 🔹 Layer 2: Tối Ưu Hóa Phân Bổ Nguồn Lực Can Thiệp (MILP & Metaheuristics)

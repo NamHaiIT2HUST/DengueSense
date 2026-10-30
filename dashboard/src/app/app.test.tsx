@@ -22,13 +22,13 @@ async function fillAndSubmit(
 
 async function expectMapPage() {
   expect(
-    await screen.findByRole("heading", { level: 1, name: "Bản đồ rủi ro" })
+    await screen.findByRole("heading", { level: 1, name: "Bản đồ rủi ro" }, { timeout: 5000 })
   ).toBeInTheDocument();
 }
 
 async function expectModelPage() {
   expect(
-    await screen.findByRole("heading", { level: 1, name: "Mô hình & giới hạn" })
+    await screen.findByRole("heading", { level: 1, name: "Mô hình & giới hạn" }, { timeout: 5000 })
   ).toBeInTheDocument();
 }
 

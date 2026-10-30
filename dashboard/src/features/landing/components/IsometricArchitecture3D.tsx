@@ -83,7 +83,7 @@ const LAYERS: LayerData[] = [
     number: "01",
     title: "Tầng Dự Báo Dịch & Viễn Thám",
     subtitle: "Dữ liệu viễn thám ERA5 & Mô hình tổ hợp M4-R2",
-    badge: "ROC-AUC 0.895",
+    badge: "ROC-AUC 6 mùa: 0.809",
     icon: Radar,
     color: "from-cyan-950/90 via-slate-900/95 to-slate-950/95",
     borderColor: "border-cyan-500/35",
@@ -95,11 +95,11 @@ const LAYERS: LayerData[] = [
     tags: ["ECMWF ERA5 0.25°", "M4-R2 Ensemble", "TreeSHAP Explainability"],
     metrics: [
       { label: "Lead time", value: "1–6 Tháng" },
-      { label: "Tập dữ liệu", value: "1997–2024" },
+      { label: "Tập dữ liệu thật", value: "1997–2010" },
       { label: "Đặc trưng", value: "17 Causal Features" },
     ],
     description:
-      "Tích hợp chuỗi thời gian dịch tễ học 27 năm cùng dữ liệu viễn thám khí tượng toàn cầu (nhiệt độ, lượng mưa, độ ẩm), dự báo trước đỉnh dịch 1–6 tháng với độ chính xác 89,5%.",
+      "Tích hợp chuỗi thời gian dịch tễ học thực tế cùng dữ liệu tái phân tích khí tượng toàn cầu ECMWF ERA5 (nhiệt độ, lượng mưa, độ ẩm), dự báo trước đỉnh dịch 1–6 tháng với ROC-AUC trung bình 6 mùa đạt 0.809 (mùa khó nhất 2010 đạt 0.758).",
     techStack: "ECMWF ERA5 + XGBoost + Random Forest + TreeSHAP",
     linkText: "Xem thông số Hồ sơ Mô hình",
     linkTo: "/app/mo-hinh",

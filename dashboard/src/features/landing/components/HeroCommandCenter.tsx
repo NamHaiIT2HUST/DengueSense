@@ -409,7 +409,7 @@ export function HeroCommandCenter() {
                     Khóa cứng 100% số liệu: Số ca dự báo (
                     {selectedHotspot.casesExpected.toLocaleString()} ca), ngân sách và số vật tư
                     điều phối đều được truyền trực tiếp từ mô hình dự báo và bài toán tối ưu nguồn
-                    lực. Triệt tiêu hoàn toàn rủi ro ảo giác.
+                    lực. Kiểm soát số liệu chặt chẽ qua Guardrail G1.
                   </p>
                 </div>
 
@@ -421,7 +421,9 @@ export function HeroCommandCenter() {
                     <Printer size={14} />
                     <span>Mở Bàn Phê Duyệt 4 Mắt</span>
                   </Link>
-                  <span className="text-xs text-slate-400">Chuyên viên soạn, Lãnh đạo ký số</span>
+                  <span className="text-xs text-slate-400">
+                    Chuyên viên soạn, Lãnh đạo thẩm duyệt & ký số mô phỏng
+                  </span>
                 </div>
               </div>
 
@@ -475,12 +477,12 @@ export function HeroCommandCenter() {
                       <span>GUARDRAIL G1 VERIFIED: SỐ LIỆU ĐÃ KHÓA CỨNG</span>
                     </div>
                     <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-1.5 py-0.5 rounded">
-                      ZERO-HALLUCINATION
+                      GUARDRAILS G1-G6
                     </span>
                   </div>
                   <p className="text-slate-300 leading-relaxed text-[11px]">
-                    Căn cứ dự báo viễn thám ERA5 (độ chính xác{" "}
-                    <strong className="text-white">89.5%</strong>), địa bàn{" "}
+                    Căn cứ dự báo viễn thám ERA5 (ROC-AUC 6 mùa{" "}
+                    <strong className="text-white">0.809</strong>), địa bàn{" "}
                     <strong className="text-cyan-300">{selectedHotspot.name}</strong> ghi nhận nguy
                     cơ{" "}
                     <strong className="text-cyan-300 font-mono">

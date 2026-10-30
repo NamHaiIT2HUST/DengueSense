@@ -133,7 +133,7 @@ export function InteractiveLayers() {
                   <span>Spatio-Temporal Machine Learning</span>
                 </div>
                 <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
-                  Cảnh Báo Sớm 1–6 Tháng Với Độ Chính Xác 89,5%
+                  Cảnh Báo Sớm 1–6 Tháng Với Mô Hình Tổ Hợp M4-R2
                 </h3>
                 <p className="text-slate-300 text-sm leading-relaxed">
                   Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) kết hợp chuỗi thời gian dịch tễ học
@@ -213,7 +213,7 @@ export function InteractiveLayers() {
                       <span className="text-slate-300 font-semibold">
                         Mô hình tổ hợp M4-R2 (Ensemble)
                       </span>
-                      <span className="text-blue-400 font-mono font-bold">89,5% Accuracy</span>
+                      <span className="text-blue-400 font-mono font-bold">ROC-AUC 6 mùa 0.809</span>
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
                       Kết hợp sức mạnh phân loại phi tuyến của XGBoost, Random Forest và hồi quy
@@ -406,7 +406,7 @@ export function InteractiveLayers() {
                       <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
                         100% số liệu (số ca mắc, ngân sách, số giường, số hóa chất, tên địa bàn)
                         được truyền trực tiếp từ thuật toán. Mô hình ngôn ngữ lớn tuyệt đối không
-                        được phép tự tạo số liệu (Zero-Hallucination).
+                        được tự ý sửa đổi số liệu ngoài phương án phân bổ (Guardrail G1).
                       </p>
                     </div>
                   </div>
@@ -415,8 +415,8 @@ export function InteractiveLayers() {
                     <CheckCircle2 size={16} className="text-cyan-400 shrink-0 mt-0.5" />
                     <span>
                       <strong className="text-slate-100">Quy trình thẩm định 4 mắt:</strong> Chuyên
-                      viên dịch tễ lập hồ sơ, Lãnh đạo độc lập thẩm duyệt trước khi ký số điện tử.
-                      AI không bao giờ tự ý ban hành văn bản.
+                      viên dịch tễ lập hồ sơ, Lãnh đạo độc lập thẩm duyệt và ký duyệt mô phỏng trong
+                      bản demo. AI không bao giờ tự ý ban hành văn bản.
                     </span>
                   </div>
 
@@ -488,9 +488,11 @@ export function InteractiveLayers() {
                       3
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white">Lãnh Đạo Ký Số & Ban Hành</div>
+                      <div className="text-xs font-bold text-white">
+                        Lãnh Đạo Thẩm Duyệt & Ký Duyệt
+                      </div>
                       <div className="text-[11px] text-slate-400">
-                        Ký số điện tử và phát hành công điện chỉ đạo hỏa tốc tới các đơn vị
+                        Xác thực chữ ký mô phỏng và lưu vết kiểm toán (Audit Trail) phục vụ demo
                       </div>
                     </div>
                   </div>

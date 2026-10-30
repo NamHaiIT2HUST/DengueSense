@@ -709,7 +709,7 @@ func validCitations(draftType string, citations []api.Citation) bool {
 			return false
 		}
 
-		// Đối soát nguyên văn và xác thực nguồn với danh mục văn bản mẫu đã kiểm chứng
+		// Đối soát chuỗi trích dẫn và xác thực nguồn với danh mục văn bản mẫu tĩnh (QĐ 02/2016 và NĐ 30/2020 đã đối chiếu nguyên văn; QĐ 3711 là quy chuẩn kỹ thuật tóm lược)
 		rule, ok := matchCitationRule(c.DocumentId)
 		if !ok {
 			// Bắt buộc văn bản phải thuộc danh mục đã kiểm chứng
