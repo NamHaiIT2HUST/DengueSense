@@ -16,7 +16,7 @@ In the competition demo simulation mode, citations are validated against this st
 - **Verbatim Quote (Đã đối chiếu nguyên văn 100% từ tài liệu Hướng dẫn ban hành kèm QĐ 3711/QĐ-BYT)**:
   > *"Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao."*
 - **Verification Status**: Đã xác minh nguyên văn (Verbatim verified). Cả điều khoản (Mục III) và câu trích dẫn đều khớp nguyên văn văn bản chính thức của Bộ Y tế.
-- **Source URL**: `http://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf`
+- **Source URL**: `https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf`
 - **Allowed Hosts**: `file.medinet.gov.vn`, `medinet.gov.vn`, `trungtamytengoquyen.vn`, `moh.gov.vn`
 
 ---

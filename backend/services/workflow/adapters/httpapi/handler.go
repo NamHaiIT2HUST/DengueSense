@@ -701,7 +701,7 @@ func validCitations(draftType string, citations []api.Citation) bool {
 			return false
 		}
 		u, err := url.Parse(c.SourceUrl)
-		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Hostname() == "" {
+		if err != nil || u.Scheme != "https" || u.Hostname() == "" {
 			return false
 		}
 		hostname := strings.ToLower(u.Hostname())

@@ -68,7 +68,7 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "effective_to": None,
         "provision": "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
         "quote": "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
-        "source_url": "http://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
+        "source_url": "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
     },
     {
         "document_id": "vn-qd02-2016",
