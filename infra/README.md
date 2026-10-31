@@ -77,6 +77,11 @@ Ngưỡng hiện tại `exceed_prob >= 0.5` là quy tắc kỹ thuật cho demo,
 công bố dịch hay ngưỡng lâm sàng đã được cơ quan y tế thẩm định. Dữ liệu dự báo lịch
 sử và kết quả mô phỏng không được trình bày là giám sát thời gian thực.
 
+Khi lập phương án, workflow kiểm tra lại số ca tầm 1 tháng từ lượt dự báo của từng
+cảnh báo và lưu nguồn vào snapshot. Người lập nhập giới hạn ngân sách từng tỉnh;
+đơn giá nguồn lực và số ca ngăn chặn do mô hình tính là giả định mô phỏng, chưa
+được đối chiếu với báo giá hoặc tác động thực địa.
+
 ```bash
 # Cô lập dữ liệu giữa các service (quyền tạo/đọc chéo schema, đặc quyền, extension, mật khẩu sai) — phải in "TẤT CẢ ĐẠT"
 docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/check-db-isolation.sh

@@ -334,7 +334,7 @@ services:
       WORKFLOW_JWT_PUBLIC_KEY: "${GATEWAY_JWT_PUBLIC_KEY:?thiếu GATEWAY_JWT_PUBLIC_KEY}"
       WORKFLOW_IDENTITY_URL: http://identity:8081
       WORKFLOW_SERVICE_CLIENT_SECRET: "${WORKFLOW_SERVICE_CLIENT_SECRET:-}"
-      OPTIMIZE_API_URL: http://optimize:8001/internal/v1
+      OPTIMIZE_API_URL: http://optimize:8001/internal/v1/optimize
     depends_on:
       workflow-migrate:
         condition: service_completed_successfully

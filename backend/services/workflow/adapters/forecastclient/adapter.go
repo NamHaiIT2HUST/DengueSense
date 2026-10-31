@@ -2,7 +2,9 @@ package forecastclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strings"
 
@@ -13,6 +15,33 @@ import (
 
 type Adapter struct {
 	client *ClientWithResponses
+}
+
+// CasesPredicted lấy số ca từ lượt bất biến và địa bàn được chỉ định.
+func (a *Adapter) CasesPredicted(ctx context.Context, runID uuid.UUID, provinceID string) (float64, error) {
+	resp, err := a.client.GetProvinceForecastsWithResponse(ctx, runID, provinceID)
+	if err != nil {
+		return 0, fmt.Errorf("không thể lấy dự báo: %w", err)
+	}
+	if resp.JSON200 == nil || resp.JSON200.Meta.RunId != runID {
+		return 0, fmt.Errorf("forecast API trả HTTP %d hoặc sai lượt", resp.StatusCode())
+	}
+	var payload struct {
+		Items []struct {
+			Horizon    *int     `json:"horizon"`
+			ProvinceID string   `json:"province_id"`
+			CasesPred  *float64 `json:"cases_pred"`
+		} `json:"items"`
+	}
+	if err := json.Unmarshal(resp.Body, &payload); err != nil {
+		return 0, fmt.Errorf("dữ liệu dự báo không hợp lệ: %w", err)
+	}
+	for _, item := range payload.Items {
+		if item.Horizon != nil && *item.Horizon == 1 && item.ProvinceID == provinceID && item.CasesPred != nil && *item.CasesPred >= 0 && !math.IsNaN(*item.CasesPred) && !math.IsInf(*item.CasesPred, 0) {
+			return *item.CasesPred, nil
+		}
+	}
+	return 0, fmt.Errorf("không có dự báo tầm 1 tháng cho địa bàn")
 }
 
 // Ensure Adapter implements app.ForecastClient

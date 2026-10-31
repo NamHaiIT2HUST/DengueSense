@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { API_BASE, createHandlers, memoryStore, type DemoStore } from "@/mocks/handlers";
@@ -210,6 +211,56 @@ describe("CaseDetailPage (S7 Chi tiết hồ sơ & S8 Phân bổ nguồn lực)"
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
+  });
+
+  it("lấy số ca từ lượt cảnh báo và chỉ gửi chi phí do người dùng nhập", async () => {
+    const user = userEvent.setup();
+    renderCaseDetail("case-central-2010-06");
+    let submitted: unknown;
+    server.use(
+      http.get(`${API_BASE}/provinces/:provinceId/forecasts`, ({ request, params }) => {
+        expect(new URL(request.url).searchParams.get("run_id")).toBe("demo-run-2010-06");
+        return HttpResponse.json({
+          meta: { run_id: "demo-run-2010-06" },
+          items: [{ province_id: params.provinceId, horizon: 1, cases_pred: 321 }],
+        });
+      }),
+      http.post(`${API_BASE}/cases/:caseId/allocation-plans`, async ({ request }) => {
+        submitted = await request.json();
+        return HttpResponse.json({ id: "plan-new" }, { status: 201 });
+      })
+    );
+    await screen.findByText("Giám sát dịch SXH khu vực Duyên hải Miền Trung");
+    await user.click(screen.getByRole("button", { name: vi.cases.detail.createPlan }));
+    const dialog = await screen.findByRole("dialog");
+    expect(await within(dialog).findByText(/321/)).toBeInTheDocument();
+    const submit = within(dialog).getByRole("button", { name: vi.allocation.submit });
+    expect(submit).toBeDisabled();
+    await user.type(within(dialog).getByLabelText(vi.allocation.budgetLabel), "1000000");
+    await user.type(within(dialog).getByLabelText(/Ngân sách tối đa cho/), "500000");
+    expect(submit).toBeEnabled();
+    await user.click(submit);
+    await waitFor(() =>
+      expect(submitted).toEqual({
+        budget: 1000000,
+        items: [{ province_id: "da_nang", cases_pred: 321, cost: 500000 }],
+      })
+    );
+  });
+
+  it("chặn tạo phương án khi không tìm thấy dự báo cho cảnh báo", async () => {
+    const user = userEvent.setup();
+    renderCaseDetail("case-central-2010-06");
+    server.use(
+      http.get(`${API_BASE}/provinces/:provinceId/forecasts`, () =>
+        HttpResponse.json({}, { status: 404 })
+      )
+    );
+    await screen.findByText("Giám sát dịch SXH khu vực Duyên hải Miền Trung");
+    await user.click(screen.getByRole("button", { name: vi.cases.detail.createPlan }));
+    const dialog = await screen.findByRole("dialog");
+    expect(await within(dialog).findByText(vi.allocation.forecastUnavailable)).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: vi.allocation.submit })).toBeDisabled();
   });
 
   it("cho phép officer mở modal yêu cầu AI sinh dự thảo văn bản", async () => {

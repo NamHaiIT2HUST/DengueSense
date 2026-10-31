@@ -27,12 +27,13 @@ type WorkflowRepo interface {
 }
 
 type Server struct {
-	svc         *app.WorkflowService
-	repo        WorkflowRepo
-	genaiURL    string
-	genaiToken  func(context.Context) (string, error)
-	optimizeURL string
-	httpClient  *http.Client
+	svc           *app.WorkflowService
+	repo          WorkflowRepo
+	genaiURL      string
+	genaiToken    func(context.Context) (string, error)
+	optimizeURL   string
+	forecastCases func(context.Context, uuid.UUID, string) (float64, error)
+	httpClient    *http.Client
 }
 
 type ServerOption func(*Server)
@@ -52,6 +53,10 @@ func WithGenAITokenSource(source func(context.Context) (string, error)) ServerOp
 
 func WithOptimizeURL(u string) ServerOption {
 	return func(s *Server) { s.optimizeURL = u }
+}
+
+func WithForecastCases(source func(context.Context, uuid.UUID, string) (float64, error)) ServerOption {
+	return func(s *Server) { s.forecastCases = source }
 }
 
 func WithHTTPClient(client *http.Client) ServerOption {
@@ -261,6 +266,51 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if s.optimizeURL == "" || s.forecastCases == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dịch vụ dự báo hoặc tối ưu không khả dụng; chưa tạo phương án phân bổ"})
+		return
+	}
+	if math.IsNaN(req.Budget) || math.IsInf(req.Budget, 0) || req.Budget <= 0 || len(req.Items) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ngân sách và danh sách địa bàn không hợp lệ"})
+		return
+	}
+	ctx := c.Request.Context()
+	cs, err := s.repo.GetCaseByID(ctx, caseId)
+	if err != nil || cs == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hồ sơ"})
+		return
+	}
+	alerts := make(map[string]*domain.Alert, len(cs.AlertIDs))
+	for _, id := range cs.AlertIDs {
+		alert, err := s.repo.GetAlertByID(ctx, id)
+		if err != nil || alert == nil || alert.RunID == uuid.Nil || alert.ProvinceID == "" || alerts[alert.ProvinceID] != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cảnh báo thiếu nguồn dự báo hoặc trùng địa bàn"})
+			return
+		}
+		alerts[alert.ProvinceID] = alert
+	}
+	if len(alerts) == 0 || len(alerts) != len(req.Items) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Địa bàn phải khớp các cảnh báo của hồ sơ"})
+		return
+	}
+	seen := make(map[string]bool, len(req.Items))
+	for _, item := range req.Items {
+		alert := alerts[item.ProvinceId]
+		if alert == nil || seen[item.ProvinceId] || math.IsNaN(item.Cost) || math.IsInf(item.Cost, 0) || item.Cost <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Địa bàn hoặc chi phí không hợp lệ"})
+			return
+		}
+		seen[item.ProvinceId] = true
+		actual, err := s.forecastCases(ctx, alert.RunID, alert.ProvinceID)
+		if err != nil || math.IsNaN(actual) || math.IsInf(actual, 0) || actual < 0 {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Không thể kiểm chứng số liệu dự báo"})
+			return
+		}
+		if math.IsNaN(item.CasesPred) || math.IsInf(item.CasesPred, 0) || math.Abs(actual-item.CasesPred) > 1e-6 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Số ca không khớp lượt dự báo gắn với cảnh báo"})
+			return
+		}
+	}
 
 	var allocItems []domain.AllocationItem
 	totalCost := 0.0
@@ -300,6 +350,11 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 				httpReq.Header.Set("Content-Type", "application/json")
 				resp, err := s.httpClient.Do(httpReq)
 				if err == nil {
+					if resp.StatusCode == http.StatusUnprocessableEntity {
+						_ = resp.Body.Close()
+						c.JSON(http.StatusBadRequest, gin.H{"error": "Không có phương án thoả mãn các giới hạn ngân sách"})
+						return
+					}
 					if resp.StatusCode == http.StatusOK {
 						var optResp struct {
 							TotalCost               *float64 `json:"total_cost"`
@@ -316,25 +371,40 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil && optResp.TotalCost != nil && optResp.EstimatedCasesPrevented != nil && optResp.Allocations != nil {
 							totalCost = *optResp.TotalCost
 							prevented = *optResp.EstimatedCasesPrevented
+							valid := !math.IsNaN(totalCost) && !math.IsInf(totalCost, 0) && totalCost >= 0 && totalCost <= req.Budget && !math.IsNaN(prevented) && !math.IsInf(prevented, 0) && prevented >= 0
+							sum := 0.0
+							allocated := make(map[string]bool, len(optResp.Allocations))
 							for _, a := range optResp.Allocations {
 								var casesPred float64
+								var inputCost float64
 								for _, reqItem := range req.Items {
 									if reqItem.ProvinceId == a.ProvinceID {
 										casesPred = reqItem.CasesPred
+										inputCost = reqItem.Cost
 										break
 									}
 								}
+								alert := alerts[a.ProvinceID]
+								if alert == nil || allocated[a.ProvinceID] || math.IsNaN(a.Amount) || math.IsInf(a.Amount, 0) || a.Amount < 0 || a.Amount > inputCost || a.Beds < 0 || a.Supplies < 0 || a.Teams < 0 {
+									valid = false
+									break
+								}
+								allocated[a.ProvinceID] = true
+								sum += a.Amount
 								allocItems = append(allocItems, domain.AllocationItem{
-									ProvinceID:  a.ProvinceID,
-									Amount:      a.Amount,
-									Explanation: a.Explanation,
-									Beds:        a.Beds,
-									Supplies:    a.Supplies,
-									Teams:       a.Teams,
-									CasesPred:   casesPred,
+									ProvinceID:      a.ProvinceID,
+									Amount:          a.Amount,
+									Explanation:     a.Explanation,
+									Beds:            a.Beds,
+									Supplies:        a.Supplies,
+									Teams:           a.Teams,
+									CasesPred:       casesPred,
+									ForecastRunID:   alert.RunID.String(),
+									ForecastHorizon: 1,
+									CostInput:       inputCost,
 								})
 							}
-							calledOptimize = true
+							calledOptimize = valid && math.Abs(sum-totalCost) < 0.01
 						}
 					}
 					_ = resp.Body.Close()

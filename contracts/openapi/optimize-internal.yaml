@@ -28,6 +28,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AllocateResponse"
+        "422":
+          description: Không tìm được phương án thoả mãn ràng buộc.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [detail]
+                properties:
+                  detail: { type: string }
 
 components:
   securitySchemes:
@@ -43,6 +52,9 @@ components:
         budget:
           type: number
           format: double
+        strategy:
+          type: string
+          enum: [milp_marginal, simulated_annealing, greedy_baseline]
         items:
           type: array
           items:
@@ -51,7 +63,7 @@ components:
             properties:
               province_id: { type: string }
               cases_pred: { type: number, format: double }
-              cost: { type: number, format: double }
+              cost: { type: number, format: double, description: Giới hạn ngân sách cho địa bàn; 0 nghĩa là không đặt giới hạn riêng. }
 
     AllocateResponse:
       type: object

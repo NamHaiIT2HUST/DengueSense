@@ -950,9 +950,15 @@ export interface components {
             budget: number;
             items: {
                 province_id: string;
-                /** Format: double */
+                /**
+                 * Format: double
+                 * @description Số ca tầm 1 tháng từ lượt dự báo của cảnh báo; backend đối chiếu lại nguồn.
+                 */
                 cases_pred: number;
-                /** Format: double */
+                /**
+                 * Format: double
+                 * @description Giới hạn ngân sách do người lập phương án nhập cho địa bàn.
+                 */
                 cost: number;
             }[];
         };
@@ -1874,7 +1880,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
-            /** @description Dịch vụ tối ưu không khả dụng; không tạo phương án. */
+            /** @description Không kiểm chứng được dự báo hoặc dịch vụ tối ưu không khả dụng; không tạo phương án. */
             503: {
                 headers: {
                     [name: string]: unknown;

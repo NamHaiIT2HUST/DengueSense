@@ -24,7 +24,7 @@ import {
   useDraft,
   useGenerateDraft,
 } from "@/entities/draft";
-import { useProvinces } from "@/entities/forecast";
+import { useAlertForecasts, useProvinces } from "@/entities/forecast";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
 import { exportToCsv } from "@/shared/lib/exportCsv";
 import { formatCount, formatCurrency, formatDateTime } from "@/shared/lib/format";
@@ -56,7 +56,8 @@ export function CaseDetailPage() {
 
   // States cho modal phân bổ (S8)
   const [isAllocating, setIsAllocating] = useState(false);
-  const [budgetInput, setBudgetInput] = useState("1000000000"); // 1 tỷ mặc định
+  const [budgetInput, setBudgetInput] = useState("");
+  const [costInputs, setCostInputs] = useState<Record<string, string>>({});
   const [showTransferModal, setShowTransferModal] = useState(false);
   const createAllocationMutation = useCreateAllocationPlan(caseId);
   const confirmPlanMutation = useConfirmAllocationPlan(caseId);
@@ -79,25 +80,48 @@ export function CaseDetailPage() {
     caseData?.alert_ids ?? (caseData?.alert_id ? [caseData.alert_id] : [])
   );
   const attachedAlerts = allAlerts.filter((a) => attachedAlertIds.has(a.id));
+  const forecastQueries = useAlertForecasts(attachedAlerts, isAllocating);
+  const duplicateProvinces =
+    new Set(attachedAlerts.map((a) => a.province_id)).size !== attachedAlerts.length;
+  const allocationItems = attachedAlerts.map((alert, index) => {
+    const result = forecastQueries[index]?.data;
+    const forecast =
+      result?.meta.run_id === alert.run_id
+        ? result.items.find((item) => item.province_id === alert.province_id && item.horizon === 1)
+        : undefined;
+    return { alert, forecast, cost: Number(costInputs[alert.province_id] ?? "") };
+  });
+  const allocationReady =
+    attachedAlertIds.size > 0 &&
+    attachedAlerts.length === attachedAlertIds.size &&
+    !duplicateProvinces &&
+    Number.isFinite(Number(budgetInput)) &&
+    Number(budgetInput) > 0 &&
+    allocationItems.every(
+      ({ forecast, cost }) =>
+        forecast !== undefined &&
+        Number.isFinite(forecast.cases_pred) &&
+        forecast.cases_pred >= 0 &&
+        Number.isFinite(cost) &&
+        cost > 0
+    );
 
   async function handleCreateAllocation() {
     const budget = Number(budgetInput);
-    if (!budget || budget <= 0) return;
+    if (!allocationReady) return;
 
-    const items = attachedAlerts.map((a) => ({
-      province_id: a.province_id,
-      cases_pred: 150,
-      cost: 200_000_000,
+    const items = allocationItems.map(({ alert, forecast, cost }) => ({
+      province_id: alert.province_id,
+      cases_pred: forecast!.cases_pred,
+      cost,
     }));
 
-    await createAllocationMutation.mutateAsync({
-      budget,
-      items:
-        items.length > 0
-          ? items
-          : [{ province_id: "ho_chi_minh", cases_pred: 200, cost: 300_000_000 }],
-    });
-    setIsAllocating(false);
+    try {
+      await createAllocationMutation.mutateAsync({ budget, items });
+      setIsAllocating(false);
+    } catch {
+      // Mutation giữ lỗi để hiển thị trong modal; không giả báo thành công.
+    }
   }
 
   async function handleGenerateDraft() {
@@ -575,6 +599,7 @@ export function CaseDetailPage() {
         confirmText={vi.allocation.submit}
         cancelText="Huỷ bỏ"
         loading={createAllocationMutation.isPending}
+        disabled={!allocationReady}
         onConfirm={() => void handleCreateAllocation()}
         onCancel={() => setIsAllocating(false)}
       >
@@ -587,6 +612,35 @@ export function CaseDetailPage() {
             type="number"
           />
           <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.budgetHelp}</p>
+          <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.forecastHelp}</p>
+          <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.costHelp}</p>
+          {createAllocationMutation.isError ? <p role="alert">{vi.allocation.failed}</p> : null}
+          {duplicateProvinces ? <p role="alert">{vi.allocation.duplicateProvince}</p> : null}
+          {allocationItems.map(({ alert, forecast }) => (
+            <div key={alert.id}>
+              <p className="text-sm text-[var(--ink-secondary)]">
+                {provincesMap.get(alert.province_id)?.name ?? alert.province_id}:{" "}
+                {forecast ? formatCount(forecast.cases_pred) : "—"}
+              </p>
+              <TextField
+                label={`${vi.allocation.costLabel} ${provincesMap.get(alert.province_id)?.name ?? alert.province_id}`}
+                type="number"
+                min="0"
+                value={costInputs[alert.province_id] ?? ""}
+                onChange={(e) =>
+                  setCostInputs((current) => ({ ...current, [alert.province_id]: e.target.value }))
+                }
+              />
+            </div>
+          ))}
+          {isAllocating &&
+          !forecastQueries.some((query) => query.isLoading) &&
+          !allocationReady &&
+          !duplicateProvinces &&
+          (attachedAlerts.length !== attachedAlertIds.size ||
+            allocationItems.some(({ forecast }) => !forecast)) ? (
+            <p role="alert">{vi.allocation.forecastUnavailable}</p>
+          ) : null}
         </div>
       </ConfirmDialog>
 

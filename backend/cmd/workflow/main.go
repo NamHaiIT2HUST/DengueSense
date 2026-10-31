@@ -118,7 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var opts []httpapi.ServerOption
+	opts := []httpapi.ServerOption{httpapi.WithForecastCases(forecastAdapter.CasesPredicted)}
 	if genaiURL := os.Getenv("GENAI_API_URL"); genaiURL != "" {
 		opts = append(opts, httpapi.WithGenAIURL(genaiURL))
 		opts = append(opts, httpapi.WithGenAITokenSource(httpapi.IdentityTokenSource(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), &http.Client{Timeout: 5 * time.Second})))

@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
 
 # Thư viện nghiên cứu (mô hình, đặc trưng — CHỈ mã Python, không notebook/data/experiments) + lớp phục vụ.
 COPY app/forecast ./app/forecast
+COPY app/optimize ./app/optimize
 COPY app/serving ./app/serving
 
 ARG VERSION=dev

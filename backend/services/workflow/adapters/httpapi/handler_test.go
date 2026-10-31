@@ -346,7 +346,7 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 				"total_cost": 500000.0,
 				"estimated_cases_prevented": 35.0,
 				"allocations": [
-					{"province_id": "79", "amount": 1.0, "explanation": "Tối ưu hóa bởi CP-SAT solver"}
+					{"province_id": "79", "amount": 500000.0, "explanation": "Tối ưu hóa bởi CP-SAT solver"}
 				]
 			}`))
 			return
@@ -356,11 +356,14 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	defer optSrv.Close()
 
 	repo := NewMockRepo()
-	r := setupTestServer(repo, httpapi.WithOptimizeURL(optSrv.URL))
+	r := setupTestServer(repo, httpapi.WithOptimizeURL(optSrv.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
 
 	cID := uuid.New()
+	alertID := uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "79"})
 	_ = repo.CreateCase(context.Background(), &domain.Case{
 		ID:        cID,
+		AlertIDs:  []uuid.UUID{alertID},
 		Title:     "Case test optimize",
 		Status:    domain.CaseStatusOpen,
 		CreatedBy: "officer_01",
@@ -391,6 +394,59 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	if len(plan.Allocations) != 1 || plan.Allocations[0].Explanation != "Tối ưu hóa bởi CP-SAT solver" {
 		t.Errorf("expected CP-SAT explanation, got: %v", plan.Allocations)
 	}
+	snapshot := repo.allocationPlans[cID][0].Allocations[0]
+	if snapshot.ForecastRunID != repo.alerts[alertID].RunID.String() || snapshot.ForecastHorizon != 1 || snapshot.CostInput != 500000 {
+		t.Fatalf("missing forecast or cost provenance: %+v", snapshot)
+	}
+}
+
+func TestAllocationPlanRejectsTamperedForecast(t *testing.T) {
+	repo := NewMockRepo()
+	caseID, alertID, runID := uuid.New(), uuid.New(), uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: runID, ProvinceID: "ha_noi"})
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+	called := false
+	opt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { called = true }))
+	defer opt.Close()
+	router := setupTestServer(repo, httpapi.WithOptimizeURL(opt.URL), httpapi.WithForecastCases(func(_ context.Context, got uuid.UUID, province string) (float64, error) {
+		if got != runID || province != "ha_noi" {
+			t.Fatal("wrong forecast source")
+		}
+		return 120, nil
+	}))
+	for _, body := range []string{
+		`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":121,"cost":500}]}`,
+		`{"budget":1000,"items":[{"province_id":"da_nang","cases_pred":120,"cost":500}]}`,
+		`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":0}]}`,
+	} {
+		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+		}
+	}
+	if called || len(repo.allocationPlans[caseID]) != 0 {
+		t.Fatal("invalid request reached optimizer or was persisted")
+	}
+}
+
+func TestAllocationPlanReportsInfeasibleBudget(t *testing.T) {
+	repo := NewMockRepo()
+	caseID, alertID := uuid.New(), uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "ha_noi"})
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+	opt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusUnprocessableEntity) }))
+	defer opt.Close()
+	router := setupTestServer(repo, httpapi.WithOptimizeURL(opt.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":500}]}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest || len(repo.allocationPlans[caseID]) != 0 {
+		t.Fatalf("expected 400 without saved plan, got %d", w.Code)
+	}
 }
 
 func TestAllocationPlanOptimizerFailureDoesNotSave(t *testing.T) {
@@ -402,6 +458,9 @@ func TestAllocationPlanOptimizerFailureDoesNotSave(t *testing.T) {
 		{name: "upstream error", status: http.StatusServiceUnavailable, body: `{"error":"unavailable"}`},
 		{name: "invalid response", status: http.StatusOK, body: `not-json`},
 		{name: "missing required response fields", status: http.StatusOK, body: `{}`},
+		{name: "over province cap", status: http.StatusOK, body: `{"total_cost":600,"estimated_cases_prevented":1,"allocations":[{"province_id":"ha_noi","amount":600}]}`},
+		{name: "inconsistent total", status: http.StatusOK, body: `{"total_cost":200,"estimated_cases_prevented":1,"allocations":[{"province_id":"ha_noi","amount":100}]}`},
+		{name: "unknown province", status: http.StatusOK, body: `{"total_cost":100,"estimated_cases_prevented":1,"allocations":[{"province_id":"da_nang","amount":100}]}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -411,8 +470,10 @@ func TestAllocationPlanOptimizerFailureDoesNotSave(t *testing.T) {
 			defer server.Close()
 			repo := NewMockRepo()
 			caseID := uuid.New()
-			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID})
-			router := setupTestServer(repo, httpapi.WithOptimizeURL(server.URL))
+			alertID := uuid.New()
+			_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "ha_noi"})
+			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+			router := setupTestServer(repo, httpapi.WithOptimizeURL(server.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
 			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":500}]}`))
 			req.Header.Set("Content-Type", "application/json")
 			response := httptest.NewRecorder()

@@ -1,5 +1,6 @@
 """API test for optimize_api FastAPI endpoints."""
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.serving.optimize_api.main import app
@@ -39,6 +40,8 @@ def test_allocate_endpoint_milp():
     assert hcm is not None
     assert hcm["teams"] >= 1
     assert "Cloramin B" in hcm["explanation"]
+    caps = {item["province_id"]: item["cost"] for item in payload["items"]}
+    assert all(a["amount"] <= caps[a["province_id"]] for a in data["allocations"])
 
 
 def test_allocate_endpoint_simulated_annealing():
@@ -55,3 +58,28 @@ def test_allocate_endpoint_simulated_annealing():
     data = resp.json()
     assert data["total_cost"] <= 300000000.0
     assert "Simulated Annealing" in data["algorithm_used"]
+
+
+@pytest.mark.parametrize(
+    "strategy", ["milp_marginal", "simulated_annealing", "greedy_baseline"]
+)
+def test_allocate_respects_province_budget_cap(strategy):
+    payload = {
+        "budget": 1_000_000_000,
+        "strategy": strategy,
+        "items": [{"province_id": "ha_noi", "cases_pred": 120, "cost": 40_000_000}],
+    }
+    response = client.post("/internal/v1/optimize/allocate", json=payload)
+    assert response.status_code == 200
+    assert all(a["amount"] <= 40_000_000 for a in response.json()["allocations"])
+
+
+def test_milp_rejects_infeasible_high_risk_cap():
+    response = client.post(
+        "/internal/v1/optimize/allocate",
+        json={
+            "budget": 1_000_000_000,
+            "items": [{"province_id": "ha_noi", "cases_pred": 500, "cost": 10_000_000}],
+        },
+    )
+    assert response.status_code == 422

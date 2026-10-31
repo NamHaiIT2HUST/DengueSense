@@ -484,7 +484,10 @@ type CitationStatus string
 type CreateAllocationPlanRequest struct {
 	Budget float64 `json:"budget"`
 	Items  []struct {
-		CasesPred  float64 `json:"cases_pred"`
+		// CasesPred Số ca tầm 1 tháng từ lượt dự báo của cảnh báo; backend đối chiếu lại nguồn.
+		CasesPred float64 `json:"cases_pred"`
+
+		// Cost Giới hạn ngân sách do người lập phương án nhập cho địa bàn.
 		Cost       float64 `json:"cost"`
 		ProvinceId string  `json:"province_id"`
 	} `json:"items"`
