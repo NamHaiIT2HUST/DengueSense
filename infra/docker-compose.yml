@@ -278,6 +278,28 @@ services:
       retries: 10
       start_period: 5s
 
+  forecast-relay:
+    build:
+      context: ../backend
+      dockerfile: build/Dockerfile
+      args:
+        SERVICE: forecast-relay
+        VERSION: ${BUILD_VERSION:-dev}
+    image: denguesense/forecast-relay:${BUILD_VERSION:-dev}
+    restart: unless-stopped
+    environment:
+      FORECAST_DB_URL: postgresql://svc_forecast:${SVC_FORECAST_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NATS_URL: nats://nats:4222
+    depends_on:
+      forecast-migrate:
+        condition: service_completed_successfully
+      nats-init:
+        condition: service_completed_successfully
+    networks: [core]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
   workflow-migrate:
     build:
       context: ../backend
@@ -433,7 +455,7 @@ services:
 
 networks:
   core:
-    name: denguesense-core
+    name: ${DENGUESENSE_NETWORK_NAME:-denguesense-core}
 
 volumes:
   pgdata:

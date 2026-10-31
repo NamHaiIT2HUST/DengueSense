@@ -25,7 +25,7 @@ func NewRepo(db *pgxpool.Pool) *Repo {
 // ---------------------------------------------------------------------
 
 func (r *Repo) CreateAlert(ctx context.Context, alert *domain.Alert) error {
-	query := `INSERT INTO alerts (id, run_id, province_id, created_at, status) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO alerts (id, run_id, province_id, created_at, status) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`
 	_, err := r.db.Exec(ctx, query, alert.ID, alert.RunID, alert.ProvinceID, alert.CreatedAt, alert.Status)
 	return err
 }
