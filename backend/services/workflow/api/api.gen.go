@@ -1325,6 +1325,14 @@ func (response CreateAllocationPlan201JSONResponse) VisitCreateAllocationPlanRes
 	return err
 }
 
+type CreateAllocationPlan503Response struct {
+}
+
+func (response CreateAllocationPlan503Response) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+	w.WriteHeader(503)
+	return nil
+}
+
 type ConfirmAllocationPlanRequestObject struct {
 	CaseId openapi_types.UUID `json:"case_id"`
 	PlanId openapi_types.UUID `json:"plan_id"`

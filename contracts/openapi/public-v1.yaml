@@ -590,6 +590,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "503":
+          description: Dịch vụ tối ưu không khả dụng; không tạo phương án.
 
   /cases/{case_id}/allocation-plans/{plan_id}/confirm:
     post:

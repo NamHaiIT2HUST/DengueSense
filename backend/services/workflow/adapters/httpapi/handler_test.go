@@ -293,7 +293,7 @@ func TestAlertHandlers(t *testing.T) {
 	}
 }
 
-func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
+func TestAllocationPlanWithoutOptimizerDoesNotCreatePlan(t *testing.T) {
 	repo := NewMockRepo()
 	r := setupTestServer(repo)
 
@@ -315,7 +315,7 @@ func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
 	var createdCase api.Case
 	_ = json.Unmarshal(w.Body.Bytes(), &createdCase)
 
-	// 2. Create Allocation Plan (Greedy fallback)
+	// 2. Without the optimizer, no estimated allocation may be saved.
 	planPayload := map[string]any{
 		"budget": 1000000.0,
 		"items": []map[string]any{
@@ -328,17 +328,11 @@ func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d: %s", w.Code, w.Body.String())
 	}
-
-	var plan api.AllocationPlan
-	_ = json.Unmarshal(w.Body.Bytes(), &plan)
-	if len(plan.Allocations) != 1 {
-		t.Fatalf("expected 1 allocation item due to budget cap, got %d", len(plan.Allocations))
-	}
-	if plan.TotalCost != 400000.0 {
-		t.Errorf("expected total_cost 400000, got %f", plan.TotalCost)
+	if len(repo.allocationPlans[createdCase.Id]) != 0 {
+		t.Fatal("optimizer failure must not persist a plan")
 	}
 }
 
@@ -396,6 +390,37 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	}
 	if len(plan.Allocations) != 1 || plan.Allocations[0].Explanation != "Tối ưu hóa bởi CP-SAT solver" {
 		t.Errorf("expected CP-SAT explanation, got: %v", plan.Allocations)
+	}
+}
+
+func TestAllocationPlanOptimizerFailureDoesNotSave(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		status int
+		body   string
+	}{
+		{name: "upstream error", status: http.StatusServiceUnavailable, body: `{"error":"unavailable"}`},
+		{name: "invalid response", status: http.StatusOK, body: `not-json`},
+		{name: "missing required response fields", status: http.StatusOK, body: `{}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer server.Close()
+			repo := NewMockRepo()
+			caseID := uuid.New()
+			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID})
+			router := setupTestServer(repo, httpapi.WithOptimizeURL(server.URL))
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":500}]}`))
+			req.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, req)
+			if response.Code != http.StatusServiceUnavailable || len(repo.allocationPlans[caseID]) != 0 {
+				t.Fatalf("expected 503 and no saved plan; status=%d, plans=%d", response.Code, len(repo.allocationPlans[caseID]))
+			}
+		})
 	}
 }
 

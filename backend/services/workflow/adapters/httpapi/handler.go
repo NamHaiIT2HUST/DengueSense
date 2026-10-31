@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -303,8 +302,8 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 				if err == nil {
 					if resp.StatusCode == http.StatusOK {
 						var optResp struct {
-							TotalCost               float64 `json:"total_cost"`
-							EstimatedCasesPrevented float64 `json:"estimated_cases_prevented"`
+							TotalCost               *float64 `json:"total_cost"`
+							EstimatedCasesPrevented *float64 `json:"estimated_cases_prevented"`
 							Allocations             []struct {
 								ProvinceID  string  `json:"province_id"`
 								Amount      float64 `json:"amount"`
@@ -314,9 +313,9 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 								Teams       int     `json:"teams"`
 							} `json:"allocations"`
 						}
-						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil {
-							totalCost = optResp.TotalCost
-							prevented = optResp.EstimatedCasesPrevented
+						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil && optResp.TotalCost != nil && optResp.EstimatedCasesPrevented != nil && optResp.Allocations != nil {
+							totalCost = *optResp.TotalCost
+							prevented = *optResp.EstimatedCasesPrevented
 							for _, a := range optResp.Allocations {
 								var casesPred float64
 								for _, reqItem := range req.Items {
@@ -345,33 +344,8 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 	}
 
 	if !calledOptimize {
-		for _, it := range req.Items {
-			if totalCost+it.Cost <= req.Budget {
-				beds := int(math.Round(it.CasesPred * 0.15))
-				if beds < 5 && it.CasesPred > 0 {
-					beds = 5
-				}
-				supplies := int(math.Round(it.CasesPred * 2.5))
-				if supplies < 50 && it.CasesPred > 0 {
-					supplies = 50
-				}
-				teams := int(math.Round(it.CasesPred / 150.0))
-				if teams < 1 && it.CasesPred > 0 {
-					teams = 1
-				}
-				allocItems = append(allocItems, domain.AllocationItem{
-					ProvinceID:  it.ProvinceId,
-					Amount:      1.0,
-					Explanation: fmt.Sprintf("MILP tối ưu: Điều phối %d giường, %d lít Cloramin B, %d đội phản ứng nhanh cơ động", beds, supplies, teams),
-					Beds:        beds,
-					Supplies:    supplies,
-					Teams:       teams,
-					CasesPred:   it.CasesPred,
-				})
-				totalCost += it.Cost
-				prevented += it.CasesPred * 0.28
-			}
-		}
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dịch vụ tối ưu không khả dụng; chưa tạo phương án phân bổ"})
+		return
 	}
 
 	plan := &domain.AllocationPlan{

@@ -135,6 +135,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AllocationPlan"
+        "503":
+          description: Dịch vụ tối ưu không khả dụng; không tạo phương án.
 
   /internal/v1/workflow/cases/{case_id}/allocation-plans/{plan_id}/confirm:
     post:
