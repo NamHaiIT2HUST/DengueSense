@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/domain"
@@ -24,6 +25,7 @@ type WorkflowRepo interface {
 	domain.AlertRepository
 	domain.CaseRepository
 	domain.DraftRepository
+	ConfirmAlertWithCase(context.Context, uuid.UUID, string) error
 }
 
 type Server struct {
@@ -75,6 +77,21 @@ func NewServer(svc *app.WorkflowService, repo WorkflowRepo, opts ...ServerOption
 	return s
 }
 
+func requestActorID(c *gin.Context) string {
+	if actor, ok := authx.ActorFrom(c.Request.Context()); ok && strings.TrimSpace(actor.ID) != "" {
+		return strings.TrimSpace(actor.ID)
+	}
+	return strings.TrimSpace(c.GetHeader(authx.HeaderActorID))
+}
+
+func draftActorID(c *gin.Context) string {
+	id := requestActorID(c)
+	if _, err := uuid.Parse(id); err != nil {
+		return ""
+	}
+	return id
+}
+
 // ---------------------------------------------------------------------
 // Alert Handlers
 // ---------------------------------------------------------------------
@@ -108,26 +125,18 @@ func (s *Server) ListAlerts(c *gin.Context, params api.ListAlertsParams) {
 // ConfirmAlert implements api.ServerInterface
 func (s *Server) ConfirmAlert(c *gin.Context, alertId uuid.UUID) {
 	ctx := c.Request.Context()
-	err := s.repo.UpdateAlertStatus(ctx, alertId, domain.AlertStatusClosed)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	actorID := requestActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người tiếp nhận"))
 		return
 	}
-
-	// Mở hồ sơ mới gắn liền với alert này
-	caseID := uuid.New()
-	now := time.Now().UTC()
-	err = s.repo.CreateCase(ctx, &domain.Case{
-		ID:        caseID,
-		Title:     "Hồ sơ xử lý cảnh báo dịch",
-		Status:    domain.CaseStatusOpen,
-		AlertIDs:  []uuid.UUID{alertId},
-		CreatedBy: "officer",
-		CreatedAt: now,
-		UpdatedAt: now,
-	})
+	err := s.repo.ConfirmAlertWithCase(ctx, alertId, actorID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, domain.ErrAlertNotFound) {
+			httpx.WriteProblem(c, httpx.NotFound("Không tìm thấy cảnh báo"))
+		} else {
+			httpx.WriteProblem(c, httpx.Internal())
+		}
 		return
 	}
 
@@ -472,13 +481,18 @@ func (s *Server) CreateDraft(c *gin.Context, caseId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người soạn dự thảo"))
+		return
+	}
 
 	draft := domain.NewDispatchDraft(
 		caseId,
 		domain.DraftType(req.DraftType),
 		req.Title,
 		req.Content,
-		req.CreatedBy,
+		actorID,
 	)
 
 	if err := s.repo.CreateDraft(c.Request.Context(), draft); err != nil {
@@ -494,6 +508,11 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 	var req api.GenerateDraftCaseRequest
 	if c.ShouldBindJSON(&req) != nil || (req.DraftType != "b2b" && req.DraftType != "b2g") {
 		c.JSON(400, gin.H{"error": "Yêu cầu không hợp lệ"})
+		return
+	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người tạo dự thảo"))
 		return
 	}
 	ctx := c.Request.Context()
@@ -662,7 +681,7 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		c.JSON(502, gin.H{"error": "Bằng chứng không hợp lệ"})
 		return
 	}
-	draft := domain.NewDispatchDraft(caseID, domain.DraftType(req.DraftType), result.Title, result.Content, cs.CreatedBy)
+	draft := domain.NewDispatchDraft(caseID, domain.DraftType(req.DraftType), result.Title, result.Content, actorID)
 	draft.GenerationEvidence = evidenceJSON
 	if s.repo.CreateDraft(ctx, draft) != nil {
 		c.JSON(500, gin.H{"error": "Không thể lưu dự thảo"})
@@ -803,11 +822,22 @@ func (s *Server) UpdateDraft(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người sửa dự thảo"))
+		return
+	}
 
 	ctx := c.Request.Context()
 	draft, err := s.repo.GetDraftByID(ctx, draftId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy dự thảo"})
+		return
+	}
+	// Chỉ tác giả đã xác thực được thay nội dung; nếu người duyệt sửa rồi tự duyệt,
+	// created_by cũ sẽ tạo đường vòng qua quy tắc 4 mắt.
+	if draft.CreatedBy != actorID {
+		httpx.WriteProblem(c, httpx.New(http.StatusForbidden, "common.forbidden", "Không được sửa dự thảo", "Chỉ tác giả của dự thảo được sửa nội dung"))
 		return
 	}
 
@@ -836,6 +866,11 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người duyệt"))
+		return
+	}
 
 	ctx := c.Request.Context()
 	draft, err := s.repo.GetDraftByID(ctx, draftId)
@@ -843,10 +878,16 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy dự thảo"})
 		return
 	}
-
 	action := domain.ReviewAction(req.Action)
+	if draft.DraftType == domain.DraftTypeB2G && action == domain.ReviewActionApprove {
+		if _, err := uuid.Parse(draft.CreatedBy); err != nil {
+			httpx.WriteProblem(c, httpx.New(http.StatusConflict, "common.conflict", "Không thể xác minh tác giả", "Dự thảo cũ thiếu định danh tác giả có thể xác minh; hãy tạo lại dự thảo"))
+			return
+		}
+	}
+
 	// Bất biến 1 & 2: Kiểm tra quy tắc 4 mắt và khớp phiên bản
-	if err := draft.ValidateReview(req.ReviewerId, req.DraftVersion, action); err != nil {
+	if err := draft.ValidateReview(actorID, req.DraftVersion, action); err != nil {
 		status := http.StatusBadRequest
 		if errors.Is(err, domain.ErrFourEyesViolation) {
 			status = http.StatusForbidden
@@ -866,7 +907,7 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		ID:           reviewID,
 		DraftID:      draftId,
 		DraftVersion: req.DraftVersion,
-		ReviewerID:   req.ReviewerId,
+		ReviewerID:   actorID,
 		Action:       action,
 		Note:         note,
 		ReviewedAt:   now,

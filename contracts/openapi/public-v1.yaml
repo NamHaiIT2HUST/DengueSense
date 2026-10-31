@@ -707,7 +707,7 @@ paths:
     patch:
       tags: [drafts]
       operationId: updateDraft
-      summary: Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+      summary: Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
       parameters:
         - name: draft_id
           in: path
@@ -758,6 +758,8 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+        "409": { $ref: "#/components/responses/Conflict" }
 
   /drafts/{draft_id}/dispatch:
     post:

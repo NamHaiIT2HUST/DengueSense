@@ -1762,7 +1762,7 @@ type ServerInterface interface {
 	// GetDraft Chi tiết dự thảo văn bản
 	// (GET /drafts/{draft_id})
 	GetDraft(c *gin.Context, draftId openapi_types.UUID)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /drafts/{draft_id})
 	UpdateDraft(c *gin.Context, draftId openapi_types.UUID)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
@@ -3934,6 +3934,22 @@ func (response SubmitReview404ApplicationProblemPlusJSONResponse) VisitSubmitRev
 	return err
 }
 
+type SubmitReview409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview409ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListForecastRunsRequestObject struct {
 	Params ListForecastRunsParams
 }
@@ -4766,7 +4782,7 @@ type StrictServerInterface interface {
 	// GetDraft Chi tiết dự thảo văn bản
 	// (GET /drafts/{draft_id})
 	GetDraft(ctx context.Context, request GetDraftRequestObject) (GetDraftResponseObject, error)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /drafts/{draft_id})
 	UpdateDraft(ctx context.Context, request UpdateDraftRequestObject) (UpdateDraftResponseObject, error)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt

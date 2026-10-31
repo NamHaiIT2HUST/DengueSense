@@ -478,7 +478,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Cập nhật nội dung dự thảo (tăng version, tính lại content_hash) */
+        /** Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash) */
         patch: operations["updateDraft"];
         trace?: never;
     };
@@ -2068,6 +2068,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
     dispatchApprovedOrder: {

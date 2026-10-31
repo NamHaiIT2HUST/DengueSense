@@ -527,6 +527,8 @@ export const vi = {
     approverOnly: "Chỉ Lãnh đạo (Approver) mới có quyền phê duyệt hoặc từ chối văn bản.",
     fourEyesNotice:
       "Quy tắc 4 mắt: Người soạn văn bản B2G không được tự phê duyệt văn bản của mình.",
+    legacyAuthorNotice:
+      "Dự thảo cũ không có định danh tác giả có thể xác minh. Hãy tạo lại dự thảo trước khi phê duyệt.",
     confirmApprove: {
       title: "Phê duyệt văn bản",
       desc: "Văn bản sẽ được phê duyệt chính thức để chuyển sang bước ban hành. Thao tác này không thể thu hồi.",

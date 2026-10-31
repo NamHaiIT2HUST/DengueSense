@@ -3,10 +3,12 @@ package postgres
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/domain"
@@ -79,6 +81,44 @@ func (r *Repo) UpdateAlertStatus(ctx context.Context, id uuid.UUID, status domai
 	query := `UPDATE alerts SET status = $1 WHERE id = $2`
 	_, err := r.db.Exec(ctx, query, status, id)
 	return err
+}
+
+// ConfirmAlertWithCase khoá cảnh báo, tạo hồ sơ và đóng cảnh báo trong một giao dịch.
+func (r *Repo) ConfirmAlertWithCase(ctx context.Context, id uuid.UUID, actorID string) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	var status string
+	if err := tx.QueryRow(ctx, `SELECT status FROM alerts WHERE id=$1 FOR UPDATE`, id).Scan(&status); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrAlertNotFound
+		}
+		return err
+	}
+	if status == string(domain.AlertStatusClosed) {
+		var linked bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM case_alerts WHERE alert_id=$1)`, id).Scan(&linked); err != nil {
+			return err
+		}
+		if linked {
+			return tx.Commit(ctx)
+		}
+		// Khôi phục cảnh báo bị đóng dở bởi phiên bản cũ nhưng chưa có hồ sơ.
+	}
+	caseID, now := uuid.New(), time.Now().UTC()
+	_, err = tx.Exec(ctx, `INSERT INTO cases (id, alert_id, title, status, created_by, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$6)`, caseID, id, "Hồ sơ xử lý cảnh báo dịch", domain.CaseStatusOpen, actorID, now)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO case_alerts (case_id, alert_id) VALUES ($1,$2)`, caseID, id); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `UPDATE alerts SET status=$1 WHERE id=$2`, domain.AlertStatusClosed, id); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // ---------------------------------------------------------------------

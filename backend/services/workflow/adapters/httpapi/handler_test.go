@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -75,6 +76,25 @@ func (m *MockRepo) UpdateAlertStatus(_ context.Context, id uuid.UUID, status dom
 	}
 	a.Status = status
 	return nil
+}
+
+func (m *MockRepo) ConfirmAlertWithCase(ctx context.Context, id uuid.UUID, actorID string) error {
+	alert, ok := m.alerts[id]
+	if !ok {
+		return domain.ErrAlertNotFound
+	}
+	if alert.Status == domain.AlertStatusClosed {
+		for _, c := range m.cases {
+			for _, alertID := range c.AlertIDs {
+				if alertID == id {
+					return nil
+				}
+			}
+		}
+	}
+	now := time.Now().UTC()
+	alert.Status = domain.AlertStatusClosed
+	return m.CreateCase(ctx, &domain.Case{ID: uuid.New(), AlertIDs: []uuid.UUID{id}, CreatedBy: actorID, CreatedAt: now, UpdatedAt: now})
 }
 
 func (m *MockRepo) CreateCase(_ context.Context, c *domain.Case) error {
@@ -213,6 +233,12 @@ func setupTestServer(repo *MockRepo, opts ...httpapi.ServerOption) *gin.Engine {
 	opts = append(opts, httpapi.WithGenAITokenSource(func(context.Context) (string, error) { return "test-service-token", nil }))
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if strings.HasSuffix(c.Request.URL.Path, "/drafts/generate") && c.GetHeader(authx.HeaderActorID) == "" {
+			c.Request.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
+		}
+		c.Next()
+	})
 	svc := app.NewWorkflowService(repo, nil)
 	srv := httpapi.NewServer(svc, repo, opts...)
 	api.RegisterHandlers(r, srv)
@@ -259,6 +285,41 @@ func TestWorkflowRequiresServiceToken(t *testing.T) {
 	}
 }
 
+func TestDraftActionsRequireActorIdentity(t *testing.T) {
+	repo := NewMockRepo()
+	router := gin.New()
+	api.RegisterHandlers(router, httpapi.NewServer(app.NewWorkflowService(repo, nil), repo))
+	id := uuid.New()
+	for _, tc := range []struct{ path, body string }{
+		{fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts", id), `{"draft_type":"b2g","title":"t","content":"c","created_by":"forged"}`},
+		{fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", id), `{"draft_type":"b2g"}`},
+		{fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", id), `{"action":"approve","reviewer_id":"forged","draft_version":1}`},
+	} {
+		req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("%s: got %d", tc.path, w.Code)
+		}
+	}
+}
+
+func TestLegacyB2GDraftCannotBeApprovedWithoutVerifiedAuthor(t *testing.T) {
+	repo := NewMockRepo()
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "title", "content", "legacy-username")
+	_ = repo.CreateDraft(context.Background(), draft)
+	router := setupTestServer(repo)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.ID), bytes.NewBufferString(`{"action":"approve","reviewer_id":"someone-else","draft_version":1}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusConflict || w.Header().Get("Content-Type") != "application/problem+json" {
+		t.Fatalf("legacy author must be blocked with problem+json: %d %s", w.Code, w.Body.String())
+	}
+}
+
 func TestAlertHandlers(t *testing.T) {
 	repo := NewMockRepo()
 	r := setupTestServer(repo)
@@ -283,6 +344,7 @@ func TestAlertHandlers(t *testing.T) {
 
 	// 2. Confirm Alert
 	confirmReq := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/alerts/%s/confirm", alertID), nil)
+	confirmReq.Header.Set(authx.HeaderActorID, "officer-test")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, confirmReq)
 	if w.Code != http.StatusNoContent {
@@ -290,6 +352,38 @@ func TestAlertHandlers(t *testing.T) {
 	}
 	if repo.alerts[alertID].Status != domain.AlertStatusClosed {
 		t.Errorf("expected alert to be closed, got %s", repo.alerts[alertID].Status)
+	}
+	if len(repo.cases) != 1 {
+		t.Fatalf("expected one case, got %d", len(repo.cases))
+	}
+	for _, cs := range repo.cases {
+		if cs.CreatedBy != "officer-test" {
+			t.Fatalf("wrong actor: %s", cs.CreatedBy)
+		}
+	}
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, confirmReq.Clone(context.Background()))
+	if w.Code != http.StatusNoContent || len(repo.cases) != 1 {
+		t.Fatalf("confirmation was not idempotent: %d", w.Code)
+	}
+}
+
+func TestConfirmAlertRequiresIdentityAndExistingAlert(t *testing.T) {
+	repo := NewMockRepo()
+	router := setupTestServer(repo)
+	url := fmt.Sprintf("/internal/v1/workflow/alerts/%s/confirm", uuid.New())
+	req := httptest.NewRequest(http.MethodPost, url, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("missing actor: got %d", w.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, url, nil)
+	req.Header.Set(authx.HeaderActorID, "officer-test")
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("missing alert: got %d", w.Code)
 	}
 }
 
@@ -541,6 +635,40 @@ func TestGenerateDraftRejectsUntrustedResponses(t *testing.T) {
 	}
 }
 
+func TestUpdateDraftRequiresAuthenticatedAuthor(t *testing.T) {
+	const authorID = "0192f0e1-7c1a-7000-8000-000000000001"
+	const otherID = "0192f0e1-7c1a-7000-8000-000000000002"
+	repo := NewMockRepo()
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "Công điện", "Nội dung gốc", authorID)
+	_ = repo.CreateDraft(context.Background(), draft)
+	router := setupTestServer(repo)
+	path := fmt.Sprintf("/internal/v1/workflow/drafts/%s", draft.ID)
+	for _, tc := range []struct {
+		name, actor string
+		status      int
+	}{
+		{"missing actor", "", http.StatusUnauthorized},
+		{"different actor with forged updated_by", otherID, http.StatusForbidden},
+		{"author with forged updated_by", authorID, http.StatusOK},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPatch, path, bytes.NewBufferString(`{"content":"Nội dung mới","updated_by":"forged-author"}`))
+			req.Header.Set("Content-Type", "application/json")
+			if tc.actor != "" {
+				req.Header.Set(authx.HeaderActorID, tc.actor)
+			}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			if w.Code != tc.status {
+				t.Fatalf("expected %d, got %d: %s", tc.status, w.Code, w.Body.String())
+			}
+		})
+	}
+	if draft.Version != 2 || draft.Content != "Nội dung mới" || draft.CreatedBy != authorID {
+		t.Fatalf("author edit must preserve provenance and increment version: %+v", draft)
+	}
+}
+
 func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// Mock external GenAI server
 	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -601,7 +729,7 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 		AlertIDs:  []uuid.UUID{alert.ID},
 		Title:     "Case khẩn cấp đợt 2",
 		Status:    domain.CaseStatusOpen,
-		CreatedBy: "officer_01",
+		CreatedBy: "case_owner",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
@@ -622,6 +750,9 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 
 	var draft api.DispatchDraft
 	_ = json.Unmarshal(w.Body.Bytes(), &draft)
+	if draft.CreatedBy != "0192f0e1-7c1a-7000-8000-000000000001" {
+		t.Fatalf("draft author must be authenticated actor, got %q", draft.CreatedBy)
+	}
 	if draft.GenerationEvidence == nil || draft.GenerationEvidence.ContentHash != domain.ComputeHash(draft.Content) {
 		t.Fatalf("missing or mismatched generation evidence: %s", w.Body.String())
 	}
@@ -639,13 +770,14 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// 2. Submit Review - Violation of 4-Eyes Principle (Creator cannot approve their own B2G draft)
 	reviewPayloadSelf := map[string]any{
 		"action":        "approve",
-		"reviewer_id":   "officer_01", // same as creator
+		"reviewer_id":   "forged-approver", // không được phép giả người duyệt
 		"draft_version": draft.Version,
 		"note":          "Tự duyệt bản thân",
 	}
 	body, _ = json.Marshal(reviewPayloadSelf)
 	req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.Id), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusForbidden {
@@ -655,13 +787,14 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// 3. Submit Review - Valid approval by approver_lead
 	reviewPayloadValid := map[string]any{
 		"action":        "approve",
-		"reviewer_id":   "approver_lead",
+		"reviewer_id":   "forged-author",
 		"draft_version": draft.Version,
 		"note":          "Đã thẩm định thông tin chuẩn xác",
 	}
 	body, _ = json.Marshal(reviewPayloadValid)
 	req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.Id), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000002")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {

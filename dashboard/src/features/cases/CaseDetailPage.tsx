@@ -157,7 +157,7 @@ export function CaseDetailPage() {
       draft_type: "b2g",
       title: manualTitle.trim(),
       content: manualContent.trim(),
-      created_by: user?.username ?? "officer",
+      created_by: user?.id ?? "",
     });
     setIsCreatingManual(false);
     void router.navigate({
