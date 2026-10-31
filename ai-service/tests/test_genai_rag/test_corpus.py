@@ -50,6 +50,8 @@ def test_pages_and_review_status_are_validated(tmp_path):
 
     import yaml
 
+    # Model a separate repository even when pytest puts tmp_path inside the checkout.
+    (tmp_path / ".git").mkdir()
     manifest = manifest_for(tmp_path)
     mp = tmp_path / "manifest.yaml"
     mp.write_text(yaml.safe_dump(manifest), encoding="utf-8")
