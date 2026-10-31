@@ -392,6 +392,47 @@ func (r *Repo) CreateReview(ctx context.Context, review *domain.Review) error {
 	return err
 }
 
+// ReviewDraft locks the current version so two approvers cannot both approve, and
+// the audit row cannot be committed without the corresponding draft status.
+func (r *Repo) ReviewDraft(ctx context.Context, review *domain.Review) (*domain.DispatchDraft, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	var draft domain.DispatchDraft
+	var draftType, status string
+	err = tx.QueryRow(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at, generation_evidence
+		FROM dispatch_drafts WHERE id=$1 FOR UPDATE`, review.DraftID).Scan(
+		&draft.ID, &draft.CaseID, &draft.Version, &draftType, &draft.Title, &draft.Content,
+		&draft.ContentHash, &status, &draft.CreatedBy, &draft.CreatedAt, &draft.UpdatedAt, &draft.GenerationEvidence,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrDraftNotFound
+		}
+		return nil, err
+	}
+	draft.DraftType = domain.DraftType(draftType)
+	draft.Status = domain.DraftStatus(status)
+	if err := draft.ValidateReview(review.ReviewerID, review.DraftVersion, review.Action); err != nil {
+		return nil, err
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO reviews (id, draft_id, draft_version, reviewer_id, action, note, reviewed_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)`, review.ID, review.DraftID, review.DraftVersion,
+		review.ReviewerID, string(review.Action), review.Note, review.ReviewedAt); err != nil {
+		return nil, err
+	}
+	draft.ApplyReview(review.Action)
+	if _, err := tx.Exec(ctx, `UPDATE dispatch_drafts SET status=$1, updated_at=$2 WHERE id=$3`, draft.Status, draft.UpdatedAt, draft.ID); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return &draft, nil
+}
+
 func (r *Repo) GetLatestReviewByDraft(ctx context.Context, draftID uuid.UUID) (*domain.Review, error) {
 	row := r.db.QueryRow(ctx, `SELECT id, draft_id, draft_version, reviewer_id, action, note, reviewed_at 
 	                          FROM reviews WHERE draft_id = $1 ORDER BY reviewed_at DESC LIMIT 1`, draftID)

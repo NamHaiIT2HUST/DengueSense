@@ -26,6 +26,7 @@ type WorkflowRepo interface {
 	domain.CaseRepository
 	domain.DraftRepository
 	ConfirmAlertWithCase(context.Context, uuid.UUID, string) error
+	ReviewDraft(context.Context, *domain.Review) (*domain.DispatchDraft, error)
 }
 
 type Server struct {
@@ -886,16 +887,6 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		}
 	}
 
-	// Bất biến 1 & 2: Kiểm tra quy tắc 4 mắt và khớp phiên bản
-	if err := draft.ValidateReview(actorID, req.DraftVersion, action); err != nil {
-		status := http.StatusBadRequest
-		if errors.Is(err, domain.ErrFourEyesViolation) {
-			status = http.StatusForbidden
-		}
-		c.JSON(status, gin.H{"error": err.Error()})
-		return
-	}
-
 	reviewID := uuid.New()
 	now := time.Now().UTC()
 	note := ""
@@ -913,15 +904,18 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		ReviewedAt:   now,
 	}
 
-	if err := s.repo.CreateReview(ctx, review); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Áp dụng review thay đổi trạng thái draft
-	draft.ApplyReview(action)
-	if err := s.repo.UpdateDraft(ctx, draft); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	draft, err = s.repo.ReviewDraft(ctx, review)
+	if err != nil {
+		status := http.StatusInternalServerError
+		switch {
+		case errors.Is(err, domain.ErrFourEyesViolation):
+			status = http.StatusForbidden
+		case errors.Is(err, domain.ErrDraftVersionMismatch), errors.Is(err, domain.ErrInvalidDraftTransition), errors.Is(err, domain.ErrInvalidReviewAction):
+			status = http.StatusBadRequest
+		case errors.Is(err, domain.ErrDraftNotFound):
+			status = http.StatusNotFound
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
 

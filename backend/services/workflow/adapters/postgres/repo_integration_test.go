@@ -62,3 +62,60 @@ func TestConfirmAlertTransaction(t *testing.T) {
 	require.NoError(t, db.QueryRow(ctx, `SELECT count(*) FROM case_alerts WHERE alert_id=$1`, legacyID).Scan(&count))
 	require.Equal(t, 1, count)
 }
+
+func TestReviewDraftTransaction(t *testing.T) {
+	dsn := os.Getenv("TEST_WORKFLOW_REPO_DB")
+	if dsn == "" {
+		t.Skip("cần database thử nghiệm riêng")
+	}
+	require.NoError(t, postgres.MigrateUp(dsn))
+	ctx := context.Background()
+	db, err := pgxpool.New(ctx, dsn)
+	require.NoError(t, err)
+	defer db.Close()
+	repo := postgres.NewRepo(db)
+	caseID := uuid.New()
+	now := time.Now().UTC()
+	require.NoError(t, repo.CreateCase(ctx, &domain.Case{ID: caseID, Title: "Kiểm thử giao dịch duyệt", Status: domain.CaseStatusOpen, CreatedBy: "officer", CreatedAt: now, UpdatedAt: now}))
+	draft := domain.NewDispatchDraft(caseID, domain.DraftTypeB2G, "Công điện", "Nội dung", "0192f0e1-7c1a-7000-8000-000000000001")
+	require.NoError(t, repo.CreateDraft(ctx, draft))
+	newReview := func(actor string) *domain.Review {
+		return &domain.Review{ID: uuid.New(), DraftID: draft.ID, DraftVersion: 1, ReviewerID: actor, Action: domain.ReviewActionApprove, ReviewedAt: time.Now().UTC()}
+	}
+	// Vi phạm ràng buộc reviewer_id không được lưu nửa chừng trạng thái APPROVED.
+	_, err = repo.ReviewDraft(ctx, newReview(strings.Repeat("a", 101)))
+	require.Error(t, err)
+	stored, err := repo.GetDraftByID(ctx, draft.ID)
+	require.NoError(t, err)
+	require.Equal(t, domain.DraftStatusPendingReview, stored.Status)
+	var count int
+	require.NoError(t, db.QueryRow(ctx, `SELECT count(*) FROM reviews WHERE draft_id=$1`, draft.ID).Scan(&count))
+	require.Zero(t, count)
+	// Hai lần duyệt đồng thời: chỉ một review được ghi và trạng thái chốt một lần.
+	var wg sync.WaitGroup
+	errs := make(chan error, 2)
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, reviewErr := repo.ReviewDraft(ctx, newReview(uuid.NewString()))
+			errs <- reviewErr
+		}()
+	}
+	wg.Wait()
+	close(errs)
+	successes := 0
+	for reviewErr := range errs {
+		if reviewErr == nil {
+			successes++
+		} else {
+			require.ErrorIs(t, reviewErr, domain.ErrInvalidDraftTransition)
+		}
+	}
+	require.Equal(t, 1, successes)
+	stored, err = repo.GetDraftByID(ctx, draft.ID)
+	require.NoError(t, err)
+	require.Equal(t, domain.DraftStatusApproved, stored.Status)
+	require.NoError(t, db.QueryRow(ctx, `SELECT count(*) FROM reviews WHERE draft_id=$1`, draft.ID).Scan(&count))
+	require.Equal(t, 1, count)
+}

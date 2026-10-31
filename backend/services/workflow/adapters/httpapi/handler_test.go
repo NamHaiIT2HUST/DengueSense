@@ -199,6 +199,19 @@ func (m *MockRepo) CreateReview(_ context.Context, review *domain.Review) error 
 	return nil
 }
 
+func (m *MockRepo) ReviewDraft(_ context.Context, review *domain.Review) (*domain.DispatchDraft, error) {
+	draft, ok := m.drafts[review.DraftID]
+	if !ok {
+		return nil, domain.ErrDraftNotFound
+	}
+	if err := draft.ValidateReview(review.ReviewerID, review.DraftVersion, review.Action); err != nil {
+		return nil, err
+	}
+	m.reviews[review.DraftID] = append(m.reviews[review.DraftID], review)
+	draft.ApplyReview(review.Action)
+	return draft, nil
+}
+
 func (m *MockRepo) GetLatestReviewByDraft(_ context.Context, draftID uuid.UUID) (*domain.Review, error) {
 	revs := m.reviews[draftID]
 	if len(revs) == 0 {
