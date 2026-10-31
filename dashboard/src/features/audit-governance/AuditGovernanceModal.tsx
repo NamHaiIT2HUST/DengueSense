@@ -100,7 +100,8 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-[var(--ink-secondary)] mt-0.5">
-                Bảo đảm tính toàn vẹn dữ liệu, truy vết trách nhiệm và nguyên tắc Zero-Hallucination
+                Bảo đảm tính toàn vẹn dữ liệu, truy vết trách nhiệm và kiểm soát số liệu qua
+                Guardrails G1-G6
               </p>
             </div>
           </div>
@@ -132,7 +133,7 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
               <strong className="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 100%
               </strong>
-              <span className="text-[10px] text-slate-400">Zero-Hallucination</span>
+              <span className="text-[10px] text-slate-400">Khóa số liệu G1</span>
             </div>
           </div>
 

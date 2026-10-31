@@ -18,6 +18,8 @@ func TestAdapter_CheckRunAlerts_Success(t *testing.T) {
 	runID := uuid.New()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/internal/v1/forecast-runs/"+runID.String()+"/forecasts", r.URL.Path)
+		assert.Equal(t, "Bearer forecast-token", r.Header.Get("Authorization"))
 		horizon := r.URL.Query().Get("horizon")
 		w.Header().Set("Content-Type", "application/json")
 
@@ -57,7 +59,7 @@ func TestAdapter_CheckRunAlerts_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	adapter, err := forecastclient.NewAdapter(server.URL+"/internal/v1", server.Client())
+	adapter, err := forecastclient.NewAdapter(server.URL+"/internal/v1", server.Client(), func(context.Context) (string, error) { return "forecast-token", nil })
 	require.NoError(t, err)
 
 	provinces, err := adapter.CheckRunAlerts(context.Background(), runID)
@@ -77,8 +79,9 @@ func TestAdapter_CheckRunAlerts_Non200Response(t *testing.T) {
 	require.NoError(t, err)
 
 	provinces, err := adapter.CheckRunAlerts(context.Background(), uuid.New())
-	require.NoError(t, err)
-	assert.Empty(t, provinces)
+	require.Error(t, err)
+	assert.Nil(t, provinces)
+	assert.Contains(t, err.Error(), "HTTP 404")
 }
 
 func TestAdapter_CheckRunAlerts_ConnectionFailure(t *testing.T) {
@@ -88,4 +91,37 @@ func TestAdapter_CheckRunAlerts_ConnectionFailure(t *testing.T) {
 	_, err = adapter.CheckRunAlerts(context.Background(), uuid.New())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "lỗi gọi forecast api")
+}
+
+func TestAdapter_CasesPredictedUsesMatchingRunAndHorizon(t *testing.T) {
+	runID := uuid.New()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Contains(t, r.URL.Path, "/provinces/ha_noi/forecasts")
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"meta":  map[string]any{"run_id": runID},
+			"items": []map[string]any{{"province_id": "ha_noi", "horizon": 1, "cases_pred": 123.5}},
+		})
+	}))
+	defer server.Close()
+	adapter, err := forecastclient.NewAdapter(server.URL, server.Client())
+	require.NoError(t, err)
+	cases, err := adapter.CasesPredicted(context.Background(), runID, "ha_noi")
+	require.NoError(t, err)
+	assert.Equal(t, 123.5, cases)
+	_, err = adapter.CasesPredicted(context.Background(), uuid.New(), "ha_noi")
+	require.Error(t, err)
+}
+
+func TestAdapter_CasesPredictedRejectsMissingCases(t *testing.T) {
+	runID := uuid.New()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"meta": map[string]any{"run_id": runID}, "items": []map[string]any{{"province_id": "ha_noi", "horizon": 1}}})
+	}))
+	defer server.Close()
+	adapter, err := forecastclient.NewAdapter(server.URL, server.Client())
+	require.NoError(t, err)
+	_, err = adapter.CasesPredicted(context.Background(), runID, "ha_noi")
+	require.Error(t, err)
 }

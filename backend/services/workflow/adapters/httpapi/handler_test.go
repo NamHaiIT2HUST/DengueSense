@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -75,6 +76,25 @@ func (m *MockRepo) UpdateAlertStatus(_ context.Context, id uuid.UUID, status dom
 	}
 	a.Status = status
 	return nil
+}
+
+func (m *MockRepo) ConfirmAlertWithCase(ctx context.Context, id uuid.UUID, actorID string) error {
+	alert, ok := m.alerts[id]
+	if !ok {
+		return domain.ErrAlertNotFound
+	}
+	if alert.Status == domain.AlertStatusClosed {
+		for _, c := range m.cases {
+			for _, alertID := range c.AlertIDs {
+				if alertID == id {
+					return nil
+				}
+			}
+		}
+	}
+	now := time.Now().UTC()
+	alert.Status = domain.AlertStatusClosed
+	return m.CreateCase(ctx, &domain.Case{ID: uuid.New(), AlertIDs: []uuid.UUID{id}, CreatedBy: actorID, CreatedAt: now, UpdatedAt: now})
 }
 
 func (m *MockRepo) CreateCase(_ context.Context, c *domain.Case) error {
@@ -179,6 +199,19 @@ func (m *MockRepo) CreateReview(_ context.Context, review *domain.Review) error 
 	return nil
 }
 
+func (m *MockRepo) ReviewDraft(_ context.Context, review *domain.Review) (*domain.DispatchDraft, error) {
+	draft, ok := m.drafts[review.DraftID]
+	if !ok {
+		return nil, domain.ErrDraftNotFound
+	}
+	if err := draft.ValidateReview(review.ReviewerID, review.DraftVersion, review.Action); err != nil {
+		return nil, err
+	}
+	m.reviews[review.DraftID] = append(m.reviews[review.DraftID], review)
+	draft.ApplyReview(review.Action)
+	return draft, nil
+}
+
 func (m *MockRepo) GetLatestReviewByDraft(_ context.Context, draftID uuid.UUID) (*domain.Review, error) {
 	revs := m.reviews[draftID]
 	if len(revs) == 0 {
@@ -213,6 +246,12 @@ func setupTestServer(repo *MockRepo, opts ...httpapi.ServerOption) *gin.Engine {
 	opts = append(opts, httpapi.WithGenAITokenSource(func(context.Context) (string, error) { return "test-service-token", nil }))
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
+	r.Use(func(c *gin.Context) {
+		if strings.HasSuffix(c.Request.URL.Path, "/drafts/generate") && c.GetHeader(authx.HeaderActorID) == "" {
+			c.Request.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
+		}
+		c.Next()
+	})
 	svc := app.NewWorkflowService(repo, nil)
 	srv := httpapi.NewServer(svc, repo, opts...)
 	api.RegisterHandlers(r, srv)
@@ -259,6 +298,41 @@ func TestWorkflowRequiresServiceToken(t *testing.T) {
 	}
 }
 
+func TestDraftActionsRequireActorIdentity(t *testing.T) {
+	repo := NewMockRepo()
+	router := gin.New()
+	api.RegisterHandlers(router, httpapi.NewServer(app.NewWorkflowService(repo, nil), repo))
+	id := uuid.New()
+	for _, tc := range []struct{ path, body string }{
+		{fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts", id), `{"draft_type":"b2g","title":"t","content":"c","created_by":"forged"}`},
+		{fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", id), `{"draft_type":"b2g"}`},
+		{fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", id), `{"action":"approve","reviewer_id":"forged","draft_version":1}`},
+	} {
+		req := httptest.NewRequest(http.MethodPost, tc.path, bytes.NewBufferString(tc.body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("%s: got %d", tc.path, w.Code)
+		}
+	}
+}
+
+func TestLegacyB2GDraftCannotBeApprovedWithoutVerifiedAuthor(t *testing.T) {
+	repo := NewMockRepo()
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "title", "content", "legacy-username")
+	_ = repo.CreateDraft(context.Background(), draft)
+	router := setupTestServer(repo)
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.ID), bytes.NewBufferString(`{"action":"approve","reviewer_id":"someone-else","draft_version":1}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusConflict || w.Header().Get("Content-Type") != "application/problem+json" {
+		t.Fatalf("legacy author must be blocked with problem+json: %d %s", w.Code, w.Body.String())
+	}
+}
+
 func TestAlertHandlers(t *testing.T) {
 	repo := NewMockRepo()
 	r := setupTestServer(repo)
@@ -283,6 +357,7 @@ func TestAlertHandlers(t *testing.T) {
 
 	// 2. Confirm Alert
 	confirmReq := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/alerts/%s/confirm", alertID), nil)
+	confirmReq.Header.Set(authx.HeaderActorID, "officer-test")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, confirmReq)
 	if w.Code != http.StatusNoContent {
@@ -291,9 +366,41 @@ func TestAlertHandlers(t *testing.T) {
 	if repo.alerts[alertID].Status != domain.AlertStatusClosed {
 		t.Errorf("expected alert to be closed, got %s", repo.alerts[alertID].Status)
 	}
+	if len(repo.cases) != 1 {
+		t.Fatalf("expected one case, got %d", len(repo.cases))
+	}
+	for _, cs := range repo.cases {
+		if cs.CreatedBy != "officer-test" {
+			t.Fatalf("wrong actor: %s", cs.CreatedBy)
+		}
+	}
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, confirmReq.Clone(context.Background()))
+	if w.Code != http.StatusNoContent || len(repo.cases) != 1 {
+		t.Fatalf("confirmation was not idempotent: %d", w.Code)
+	}
 }
 
-func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
+func TestConfirmAlertRequiresIdentityAndExistingAlert(t *testing.T) {
+	repo := NewMockRepo()
+	router := setupTestServer(repo)
+	url := fmt.Sprintf("/internal/v1/workflow/alerts/%s/confirm", uuid.New())
+	req := httptest.NewRequest(http.MethodPost, url, nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusUnauthorized {
+		t.Fatalf("missing actor: got %d", w.Code)
+	}
+	req = httptest.NewRequest(http.MethodPost, url, nil)
+	req.Header.Set(authx.HeaderActorID, "officer-test")
+	w = httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("missing alert: got %d", w.Code)
+	}
+}
+
+func TestAllocationPlanWithoutOptimizerDoesNotCreatePlan(t *testing.T) {
 	repo := NewMockRepo()
 	r := setupTestServer(repo)
 
@@ -315,7 +422,7 @@ func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
 	var createdCase api.Case
 	_ = json.Unmarshal(w.Body.Bytes(), &createdCase)
 
-	// 2. Create Allocation Plan (Greedy fallback)
+	// 2. Without the optimizer, no estimated allocation may be saved.
 	planPayload := map[string]any{
 		"budget": 1000000.0,
 		"items": []map[string]any{
@@ -328,17 +435,11 @@ func TestCasesAndAllocationPlan_Fallback(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-	if w.Code != http.StatusCreated {
-		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
+	if w.Code != http.StatusServiceUnavailable {
+		t.Fatalf("expected 503, got %d: %s", w.Code, w.Body.String())
 	}
-
-	var plan api.AllocationPlan
-	_ = json.Unmarshal(w.Body.Bytes(), &plan)
-	if len(plan.Allocations) != 1 {
-		t.Fatalf("expected 1 allocation item due to budget cap, got %d", len(plan.Allocations))
-	}
-	if plan.TotalCost != 400000.0 {
-		t.Errorf("expected total_cost 400000, got %f", plan.TotalCost)
+	if len(repo.allocationPlans[createdCase.Id]) != 0 {
+		t.Fatal("optimizer failure must not persist a plan")
 	}
 }
 
@@ -352,7 +453,7 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 				"total_cost": 500000.0,
 				"estimated_cases_prevented": 35.0,
 				"allocations": [
-					{"province_id": "79", "amount": 1.0, "explanation": "Tối ưu hóa bởi CP-SAT solver"}
+					{"province_id": "79", "amount": 500000.0, "explanation": "Tối ưu hóa bởi CP-SAT solver"}
 				]
 			}`))
 			return
@@ -362,11 +463,14 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	defer optSrv.Close()
 
 	repo := NewMockRepo()
-	r := setupTestServer(repo, httpapi.WithOptimizeURL(optSrv.URL))
+	r := setupTestServer(repo, httpapi.WithOptimizeURL(optSrv.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
 
 	cID := uuid.New()
+	alertID := uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "79"})
 	_ = repo.CreateCase(context.Background(), &domain.Case{
 		ID:        cID,
+		AlertIDs:  []uuid.UUID{alertID},
 		Title:     "Case test optimize",
 		Status:    domain.CaseStatusOpen,
 		CreatedBy: "officer_01",
@@ -396,6 +500,95 @@ func TestAllocationPlan_OptimizeService(t *testing.T) {
 	}
 	if len(plan.Allocations) != 1 || plan.Allocations[0].Explanation != "Tối ưu hóa bởi CP-SAT solver" {
 		t.Errorf("expected CP-SAT explanation, got: %v", plan.Allocations)
+	}
+	snapshot := repo.allocationPlans[cID][0].Allocations[0]
+	if snapshot.ForecastRunID != repo.alerts[alertID].RunID.String() || snapshot.ForecastHorizon != 1 || snapshot.CostInput != 500000 {
+		t.Fatalf("missing forecast or cost provenance: %+v", snapshot)
+	}
+}
+
+func TestAllocationPlanRejectsTamperedForecast(t *testing.T) {
+	repo := NewMockRepo()
+	caseID, alertID, runID := uuid.New(), uuid.New(), uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: runID, ProvinceID: "ha_noi"})
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+	called := false
+	opt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { called = true }))
+	defer opt.Close()
+	router := setupTestServer(repo, httpapi.WithOptimizeURL(opt.URL), httpapi.WithForecastCases(func(_ context.Context, got uuid.UUID, province string) (float64, error) {
+		if got != runID || province != "ha_noi" {
+			t.Fatal("wrong forecast source")
+		}
+		return 120, nil
+	}))
+	for _, body := range []string{
+		`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":121,"cost":500}]}`,
+		`{"budget":1000,"items":[{"province_id":"da_nang","cases_pred":120,"cost":500}]}`,
+		`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":0}]}`,
+	} {
+		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(body))
+		req.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("status=%d body=%s", w.Code, w.Body.String())
+		}
+	}
+	if called || len(repo.allocationPlans[caseID]) != 0 {
+		t.Fatal("invalid request reached optimizer or was persisted")
+	}
+}
+
+func TestAllocationPlanReportsInfeasibleBudget(t *testing.T) {
+	repo := NewMockRepo()
+	caseID, alertID := uuid.New(), uuid.New()
+	_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "ha_noi"})
+	_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+	opt := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusUnprocessableEntity) }))
+	defer opt.Close()
+	router := setupTestServer(repo, httpapi.WithOptimizeURL(opt.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
+	req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":500}]}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest || len(repo.allocationPlans[caseID]) != 0 {
+		t.Fatalf("expected 400 without saved plan, got %d", w.Code)
+	}
+}
+
+func TestAllocationPlanOptimizerFailureDoesNotSave(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		status int
+		body   string
+	}{
+		{name: "upstream error", status: http.StatusServiceUnavailable, body: `{"error":"unavailable"}`},
+		{name: "invalid response", status: http.StatusOK, body: `not-json`},
+		{name: "missing required response fields", status: http.StatusOK, body: `{}`},
+		{name: "over province cap", status: http.StatusOK, body: `{"total_cost":600,"estimated_cases_prevented":1,"allocations":[{"province_id":"ha_noi","amount":600}]}`},
+		{name: "inconsistent total", status: http.StatusOK, body: `{"total_cost":200,"estimated_cases_prevented":1,"allocations":[{"province_id":"ha_noi","amount":100}]}`},
+		{name: "unknown province", status: http.StatusOK, body: `{"total_cost":100,"estimated_cases_prevented":1,"allocations":[{"province_id":"da_nang","amount":100}]}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(tc.status)
+				_, _ = w.Write([]byte(tc.body))
+			}))
+			defer server.Close()
+			repo := NewMockRepo()
+			caseID := uuid.New()
+			alertID := uuid.New()
+			_ = repo.CreateAlert(context.Background(), &domain.Alert{ID: alertID, RunID: uuid.New(), ProvinceID: "ha_noi"})
+			_ = repo.CreateCase(context.Background(), &domain.Case{ID: caseID, AlertIDs: []uuid.UUID{alertID}})
+			router := setupTestServer(repo, httpapi.WithOptimizeURL(server.URL), httpapi.WithForecastCases(func(context.Context, uuid.UUID, string) (float64, error) { return 120, nil }))
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/allocation-plans", caseID), bytes.NewBufferString(`{"budget":1000,"items":[{"province_id":"ha_noi","cases_pred":120,"cost":500}]}`))
+			req.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+			router.ServeHTTP(response, req)
+			if response.Code != http.StatusServiceUnavailable || len(repo.allocationPlans[caseID]) != 0 {
+				t.Fatalf("expected 503 and no saved plan; status=%d, plans=%d", response.Code, len(repo.allocationPlans[caseID]))
+			}
+		})
 	}
 }
 
@@ -455,6 +648,40 @@ func TestGenerateDraftRejectsUntrustedResponses(t *testing.T) {
 	}
 }
 
+func TestUpdateDraftRequiresAuthenticatedAuthor(t *testing.T) {
+	const authorID = "0192f0e1-7c1a-7000-8000-000000000001"
+	const otherID = "0192f0e1-7c1a-7000-8000-000000000002"
+	repo := NewMockRepo()
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "Công điện", "Nội dung gốc", authorID)
+	_ = repo.CreateDraft(context.Background(), draft)
+	router := setupTestServer(repo)
+	path := fmt.Sprintf("/internal/v1/workflow/drafts/%s", draft.ID)
+	for _, tc := range []struct {
+		name, actor string
+		status      int
+	}{
+		{"missing actor", "", http.StatusUnauthorized},
+		{"different actor with forged updated_by", otherID, http.StatusForbidden},
+		{"author with forged updated_by", authorID, http.StatusOK},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPatch, path, bytes.NewBufferString(`{"content":"Nội dung mới","updated_by":"forged-author"}`))
+			req.Header.Set("Content-Type", "application/json")
+			if tc.actor != "" {
+				req.Header.Set(authx.HeaderActorID, tc.actor)
+			}
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+			if w.Code != tc.status {
+				t.Fatalf("expected %d, got %d: %s", tc.status, w.Code, w.Body.String())
+			}
+		})
+	}
+	if draft.Version != 2 || draft.Content != "Nội dung mới" || draft.CreatedBy != authorID {
+		t.Fatalf("author edit must preserve provenance and increment version: %+v", draft)
+	}
+}
+
 func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// Mock external GenAI server
 	genSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -492,9 +719,9 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 						"issuer":           "Bộ Y tế",
 						"document_version": "3711/QĐ-BYT",
 						"status":           "effective",
-						"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-						"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-						"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+						"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+						"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+						"source_url":       "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 					},
 				},
 			})
@@ -515,7 +742,7 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 		AlertIDs:  []uuid.UUID{alert.ID},
 		Title:     "Case khẩn cấp đợt 2",
 		Status:    domain.CaseStatusOpen,
-		CreatedBy: "officer_01",
+		CreatedBy: "case_owner",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	})
@@ -536,6 +763,9 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 
 	var draft api.DispatchDraft
 	_ = json.Unmarshal(w.Body.Bytes(), &draft)
+	if draft.CreatedBy != "0192f0e1-7c1a-7000-8000-000000000001" {
+		t.Fatalf("draft author must be authenticated actor, got %q", draft.CreatedBy)
+	}
 	if draft.GenerationEvidence == nil || draft.GenerationEvidence.ContentHash != domain.ComputeHash(draft.Content) {
 		t.Fatalf("missing or mismatched generation evidence: %s", w.Body.String())
 	}
@@ -553,13 +783,14 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// 2. Submit Review - Violation of 4-Eyes Principle (Creator cannot approve their own B2G draft)
 	reviewPayloadSelf := map[string]any{
 		"action":        "approve",
-		"reviewer_id":   "officer_01", // same as creator
+		"reviewer_id":   "forged-approver", // không được phép giả người duyệt
 		"draft_version": draft.Version,
 		"note":          "Tự duyệt bản thân",
 	}
 	body, _ = json.Marshal(reviewPayloadSelf)
 	req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.Id), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusForbidden {
@@ -569,13 +800,14 @@ func TestDraftLifecycle_GenAIServiceAndReview(t *testing.T) {
 	// 3. Submit Review - Valid approval by approver_lead
 	reviewPayloadValid := map[string]any{
 		"action":        "approve",
-		"reviewer_id":   "approver_lead",
+		"reviewer_id":   "forged-author",
 		"draft_version": draft.Version,
 		"note":          "Đã thẩm định thông tin chuẩn xác",
 	}
 	body, _ = json.Marshal(reviewPayloadValid)
 	req = httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/drafts/%s/reviews", draft.Id), bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000002")
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	if w.Code != http.StatusOK {
@@ -812,9 +1044,9 @@ func TestGenerateDraftWithOldConfirmedAndNewDraftPlan(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 				},
 			},
 		})
@@ -947,7 +1179,7 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"status":           "effective",
 					"provision":        "Điều 1. Phạm vi",
 					"quote":            "Đây là trích dẫn giả mạo không thuộc danh mục.",
-					"source_url":       "https://kcb.vn/van-ban/123",
+					"source_url":       "https://file.medinet.gov.vn/van-ban/123",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -962,9 +1194,9 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-					"source_url":       "https://evil-attacker.com/?source=kcb.vn",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "https://evil-attacker.com/?source=file.medinet.gov.vn",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -979,9 +1211,26 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-					"source_url":       "https://kcb.vn.attacker-domain.org/doc",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "https://file.medinet.gov.vn.attacker-domain.org/doc",
+				},
+			},
+			wantStatus: http.StatusBadGateway,
+		},
+		{
+			name:      "http url scheme rejected",
+			draftType: "b2g",
+			citations: []any{
+				map[string]any{
+					"document_id":      "vn-moh-qd3711-2014",
+					"title":            "Hướng dẫn giám sát và phòng, chống bệnh sốt xuất huyết Dengue",
+					"issuer":           "Bộ Y tế",
+					"document_version": "3711/QĐ-BYT",
+					"status":           "effective",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "http://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -996,9 +1245,9 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
 					"quote":            "Chỉ số Breteau (BI) từ 99 trở lên mới là nguy cơ bùng phát dịch.",
-					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+					"source_url":       "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -1013,9 +1262,9 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -1049,7 +1298,7 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"status":           "effective",
 					"provision":        "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
 					"quote":            "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
-					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199514",
+					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199378&pageid=27160",
 				},
 			},
 			wantStatus: http.StatusBadGateway,
@@ -1064,9 +1313,9 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"issuer":           "Bộ Y tế",
 					"document_version": "3711/QĐ-BYT",
 					"status":           "effective",
-					"provision":        "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-					"quote":            "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-					"source_url":       "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+					"provision":        "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+					"quote":            "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+					"source_url":       "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
 				},
 			},
 			wantStatus: http.StatusCreated,
@@ -1083,7 +1332,7 @@ func TestValidCitations_StrictVerification(t *testing.T) {
 					"status":           "effective",
 					"provision":        "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
 					"quote":            "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
-					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199514",
+					"source_url":       "https://vanban.chinhphu.vn/default.aspx?docid=199378&pageid=27160",
 				},
 			},
 			wantStatus: http.StatusCreated,

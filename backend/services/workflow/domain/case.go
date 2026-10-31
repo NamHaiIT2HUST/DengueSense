@@ -33,13 +33,16 @@ type Case struct {
 }
 
 type AllocationItem struct {
-	ProvinceID  string  `json:"province_id"`
-	Amount      float64 `json:"amount"`
-	Explanation string  `json:"explanation"`
-	Beds        int     `json:"beds,omitempty"`
-	Supplies    int     `json:"supplies,omitempty"`
-	Teams       int     `json:"teams,omitempty"`
-	CasesPred   float64 `json:"cases_pred,omitempty"`
+	ProvinceID      string  `json:"province_id"`
+	Amount          float64 `json:"amount"`
+	Explanation     string  `json:"explanation"`
+	Beds            int     `json:"beds,omitempty"`
+	Supplies        int     `json:"supplies,omitempty"`
+	Teams           int     `json:"teams,omitempty"`
+	CasesPred       float64 `json:"cases_pred,omitempty"`
+	ForecastRunID   string  `json:"forecast_run_id,omitempty"`
+	ForecastHorizon int     `json:"forecast_horizon,omitempty"`
+	CostInput       float64 `json:"cost_input,omitempty"`
 }
 
 type AllocationPlan struct {

@@ -29,7 +29,7 @@ This reference document defines the complete quality baseline for all layers in 
 
 ### C. Backend: Legal Citation Validation Fails (HTTP 502)
 - **Symptom**: `TestValidCitations_StrictVerification` fails with 502 Bad Gateway.
-- **Cause**: Citation document ID is not an exact match in `knownLegalCitations` or hostname is not strictly whitelisted (`congbao.chinhphu.vn`, `kcb.vn`, `vanban.chinhphu.vn`).
+- **Cause**: Citation document ID is not an exact match in `knownLegalCitations` or hostname is not strictly whitelisted (`congbao.chinhphu.vn`, `file.medinet.gov.vn`, `medinet.gov.vn`, `trungtamytengoquyen.vn`, `moh.gov.vn`, `vanban.chinhphu.vn`).
 - **Fix**: Review exact document IDs (`vn-moh-qd3711-2014`, `vn-qd02-2016`, `vn-nd30-2020`). Substring matching is forbidden.
 
 ### D. AI Service: Service Token Authentication Fails (HTTP 401/403)

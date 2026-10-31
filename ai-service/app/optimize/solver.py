@@ -51,8 +51,8 @@ def _generate_explanation(
     """Generate professional epidemiological rationale for allocated resources."""
     return (
         f"Dự báo {cases_pred:,.0f} ca. Phân bổ tối ưu: {beds} giường dã chiến, "
-        f"{supplies * 20}L Cloramin B (kèm {max(1, supplies // 5)} máy phun ULV), "
-        f"{teams} đội cơ động. Dự kiến giảm thiểu {cases_prevented:,.0f} ca mắc."
+        f"{supplies * 20}L Cloramin B (kèm {max(1, supplies // 5) if supplies else 0} máy phun ULV), "
+        f"{teams} đội cơ động. Ước tính mô phỏng giảm {cases_prevented:,.0f} ca mắc."
     )
 
 
@@ -120,6 +120,8 @@ def solve_milp_marginal(
         # Cost expression
         cost_i = model.NewIntVar(0, scaled_budget, f"cost_{i}")
         model.Add(cost_i == c_bed * b + c_sup * s + c_team * t)
+        if it.max_cost is not None:
+            model.Add(cost_i <= int(it.max_cost // cost_scale))
         item_costs.append(cost_i)
 
         # Piecewise linear concave marginal benefit approximation
@@ -266,9 +268,17 @@ def solve_simulated_annealing(
         current_state[pid][res_idx] = new_val
 
         cost, score = calc_state(current_state)
-        if cost <= budget and (
-            score > current_score
-            or math.exp((score - current_score) / max(temp, 1e-4)) > random.random()
+        b, s, t = current_state[pid]
+        province_cost = (
+            b * cfg.cost_per_bed + s * cfg.cost_per_supply_unit + t * cfg.cost_per_team
+        )
+        if (
+            cost <= budget
+            and (it.max_cost is None or province_cost <= it.max_cost)
+            and (
+                score > current_score
+                or math.exp((score - current_score) / max(temp, 1e-4)) > random.random()
+            )
         ):
             current_score = score
             current_cost = cost
@@ -344,7 +354,11 @@ def solve_greedy_baseline(
             + teams * cfg.cost_per_team
         )
 
-        if total_cost + cost <= budget and cost > 0:
+        if (
+            total_cost + cost <= budget
+            and cost > 0
+            and (it.max_cost is None or cost <= it.max_cost)
+        ):
             prevented = _calculate_cases_prevented(it.cases_pred, beds, supplies, teams)
             allocations.append(
                 OptimizedProvinceAllocation(

@@ -10,6 +10,7 @@ class OptimizeItemInput:
     cases_pred: float
     cost_factor: float = 1.0
     is_high_risk: bool = False
+    max_cost: float | None = None
 
 
 @dataclass(frozen=True)

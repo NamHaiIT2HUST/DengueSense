@@ -207,7 +207,7 @@ export function HeroGlobe3D() {
           <ShieldCheck size={14} className="text-cyan-400" />
           <div className="text-left font-mono leading-tight">
             <div className="text-[9px] font-bold text-slate-400 uppercase">Mô hình AI M4-R2</div>
-            <div className="text-[10px] font-bold text-blue-300">Độ chính xác 89.5%</div>
+            <div className="text-[10px] font-bold text-blue-300">ROC-AUC 6 mùa 0.809</div>
           </div>
         </div>
 

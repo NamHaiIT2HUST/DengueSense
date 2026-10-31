@@ -18,6 +18,8 @@ var (
 	ErrDraftNotApproved       = errors.New("dự thảo chưa được phê duyệt, không thể ban hành lệnh điều phối")
 	ErrContentTampered        = errors.New("nội dung dự thảo không khớp với mã băm (content_hash) đã được phê duyệt")
 	ErrInvalidDraftTransition = errors.New("trạng thái dự thảo không cho phép thao tác này")
+	ErrInvalidReviewAction    = errors.New("hành động phê duyệt không hợp lệ")
+	ErrDraftNotFound          = errors.New("không tìm thấy dự thảo")
 )
 
 type DraftType string
@@ -133,6 +135,9 @@ func (d *DispatchDraft) UpdateContent(title, content string) error {
 // 1. Version phải khớp đúng với bản hiện tại.
 // 2. B2G: reviewer_id != created_by (Quy tắc 4 mắt).
 func (d *DispatchDraft) ValidateReview(reviewerID string, draftVersion int, action ReviewAction) error {
+	if action != ReviewActionApprove && action != ReviewActionReject && action != ReviewActionRequestChanges {
+		return ErrInvalidReviewAction
+	}
 	if draftVersion != d.Version {
 		return fmt.Errorf("%w: draft version hiện tại là %d, yêu cầu duyệt version %d", ErrDraftVersionMismatch, d.Version, draftVersion)
 	}
@@ -142,7 +147,7 @@ func (d *DispatchDraft) ValidateReview(reviewerID string, draftVersion int, acti
 		return ErrFourEyesViolation
 	}
 
-	if d.Status != DraftStatusPendingReview && d.Status != DraftStatusChangesRequested {
+	if d.Status != DraftStatusPendingReview {
 		return fmt.Errorf("%w: trạng thái hiện tại là %s", ErrInvalidDraftTransition, d.Status)
 	}
 

@@ -461,14 +461,24 @@ export const vi = {
 
   allocation: {
     title: "Phân bổ nguồn lực phòng dịch",
-    lead: "AI tối ưu hoá ngân sách để giảm thiểu số ca mắc dự kiến dựa trên mô hình dịch tễ.",
+    lead: "Tối ưu phân bổ theo số ca dự báo và giả định của mô hình diễn tập.",
     budgetLabel: "Tổng ngân sách phân bổ (VNĐ)",
     budgetHelp: "Số ngân sách dự kiến dùng cho chiến dịch phòng dịch.",
+    costLabel: "Ngân sách tối đa cho",
+    costHelp:
+      "Nhập giới hạn ngân sách cho từng địa bàn (VNĐ). Đơn giá nguồn lực trong mô hình là giả định phục vụ demo.",
+    forecastHelp:
+      "Số ca dùng dự báo tầm 1 tháng từ lượt gắn với từng cảnh báo; dữ liệu lịch sử dùng cho diễn tập.",
+    forecastUnavailable:
+      "Không đủ dữ liệu dự báo hoặc cảnh báo gắn với hồ sơ. Không thể lập phương án.",
+    duplicateProvince:
+      "Có nhiều cảnh báo cho cùng một địa bàn; cần chọn một lượt dự báo trước khi lập phương án.",
+    failed: "Không thể lập phương án. Hãy kiểm tra giới hạn ngân sách và dịch vụ rồi thử lại.",
     submit: "Chạy thuật toán tối ưu",
     submitting: "Đang tối ưu hoá…",
     summary: "Kết quả tối ưu hoá",
     totalCost: "Tổng chi phí phân bổ",
-    casesPrevented: "Số ca dự kiến ngăn chặn",
+    casesPrevented: "Số ca ước tính ngăn chặn (mô phỏng)",
     columns: {
       province: "Tỉnh / Thành phố",
       amount: "Ngân sách phân bổ",
@@ -517,6 +527,8 @@ export const vi = {
     approverOnly: "Chỉ Lãnh đạo (Approver) mới có quyền phê duyệt hoặc từ chối văn bản.",
     fourEyesNotice:
       "Quy tắc 4 mắt: Người soạn văn bản B2G không được tự phê duyệt văn bản của mình.",
+    legacyAuthorNotice:
+      "Dự thảo cũ không có định danh tác giả có thể xác minh. Hãy tạo lại dự thảo trước khi phê duyệt.",
     confirmApprove: {
       title: "Phê duyệt văn bản",
       desc: "Văn bản sẽ được phê duyệt chính thức để chuyển sang bước ban hành. Thao tác này không thể thu hồi.",

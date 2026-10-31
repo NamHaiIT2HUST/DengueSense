@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -16,6 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/domain"
@@ -25,15 +25,18 @@ type WorkflowRepo interface {
 	domain.AlertRepository
 	domain.CaseRepository
 	domain.DraftRepository
+	ConfirmAlertWithCase(context.Context, uuid.UUID, string) error
+	ReviewDraft(context.Context, *domain.Review) (*domain.DispatchDraft, error)
 }
 
 type Server struct {
-	svc         *app.WorkflowService
-	repo        WorkflowRepo
-	genaiURL    string
-	genaiToken  func(context.Context) (string, error)
-	optimizeURL string
-	httpClient  *http.Client
+	svc           *app.WorkflowService
+	repo          WorkflowRepo
+	genaiURL      string
+	genaiToken    func(context.Context) (string, error)
+	optimizeURL   string
+	forecastCases func(context.Context, uuid.UUID, string) (float64, error)
+	httpClient    *http.Client
 }
 
 type ServerOption func(*Server)
@@ -55,6 +58,10 @@ func WithOptimizeURL(u string) ServerOption {
 	return func(s *Server) { s.optimizeURL = u }
 }
 
+func WithForecastCases(source func(context.Context, uuid.UUID, string) (float64, error)) ServerOption {
+	return func(s *Server) { s.forecastCases = source }
+}
+
 func WithHTTPClient(client *http.Client) ServerOption {
 	return func(s *Server) { s.httpClient = client }
 }
@@ -69,6 +76,21 @@ func NewServer(svc *app.WorkflowService, repo WorkflowRepo, opts ...ServerOption
 		opt(s)
 	}
 	return s
+}
+
+func requestActorID(c *gin.Context) string {
+	if actor, ok := authx.ActorFrom(c.Request.Context()); ok && strings.TrimSpace(actor.ID) != "" {
+		return strings.TrimSpace(actor.ID)
+	}
+	return strings.TrimSpace(c.GetHeader(authx.HeaderActorID))
+}
+
+func draftActorID(c *gin.Context) string {
+	id := requestActorID(c)
+	if _, err := uuid.Parse(id); err != nil {
+		return ""
+	}
+	return id
 }
 
 // ---------------------------------------------------------------------
@@ -104,26 +126,18 @@ func (s *Server) ListAlerts(c *gin.Context, params api.ListAlertsParams) {
 // ConfirmAlert implements api.ServerInterface
 func (s *Server) ConfirmAlert(c *gin.Context, alertId uuid.UUID) {
 	ctx := c.Request.Context()
-	err := s.repo.UpdateAlertStatus(ctx, alertId, domain.AlertStatusClosed)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	actorID := requestActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người tiếp nhận"))
 		return
 	}
-
-	// Mở hồ sơ mới gắn liền với alert này
-	caseID := uuid.New()
-	now := time.Now().UTC()
-	err = s.repo.CreateCase(ctx, &domain.Case{
-		ID:        caseID,
-		Title:     "Hồ sơ xử lý cảnh báo dịch",
-		Status:    domain.CaseStatusOpen,
-		AlertIDs:  []uuid.UUID{alertId},
-		CreatedBy: "officer",
-		CreatedAt: now,
-		UpdatedAt: now,
-	})
+	err := s.repo.ConfirmAlertWithCase(ctx, alertId, actorID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.Is(err, domain.ErrAlertNotFound) {
+			httpx.WriteProblem(c, httpx.NotFound("Không tìm thấy cảnh báo"))
+		} else {
+			httpx.WriteProblem(c, httpx.Internal())
+		}
 		return
 	}
 
@@ -262,6 +276,51 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if s.optimizeURL == "" || s.forecastCases == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dịch vụ dự báo hoặc tối ưu không khả dụng; chưa tạo phương án phân bổ"})
+		return
+	}
+	if math.IsNaN(req.Budget) || math.IsInf(req.Budget, 0) || req.Budget <= 0 || len(req.Items) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ngân sách và danh sách địa bàn không hợp lệ"})
+		return
+	}
+	ctx := c.Request.Context()
+	cs, err := s.repo.GetCaseByID(ctx, caseId)
+	if err != nil || cs == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hồ sơ"})
+		return
+	}
+	alerts := make(map[string]*domain.Alert, len(cs.AlertIDs))
+	for _, id := range cs.AlertIDs {
+		alert, err := s.repo.GetAlertByID(ctx, id)
+		if err != nil || alert == nil || alert.RunID == uuid.Nil || alert.ProvinceID == "" || alerts[alert.ProvinceID] != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cảnh báo thiếu nguồn dự báo hoặc trùng địa bàn"})
+			return
+		}
+		alerts[alert.ProvinceID] = alert
+	}
+	if len(alerts) == 0 || len(alerts) != len(req.Items) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Địa bàn phải khớp các cảnh báo của hồ sơ"})
+		return
+	}
+	seen := make(map[string]bool, len(req.Items))
+	for _, item := range req.Items {
+		alert := alerts[item.ProvinceId]
+		if alert == nil || seen[item.ProvinceId] || math.IsNaN(item.Cost) || math.IsInf(item.Cost, 0) || item.Cost <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Địa bàn hoặc chi phí không hợp lệ"})
+			return
+		}
+		seen[item.ProvinceId] = true
+		actual, err := s.forecastCases(ctx, alert.RunID, alert.ProvinceID)
+		if err != nil || math.IsNaN(actual) || math.IsInf(actual, 0) || actual < 0 {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Không thể kiểm chứng số liệu dự báo"})
+			return
+		}
+		if math.IsNaN(item.CasesPred) || math.IsInf(item.CasesPred, 0) || math.Abs(actual-item.CasesPred) > 1e-6 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Số ca không khớp lượt dự báo gắn với cảnh báo"})
+			return
+		}
+	}
 
 	var allocItems []domain.AllocationItem
 	totalCost := 0.0
@@ -301,10 +360,15 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 				httpReq.Header.Set("Content-Type", "application/json")
 				resp, err := s.httpClient.Do(httpReq)
 				if err == nil {
+					if resp.StatusCode == http.StatusUnprocessableEntity {
+						_ = resp.Body.Close()
+						c.JSON(http.StatusBadRequest, gin.H{"error": "Không có phương án thoả mãn các giới hạn ngân sách"})
+						return
+					}
 					if resp.StatusCode == http.StatusOK {
 						var optResp struct {
-							TotalCost               float64 `json:"total_cost"`
-							EstimatedCasesPrevented float64 `json:"estimated_cases_prevented"`
+							TotalCost               *float64 `json:"total_cost"`
+							EstimatedCasesPrevented *float64 `json:"estimated_cases_prevented"`
 							Allocations             []struct {
 								ProvinceID  string  `json:"province_id"`
 								Amount      float64 `json:"amount"`
@@ -314,28 +378,43 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 								Teams       int     `json:"teams"`
 							} `json:"allocations"`
 						}
-						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil {
-							totalCost = optResp.TotalCost
-							prevented = optResp.EstimatedCasesPrevented
+						if err := json.NewDecoder(resp.Body).Decode(&optResp); err == nil && optResp.TotalCost != nil && optResp.EstimatedCasesPrevented != nil && optResp.Allocations != nil {
+							totalCost = *optResp.TotalCost
+							prevented = *optResp.EstimatedCasesPrevented
+							valid := !math.IsNaN(totalCost) && !math.IsInf(totalCost, 0) && totalCost >= 0 && totalCost <= req.Budget && !math.IsNaN(prevented) && !math.IsInf(prevented, 0) && prevented >= 0
+							sum := 0.0
+							allocated := make(map[string]bool, len(optResp.Allocations))
 							for _, a := range optResp.Allocations {
 								var casesPred float64
+								var inputCost float64
 								for _, reqItem := range req.Items {
 									if reqItem.ProvinceId == a.ProvinceID {
 										casesPred = reqItem.CasesPred
+										inputCost = reqItem.Cost
 										break
 									}
 								}
+								alert := alerts[a.ProvinceID]
+								if alert == nil || allocated[a.ProvinceID] || math.IsNaN(a.Amount) || math.IsInf(a.Amount, 0) || a.Amount < 0 || a.Amount > inputCost || a.Beds < 0 || a.Supplies < 0 || a.Teams < 0 {
+									valid = false
+									break
+								}
+								allocated[a.ProvinceID] = true
+								sum += a.Amount
 								allocItems = append(allocItems, domain.AllocationItem{
-									ProvinceID:  a.ProvinceID,
-									Amount:      a.Amount,
-									Explanation: a.Explanation,
-									Beds:        a.Beds,
-									Supplies:    a.Supplies,
-									Teams:       a.Teams,
-									CasesPred:   casesPred,
+									ProvinceID:      a.ProvinceID,
+									Amount:          a.Amount,
+									Explanation:     a.Explanation,
+									Beds:            a.Beds,
+									Supplies:        a.Supplies,
+									Teams:           a.Teams,
+									CasesPred:       casesPred,
+									ForecastRunID:   alert.RunID.String(),
+									ForecastHorizon: 1,
+									CostInput:       inputCost,
 								})
 							}
-							calledOptimize = true
+							calledOptimize = valid && math.Abs(sum-totalCost) < 0.01
 						}
 					}
 					_ = resp.Body.Close()
@@ -345,33 +424,8 @@ func (s *Server) CreateAllocationPlan(c *gin.Context, caseId uuid.UUID) {
 	}
 
 	if !calledOptimize {
-		for _, it := range req.Items {
-			if totalCost+it.Cost <= req.Budget {
-				beds := int(math.Round(it.CasesPred * 0.15))
-				if beds < 5 && it.CasesPred > 0 {
-					beds = 5
-				}
-				supplies := int(math.Round(it.CasesPred * 2.5))
-				if supplies < 50 && it.CasesPred > 0 {
-					supplies = 50
-				}
-				teams := int(math.Round(it.CasesPred / 150.0))
-				if teams < 1 && it.CasesPred > 0 {
-					teams = 1
-				}
-				allocItems = append(allocItems, domain.AllocationItem{
-					ProvinceID:  it.ProvinceId,
-					Amount:      1.0,
-					Explanation: fmt.Sprintf("MILP tối ưu: Điều phối %d giường, %d lít Cloramin B, %d đội phản ứng nhanh cơ động", beds, supplies, teams),
-					Beds:        beds,
-					Supplies:    supplies,
-					Teams:       teams,
-					CasesPred:   it.CasesPred,
-				})
-				totalCost += it.Cost
-				prevented += it.CasesPred * 0.28
-			}
-		}
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "Dịch vụ tối ưu không khả dụng; chưa tạo phương án phân bổ"})
+		return
 	}
 
 	plan := &domain.AllocationPlan{
@@ -428,13 +482,18 @@ func (s *Server) CreateDraft(c *gin.Context, caseId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người soạn dự thảo"))
+		return
+	}
 
 	draft := domain.NewDispatchDraft(
 		caseId,
 		domain.DraftType(req.DraftType),
 		req.Title,
 		req.Content,
-		req.CreatedBy,
+		actorID,
 	)
 
 	if err := s.repo.CreateDraft(c.Request.Context(), draft); err != nil {
@@ -450,6 +509,11 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 	var req api.GenerateDraftCaseRequest
 	if c.ShouldBindJSON(&req) != nil || (req.DraftType != "b2b" && req.DraftType != "b2g") {
 		c.JSON(400, gin.H{"error": "Yêu cầu không hợp lệ"})
+		return
+	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người tạo dự thảo"))
 		return
 	}
 	ctx := c.Request.Context()
@@ -618,7 +682,7 @@ func (s *Server) GenerateDraftForCase(c *gin.Context, caseID uuid.UUID) {
 		c.JSON(502, gin.H{"error": "Bằng chứng không hợp lệ"})
 		return
 	}
-	draft := domain.NewDispatchDraft(caseID, domain.DraftType(req.DraftType), result.Title, result.Content, cs.CreatedBy)
+	draft := domain.NewDispatchDraft(caseID, domain.DraftType(req.DraftType), result.Title, result.Content, actorID)
 	draft.GenerationEvidence = evidenceJSON
 	if s.repo.CreateDraft(ctx, draft) != nil {
 		c.JSON(500, gin.H{"error": "Không thể lưu dự thảo"})
@@ -663,9 +727,9 @@ var knownLegalCitations = map[string]verifiedCitationRule{
 	"vn-moh-qd3711-2014": {
 		issuer:          "Bộ Y tế",
 		documentVersion: "3711/QĐ-BYT",
-		provisionSub:    "Phần II, Mục 2",
-		exactQuote:      "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-		sourceHosts:     []string{"kcb.vn", "moh.gov.vn"},
+		provisionSub:    "Mục III",
+		exactQuote:      "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+		sourceHosts:     []string{"file.medinet.gov.vn", "medinet.gov.vn", "trungtamytengoquyen.vn", "moh.gov.vn"},
 	},
 	"vn-qd02-2016": {
 		issuer:          "Thủ tướng Chính phủ",
@@ -709,7 +773,7 @@ func validCitations(draftType string, citations []api.Citation) bool {
 			return false
 		}
 
-		// Đối soát nguyên văn và xác thực nguồn với danh mục văn bản mẫu đã kiểm chứng
+		// Đối soát chuỗi trích dẫn và xác thực nguồn với danh mục văn bản mẫu tĩnh (cả 3 văn bản QĐ 02/2016, NĐ 30/2020 và QĐ 3711/2014 đều đã đối chiếu nguyên văn từng câu chữ với văn bản chính thức)
 		rule, ok := matchCitationRule(c.DocumentId)
 		if !ok {
 			// Bắt buộc văn bản phải thuộc danh mục đã kiểm chứng
@@ -759,11 +823,22 @@ func (s *Server) UpdateDraft(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người sửa dự thảo"))
+		return
+	}
 
 	ctx := c.Request.Context()
 	draft, err := s.repo.GetDraftByID(ctx, draftId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy dự thảo"})
+		return
+	}
+	// Chỉ tác giả đã xác thực được thay nội dung; nếu người duyệt sửa rồi tự duyệt,
+	// created_by cũ sẽ tạo đường vòng qua quy tắc 4 mắt.
+	if draft.CreatedBy != actorID {
+		httpx.WriteProblem(c, httpx.New(http.StatusForbidden, "common.forbidden", "Không được sửa dự thảo", "Chỉ tác giả của dự thảo được sửa nội dung"))
 		return
 	}
 
@@ -792,6 +867,11 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	actorID := draftActorID(c)
+	if actorID == "" {
+		httpx.WriteProblem(c, httpx.Unauthenticated("Không xác định được người duyệt"))
+		return
+	}
 
 	ctx := c.Request.Context()
 	draft, err := s.repo.GetDraftByID(ctx, draftId)
@@ -799,16 +879,12 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy dự thảo"})
 		return
 	}
-
 	action := domain.ReviewAction(req.Action)
-	// Bất biến 1 & 2: Kiểm tra quy tắc 4 mắt và khớp phiên bản
-	if err := draft.ValidateReview(req.ReviewerId, req.DraftVersion, action); err != nil {
-		status := http.StatusBadRequest
-		if errors.Is(err, domain.ErrFourEyesViolation) {
-			status = http.StatusForbidden
+	if draft.DraftType == domain.DraftTypeB2G && action == domain.ReviewActionApprove {
+		if _, err := uuid.Parse(draft.CreatedBy); err != nil {
+			httpx.WriteProblem(c, httpx.New(http.StatusConflict, "common.conflict", "Không thể xác minh tác giả", "Dự thảo cũ thiếu định danh tác giả có thể xác minh; hãy tạo lại dự thảo"))
+			return
 		}
-		c.JSON(status, gin.H{"error": err.Error()})
-		return
 	}
 
 	reviewID := uuid.New()
@@ -822,21 +898,24 @@ func (s *Server) SubmitReview(c *gin.Context, draftId uuid.UUID) {
 		ID:           reviewID,
 		DraftID:      draftId,
 		DraftVersion: req.DraftVersion,
-		ReviewerID:   req.ReviewerId,
+		ReviewerID:   actorID,
 		Action:       action,
 		Note:         note,
 		ReviewedAt:   now,
 	}
 
-	if err := s.repo.CreateReview(ctx, review); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Áp dụng review thay đổi trạng thái draft
-	draft.ApplyReview(action)
-	if err := s.repo.UpdateDraft(ctx, draft); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	draft, err = s.repo.ReviewDraft(ctx, review)
+	if err != nil {
+		status := http.StatusInternalServerError
+		switch {
+		case errors.Is(err, domain.ErrFourEyesViolation):
+			status = http.StatusForbidden
+		case errors.Is(err, domain.ErrDraftVersionMismatch), errors.Is(err, domain.ErrInvalidDraftTransition), errors.Is(err, domain.ErrInvalidReviewAction):
+			status = http.StatusBadRequest
+		case errors.Is(err, domain.ErrDraftNotFound):
+			status = http.StatusNotFound
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
 

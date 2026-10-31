@@ -53,6 +53,10 @@ paths:
       responses:
         "204":
           description: Xác nhận thành công
+        "401":
+          description: Thiếu danh tính người tiếp nhận.
+        "404":
+          description: Không tìm thấy cảnh báo.
 
   /internal/v1/workflow/cases:
     get:
@@ -135,6 +139,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AllocationPlan"
+        "503":
+          description: Không kiểm chứng được dự báo hoặc dịch vụ tối ưu không khả dụng; không tạo phương án.
 
   /internal/v1/workflow/cases/{case_id}/allocation-plans/{plan_id}/confirm:
     post:
@@ -240,7 +246,7 @@ paths:
                 $ref: "#/components/schemas/DispatchDraft"
     patch:
       operationId: updateDraft
-      summary: Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+      summary: Tác giả đã xác thực cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
       parameters:
         - name: draft_id
           in: path
@@ -261,6 +267,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DispatchDraft"
+        "401": { description: Không xác định được người sửa dự thảo }
+        "403": { description: Người sửa không phải tác giả dự thảo }
 
   /internal/v1/workflow/drafts/{draft_id}/reviews:
     post:
@@ -288,6 +296,12 @@ paths:
                 $ref: "#/components/schemas/ReviewResult"
         "400":
           description: Vi phạm quy tắc 4 mắt hoặc trạng thái không hợp lệ
+        "401":
+          description: Thiếu định danh người duyệt hợp lệ.
+        "403":
+          description: Người tạo không được tự duyệt.
+        "409":
+          description: Không thể xác minh định danh tác giả của dự thảo cũ.
 
   /internal/v1/workflow/drafts/{draft_id}/dispatch:
     post:
@@ -412,8 +426,8 @@ components:
             required: [province_id, cases_pred, cost]
             properties:
               province_id: { type: string }
-              cases_pred: { type: number, format: double }
-              cost: { type: number, format: double }
+              cases_pred: { type: number, format: double, description: Số ca tầm 1 tháng từ lượt dự báo của cảnh báo; backend đối chiếu lại nguồn. }
+              cost: { type: number, format: double, description: Giới hạn ngân sách do người lập phương án nhập cho địa bàn. }
 
     AllocationPlan:
       type: object

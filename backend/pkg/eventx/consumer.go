@@ -137,7 +137,7 @@ func (c *Consumer) HandleMessage(ctx context.Context, raw []byte) error {
 	}
 
 	// 3. Quá 5 lần thử: chuyển sang stream DLQ.<type> + log error (docs/09 §7.4)
-	c.opts.Logger.ErrorContext(ctx, "xử lý sự kiện vượt quá số lần thử tối đa — chuyển sang DLQ",
+	c.opts.Logger.ErrorContext(ctx, "xử lý sự kiện vượt quá số lần thử tối đa",
 		"event_id", env.ID,
 		"type", env.Type,
 		"attempts", c.opts.MaxAttempts,
@@ -149,11 +149,14 @@ func (c *Consumer) HandleMessage(ctx context.Context, raw []byte) error {
 		if pubErr := c.opts.DLQPublisher.PublishToSubject(ctx, dlqSubject, env); pubErr != nil {
 			c.opts.Logger.ErrorContext(ctx, "phát sự kiện vào DLQ thất bại",
 				"event_id", env.ID, "dlq_subject", dlqSubject, "error", pubErr.Error())
+			return fmt.Errorf("phát sự kiện %s vào DLQ: %w", env.ID, pubErr)
+		}
+		// Chỉ đánh dấu khi DLQ đã xác nhận nhận sự kiện; nếu không,
+		// lần giao lại phải còn cơ hội xử lý để tránh mất dữ liệu.
+		if recErr := c.inbox.RecordProcessed(ctx, eventID, env.Type); recErr != nil {
+			return fmt.Errorf("ghi inbox sau khi phát DLQ: %w", recErr)
 		}
 	}
-
-	// Đánh dấu đã qua xử lý trong inbox để tránh poison pill kẹt vĩnh viễn trên bus
-	_ = c.inbox.RecordProcessed(ctx, eventID, env.Type)
 
 	return fmt.Errorf("sự kiện %s (%s) thất bại sau %d lần thử: %w", env.Type, env.ID, c.opts.MaxAttempts, lastErr)
 }

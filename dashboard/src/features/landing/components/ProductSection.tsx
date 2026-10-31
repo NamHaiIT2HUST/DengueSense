@@ -31,7 +31,7 @@ const PRODUCT_MODULES = [
     code: "MÔ-ĐUN 02",
     tag: "GIS Không Gian",
     title: "Bản Đồ Số Dịch Tễ 34 Tỉnh Thành",
-    desc: "Giám sát trực quan mật độ ca mắc, tỉ suất trên 100.000 dân và phân tầng 4 cấp độ cảnh báo dịch theo thời gian thực, hỗ trợ phân tích xu hướng dịch tễ đa chiều.",
+    desc: "Giám sát trực quan mật độ ca mắc, tỉ suất trên 100.000 dân và phân tầng 4 cấp độ cảnh báo dịch theo chu kỳ giám sát hàng tháng, hỗ trợ phân tích xu hướng dịch tễ đa chiều.",
     highlight: "34 tỉnh trọng điểm toàn quốc",
     color: "from-blue-500/15 via-indigo-500/5 to-slate-950 border-blue-500/30",
     badgeColor: "bg-blue-500/10 text-blue-300 border-blue-500/30",

@@ -1,4 +1,10 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import {
   api,
@@ -61,6 +67,26 @@ export function useProvinceForecasts(provinceId: string, runId: string | undefin
         })
       ),
     staleTime: 5 * 60_000,
+  });
+}
+
+/** Dự báo theo đúng lượt gắn với mỗi cảnh báo; không tự lấy lượt mới nhất. */
+export function useAlertForecasts(
+  alerts: { province_id: string; run_id: string }[],
+  enabled: boolean
+) {
+  return useQueries({
+    queries: alerts.map(({ province_id, run_id }) => ({
+      queryKey: qk.provinceForecasts(province_id, run_id),
+      queryFn: async () =>
+        unwrap(
+          await api.GET("/provinces/{province_id}/forecasts", {
+            params: { path: { province_id }, query: { run_id } },
+          })
+        ),
+      enabled,
+      staleTime: 5 * 60_000,
+    })),
   });
 }
 

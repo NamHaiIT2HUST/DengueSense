@@ -484,7 +484,10 @@ type CitationStatus string
 type CreateAllocationPlanRequest struct {
 	Budget float64 `json:"budget"`
 	Items  []struct {
-		CasesPred  float64 `json:"cases_pred"`
+		// CasesPred Số ca tầm 1 tháng từ lượt dự báo của cảnh báo; backend đối chiếu lại nguồn.
+		CasesPred float64 `json:"cases_pred"`
+
+		// Cost Giới hạn ngân sách do người lập phương án nhập cho địa bàn.
 		Cost       float64 `json:"cost"`
 		ProvinceId string  `json:"province_id"`
 	} `json:"items"`
@@ -794,7 +797,7 @@ type ServerInterface interface {
 	// GetDraft Lấy thông tin dự thảo
 	// (GET /internal/v1/workflow/drafts/{draft_id})
 	GetDraft(c *gin.Context, draftId openapi_types.UUID)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả đã xác thực cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /internal/v1/workflow/drafts/{draft_id})
 	UpdateDraft(c *gin.Context, draftId openapi_types.UUID)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
@@ -1228,6 +1231,22 @@ func (response ConfirmAlert204Response) VisitConfirmAlertResponse(w http.Respons
 	return nil
 }
 
+type ConfirmAlert401Response struct {
+}
+
+func (response ConfirmAlert401Response) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type ConfirmAlert404Response struct {
+}
+
+func (response ConfirmAlert404Response) VisitConfirmAlertResponse(w http.ResponseWriter) error {
+	w.WriteHeader(404)
+	return nil
+}
+
 type ListCasesRequestObject struct {
 	Params ListCasesParams
 }
@@ -1323,6 +1342,14 @@ func (response CreateAllocationPlan201JSONResponse) VisitCreateAllocationPlanRes
 	w.WriteHeader(201)
 	_, err := buf.WriteTo(w)
 	return err
+}
+
+type CreateAllocationPlan503Response struct {
+}
+
+func (response CreateAllocationPlan503Response) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+	w.WriteHeader(503)
+	return nil
 }
 
 type ConfirmAllocationPlanRequestObject struct {
@@ -1469,6 +1496,22 @@ func (response UpdateDraft200JSONResponse) VisitUpdateDraftResponse(w http.Respo
 	return err
 }
 
+type UpdateDraft401Response struct {
+}
+
+func (response UpdateDraft401Response) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type UpdateDraft403Response struct {
+}
+
+func (response UpdateDraft403Response) VisitUpdateDraftResponse(w http.ResponseWriter) error {
+	w.WriteHeader(403)
+	return nil
+}
+
 type DispatchApprovedOrderRequestObject struct {
 	DraftId openapi_types.UUID `json:"draft_id"`
 	Body    *DispatchApprovedOrderJSONRequestBody
@@ -1531,6 +1574,30 @@ func (response SubmitReview400Response) VisitSubmitReviewResponse(w http.Respons
 	return nil
 }
 
+type SubmitReview401Response struct {
+}
+
+func (response SubmitReview401Response) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type SubmitReview403Response struct {
+}
+
+func (response SubmitReview403Response) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+	w.WriteHeader(403)
+	return nil
+}
+
+type SubmitReview409Response struct {
+}
+
+func (response SubmitReview409Response) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+	w.WriteHeader(409)
+	return nil
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// ListAlerts Danh sách cảnh báo
@@ -1563,7 +1630,7 @@ type StrictServerInterface interface {
 	// GetDraft Lấy thông tin dự thảo
 	// (GET /internal/v1/workflow/drafts/{draft_id})
 	GetDraft(ctx context.Context, request GetDraftRequestObject) (GetDraftResponseObject, error)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả đã xác thực cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /internal/v1/workflow/drafts/{draft_id})
 	UpdateDraft(ctx context.Context, request UpdateDraftRequestObject) (UpdateDraftResponseObject, error)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt

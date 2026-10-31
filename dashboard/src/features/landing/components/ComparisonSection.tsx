@@ -14,11 +14,11 @@ const COMPARISONS = [
       "Tích hợp đa tầng: Kết hợp dữ liệu dịch tễ với dữ liệu viễn thám khí hậu toàn cầu ERA5 (nhiệt độ, lượng mưa, độ ẩm).",
   },
   {
-    criterion: "Độ chính xác cảnh báo",
+    criterion: "Khả năng phân định cảnh báo sớm",
     traditional:
       "Dự đoán định tính theo kinh nghiệm chuyên gia, dễ sai lệch ở mùa dịch bất thường.",
     denguesense:
-      "89.5% độ chính xác định lượng, kiểm chứng độc lập trên 6 mùa dịch thực tế (2005–2010).",
+      "ROC-AUC trung bình 6 mùa đạt 0.809 ± 0.041 (mùa 2009 đạt 0.857; mùa khó nhất 2010 đạt 0.758; PR-AUC 0.65 so với mức nền 0.35), kiểm chứng trên 6 mùa dịch thực tế (2005–2010).",
   },
   {
     criterion: "Phương pháp phân bổ nguồn lực",
@@ -36,13 +36,13 @@ const COMPARISONS = [
     criterion: "Soạn thảo công văn chỉ đạo",
     traditional: "Mất 2–3 ngày soạn thảo và thẩm định qua nhiều cấp trung gian.",
     denguesense:
-      "GenAI RAG tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
+      "GenAI Guardrails tự động sinh dự thảo văn bản chuẩn Nghị định 30/2020/NĐ-CP & Quyết định 02/2016/QĐ-TTg chỉ trong 5 phút.",
   },
   {
-    criterion: "Kiểm soát an toàn thông tin & ảo giác",
+    criterion: "Kiểm soát số liệu & trích dẫn văn bản",
     traditional: "Rủi ro thất lạc, nhầm lẫn số liệu thống kê giữa các tuyến báo cáo.",
     denguesense:
-      "Guardrail G1 khóa cứng số liệu 100% (Zero-Hallucination) kèm cơ chế thẩm định 4 mắt (Human-in-the-loop).",
+      "Guardrails G1–G6 khóa cứng số liệu từ phương án phân bổ và đối chiếu trích dẫn danh mục tĩnh, kèm cơ chế thẩm định 4 mắt (Human-in-the-loop).",
   },
 ];
 

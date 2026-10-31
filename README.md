@@ -7,7 +7,7 @@
 [![Python](https://img.shields.io/badge/Python-3.13%20%7C%20FastAPI-3776AB?style=flat&logo=python)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-MIT-amber.svg)](LICENSE)
 
-> **Giải pháp Y tế Công cộng Khép kín Chuyển đổi Số:** Cảnh báo sớm dịch sốt xuất huyết trước 1–6 tháng bằng mô hình học máy không - thời gian kết hợp dữ liệu viễn thám toàn cầu ERA5; tự động tối ưu hóa phân bổ nguồn lực y tế bằng quy hoạch nguyên hỗn hợp (MILP); và trợ lý GenAI RAG tự động soạn thảo công điện chỉ đạo cấp bách tuân thủ Nghị định 30/2020/NĐ-CP với cơ chế kiểm soát Guardrails G1–G6 chống ảo giác (Zero-Hallucination).
+> **Giải pháp Y tế Công cộng Khép kín Chuyển đổi Số:** Cảnh báo sớm dịch sốt xuất huyết trước 1–6 tháng bằng mô hình học máy không - thời gian kết hợp dữ liệu viễn thám toàn cầu ECMWF ERA5; tự động tối ưu hóa phân bổ nguồn lực y tế bằng quy hoạch nguyên hỗn hợp (MILP); và trợ lý GenAI tự động soạn thảo công điện chỉ đạo cấp bách tuân thủ Nghị định 30/2020/NĐ-CP với 6 lớp kiểm soát tự động Guardrails G1–G6 nhằm khóa cứng số liệu và đối chiếu danh mục căn cứ pháp lý đã kiểm chứng.
 >
 > 🏆 **Đội thi MedSentinel** — Trường Công nghệ Thông tin & Truyền thông, Trường Điện - Điện tử, Trường Cơ khí — **Đại học Bách khoa Hà Nội (HUST)**  
 > 🌐 **Live Demo Hệ Thống:** [https://denguesense.vercel.app/](https://denguesense.vercel.app/)  
@@ -34,20 +34,20 @@ Sốt xuất huyết Dengue (SXH) là bệnh truyền nhiễm lưu hành hàng n
 │                                 DENGUESENSE CLOSED-LOOP ARCHITECTURE                                   │
 ├────────────────────────────────┬───────────────────────────────────────┬───────────────────────────────┤
 │    LAYER 1: EPIDEMIC AI        │       LAYER 2: RESOURCE ALLOCATION    │    LAYER 3: GOVERNANCE GENAI  │
-│  Spatio-Temporal M4-R2         │  Mixed-Integer Linear Programming     │  RAG Assistant & Guardrails   │
+│  Spatio-Temporal M4-R2         │  Mixed-Integer Linear Programming     │  Guarded GenAI Drafting       │
 ├────────────────────────────────┼───────────────────────────────────────┼───────────────────────────────┤
 │ • Dữ liệu viễn thám ERA5       │ • Google OR-Tools CP-SAT & SCIP       │ • Soạn công điện B2G & B2B    │
 │ • Nhiệt độ, lượng mưa, ẩm độ   │ • Giải bài toán lợi ích biên giảm dần │ • Chuẩn Nghị định 30/2020/NĐ  │
 │ • Dự báo sớm 1 – 6 tháng       │ • 3 Trụ cột: Giường, Vật tư, Đội lưu  │ • Khóa cứng số liệu (G1)      │
 │ • 34 Tỉnh dịch tễ trọng điểm   │ • Tối ưu theo ràng buộc ngân sách     │ • Bất biến 4 mắt (Four-eyes)  │
-│ • Độ chính xác ROC-AUC 89.5%   │ • Thời gian giải < 60 giây            │ • Thẩm định độc lập & Ký số   │
+│ • ROC-AUC 6 mùa 0.809 (exp016) │ • Thời gian giải < 60 giây            │ • Thẩm định độc lập & Ký duyệt│
 └────────────────────────────────┴───────────────────────────────────────┴───────────────────────────────┘
 ```
 
 ### 🔹 Layer 1: Dự Báo Dịch Tễ Không - Thời Gian (Spatio-Temporal AI)
-- **Dữ liệu đầu vào đa nguồn:** Tích hợp dữ liệu khí tượng toàn cầu ECMWF ERA5 (lưới $0.25^\circ \times 0.25^\circ$), chỉ số dao động nhiệt độ mặt biển Nino/ONI, dữ liệu dịch tễ giám sát bệnh truyền nhiễm 20 năm tại 34 tỉnh/thành phố trọng điểm.
+- **Dữ liệu đầu vào đa nguồn:** Tích hợp dữ liệu khí tượng toàn cầu ECMWF ERA5 (lưới $0.25^\circ \times 0.25^\circ$), chỉ số dao động nhiệt độ mặt biển Nino/ONI, dữ liệu dịch tễ giám sát bệnh truyền nhiễm thực tế (1994–2010) tại 34 tỉnh/thành phố trọng điểm.
 - **Mô hình tổ hợp M4-R2:** Kết hợp Gradient Boosting (XGBoost) và Random Forest với kỹ thuật trễ thời gian (Lag features: trễ nhiệt độ 1–3 tháng, trễ lượng mưa tích lũy 2–4 tháng phản ánh chu kỳ sinh sản muỗi *Aedes aegypti*).
-- **Hiệu năng kiểm định thực tế:** Đạt **ROC-AUC $0.895$**, **PR-AUC $0.52 \pm 0.17$** (vượt trội so với mức nền dịch tễ $0.18$), cảnh báo bùng phát dịch trước từ 1 đến 6 tháng.
+- **Hiệu năng kiểm định thực tế (exp_016, 2005–2010):** Đạt **ROC-AUC trung bình 6 mùa $0.809 \pm 0.041$** (mùa 2009 đạt $0.857$; mùa khó nhất 2010 đạt $0.758$; PR-AUC $0.65$ so với mức nền $0.35$), cảnh báo bùng phát dịch trước từ 1 đến 6 tháng. Thắng baseline B3 Climatology ở cả 6/6 mùa (MASE gộp $0.515 \pm 0.170$).
 - **Tính minh bạch AI (Honesty & Provenance):** Luôn hiển thị mức nền tự nhiên bên cạnh xác suất dự báo, công khai 12 giới hạn kỹ thuật và độ tin cậy theo từng tiểu vùng địa lý.
 
 ### 🔹 Layer 2: Tối Ưu Hóa Phân Bổ Nguồn Lực Can Thiệp (MILP & Metaheuristics)
@@ -60,15 +60,15 @@ Sốt xuất huyết Dengue (SXH) là bệnh truyền nhiễm lưu hành hàng n
 - **Thời gian giải thuật:** Hoàn thành trong **dưới 60 giây**, lập tức trả về cơ số cụ thể cho từng địa phương.
 
 ### 🔹 Layer 3: Trợ Lý Soạn Thảo Công Điện GenAI & Kiểm Soát Thể Thức Hành Chính
-- **Chuẩn hóa văn bản nhà nước:** Tự động sinh dự thảo **Công điện khẩn cấp (B2G)** gửi Ban Chỉ đạo phòng chống dịch các tỉnh và **Thông báo phân tầng điều trị (B2B)** gửi các Bệnh viện theo đúng **Nghị định số 30/2020/NĐ-CP** và **Quyết định số 02/2016/QĐ-BYT**.
-- **6 Lớp Guardrails An Toàn Tuyệt Đối (Zero-Hallucination):**
-  - **G1 (Strict Data Locking):** Khóa cứng 100% con số trong văn bản, khớp tuyệt đối với số ca dự báo từ Layer 1 và định mức ngân sách/vật tư từ Layer 2.
+- **Chuẩn hóa văn bản nhà nước:** Hỗ trợ sinh dự thảo **Công điện khẩn cấp (B2G)** gửi Ban Chỉ đạo phòng chống dịch các tỉnh và **Thông báo phân tầng điều trị (B2B)** gửi các Bệnh viện theo đúng **Nghị định số 30/2020/NĐ-CP** và **Quyết định số 02/2016/QĐ-TTg**.
+- **6 Lớp Guardrails An Toàn Số Liệu (G1–G6):**
+  - **G1 (Strict Data Locking):** Khóa cứng 100% con số trong văn bản, khớp tuyệt đối với số liệu ca bệnh từ mô hình và định mức ngân sách/vật tư từ phương án phân bổ đã xác nhận.
   - **G2 (Data Faithfulness):** Trung thực số liệu, không làm tròn sai lệch.
   - **G3 (Administrative Tone):** Văn phong hành chính công vụ trang nghiêm, không gây hoang mang dư luận.
-  - **G4 (Legal Citations):** Trích dẫn chính xác Quyết định 3711/QĐ-BYT, Quyết định 2760/QĐ-BYT và Luật Phòng, chống bệnh truyền nhiễm.
+  - **G4 (Legal Citations):** Đối chiếu trích dẫn với danh mục căn cứ pháp lý tĩnh đã kiểm chứng (Quyết định 3711/QĐ-BYT, Quyết định 02/2016/QĐ-TTg, Nghị định 30/2020/NĐ-CP).
   - **G5 (Policy Integrity):** Không bịa đặt chính sách hoặc hướng dẫn ngoài phác đồ Bộ Y tế.
   - **G6 (PII Protection):** Bảo vệ dữ liệu cá nhân, không chứa thông tin danh tính bệnh nhân.
-- **Bất biến Quy tắc 4 Mắt (Four-Eyes Principle):** Cán bộ điều hành (`officer`) soạn thảo văn bản B2G tuyệt đối không được tự phê duyệt; bắt buộc phải có sự thẩm định và ký duyệt độc lập từ Lãnh đạo (`approver`) trước khi kích hoạt lệnh điều phối điện tử.
+- **Bất biến Quy tắc 4 Mắt (Four-Eyes Principle):** Cán bộ điều hành (`officer`) soạn thảo văn bản B2G tuyệt đối không được tự phê duyệt; bắt buộc phải có sự thẩm định và xác nhận độc lập từ Lãnh đạo (`approver`) kèm chữ ký điện tử mô phỏng trong môi trường demo trước khi ban hành.
 
 ---
 
@@ -99,7 +99,7 @@ flowchart TD
     subgraph AIService["Tầng Tính Toán AI Chuyên Sâu (ai-service / FastAPI)"]
         AI_FORECAST["Forecast API\nMô hình M4-R2 (ERA5 + XGBoost)"]
         AI_OPTIMIZE["Optimize API\nGoogle OR-Tools MILP / SA / Tabu"]
-        AI_GENAI["GenAI API\nRAG Drafting & Guardrails G1-G6"]
+        AI_GENAI["GenAI API\nGuarded Drafting & Guardrails G1-G6"]
     end
 
     subgraph DataStorage["Lớp Dữ Liệu & Hàng Đợi Sự Kiện"]

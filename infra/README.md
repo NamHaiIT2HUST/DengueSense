@@ -58,6 +58,30 @@ E2E_ANALYST_PASSWORD=… E2E_VIEWER_PASSWORD=… npm run test:e2e:real   # 6 E2E
 
 ## Kiểm tra sau khi dựng
 
+### Sự kiện dự báo và cảnh báo
+
+`forecast-relay` đọc outbox bằng tài khoản database của forecast, gửi sự kiện lên
+JetStream và chỉ đánh dấu đã gửi sau khi nhận xác nhận. Workflow dùng consumer bền
+vững, tự thử lại khi forecast hoặc database tạm thời lỗi; việc giao lại có thể xảy
+ra và cảnh báo của cùng lượt/tỉnh được tạo theo ID ổn định. Hai service cần chạy
+cùng với `nats-init` và migration workflow. Kiểm tra bằng `docker compose ps` và
+`docker compose logs forecast-relay workflow`; lỗi payload hoặc lỗi kết nối được ghi
+log và sự kiện chưa gửi được giữ lại trong outbox.
+
+Khi chạy một stack thử nghiệm Compose song song, phải đặt cả tên project (`-p`)
+và `DENGUESENSE_NETWORK_NAME` khác nhau. Nếu chỉ đổi project, hai stack vẫn dùng
+chung `denguesense-core` và tên service có thể trỏ sang database hoặc NATS của
+stack khác.
+
+Ngưỡng hiện tại `exceed_prob >= 0.5` là quy tắc kỹ thuật cho demo, không phải ngưỡng
+công bố dịch hay ngưỡng lâm sàng đã được cơ quan y tế thẩm định. Dữ liệu dự báo lịch
+sử và kết quả mô phỏng không được trình bày là giám sát thời gian thực.
+
+Khi lập phương án, workflow kiểm tra lại số ca tầm 1 tháng từ lượt dự báo của từng
+cảnh báo và lưu nguồn vào snapshot. Người lập nhập giới hạn ngân sách từng tỉnh;
+đơn giá nguồn lực và số ca ngăn chặn do mô hình tính là giả định mô phỏng, chưa
+được đối chiếu với báo giá hoặc tác động thực địa.
+
 ```bash
 # Cô lập dữ liệu giữa các service (quyền tạo/đọc chéo schema, đặc quyền, extension, mật khẩu sai) — phải in "TẤT CẢ ĐẠT"
 docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/check-db-isolation.sh
