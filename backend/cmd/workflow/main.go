@@ -5,18 +5,19 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 
+	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/httpx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/forecastclient"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/httpapi"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/adapters/postgres"
-	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/api"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/app"
 )
 
@@ -112,17 +113,28 @@ func main() {
 	// HTTP Server
 	r := gin.Default()
 	httpx.RegisterHealth(r, db.Ping)
+	publicKey, err := authx.ParsePublicKey(os.Getenv("WORKFLOW_JWT_PUBLIC_KEY"))
+	if err != nil {
+		slog.Error("Khóa xác thực workflow không hợp lệ", "error", err)
+		os.Exit(1)
+	}
+	verifier, err := authx.NewServiceVerifier(authx.StaticKeySet{"k1": publicKey}, "denguesense-identity", "workflow")
+	if err != nil {
+		slog.Error("Không thể tạo xác thực workflow", "error", err)
+		os.Exit(1)
+	}
 
 	var opts []httpapi.ServerOption
 	if genaiURL := os.Getenv("GENAI_API_URL"); genaiURL != "" {
 		opts = append(opts, httpapi.WithGenAIURL(genaiURL))
+		opts = append(opts, httpapi.WithGenAITokenSource(httpapi.IdentityTokenSource(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), &http.Client{Timeout: 5 * time.Second})))
 	}
 	if optimizeURL := os.Getenv("OPTIMIZE_API_URL"); optimizeURL != "" {
 		opts = append(opts, httpapi.WithOptimizeURL(optimizeURL))
 	}
 
 	server := httpapi.NewServer(svc, repo, opts...)
-	api.RegisterHandlers(r, server)
+	httpapi.RegisterAuthenticatedHandlers(r, server, verifier)
 
 	slog.Info("Workflow service listening trên :8001")
 	//nolint:gosec // Use default HTTP server for internal service without timeout limits

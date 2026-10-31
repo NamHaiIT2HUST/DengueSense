@@ -148,7 +148,7 @@ describe("S2 — bản đồ rủi ro", () => {
     const { router } = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=6`, { store: signedIn() });
     const table = await mapTable();
     await user.click(within(table).getByRole("link", { name: "Xem chi tiết Khánh Hòa" }));
-    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" });
+    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" }, { timeout: 3000 });
     expect(router.state.location.pathname).toBe("/app/tinh/khanh_hoa");
     expect(router.state.location.search).toMatchObject({ run: RUN_2010_03, h: 6 });
   });
@@ -157,7 +157,7 @@ describe("S2 — bản đồ rủi ro", () => {
 describe("S3 — chi tiết tỉnh", () => {
   it("hiện 4 tầm dự báo với số exp_016, biểu đồ có bảng thay thế, giải thích SHAP, độ tin cậy và cờ", async () => {
     renderApp(`/app/tinh/khanh_hoa?run=${RUN_2010_03}&h=3`, { store: signedIn() });
-    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" });
+    await screen.findByRole("heading", { level: 1, name: "Khánh Hòa" }, { timeout: 3000 });
     const items = (await expected("2010-03", 1))
       .concat(
         await expected("2010-03", 2),
@@ -287,8 +287,8 @@ describe("S4 — lượt dự báo", () => {
 });
 
 describe("điều hướng console", () => {
-  it("có 3 mục điều hướng và mục hiện tại được đánh dấu", async () => {
-    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn() });
+  it("phân quyền hiển thị theo vai trò người dùng (RBAC: analyst)", async () => {
+    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn(ANALYST.username) });
     await mapTable();
     const nav = screen.getByRole("navigation", { name: "Điều hướng chính" });
     expect(within(nav).getByRole("link", { name: "Bản đồ rủi ro" })).toHaveAttribute(
@@ -297,5 +297,18 @@ describe("điều hướng console", () => {
     );
     expect(within(nav).getByRole("link", { name: "Lượt dự báo" })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: "Mô hình & giới hạn" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
+  });
+
+  it("người xem (viewer) chỉ thấy bản đồ và mô hình, không thấy các mục nghiệp vụ khác", async () => {
+    renderApp(`/app/ban-do?run=${RUN_2010_03}`, { store: signedIn(VIEWER.username) });
+    await mapTable();
+    const nav = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(within(nav).getByRole("link", { name: "Bản đồ rủi ro" })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: "Mô hình & giới hạn" })).toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Lượt dự báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
   });
 });

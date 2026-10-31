@@ -5,17 +5,97 @@ on:
     paths:
       - "backend/**"
       - "contracts/**"
+      - "ai-service/app/serving/**"
       - ".github/workflows/ci-backend.yml"
   push:
     branches: [main]
     paths:
       - "backend/**"
       - "contracts/**"
+      - "ai-service/app/serving/**"
 
 permissions:
   contents: read
 
 jobs:
+  genai-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: integration
+          POSTGRES_PASSWORD: integration
+          POSTGRES_DB: integration
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U integration -d integration"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Cài phụ thuộc GenAI phục vụ kiểm thử
+        run: pip install 'fastapi>=0.115,<0.117' 'uvicorn>=0.30,<0.31' 'pydantic>=2.9,<3.0' 'cryptography>=50.0,<51.0' 'httpx>=0.28,<0.29'
+      - name: Workflow → GenAI → PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd ai-service
+          auth_file="${RUNNER_TEMP}/genai-integration-auth.json"
+          python -c 'import base64,json,secrets; from cryptography.hazmat.primitives.serialization import Encoding,PrivateFormat,PublicFormat,NoEncryption; from tests.test_serving.jwt_helpers import Signer; s=Signer(); seed=s.key.private_bytes(Encoding.Raw,PrivateFormat.Raw,NoEncryption()); pub=s.key.public_key().public_bytes(Encoding.Raw,PublicFormat.Raw); print(json.dumps({"key":s.public_b64,"private":base64.b64encode(seed+pub).decode(),"workflow":secrets.token_urlsafe(32),"gateway":secrets.token_urlsafe(32)}))' > "$auth_file"
+          export GENAI_JWT_PUBLIC_KEY="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["key"])' "$auth_file")"
+          export IDENTITY_JWT_PRIVATE_KEY="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["private"])' "$auth_file")"
+          export WORKFLOW_INTEGRATION_SECRET="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["workflow"])' "$auth_file")"
+          export WORKFLOW_INTEGRATION_GATEWAY_SECRET="$(python -c 'import json,sys; print(json.load(open(sys.argv[1]))["gateway"])' "$auth_file")"
+          echo "::add-mask::${IDENTITY_JWT_PRIVATE_KEY}"
+          echo "::add-mask::${WORKFLOW_INTEGRATION_SECRET}"
+          echo "::add-mask::${WORKFLOW_INTEGRATION_GATEWAY_SECRET}"
+          export IDENTITY_SERVICE_SECRET_SHA256_WORKFLOW="$(python -c 'import hashlib,os; print(hashlib.sha256(os.environ["WORKFLOW_INTEGRATION_SECRET"].encode()).hexdigest())')"
+          export IDENTITY_SERVICE_SECRET_SHA256_GATEWAY="$(python -c 'import hashlib,os; print(hashlib.sha256(os.environ["WORKFLOW_INTEGRATION_GATEWAY_SECRET"].encode()).hexdigest())')"
+          export PGPASSWORD=integration
+          psql -h 127.0.0.1 -U integration -d integration -c 'CREATE DATABASE identity_integration'
+          export IDENTITY_DB_URL='postgres://integration:integration@127.0.0.1:5432/identity_integration?sslmode=disable'
+          export IDENTITY_LISTEN_ADDR='127.0.0.1:25499'
+          export WORKFLOW_INTEGRATION_IDENTITY='http://127.0.0.1:25499'
+          export WORKFLOW_INTEGRATION_DB='postgres://integration:integration@127.0.0.1:5432/integration?sslmode=disable'
+          export WORKFLOW_INTEGRATION_GENAI='http://127.0.0.1:25498/internal/v1'
+          cd ../backend
+          go build -o "${RUNNER_TEMP}/integration-identity" ./cmd/identity
+          "${RUNNER_TEMP}/integration-identity" migrate
+          "${RUNNER_TEMP}/integration-identity" serve &
+          identity_pid=$!
+          cd ../ai-service
+          python -m uvicorn app.serving.genai_api.main:app --host 127.0.0.1 --port 25498 &
+          genai_pid=$!
+          trap 'kill "$genai_pid" "$identity_pid" 2>/dev/null || true; rm -f "$auth_file"' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null && curl --fail --silent http://127.0.0.1:25499/readyz >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null
+          curl --fail --silent http://127.0.0.1:25499/readyz >/dev/null
+          cd ../backend
+          go test ./services/workflow/adapters/httpapi -run '^TestIntegrationGenAIAndPostgres$' -count=1 -v
+          kill "$genai_pid"
+          wait "$genai_pid" || true
+          cd ../ai-service
+          export GENAI_DEMO_MODE=true
+          python -m uvicorn app.serving.genai_api.main:app --host 127.0.0.1 --port 25498 &
+          genai_pid=$!
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:25498/healthz >/dev/null
+          export WORKFLOW_INTEGRATION_DEMO=true
+          cd ../backend
+          go test ./services/workflow/adapters/httpapi -run '^TestIntegrationGenAIAndPostgres$' -count=1 -v
+
   lint-test-build:
     runs-on: ubuntu-latest
     steps:

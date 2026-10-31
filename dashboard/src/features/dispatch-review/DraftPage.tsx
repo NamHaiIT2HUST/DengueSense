@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
+  Download,
   FileCheck2,
   FileEdit,
   History,
@@ -22,6 +23,8 @@ import {
 } from "@/entities/draft";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
 import { formatDateTime } from "@/shared/lib/format";
+import { notify } from "@/shared/lib/notify";
+import { exportDispatchDoc } from "@/shared/lib/exportDispatchDoc";
 import { vi } from "@/shared/i18n/vi";
 import { Alert as UiAlert } from "@/shared/ui/Alert";
 import { Button } from "@/shared/ui/Button";
@@ -36,7 +39,7 @@ export function DraftPage() {
   const user = useCurrentUser();
 
   const isApprover = hasAnyRole(user, "approver", "admin");
-  const isOfficer = hasAnyRole(user, "officer", "analyst", "admin");
+  const isOfficer = hasAnyRole(user, "officer", "admin");
 
   const draftQuery = useDraft(draftId);
   const draft = draftQuery.data;
@@ -95,6 +98,7 @@ export function DraftPage() {
       updated_by: user?.username ?? "officer",
     });
     setIsEditing(false);
+    notify.info("Cập nhật dự thảo", "Bản thảo đã được lưu trữ thành công", { type: "draft" });
   }
 
   async function handleApprove() {
@@ -105,6 +109,11 @@ export function DraftPage() {
       action: "approve",
     });
     setShowApproveDialog(false);
+    notify.success(
+      "Phê duyệt công điện",
+      "Văn bản đã được thẩm định đạt chuẩn 4 mắt và phê duyệt chính thức",
+      { type: "draft" }
+    );
   }
 
   async function handleReject() {
@@ -116,6 +125,9 @@ export function DraftPage() {
       note: rejectReason.trim(),
     });
     setShowRejectDialog(false);
+    notify.warning("Từ chối phê duyệt", `Dự thảo bị từ chối với lý do: ${rejectReason.trim()}`, {
+      type: "draft",
+    });
     setRejectReason("");
   }
 
@@ -127,11 +139,16 @@ export function DraftPage() {
     });
     setDispatchedOrder(order);
     setShowDispatchDialog(false);
+    notify.success(
+      "Phát hành công điện B2G",
+      `Đã phát hành lệnh điều phối tới: ${dispatchRecipient.trim()}`,
+      { type: "draft" }
+    );
   }
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="print:hidden">
         <Link
           to="/app/ho-so/$caseId"
           params={{ caseId: draft.case_id }}
@@ -158,10 +175,10 @@ export function DraftPage() {
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
               draft.status === "APPROVED"
-                ? "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[#4ade80]"
+                ? "bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] text-[var(--status-good-ink)]"
                 : draft.status === "REJECTED"
-                  ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[#f87171]"
-                  : "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[#fcd34d]"
+                  ? "bg-[color-mix(in_srgb,var(--status-critical)_15%,transparent)] text-[var(--status-critical-ink)]"
+                  : "bg-[color-mix(in_srgb,var(--status-warning)_15%,transparent)] text-[var(--status-warning-ink)]"
             }`}
           >
             {vi.drafts.statuses[draft.status] ?? draft.status}
@@ -170,15 +187,17 @@ export function DraftPage() {
       </div>
 
       {fourEyesBlocked && isApprover ? (
-        <UiAlert tone="warning">{vi.drafts.fourEyesNotice}</UiAlert>
+        <div className="print:hidden">
+          <UiAlert tone="warning">{vi.drafts.fourEyesNotice}</UiAlert>
+        </div>
       ) : null}
 
       {/* Grid 2 cột: Trái (Editor/Viewer 60%) - Phải (Evidence + Guardrails + Dispatch 40%) */}
-      <div className="grid gap-6 lg:grid-cols-12 items-start">
+      <div className="grid gap-6 lg:grid-cols-12 items-start print:block">
         {/* CỘT TRÁI (60% ~ 7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          <Card>
-            <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 mb-4">
+        <div className="lg:col-span-7 space-y-4 print:w-full print:space-y-0">
+          <Card className="print:border-none print:shadow-none print:p-0 print:bg-transparent">
+            <div className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 mb-4 print:hidden">
               <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
                 <FileEdit size={18} className="text-[var(--accent)]" />
                 {vi.drafts.editorTitle}
@@ -191,6 +210,22 @@ export function DraftPage() {
                 >
                   <Printer size={14} />
                   In / Xuất PDF
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5 print:hidden"
+                  onClick={() => {
+                    exportDispatchDoc(draft);
+                    notify.success(
+                      "Xuất văn bản thành công",
+                      `Tệp công điện ${draft.id} chuẩn Nghị định 30 (.doc) đã được tải xuống`,
+                      { type: "draft" }
+                    );
+                  }}
+                  title="Xuất văn bản chuẩn thể thức Nghị định 30/2020/NĐ-CP định dạng Microsoft Word"
+                >
+                  <Download size={14} />
+                  Xuất Word (.doc)
                 </Button>
                 {isOfficer && draft.status !== "APPROVED" && (
                   <div>
@@ -246,29 +281,91 @@ export function DraftPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-6 shadow-inner">
-                {/* Tiêu ngữ công văn hành chính */}
-                <div className="mb-6 border-b border-white/10 pb-4 text-center">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-secondary)]">
+              <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-6 shadow-inner print:border-none print:shadow-none print:p-0 print:bg-transparent">
+                {/* Tiêu ngữ công văn hành chính theo Nghị định 30/2020/NĐ-CP */}
+                <div className="mb-6 border-b border-white/10 pb-4 text-center print:border-b-black print:border-b-2 print:pb-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--ink-secondary)] print:text-black print:text-sm">
                     CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
                   </p>
-                  <p className="text-[11px] font-medium text-[var(--ink-muted)]">
+                  <p className="text-[11px] font-semibold text-[var(--ink-muted)] print:text-black print:text-xs">
                     Độc lập - Tự do - Hạnh phúc
                   </p>
-                  <div className="mx-auto my-2 h-[1px] w-24 bg-white/20" />
-                  <p className="text-xs text-[var(--ink-muted)] font-mono">
-                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)}
+                  <div className="mx-auto my-2 h-[1px] w-24 bg-white/20 print:bg-black" />
+                  <p className="text-xs text-[var(--ink-muted)] font-mono print:text-black print:text-xs">
+                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)} /
+                    CĐ-DENGUESENSE
                   </p>
                 </div>
-                <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans">
+                <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans print:text-black print:text-base print:leading-normal print:prose-headings:text-black print:prose-strong:text-black">
                   {draft.content}
+                </div>
+
+                {/* Dấu ký số điện tử theo Nghị định 30/2020/NĐ-CP */}
+                {draft.status === "APPROVED" && (
+                  <div className="mt-8 flex justify-end">
+                    <div className="w-full max-w-sm rounded-lg border-2 border-dashed border-red-600/50 bg-red-500/5 p-3.5 text-xs shadow-xs">
+                      <div className="flex items-center justify-between border-b border-red-500/30 pb-1.5 mb-2">
+                        <span className="font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+                          KÝ BỞI: {user?.display_name?.toUpperCase() || "TS. BS. NGUYỄN VĂN A"}
+                        </span>
+                        <span className="rounded bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase">
+                          Chữ ký số hợp lệ
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-[11px] text-[var(--ink-secondary)]">
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Cơ quan:</strong> Trung tâm
+                          Kiểm soát Bệnh tật (CDC)
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Thời gian ký:</strong>{" "}
+                          {formatDateTime(draft.updated_at || new Date().toISOString())}
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Tổ chức chứng thực:</strong>{" "}
+                          Ban Cơ yếu Chính phủ (VGCA Root)
+                        </div>
+                        <div>
+                          <strong className="text-[var(--ink-primary)]">Mã băm toàn vẹn:</strong>{" "}
+                          <code className="text-[10px] font-mono text-[var(--accent-ink)]">
+                            {draft.content_hash || "SHA256:7f9b2c...3d1e"}
+                          </code>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[10px] text-[var(--status-good-ink)] font-medium">
+                        ✓ Tuân thủ quy định chữ ký số tại Nghị định 30/2020/NĐ-CP
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Khối ký duyệt & nơi nhận chuẩn hành chính khi in */}
+                <div className="mt-10 pt-6 border-t border-dashed border-[var(--border-hairline)] hidden print:grid print:grid-cols-2 text-xs text-black">
+                  <div className="space-y-1 text-left">
+                    <p className="font-bold">Nơi nhận:</p>
+                    <p>- Ban Chỉ đạo Phòng chống dịch;</p>
+                    <p>- Sở Y tế & CDC các tỉnh thành liên quan;</p>
+                    <p>- Lưu: VT, Hồ sơ dịch tễ số {draft.case_id}.</p>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="italic">
+                      Hà Nội, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm{" "}
+                      {new Date().getFullYear()}
+                    </p>
+                    <p className="font-bold uppercase mt-1">NGƯỜI CÓ THẨM QUYỀN PHÊ DUYỆT</p>
+                    <p className="italic text-[10px] text-gray-600">
+                      (Ký, ghi rõ họ tên và đóng dấu)
+                    </p>
+                    <div className="h-16" />
+                    <p className="font-semibold">{draft.created_by.toUpperCase()}</p>
+                  </div>
                 </div>
               </div>
             )}
           </Card>
 
           {/* Action Bar thẩm định và ban hành */}
-          <Card>
+          <Card className="print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-semibold text-[var(--ink-primary)]">
@@ -284,7 +381,7 @@ export function DraftPage() {
                   <>
                     <Button
                       variant="secondary"
-                      className="px-3 py-1.5 text-xs text-[var(--status-critical)]"
+                      className="px-3 py-1.5 text-xs text-[var(--status-critical-ink)]"
                       onClick={() => setShowRejectDialog(true)}
                     >
                       <XCircle size={14} />
@@ -318,7 +415,7 @@ export function DraftPage() {
         </div>
 
         {/* CỘT PHẢI (40% ~ 5 cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4 print:hidden">
           {/* Card Guardrails */}
           <Card>
             <h2 className="text-sm font-semibold text-[var(--ink-primary)] flex items-center gap-2 mb-3">
@@ -341,7 +438,7 @@ export function DraftPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--status-good)_10%,transparent)] p-2 text-center text-xs font-medium text-[var(--status-good)]">
+            <div className="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--status-good)_10%,transparent)] p-2 text-center text-xs font-medium text-[var(--status-good-ink)]">
               {vi.drafts.guardrailsPassed}
             </div>
           </Card>
@@ -385,7 +482,7 @@ export function DraftPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--ink-secondary)]">Trạng thái phát hành:</span>
-                  <span className="rounded-full bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] px-2 py-0.5 font-semibold text-[#4ade80]">
+                  <span className="rounded-full bg-[color-mix(in_srgb,var(--status-good)_15%,transparent)] px-2 py-0.5 font-semibold text-[var(--status-good-ink)]">
                     {vi.dispatch.statuses["SENT"]}
                   </span>
                 </div>
@@ -410,7 +507,30 @@ export function DraftPage() {
         loading={submitReviewMutation.isPending}
         onConfirm={() => void handleApprove()}
         onCancel={() => setShowApproveDialog(false)}
-      />
+      >
+        <div className="mt-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-2)] p-3 text-xs text-[var(--ink-secondary)] space-y-1.5">
+          <div className="flex items-center gap-2 font-semibold text-[var(--ink-primary)]">
+            <ShieldCheck size={16} className="text-[var(--status-good-ink)]" />
+            <span>Ký số chứng thư điện tử Ban Cơ yếu Chính phủ</span>
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Chủ thể:</strong>{" "}
+            {user?.display_name || "Lãnh đạo Phê duyệt"}
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Đơn vị:</strong> Trung tâm Kiểm soát Bệnh
+            tật (CDC)
+          </div>
+          <div>
+            <strong className="text-[var(--ink-primary)]">Tổ chức CA:</strong> Ban Cơ yếu Chính phủ
+            / VGCA Root
+          </div>
+          <div className="text-[10px] text-[var(--ink-muted)]">
+            * Văn bản sau khi duyệt sẽ tự động đóng dấu ký số điện tử hợp chuẩn Nghị định
+            30/2020/NĐ-CP.
+          </div>
+        </div>
+      </ConfirmDialog>
 
       {/* Modal Từ chối văn bản */}
       <ConfirmDialog

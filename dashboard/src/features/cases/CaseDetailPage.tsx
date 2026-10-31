@@ -1,10 +1,24 @@
 import { Link, useParams, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, Bot, FileEdit, FileText, PieChart, Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Bot,
+  CheckCircle2,
+  Download,
+  FileEdit,
+  FileText,
+  PieChart,
+  Plus,
+  Printer,
+  SlidersHorizontal,
+  Truck,
+} from "lucide-react";
 
 import { useAlerts } from "@/entities/alert";
 import {
   useCase,
+  useConfirmAllocationPlan,
   useCreateAllocationPlan,
   useCreateDraft,
   useDraft,
@@ -12,7 +26,8 @@ import {
 } from "@/entities/draft";
 import { useProvinces } from "@/entities/forecast";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
-import { formatCount, formatDateTime } from "@/shared/lib/format";
+import { exportToCsv } from "@/shared/lib/exportCsv";
+import { formatCount, formatCurrency, formatDateTime } from "@/shared/lib/format";
 import { vi } from "@/shared/i18n/vi";
 import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
@@ -20,8 +35,11 @@ import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
 import { TextField } from "@/shared/ui/TextField";
+import { HealthEconomicsEvaluation } from "./HealthEconomicsEvaluation";
+import { InterProvincialSupplyTransferModal } from "./InterProvincialSupplyTransferModal";
+import { PilotEvaluationBenchmark } from "./PilotEvaluationBenchmark";
 
-const OFFICER_ROLES = ["officer", "analyst", "approver", "admin"] as const;
+const OFFICER_ROLES = ["officer", "approver", "admin"] as const;
 
 export function CaseDetailPage() {
   const router = useRouter();
@@ -39,7 +57,9 @@ export function CaseDetailPage() {
   // States cho modal phân bổ (S8)
   const [isAllocating, setIsAllocating] = useState(false);
   const [budgetInput, setBudgetInput] = useState("1000000000"); // 1 tỷ mặc định
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const createAllocationMutation = useCreateAllocationPlan(caseId);
+  const confirmPlanMutation = useConfirmAllocationPlan(caseId);
 
   // States cho modal AI sinh dự thảo
   const [isGenerating, setIsGenerating] = useState(false);
@@ -81,13 +101,21 @@ export function CaseDetailPage() {
   }
 
   async function handleGenerateDraft() {
-    const body: { draft_type: "b2g" | "b2b"; title: string; extra_instructions?: string } = {
+    const body: {
+      draft_type: "b2g" | "b2b";
+      title: string;
+      extra_instructions?: string;
+      plan_id?: string;
+    } = {
       draft_type: draftType,
       title:
         draftType === "b2g"
           ? "Công điện khẩn phòng chống dịch Sốt xuất huyết"
           : "Báo cáo giám sát dịch tễ",
     };
+    if (caseData?.latest_plan && caseData.latest_plan.status === "confirmed") {
+      body.plan_id = caseData.latest_plan.id;
+    }
     if (extraInstructions.trim()) {
       body.extra_instructions = extraInstructions.trim();
     }
@@ -112,6 +140,37 @@ export function CaseDetailPage() {
       to: "/app/du-thao/$draftId",
       params: { draftId: res.id },
     });
+  }
+
+  function handleExportPlanCsv() {
+    if (!caseData?.latest_plan) return;
+    const plan = caseData.latest_plan;
+    const filename = `DengueSense_Phan_Bo_${caseId}`;
+    exportToCsv(
+      filename,
+      [
+        {
+          header: "Tỉnh / Thành phố",
+          key: (a) => provincesMap.get(a.province_id)?.name ?? a.province_id,
+        },
+        { header: "Mã tỉnh", key: (a) => a.province_id },
+        { header: "Kinh phí phân bổ (VNĐ)", key: (a) => a.amount },
+        {
+          header: "Vật tư hóa chất",
+          key: (a) => (a.supplies ? `${a.supplies} L/kg Cloramin B` : "Theo định mức"),
+        },
+        {
+          header: "Giường bệnh cấp cứu",
+          key: (a) => (a.beds ? `${a.beds} giường` : "Theo định mức"),
+        },
+        {
+          header: "Đội phản ứng nhanh",
+          key: (a) => (a.teams ? `${a.teams} đội` : "Theo tổ cơ động"),
+        },
+        { header: "Căn cứ & Giải trình", key: (a) => a.explanation },
+      ],
+      plan.allocations
+    );
   }
 
   if (caseQuery.isPending) {
@@ -149,9 +208,20 @@ export function CaseDetailPage() {
               {vi.cases.detail.createdAt}: {formatDateTime(caseData.created_at)}
             </p>
           </div>
-          <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-ink)]">
-            {vi.cases.statuses[caseData.status] ?? caseData.status}
-          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              className="px-3 py-1.5 text-xs gap-1.5 print:hidden"
+              onClick={() => window.print()}
+              title="In hoặc xuất PDF toàn bộ hồ sơ phương án can thiệp dịch tễ và đánh giá kinh tế y tế"
+            >
+              <Printer size={14} />
+              In / Xuất PDF Hồ sơ
+            </Button>
+            <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent-ink)]">
+              {vi.cases.statuses[caseData.status] ?? caseData.status}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -176,7 +246,7 @@ export function CaseDetailPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-indigo-400">Tối ưu phân bổ</p>
-              <p className="text-[10px] text-[var(--ink-muted)]">Layer 2 Optimize</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Google OR-Tools</p>
             </div>
           </div>
 
@@ -186,7 +256,7 @@ export function CaseDetailPage() {
             </div>
             <div>
               <p className="text-xs font-semibold text-purple-400">Soạn thảo GenAI</p>
-              <p className="text-[10px] text-[var(--ink-muted)]">Layer 3 Guardrails</p>
+              <p className="text-[10px] text-[var(--ink-muted)]">Kiểm soát Guardrails</p>
             </div>
           </div>
 
@@ -231,7 +301,7 @@ export function CaseDetailPage() {
                       {prov?.region ?? "Vùng"} · Lượt: {alert.run_id}
                     </div>
                   </div>
-                  <span className="rounded-full bg-[var(--bg-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-critical)]">
+                  <span className="rounded-full bg-[var(--bg-surface-2)] px-2 py-0.5 text-[11px] font-semibold text-[var(--status-critical-ink)]">
                     {alert.status === "open" ? vi.alerts.statusOpen : vi.alerts.statusClosed}
                   </span>
                 </div>
@@ -245,94 +315,192 @@ export function CaseDetailPage() {
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
-              <PieChart size={18} className="text-[var(--accent)]" />
-              {vi.cases.detail.allocationPlan}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-[var(--ink-primary)] flex items-center gap-2">
+                <PieChart size={18} className="text-[var(--accent)]" />
+                {vi.cases.detail.allocationPlan}
+              </h2>
+              {caseData?.latest_plan &&
+                (caseData.latest_plan.status === "confirmed" ? (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-good)_18%,transparent)] dark:text-[#4ade80]">
+                    <CheckCircle2 size={12} strokeWidth={2.5} />
+                    Đã xác nhận (v{caseData.latest_plan.version})
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-amber-50 text-amber-900 border border-amber-200 dark:border-transparent dark:bg-[color-mix(in_srgb,var(--status-warning)_18%,transparent)] dark:text-[#fbbf24]">
+                    Bản nháp (chưa xác nhận)
+                  </span>
+                ))}
+            </div>
             <p className="text-xs text-[var(--ink-secondary)] mt-0.5">{vi.allocation.lead}</p>
           </div>
-          {canAct ? (
-            <Button
-              variant="secondary"
-              className="px-3 py-1 text-xs gap-1.5"
-              onClick={() => setIsAllocating(true)}
-            >
-              <Plus size={14} />
-              {vi.cases.detail.createPlan}
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {caseData?.latest_plan && (
+              <>
+                {canAct && caseData.latest_plan.status !== "confirmed" && (
+                  <Button
+                    variant="primary"
+                    className="px-3 py-1 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    disabled={confirmPlanMutation.isPending}
+                    onClick={async () => {
+                      if (caseData.latest_plan) {
+                        await confirmPlanMutation.mutateAsync(caseData.latest_plan.id);
+                      }
+                    }}
+                    title="Xác nhận phương án phân bổ để đưa số liệu vào dự thảo văn bản"
+                  >
+                    <CheckCircle2 size={14} />
+                    {confirmPlanMutation.isPending ? "Đang xác nhận..." : "Xác nhận phương án"}
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
+                  title="Phân tích độ nhạy ngân sách và so sánh đối chứng đa phương án A/B (+20% / -20%)"
+                >
+                  <SlidersHorizontal size={14} className="text-indigo-500" />
+                  Độ nhạy & So sánh A/B
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5"
+                  onClick={handleExportPlanCsv}
+                  title="Tải bảng phương án phân bổ nguồn lực MILP định dạng CSV cho Excel"
+                >
+                  <Download size={14} />
+                  Xuất CSV (Excel)
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1 text-xs gap-1.5 border-blue-500/30 text-blue-600 dark:text-blue-400"
+                  onClick={() => setShowTransferModal(true)}
+                  title="Điều phối và chi viện kho vật tư liên tỉnh giữa các CDC khu vực"
+                >
+                  <Truck size={14} />
+                  Chi viện liên tỉnh
+                </Button>
+              </>
+            )}
+            {canAct ? (
+              <Button
+                variant="secondary"
+                className="px-3 py-1 text-xs gap-1.5"
+                onClick={() => setIsAllocating(true)}
+              >
+                <Plus size={14} />
+                {vi.cases.detail.createPlan}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {/* Nội dung kết quả phân bổ */}
-        <div className="rounded-xl border border-[var(--border-hairline)] p-4 bg-[var(--bg-surface)] space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">Ngân sách dự kiến</span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--ink-primary)]">
-                1.000.000.000 đ
-              </span>
+        {caseData?.latest_plan ? (
+          <div className="rounded-xl border border-[var(--border-hairline)] p-4 bg-[var(--bg-surface)] space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">Ngân sách dự kiến</span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--ink-primary)]">
+                  {formatCurrency(caseData.latest_plan.budget)}
+                </span>
+              </div>
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">
+                  {vi.allocation.totalCost}
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--accent)]">
+                  {formatCurrency(caseData.latest_plan.total_cost)}
+                </span>
+              </div>
+              <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
+                <span className="block text-xs text-[var(--ink-secondary)]">
+                  {vi.allocation.casesPrevented}
+                </span>
+                <span className="text-lg font-semibold tabular-nums text-[var(--status-good-ink)]">
+                  ≈ {formatCount(caseData.latest_plan.estimated_cases_prevented)} ca
+                </span>
+              </div>
             </div>
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">
-                {vi.allocation.totalCost}
-              </span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--accent)]">
-                950.000.000 đ
-              </span>
-            </div>
-            <div className="rounded-lg bg-[var(--bg-surface-2)] p-3">
-              <span className="block text-xs text-[var(--ink-secondary)]">
-                {vi.allocation.casesPrevented}
-              </span>
-              <span className="text-lg font-semibold tabular-nums text-[var(--status-good)]">
-                ≈ {formatCount(420)} ca
-              </span>
+
+            <HealthEconomicsEvaluation
+              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+              interventionCost={caseData.latest_plan.total_cost}
+            />
+
+            <PilotEvaluationBenchmark
+              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+              interventionCost={caseData.latest_plan.total_cost}
+              provinceCount={caseData.latest_plan.allocations.length}
+              caseTitle={caseData.title}
+            />
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
+                  <tr>
+                    <th className="py-2">{vi.allocation.columns.province}</th>
+                    <th className="py-2">Vật tư y tế</th>
+                    <th className="py-2">Giường bệnh</th>
+                    <th className="py-2">Đội cơ động</th>
+                    <th className="py-2">{vi.allocation.columns.amount}</th>
+                    <th className="py-2">{vi.allocation.columns.explanation}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-hairline)]">
+                  {caseData.latest_plan.allocations.map((alloc, idx) => {
+                    const prov = provincesMap.get(alloc.province_id);
+                    const provName = prov?.name ?? alloc.province_id;
+                    const suppliesText = alloc.supplies
+                      ? `${alloc.supplies}L Cloramin B / vật tư`
+                      : "Theo cơ số y tế";
+                    const bedsText = alloc.beds ? `${alloc.beds} giường cấp cứu` : "Theo định mức";
+                    const teamsText = alloc.teams
+                      ? `${alloc.teams} đội phản ứng nhanh`
+                      : "Theo tổ cơ động";
+
+                    return (
+                      <tr key={alloc.province_id || idx}>
+                        <td className="py-2.5 font-medium text-[var(--ink-primary)] whitespace-nowrap">
+                          {provName}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {suppliesText}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {bedsText}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                          {teamsText}
+                        </td>
+                        <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums whitespace-nowrap">
+                          {formatCurrency(alloc.amount)}
+                        </td>
+                        <td className="py-2.5 text-[var(--ink-secondary)] min-w-[200px]">
+                          {alloc.explanation}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          <table className="w-full border-collapse text-left text-xs">
-            <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
-              <tr>
-                <th className="py-2">{vi.allocation.columns.province}</th>
-                <th className="py-2">Vật tư y tế</th>
-                <th className="py-2">Giường bệnh</th>
-                <th className="py-2">Đội cơ động</th>
-                <th className="py-2">{vi.allocation.columns.amount}</th>
-                <th className="py-2">{vi.allocation.columns.explanation}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-hairline)]">
-              <tr>
-                <td className="py-2.5 font-medium text-[var(--ink-primary)]">TP. Hồ Chí Minh</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  450L Cloramin B, 25 máy phun ULV
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">80 giường dã chiến</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">6 đội cơ động</td>
-                <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
-                  600.000.000 đ
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2.5 font-medium text-[var(--ink-primary)]">An Giang</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  280L Cloramin B, 15 máy phun ULV
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">40 giường dã chiến</td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">3 đội cơ động</td>
-                <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums">
-                  350.000.000 đ
-                </td>
-                <td className="py-2.5 text-[var(--ink-secondary)]">
-                  Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-[var(--border-hairline)] p-6 text-center text-xs text-[var(--ink-secondary)]">
+            <p>Chưa có phương án phân bổ nguồn lực nào cho hồ sơ này.</p>
+            {canAct ? (
+              <Button
+                variant="secondary"
+                className="mt-3 px-3 py-1.5 text-xs gap-1.5 mx-auto"
+                onClick={() => setIsAllocating(true)}
+              >
+                <Plus size={14} />
+                {vi.cases.detail.createPlan}
+              </Button>
+            ) : null}
+          </div>
+        )}
       </Card>
 
       {/* SECTION 3: Dự thảo văn bản chỉ đạo (Layer 3 - S9 hub) */}
@@ -433,6 +601,46 @@ export function CaseDetailPage() {
         onCancel={() => setIsGenerating(false)}
       >
         <div className="space-y-3">
+          {caseData?.latest_plan &&
+            (caseData.latest_plan.status === "confirmed" ? (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs text-emerald-900 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:text-emerald-300 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                  <span>
+                    Đính kèm phương án phân bổ v{caseData.latest_plan.version} (
+                    {formatCurrency(caseData.latest_plan.total_cost)})
+                  </span>
+                </div>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                  Đã xác nhận
+                </span>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-xs text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/20 dark:text-amber-300 flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={14} className="text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    Phương án phân bổ hiện tại đang là bản nháp. Dự thảo sẽ không có bảng số liệu
+                    phân bổ trừ khi được xác nhận.
+                  </span>
+                </div>
+                {canAct && (
+                  <Button
+                    variant="secondary"
+                    className="self-end px-2.5 py-1 text-xs border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200"
+                    disabled={confirmPlanMutation.isPending}
+                    onClick={async () => {
+                      if (caseData.latest_plan) {
+                        await confirmPlanMutation.mutateAsync(caseData.latest_plan.id);
+                      }
+                    }}
+                  >
+                    <CheckCircle2 size={12} className="mr-1" />
+                    {confirmPlanMutation.isPending ? "Đang xác nhận..." : "Xác nhận phương án ngay"}
+                  </Button>
+                )}
+              </div>
+            ))}
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-secondary)] mb-1">
               {vi.drafts.generateModal.draftType}
@@ -486,6 +694,13 @@ export function CaseDetailPage() {
           </div>
         </div>
       </ConfirmDialog>
+
+      {/* Modal Điều phối & Chi viện kho vật tư liên tỉnh */}
+      <InterProvincialSupplyTransferModal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        initialTargetProvinceId={caseData.latest_plan?.allocations[0]?.province_id || "angiang"}
+      />
     </div>
   );
 }

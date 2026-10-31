@@ -4,7 +4,7 @@ import pytest
 from ortools.linear_solver import pywraplp
 
 from app.optimize import milp
-from tests.test_optimize.test_oracle import oracle
+from app.optimize.tests.oracle import oracle
 
 
 @pytest.mark.parametrize(

@@ -31,6 +31,66 @@ export const alertsFixture: Alert[] = [
   },
 ];
 
+export const planSouth01: AllocationPlan = {
+  id: "plan-south-01",
+  case_id: "case-south-2010-06",
+  budget: 1_000_000_000,
+  total_cost: 950_000_000,
+  estimated_cases_prevented: 420,
+  allocations: [
+    {
+      province_id: "ho_chi_minh",
+      amount: 600_000_000,
+      explanation: "Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.",
+      beds: 80,
+      supplies: 450,
+      teams: 6,
+      cases_pred: 1000,
+    },
+    {
+      province_id: "an_giang",
+      amount: 350_000_000,
+      explanation: "Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.",
+      beds: 40,
+      supplies: 280,
+      teams: 3,
+      cases_pred: 500,
+    },
+  ],
+  status: "confirmed",
+  version: 1,
+  confirmed_by: "officer",
+  confirmed_at: "2010-06-02T15:00:00Z",
+  created_at: "2010-06-02T14:00:00Z",
+};
+
+export const planCentral01: AllocationPlan = {
+  id: "plan-central-01",
+  case_id: "case-central-2010-06",
+  budget: 500_000_000,
+  total_cost: 480_000_000,
+  estimated_cases_prevented: 180,
+  allocations: [
+    {
+      province_id: "da_nang",
+      amount: 480_000_000,
+      explanation: "Dự phòng vùng trọng điểm miền Trung",
+      beds: 30,
+      supplies: 150,
+      teams: 2,
+      cases_pred: 350,
+    },
+  ],
+  status: "draft",
+  version: 1,
+  created_at: "2010-06-03T11:00:00Z",
+};
+
+export const plansFixture: Record<string, AllocationPlan> = {
+  "plan-south-01": planSouth01,
+  "plan-central-01": planCentral01,
+};
+
 export const casesFixture: CaseDetail[] = [
   {
     id: "case-south-2010-06",
@@ -42,6 +102,7 @@ export const casesFixture: CaseDetail[] = [
     alert_ids: ["alert-hcm-01", "alert-angiang-01"],
     latest_plan_id: "plan-south-01",
     latest_draft_id: "draft-south-01",
+    latest_plan: planSouth01,
   },
   {
     id: "case-central-2010-06",
@@ -51,31 +112,10 @@ export const casesFixture: CaseDetail[] = [
     created_by: "officer",
     created_at: "2010-06-03T10:00:00Z",
     alert_ids: ["alert-danang-01"],
+    latest_plan_id: "plan-central-01",
+    latest_plan: planCentral01,
   },
 ];
-
-export const plansFixture: Record<string, AllocationPlan> = {
-  "plan-south-01": {
-    id: "plan-south-01",
-    case_id: "case-south-2010-06",
-    budget: 1_000_000_000,
-    total_cost: 950_000_000,
-    estimated_cases_prevented: 420,
-    allocations: [
-      {
-        province_id: "ho_chi_minh",
-        amount: 600_000_000,
-        explanation: "Đô thị mật độ dân số cao, xác suất vượt ngưỡng 82%, dự kiến giảm 280 ca.",
-      },
-      {
-        province_id: "an_giang",
-        amount: 350_000_000,
-        explanation: "Vùng biên giới có đà dịch tăng nhanh, dự kiến ngăn chặn 140 ca mắc.",
-      },
-    ],
-    created_at: "2010-06-02T14:00:00Z",
-  },
-};
 
 export const draftsFixture: Record<string, DispatchDraft> = {
   "draft-south-01": {

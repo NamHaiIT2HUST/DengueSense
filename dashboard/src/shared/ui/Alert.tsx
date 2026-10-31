@@ -5,10 +5,10 @@ type Tone = "error" | "info" | "warning";
 
 const TONES: Record<Tone, string> = {
   error:
-    "border-[var(--status-critical)] bg-[color-mix(in_srgb,var(--status-critical)_14%,transparent)] text-[#f5b5b0]",
+    "border-rose-300 bg-rose-50/90 text-rose-900 dark:border-[var(--status-critical)] dark:bg-[color-mix(in_srgb,var(--status-critical)_14%,transparent)] dark:text-[#f5b5b0]",
   warning:
-    "border-[var(--status-warning)] bg-[color-mix(in_srgb,var(--status-warning)_12%,transparent)] text-[#fbd98a]",
-  info: "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent-ink)]",
+    "border-amber-300 bg-amber-50/90 text-amber-950 dark:border-[var(--status-warning)] dark:bg-[color-mix(in_srgb,var(--status-warning)_12%,transparent)] dark:text-[#fbd98a]",
+  info: "border-blue-200 bg-blue-50/90 text-blue-900 dark:border-[var(--accent)] dark:bg-[var(--accent-soft)] dark:text-[var(--accent-ink)]",
 };
 
 /** Lỗi dùng role="alert" (đọc ngay); thông tin/cảnh báo dùng role="status". */

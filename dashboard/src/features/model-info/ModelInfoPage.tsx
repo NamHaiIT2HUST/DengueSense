@@ -5,13 +5,15 @@ import { formatDateTime, formatDecimal, formatPercent } from "@/shared/lib/forma
 import { Card } from "@/shared/ui/Card";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
+import { ConformalPredictionCard } from "./conformal/ConformalPredictionCard";
+import { SeirvSimulationPlayground } from "./seirv/SeirvSimulationPlayground";
 
 const REGIONS = ["Bắc", "Trung", "Nam"] as const;
 
 /** Màu của mức nghiêm trọng đi kèm CHỮ (luật T9: màu không phải kênh duy nhất). */
 const SEVERITY_STYLE: Record<string, string> = {
-  high: "border-[var(--status-critical)] text-[#f5b5b0]",
-  moderate: "border-[var(--status-warning)] text-[#fbd98a]",
+  high: "border-[var(--status-critical)] text-[var(--status-critical-ink)]",
+  moderate: "border-[var(--status-warning)] text-[var(--status-warning-ink)]",
   info: "border-[var(--border-strong)] text-[var(--ink-secondary)]",
 };
 
@@ -37,7 +39,7 @@ function Performance({ card }: { card: ModelCard }) {
       <p className="mt-2 text-sm text-[var(--ink-secondary)]">{vi.model.performanceNote}</p>
       <dl className="mt-4 grid gap-3 sm:grid-cols-2">
         <Metric
-          label="Độ chính xác cảnh báo bùng dịch (Lớp 1)"
+          label="Độ chính xác cảnh báo sớm (M4-R2)"
           value="89,5%"
           help="XGBoost + Random Forest kết hợp khí hậu ERA5 (dự báo sớm 1–6 tháng)"
         />
@@ -230,6 +232,8 @@ export function ModelInfoPage() {
             </ul>
           </Card>
           <Performance card={card.data} />
+          <ConformalPredictionCard />
+          <SeirvSimulationPlayground />
           <Explainability />
           <Reliability card={card.data} />
         </>

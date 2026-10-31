@@ -29,6 +29,11 @@ export function formatCount(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? DASH : countFmt.format(n);
 }
 
+/** Tiền tệ: làm tròn nguyên, phân cách nghìn kiểu Việt ("1.000.000.000 đ"). */
+export function formatCurrency(n: number | null | undefined): string {
+  return n == null || !Number.isFinite(n) ? DASH : `${countFmt.format(n)} đ`;
+}
+
 const decimalFmts = new Map<number, Intl.NumberFormat>();
 
 /** Số thực với `digits` chữ số thập phân, dấu phẩy Việt ("0,52"). */

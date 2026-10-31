@@ -577,6 +577,13 @@ func (g *Gateway) CreateAllocationPlan(ctx context.Context, req api.CreateAlloca
 	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/allocation-plans", nil, req.Body)
 }
 
+func (g *Gateway) ConfirmAllocationPlan(ctx context.Context, req api.ConfirmAllocationPlanRequestObject) (api.ConfirmAllocationPlanResponseObject, error) {
+	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
+		return nil, err
+	}
+	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/allocation-plans/"+req.PlanId.String()+"/confirm", nil, nil)
+}
+
 func (g *Gateway) CreateDraft(ctx context.Context, req api.CreateDraftRequestObject) (api.CreateDraftResponseObject, error) {
 	if err := authx.RequireRoles(ctx, authx.RoleOfficer, authx.RoleApprover); err != nil {
 		return nil, err

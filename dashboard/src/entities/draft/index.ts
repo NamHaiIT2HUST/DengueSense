@@ -73,7 +73,7 @@ export function useCreateCase() {
   });
 }
 
-/** Lập phương án phân bổ nguồn lực (Layer 2). */
+/** Lập phương án phân bổ nguồn lực (Google OR-Tools MILP). */
 export function useCreateAllocationPlan(caseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -86,6 +86,28 @@ export function useCreateAllocationPlan(caseId: string) {
           },
           headers: { [HEADER_IDEMPOTENCY_KEY]: key },
           body,
+        })
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+  });
+}
+
+/** Xác nhận phương án phân bổ nguồn lực. */
+export function useConfirmAllocationPlan(caseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (planId: string) => {
+      const key = newIdempotencyKey();
+      return unwrap(
+        await api.POST("/cases/{case_id}/allocation-plans/{plan_id}/confirm", {
+          params: {
+            path: { case_id: caseId, plan_id: planId },
+          },
+          headers: { [HEADER_IDEMPOTENCY_KEY]: key },
         })
       );
     },
@@ -133,7 +155,7 @@ export function useCreateDraft(caseId: string) {
   });
 }
 
-/** Yêu cầu AI sinh dự thảo văn bản (Layer 3). */
+/** Yêu cầu AI sinh dự thảo văn bản (GenAI B2G). */
 export function useGenerateDraft(caseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -219,3 +241,4 @@ export function useDispatchOrder(draftId: string) {
 }
 
 export type { AllocationPlan, Case, CaseDetail, DispatchDraft, DispatchOrder, ReviewResult };
+export type Draft = DispatchDraft;

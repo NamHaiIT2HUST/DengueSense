@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Check, Pencil, X } from "lucide-react";
+import { FileText, Check, Pencil, X } from "lucide-react";
 import { ConceptTag } from "@/shared/ui/Badge";
 import type { ProvinceRisk } from "../model/types";
 
@@ -16,12 +16,13 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-display flex items-center gap-2 text-xl font-semibold">
-            <Sparkles size={18} className="text-[var(--accent)]" />
-            Layer 3 — Dự thảo điều phối bằng GenAI
+            <FileText size={18} className="text-[var(--accent)]" />
+            Trụ cột 3 — Tự động hóa dự thảo điều phối (GenAI B2G)
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
-            Ví dụ minh hoạ định dạng đầu ra cho luồng B2G. Số liệu điền vào mẫu luôn lấy từ Layer
-            1/2 (không để LLM tự sinh số) — xem guardrail ở docs/05.
+            Định dạng văn bản hành chính tự động cho luồng điều phối B2G. Toàn bộ số liệu dự báo và
+            phân bổ được khóa cứng từ tầng tính toán AI, ngăn chặn triệt để ảo giác thông tin và
+            tuân thủ thể thức Nghị định 30/2020/NĐ-CP.
           </p>
         </div>
         <ConceptTag />
@@ -29,8 +30,8 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
 
       <div className="rounded-xl border border-[var(--border-hairline)] bg-[var(--bg-surface-2)] p-5 font-mono text-[13px] leading-relaxed text-[var(--ink-secondary)]">
         <div className="mb-3 flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 text-[11px] uppercase tracking-wide text-[var(--ink-muted)]">
-          <span>Dự thảo · Luồng B2G</span>
-          <span>Căn cứ QĐ 02/2016/QĐ-TTg · Hướng dẫn HCDC</span>
+          <span>Dự thảo - Luồng B2G</span>
+          <span>Căn cứ QĐ 02/2016/QĐ-TTg - Hướng dẫn HCDC</span>
         </div>
         <p className="text-[var(--ink-primary)]">Kính gửi: Trung tâm Kiểm soát bệnh tật {name}</p>
         <p className="mt-3">
