@@ -17,6 +17,7 @@ def manifest_for(tmp_path):
                 "page_count": 2,
                 "legal_status": "unverified",
                 "professional_review": "pending",
+                "indexed_sections": [{"section_id": "s1", "unit_ids": ["sample/s1"]}],
             }
         ]
     }
@@ -77,3 +78,88 @@ def test_pages_and_review_status_are_validated(tmp_path):
     units.write_text(json.dumps([record]), encoding="utf-8")
     with pytest.raises(ValueError, match="UNREVIEWED_TEXT"):
         load_units(mp, units)
+
+
+def test_membership_uses_exact_unit_and_document_ids(tmp_path):
+    import json
+
+    import yaml
+
+    (tmp_path / ".git").mkdir()
+    manifest = manifest_for(tmp_path)
+    manifest["documents"][0]["indexed_sections"] = [
+        {"section_id": "section-7", "unit_ids": ["sample/s7"]}
+    ]
+    manifest["documents"].append(
+        {
+            **manifest["documents"][0],
+            "document_id": "other",
+            "indexed_sections": [{"section_id": "section-7", "unit_ids": ["other/s7"]}],
+        }
+    )
+    mp = tmp_path / "manifest.yaml"
+    mp.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+    path = tmp_path / "units.json"
+    record = {
+        "unit_id": "sample/s70",
+        "document_id": "sample",
+        "section_path": "section-70",
+        "pdf_pages": [1],
+        "printed_pages": None,
+        "text": "text",
+        "review_status": "checked",
+        "eligibility": "benchmark_only",
+    }
+    path.write_text(json.dumps([record]))
+    with pytest.raises(ValueError, match=r"OUT_OF_SCOPE.*sample/s70.*sample"):
+        load_units(mp, path)
+    record.update(unit_id="sample/s7", document_id="other")
+    path.write_text(json.dumps([record]))
+    with pytest.raises(ValueError, match=r"OUT_OF_SCOPE.*sample/s7.*other"):
+        load_units(mp, path)
+    record.update(document_id="sample", review_status="pending")
+    path.write_text(json.dumps([record]))
+    with pytest.raises(ValueError, match=r"UNREVIEWED_TEXT.*sample/s7.*sample"):
+        load_units(mp, path)
+
+
+def test_hcdc_section_spanning_pages_is_preserved(tmp_path):
+    import json
+
+    import yaml
+
+    (tmp_path / ".git").mkdir()
+    manifest = manifest_for(tmp_path)
+    manifest["documents"][0]["indexed_sections"] = [
+        {"section_id": "muc-7", "unit_ids": ["sample/muc-7"]}
+    ]
+    mp = tmp_path / "manifest.yaml"
+    mp.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+    path = tmp_path / "units.json"
+    text = "Mục 7: đầu trang.\nCuối trang sau: không cắt."
+    path.write_text(
+        json.dumps(
+            [
+                {
+                    "unit_id": "sample/muc-7",
+                    "document_id": "sample",
+                    "section_path": "Mục 7",
+                    "pdf_pages": [1, 2],
+                    "printed_pages": None,
+                    "text": text,
+                    "review_status": "checked",
+                    "eligibility": "benchmark_only",
+                }
+            ]
+        )
+    )
+    unit = load_units(mp, path)[0]
+    assert unit.pdf_pages == [1, 2]
+    assert unit.text == text
+
+
+def test_manifest_rejects_unit_id_assigned_to_two_documents(tmp_path):
+    manifest = manifest_for(tmp_path)
+    manifest["documents"].append({**manifest["documents"][0], "document_id": "other"})
+    with pytest.raises(ValueError, match="DUPLICATE_UNIT_ID"):
+        validate_manifest(manifest, tmp_path)

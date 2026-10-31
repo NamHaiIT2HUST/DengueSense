@@ -14,6 +14,12 @@ except ImportError:
     PdfReader = None
 
 
+class IndexedSection(BaseModel):
+    section_id: str
+    unit_ids: list[str]
+    description: str = ""
+
+
 class Document(BaseModel):
     model_config = ConfigDict(extra="allow")
     document_id: str
@@ -24,6 +30,7 @@ class Document(BaseModel):
         "unverified", "effective", "expired", "replaced", "not_applicable"
     ]
     professional_review: Literal["pending", "approved", "rejected"]
+    indexed_sections: list[IndexedSection]
     resolved_path: Path
 
 
@@ -47,6 +54,7 @@ class SourceUnit(BaseModel):
 def validate_manifest(manifest: dict, repo_root: Path) -> list[Document]:
     documents = []
     seen = set()
+    unit_owners = {}
     root = repo_root.resolve()
     for item in manifest["documents"]:
         relative = Path(item["path"])
@@ -58,6 +66,21 @@ def validate_manifest(manifest: dict, repo_root: Path) -> list[Document]:
         doc = Document.model_validate({**item, "resolved_path": path})
         if doc.document_id in seen or doc.page_count < 1:
             raise ValueError("INVALID_MANIFEST")
+        section_ids = [section.section_id for section in doc.indexed_sections]
+        unit_ids = [uid for section in doc.indexed_sections for uid in section.unit_ids]
+        if (
+            not all(section_ids)
+            or len(set(section_ids)) != len(section_ids)
+            or not all(unit_ids)
+            or len(set(unit_ids)) != len(unit_ids)
+        ):
+            raise ValueError(f"INVALID_SECTIONS: {doc.document_id}")
+        for unit_id in unit_ids:
+            if unit_id in unit_owners:
+                raise ValueError(
+                    f"DUPLICATE_UNIT_ID: {unit_id} documents={unit_owners[unit_id]},{doc.document_id}"
+                )
+            unit_owners[unit_id] = doc.document_id
         seen.add(doc.document_id)
         documents.append(doc)
     return documents
@@ -95,12 +118,24 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
     seen = set()
     for unit in units:
         if unit.document_id not in documents or unit.unit_id in seen:
-            raise ValueError("INVALID_UNIT")
+            raise ValueError(
+                f"INVALID_UNIT: {unit.unit_id} document={unit.document_id}"
+            )
         seen.add(unit.unit_id)
+        doc = documents[unit.document_id]
+        allowed = {uid for section in doc.indexed_sections for uid in section.unit_ids}
+        if unit.unit_id not in allowed:
+            raise ValueError(
+                f"OUT_OF_SCOPE: {unit.unit_id} document={unit.document_id}"
+            )
         if not unit.pdf_pages or any(
             p < 1 or p > documents[unit.document_id].page_count for p in unit.pdf_pages
         ):
-            raise ValueError("PAGE_RANGE_INVALID")
+            raise ValueError(
+                f"PAGE_RANGE_INVALID: {unit.unit_id} document={unit.document_id}"
+            )
         if unit.review_status != "checked" or not unit.text.strip():
-            raise ValueError("UNREVIEWED_TEXT")
+            raise ValueError(
+                f"UNREVIEWED_TEXT: {unit.unit_id} document={unit.document_id}"
+            )
     return units
