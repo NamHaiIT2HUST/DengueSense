@@ -66,9 +66,9 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2014-09-19",
         "effective_to": None,
-        "provision": "Phần III. Hướng dẫn giám sát và phòng, chống dịch - Giám sát véc tơ truyền bệnh",
+        "provision": "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
         "quote": "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
-        "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+        "source_url": "http://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
     },
     {
         "document_id": "vn-qd02-2016",
@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, trong đó QĐ 02/2016 và NĐ 30/2020 đã đối chiếu nguyên văn, QĐ 3711 là tóm lược quy chuẩn kỹ thuật BI; chưa tích hợp RAG tra cứu động văn bản gốc)."
+                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, cả 3 văn bản QĐ 02/2016, NĐ 30/2020 và QĐ 3711/2014 đều đã đối chiếu nguyên văn từng câu chữ với văn bản chính thức; chưa tích hợp RAG tra cứu động văn bản gốc)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

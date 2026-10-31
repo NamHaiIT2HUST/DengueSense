@@ -36,7 +36,7 @@ This document details the exact evaluation criteria, inputs, error codes, and bl
   2. For `b2b` internal reports, citations are optional.
   3. Every citation must have exact `document_id` matching `knownLegalCitations` in backend and `VERIFIED_LEGAL_CITATIONS` in AI service.
   4. Quotes must be verbatim extracts from the official government gazette (Công báo Chính phủ) or issuing ministry portal.
-  5. URLs must be HTTPS with hostnames matching approved whitelist (`congbao.chinhphu.vn`, `kcb.vn`, `moh.gov.vn`, `vanban.chinhphu.vn`, `vbpl.moj.gov.vn`).
+  5. URLs must be HTTP/HTTPS with hostnames matching approved whitelist (`congbao.chinhphu.vn`, `file.medinet.gov.vn`, `medinet.gov.vn`, `trungtamytengoquyen.vn`, `moh.gov.vn`, `vanban.chinhphu.vn`, `vbpl.moj.gov.vn`).
 
 ---
 

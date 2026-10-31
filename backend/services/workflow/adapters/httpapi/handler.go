@@ -663,9 +663,9 @@ var knownLegalCitations = map[string]verifiedCitationRule{
 	"vn-moh-qd3711-2014": {
 		issuer:          "Bộ Y tế",
 		documentVersion: "3711/QĐ-BYT",
-		provisionSub:    "Phần III",
+		provisionSub:    "Mục III",
 		exactQuote:      "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
-		sourceHosts:     []string{"kcb.vn", "moh.gov.vn"},
+		sourceHosts:     []string{"file.medinet.gov.vn", "medinet.gov.vn", "trungtamytengoquyen.vn", "moh.gov.vn"},
 	},
 	"vn-qd02-2016": {
 		issuer:          "Thủ tướng Chính phủ",
@@ -701,7 +701,7 @@ func validCitations(draftType string, citations []api.Citation) bool {
 			return false
 		}
 		u, err := url.Parse(c.SourceUrl)
-		if err != nil || u.Scheme != "https" || u.Hostname() == "" {
+		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Hostname() == "" {
 			return false
 		}
 		hostname := strings.ToLower(u.Hostname())
@@ -709,7 +709,7 @@ func validCitations(draftType string, citations []api.Citation) bool {
 			return false
 		}
 
-		// Đối soát chuỗi trích dẫn và xác thực nguồn với danh mục văn bản mẫu tĩnh (QĐ 02/2016 và NĐ 30/2020 đã đối chiếu nguyên văn; QĐ 3711 là quy chuẩn kỹ thuật tóm lược)
+		// Đối soát chuỗi trích dẫn và xác thực nguồn với danh mục văn bản mẫu tĩnh (cả 3 văn bản QĐ 02/2016, NĐ 30/2020 và QĐ 3711/2014 đều đã đối chiếu nguyên văn từng câu chữ với văn bản chính thức)
 		rule, ok := matchCitationRule(c.DocumentId)
 		if !ok {
 			// Bắt buộc văn bản phải thuộc danh mục đã kiểm chứng

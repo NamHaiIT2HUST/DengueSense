@@ -12,12 +12,12 @@ In the competition demo simulation mode, citations are validated against this st
 - **Document Version**: `3711/QĐ-BYT`
 - **Status**: `effective`
 - **Effective From**: `2014-09-19`
-- **Provision**: `Phần III. Hướng dẫn giám sát và phòng, chống dịch - Giám sát véc tơ truyền bệnh`
+- **Provision**: `Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ`
 - **Verbatim Quote (Đã đối chiếu nguyên văn 100% từ tài liệu Hướng dẫn ban hành kèm QĐ 3711/QĐ-BYT)**:
   > *"Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao."*
-- **Verification Status**: Đã xác minh nguyên văn (Verbatim verified). Cả điều khoản (Phần III) và câu trích dẫn đều khớp nguyên văn văn bản chính thức của Bộ Y tế.
-- **Source URL**: `https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html`
-- **Allowed Hosts**: `kcb.vn`, `moh.gov.vn`
+- **Verification Status**: Đã xác minh nguyên văn (Verbatim verified). Cả điều khoản (Mục III) và câu trích dẫn đều khớp nguyên văn văn bản chính thức của Bộ Y tế.
+- **Source URL**: `http://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf`
+- **Allowed Hosts**: `file.medinet.gov.vn`, `medinet.gov.vn`, `trungtamytengoquyen.vn`, `moh.gov.vn`
 
 ---
 
