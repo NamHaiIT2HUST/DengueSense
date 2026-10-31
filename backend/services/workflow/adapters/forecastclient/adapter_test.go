@@ -18,6 +18,8 @@ func TestAdapter_CheckRunAlerts_Success(t *testing.T) {
 	runID := uuid.New()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/internal/v1/forecast-runs/"+runID.String()+"/forecasts", r.URL.Path)
+		assert.Equal(t, "Bearer forecast-token", r.Header.Get("Authorization"))
 		horizon := r.URL.Query().Get("horizon")
 		w.Header().Set("Content-Type", "application/json")
 
@@ -57,7 +59,7 @@ func TestAdapter_CheckRunAlerts_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	adapter, err := forecastclient.NewAdapter(server.URL+"/internal/v1", server.Client())
+	adapter, err := forecastclient.NewAdapter(server.URL+"/internal/v1", server.Client(), func(context.Context) (string, error) { return "forecast-token", nil })
 	require.NoError(t, err)
 
 	provinces, err := adapter.CheckRunAlerts(context.Background(), runID)
@@ -77,8 +79,9 @@ func TestAdapter_CheckRunAlerts_Non200Response(t *testing.T) {
 	require.NoError(t, err)
 
 	provinces, err := adapter.CheckRunAlerts(context.Background(), uuid.New())
-	require.NoError(t, err)
-	assert.Empty(t, provinces)
+	require.Error(t, err)
+	assert.Nil(t, provinces)
+	assert.Contains(t, err.Error(), "HTTP 404")
 }
 
 func TestAdapter_CheckRunAlerts_ConnectionFailure(t *testing.T) {

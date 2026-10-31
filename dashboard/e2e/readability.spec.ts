@@ -128,11 +128,11 @@ for (const theme of ["light", "dark"] as const) {
       await page.goto("/");
       await expect(page.locator("#overview")).toBeVisible();
       for (const label of [
-        "Độ chính xác 89,5%",
+        "ROC-AUC 6 mùa: 0.809",
         "Giải toán MILP < 1 Phút",
         "Chuẩn Thể Thức NĐ 30/2020",
       ]) {
-        const badge = page.getByText(label, { exact: true });
+        const badge = page.locator("#overview").getByText(label, { exact: true });
         await expect(badge).toBeVisible();
         expect(await contrast(badge, badge)).toBeGreaterThanOrEqual(4.5);
       }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -17,8 +18,24 @@ type Adapter struct {
 // Ensure Adapter implements app.ForecastClient
 var _ app.ForecastClient = (*Adapter)(nil)
 
-func NewAdapter(baseURL string, httpClient *http.Client) (*Adapter, error) {
-	c, err := NewClientWithResponses(baseURL, WithHTTPClient(httpClient))
+func NewAdapter(baseURL string, httpClient *http.Client, tokenSource ...func(context.Context) (string, error)) (*Adapter, error) {
+	// Generated paths already contain /internal/v1; support existing configuration without duplicating it.
+	baseURL = strings.TrimSuffix(strings.TrimRight(baseURL, "/"), "/internal/v1")
+	opts := []ClientOption{WithHTTPClient(httpClient)}
+	if len(tokenSource) > 0 && tokenSource[0] != nil {
+		opts = append(opts, WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+			token, err := tokenSource[0](ctx)
+			if err != nil {
+				return fmt.Errorf("không thể xác thực forecast: %w", err)
+			}
+			if token == "" {
+				return fmt.Errorf("token forecast rỗng")
+			}
+			req.Header.Set("Authorization", "Bearer "+token)
+			return nil
+		}))
+	}
+	c, err := NewClientWithResponses(baseURL, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +57,7 @@ func (a *Adapter) CheckRunAlerts(ctx context.Context, runID uuid.UUID) ([]string
 		}
 
 		if resp.JSON200 == nil {
-			// API không trả về 200 (có thể chưa xong, hoặc lỗi khác)
-			continue
+			return nil, fmt.Errorf("forecast api trả lỗi HTTP %d cho horizon %d", resp.StatusCode(), h)
 		}
 
 		for _, item := range resp.JSON200.Items {

@@ -66,7 +66,8 @@ func main() {
 	if forecastURL == "" {
 		forecastURL = "http://localhost:8001/internal/v1"
 	}
-	forecastAdapter, err := forecastclient.NewAdapter(forecastURL, http.DefaultClient)
+	forecastToken := httpapi.IdentityTokenSourceForAudience(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), "forecast", &http.Client{Timeout: 5 * time.Second})
+	forecastAdapter, err := forecastclient.NewAdapter(forecastURL, &http.Client{Timeout: 40 * time.Second}, forecastToken)
 	if err != nil {
 		slog.Error("Không thể init forecast client", "err", err)
 		os.Exit(1)
