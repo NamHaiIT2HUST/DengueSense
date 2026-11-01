@@ -1,6 +1,6 @@
 # Độ phủ nguồn được chọn — chưa khóa corpus
 
-Đối chiếu manifest với `reviewed-units.partial.json` (11 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
+Đối chiếu manifest với `reviewed-units.partial.json` (13 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
 
 | Nguồn / section_id | Unit tương ứng (tiền tố là document_id) | Đối chiếu / độ phủ |
 |---|---|---|
@@ -19,7 +19,7 @@
 | hcdc-sxh-snapshot-2025 / muc-8 | — | Thiếu, chưa kiểm |
 | hcdc-sxh-snapshot-2025 / muc-9 | — | Thiếu, chưa kiểm |
 | hcdc-sxh-snapshot-2025 / muc-11 | — | Thiếu, chưa kiểm |
-| hcdc-sxh-snapshot-2025 / muc-12 | — | Thiếu, chưa kiểm |
-| hcdc-sxh-snapshot-2025 / muc-13 | — | Thiếu, chưa kiểm |
+| hcdc-sxh-snapshot-2025 / muc-12 | `/muc-12` | Đã kiểm văn bản hai nhiệm vụ (PDF 20, trang in 18) |
+| hcdc-sxh-snapshot-2025 / muc-13 | `/muc-13` | Đã kiểm văn bản và điều kiện tuân theo đội phun (PDF 20, trang in 18) |
 
 Cần kiểm các mục còn thiếu, bổ sung từng unit ID vào đúng section và cập nhật bảng cùng snapshot; chỉ khóa corpus sau khi xác nhận độ phủ và provenance. Các câu hỏi hiện tại vẫn là draft.

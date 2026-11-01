@@ -80,5 +80,5 @@ documents:
       - {section_id: muc-8, description: "Mục 8: KHÔNG cho muỗi ở (PDF 17)", unit_ids: []}
       - {section_id: muc-9, description: "Mục 9: Nơi có thể bùng phát (PDF 18)", unit_ids: []}
       - {section_id: muc-11, description: "Mục 11: Thông tin khi phun hóa chất (PDF 19)", unit_ids: []}
-      - {section_id: muc-12, description: "Mục 12: Nhiệm vụ cộng tác viên (PDF 20)", unit_ids: []}
-      - {section_id: muc-13, description: "Mục 13: Bảo hộ cho cộng tác viên (PDF 20)", unit_ids: []}
+      - {section_id: muc-12, description: "Mục 12: Nhiệm vụ cộng tác viên (PDF 20)", unit_ids: [hcdc-sxh-snapshot-2025/muc-12]}
+      - {section_id: muc-13, description: "Mục 13: Bảo hộ cho cộng tác viên (PDF 20)", unit_ids: [hcdc-sxh-snapshot-2025/muc-13]}

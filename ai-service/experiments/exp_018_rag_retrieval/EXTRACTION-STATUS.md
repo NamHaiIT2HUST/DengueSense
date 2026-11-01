@@ -6,6 +6,8 @@ Before further correction, all 110 files in the interim artifact directory were 
 
 Latest local snapshot (2026-10-31): `/Users/mercedes/work/project/DengueSense/ai-service/data/interim/rag-offline-checkpoint-20261031/`, 110 files copied and independently SHA-256 verified. `SHA256SUMS` has SHA-256 `223f01d2765769fe9fd876c21ad2004c87aaee4c988335af903c6ffddac21db2`; see its `RESTORE.md`. This snapshot includes the latest appendix exclusion edits but is still local only and does not include source PDFs.
 
+Subsequent local snapshot after checking HCDC sections 12 and 13: `/Users/mercedes/work/project/DengueSense/ai-service/data/interim/rag-offline-checkpoint-20261031-hcdc12-13/`, 111 files individually verified; SHA-256 of `SHA256SUMS` is `767dad62da908a561cf6d91e4437784e626c024c093aa49ac938766ee82533a2`. The snapshot includes the 13-unit working file. It is not offsite storage and the corpus remains unfrozen.
+
 - Extraction virtual environment: `/private/tmp/denguesense-rag-py313`, Python 3.13, pypdf 6.21.4, PyMuPDF 1.28.2, PyYAML 6.0.3, Pydantic 2.14.1. A separate earlier Python 3.11 virtualenv exists at `/private/tmp/denguesense-rag-tools`; it is not the Layer 1 environment.
 - Source PDFs: SHA-256 validated against `corpus-manifest.yaml` via the corpus loader. PyMuPDF extracted the text-layer PDFs page by page and rendered all six pages of the scanned decision at 2x.
 - Scan OCR: macOS Vision on macOS 26.7.1 build 25G241, Swift 6.0.3, accurate mode, languages `vi-VT` and `en-US`, language correction enabled. All six OCR page drafts are under `ai-service/data/interim/rag-offline/`.
