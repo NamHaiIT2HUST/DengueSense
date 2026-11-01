@@ -90,6 +90,11 @@ def test_b2g_demo_is_explicitly_labelled_and_unsigned(
     assert "CHƯA KÝ" in result["content"]
     assert len(result["citations"]) == 3
     assert result["citations"][0]["document_id"] == "vn-moh-qd3711-2014"
+    assert result["citations"][0]["source_url"].startswith(
+        "https://file.medinet.gov.vn"
+    )
+    assert "Mục III" in result["citations"][0]["provision"]
+    assert "chỉ số Breteau (BI) ≥ 30" in result["citations"][0]["quote"]
     assert result["citations"][1]["document_version"] == "02/2016/QĐ-TTg"
     assert "Điều 2" in result["citations"][1]["provision"]
     assert "Khoản 2" in result["citations"][1]["provision"]

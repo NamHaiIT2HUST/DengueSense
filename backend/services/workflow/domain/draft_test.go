@@ -74,6 +74,28 @@ func TestDraftVersionMismatch(t *testing.T) {
 	}
 }
 
+func TestInvalidReviewAction(t *testing.T) {
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "Công điện", "Nội dung", "officer-1")
+	err := draft.ValidateReview("approver-2", draft.Version, domain.ReviewAction("unknown"))
+	if !errors.Is(err, domain.ErrInvalidReviewAction) {
+		t.Fatalf("invalid action must be rejected, got %v", err)
+	}
+}
+
+func TestChangesRequestedRequiresNewVersionBeforeApproval(t *testing.T) {
+	draft := domain.NewDispatchDraft(uuid.New(), domain.DraftTypeB2G, "Công điện", "Nội dung", "officer-1")
+	draft.ApplyReview(domain.ReviewActionRequestChanges)
+	if err := draft.ValidateReview("approver-2", draft.Version, domain.ReviewActionApprove); !errors.Is(err, domain.ErrInvalidDraftTransition) {
+		t.Fatalf("must revise content before approval, got %v", err)
+	}
+	if err := draft.UpdateContent("Công điện", "Nội dung đã sửa"); err != nil {
+		t.Fatal(err)
+	}
+	if err := draft.ValidateReview("approver-2", draft.Version, domain.ReviewActionApprove); err != nil {
+		t.Fatalf("revised version should be reviewable: %v", err)
+	}
+}
+
 func TestCreateDispatchOrderInvariants(t *testing.T) {
 	caseID := uuid.New()
 	draft := domain.NewDispatchDraft(caseID, domain.DraftTypeB2G, "Công điện", "Nội dung chuẩn", "officer-1")

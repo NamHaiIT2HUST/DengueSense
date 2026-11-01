@@ -10,11 +10,11 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
   const tiles = [
     {
       icon: Activity,
-      label: "Độ chính xác cảnh báo dịch",
+      label: "Khả năng phân định dịch (ROC-AUC)",
       modelTag: "M4-R2",
-      value: "89,5%",
-      sub: "XGBoost + Random Forest & ERA5",
-      microTag: "6 Mùa Kiểm Chứng",
+      value: "0.809",
+      sub: "ROC-AUC TB 6 mùa (2005–2010)",
+      microTag: "Mùa khó nhất: 0.758",
       badgeText: "ECMWF",
       gradient: "from-blue-600/20 via-cyan-500/10 to-slate-950/95",
       border: "border-cyan-500/30 hover:border-cyan-400/60",

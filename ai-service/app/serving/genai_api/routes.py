@@ -66,9 +66,9 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "status": "effective",
         "effective_from": "2014-09-19",
         "effective_to": None,
-        "provision": "Phần II, Mục 2. Chỉ số véc tơ và ngưỡng nguy cơ bùng phát dịch",
-        "quote": "Chỉ số Breteau (BI) từ 30 trở lên là nơi có nguy cơ cao bùng phát dịch sốt xuất huyết Dengue.",
-        "source_url": "https://kcb.vn/van-ban/quyet-dinh-so-3711qd-byt-ngay-19092014-cua-bo-y-te-ve-viec-ban-hanh-huong-dan-giam-sat-va-phong-chong-benh-sot-xuat-huyet-dengue.html",
+        "provision": "Mục III. Hướng dẫn giám sát và phòng chống dịch - Giám sát véc tơ",
+        "quote": "Trong quá trình giám sát véc tơ (muỗi, lăng quăng/bọ gậy), nếu chỉ số mật độ muỗi cao (≥ 0,5 con/nhà) hoặc chỉ số Breteau (BI) ≥ 30 là yếu tố nguy cơ cao.",
+        "source_url": "https://file.medinet.gov.vn/Data/soytehcm/nghiepvuy/Attachments/QD_3711_BYT.pdf",
     },
     {
         "document_id": "vn-qd02-2016",
@@ -92,7 +92,7 @@ VERIFIED_LEGAL_CITATIONS: list[dict[str, str | None]] = [
         "effective_to": None,
         "provision": "Điều 5, Khoản 1. Giá trị pháp lý của văn bản điện tử",
         "quote": "Văn bản điện tử được ký số bởi người có thẩm quyền và ký số của cơ quan, tổ chức theo quy định của pháp luật có giá trị pháp lý như bản gốc văn bản giấy.",
-        "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=199514",
+        "source_url": "https://vanban.chinhphu.vn/default.aspx?docid=199378&pageid=27160",
     },
 ]
 
@@ -277,7 +277,7 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
             "Căn cứ pháp lý",
             True,
             (
-                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, chưa tích hợp RAG tra cứu động văn bản gốc)."
+                "Trích dẫn đối chiếu khớp danh mục văn bản mẫu định sẵn theo nguồn Công báo Chính phủ (congbao.chinhphu.vn) và Cổng TTĐT cơ quan ban hành (chế độ demo mô phỏng; kiểm tra khớp mã nguồn tĩnh, cả 3 văn bản QĐ 02/2016, NĐ 30/2020 và QĐ 3711/2014 đều đã đối chiếu nguyên văn từng câu chữ với văn bản chính thức; chưa tích hợp RAG tra cứu động văn bản gốc)."
                 if req.draft_type == "b2g"
                 else "Báo cáo nội bộ; không bắt buộc trích dẫn pháp lý hành chính."
             ),

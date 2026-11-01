@@ -74,6 +74,18 @@ func TestWorkflowService_HandleForecastRunCompleted_Success(t *testing.T) {
 	assert.Equal(t, "ha_noi", repo.createdAlerts[0].ProvinceID)
 	assert.Equal(t, domain.AlertStatusOpen, repo.createdAlerts[0].Status)
 	assert.Equal(t, "ho_chi_minh", repo.createdAlerts[1].ProvinceID)
+
+	// Redelivery phải tạo cùng ID để repository có thể bỏ qua bản ghi trùng.
+	require.NoError(t, svc.HandleForecastRunCompleted(context.Background(), env))
+	assert.Equal(t, repo.createdAlerts[0].ID, repo.createdAlerts[2].ID)
+	assert.Equal(t, repo.createdAlerts[1].ID, repo.createdAlerts[3].ID)
+}
+
+func TestWorkflowService_RejectsMissingRunID(t *testing.T) {
+	repo := &mockAlertRepo{}
+	svc := app.NewWorkflowService(repo, &mockForecastClient{})
+	require.Error(t, svc.HandleForecastRunCompleted(context.Background(), eventx.Envelope{Data: []byte(`{}`)}))
+	assert.Empty(t, repo.createdAlerts)
 }
 
 func TestWorkflowService_HandleForecastRunCompleted_InvalidJSON(t *testing.T) {

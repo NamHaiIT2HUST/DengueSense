@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { memoryStore } from "@/mocks/handlers";
 import { nodeDemoData } from "@/mocks/nodeDemoData";
 import { DEMO_ACCOUNTS } from "@/shared/config/demo";
+import { vi } from "@/shared/i18n/vi";
 import { renderApp } from "@/test/app";
 
 const VIEWER = DEMO_ACCOUNTS[0]!;
@@ -310,5 +311,62 @@ describe("điều hướng console", () => {
     expect(within(nav).queryByRole("link", { name: "Lượt dự báo" })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Cảnh báo" })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Hồ sơ xử lý" })).not.toBeInTheDocument();
+  });
+
+  it("officer deep-link trực tiếp vào /app/ho-so/$caseId hiển thị đúng chi tiết hồ sơ thay vì danh sách", async () => {
+    renderApp("/app/ho-so/case-south-2010-06", { store: signedIn("officer") });
+    expect(
+      await screen.findByRole("heading", {
+        name: "Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("officer điều hướng từ danh sách hồ sơ (/app/ho-so) sang chi tiết hồ sơ thành công trên router thật", async () => {
+    const user = userEvent.setup();
+    renderApp("/app/ho-so", { store: signedIn("officer") });
+
+    expect(await screen.findByRole("heading", { name: vi.cases.title })).toBeInTheDocument();
+
+    const caseLink = await screen.findByRole("link", {
+      name: "Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)",
+    });
+    await user.click(caseLink);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)",
+      })
+    ).toBeInTheDocument();
+  });
+
+  it("hiển thị chính xác tháng mục tiêu can thiệp cho mọi tầm dự báo (h = 1, 2, 3, 6)", async () => {
+    // h = 1: neo 2010-03 + 1 tháng = 04/2010
+    const appH1 = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=1`, { store: signedIn() });
+    await mapTable();
+    expect(screen.getByText("04/2010")).toBeInTheDocument();
+    expect(screen.getByText("+1 tháng")).toBeInTheDocument();
+    appH1.unmount();
+
+    // h = 2: neo 2010-03 + 2 tháng = 05/2010
+    const appH2 = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=2`, { store: signedIn() });
+    await mapTable();
+    expect(screen.getByText("05/2010")).toBeInTheDocument();
+    expect(screen.getByText("+2 tháng")).toBeInTheDocument();
+    appH2.unmount();
+
+    // h = 3: neo 2010-03 + 3 tháng = 06/2010
+    const appH3 = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=3`, { store: signedIn() });
+    await mapTable();
+    expect(screen.getByText("06/2010")).toBeInTheDocument();
+    expect(screen.getByText("+3 tháng")).toBeInTheDocument();
+    appH3.unmount();
+
+    // h = 6: neo 2010-03 + 6 tháng = 09/2010
+    const appH6 = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=6`, { store: signedIn() });
+    await mapTable();
+    expect(screen.getByText("09/2010")).toBeInTheDocument();
+    expect(screen.getByText("+6 tháng")).toBeInTheDocument();
+    appH6.unmount();
   });
 });

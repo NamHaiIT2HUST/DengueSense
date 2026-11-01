@@ -554,7 +554,7 @@ func (g *Gateway) CreateCase(ctx context.Context, req api.CreateCaseRequestObjec
 	if req.Body == nil {
 		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
 	}
-	if a := actorOf(ctx); a != nil && req.Body.CreatedBy == "" {
+	if a := actorOf(ctx); a != nil {
 		req.Body.CreatedBy = a.ID
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/cases", nil, req.Body)
@@ -591,7 +591,7 @@ func (g *Gateway) CreateDraft(ctx context.Context, req api.CreateDraftRequestObj
 	if req.Body == nil {
 		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
 	}
-	if a := actorOf(ctx); a != nil && req.Body.CreatedBy == "" {
+	if a := actorOf(ctx); a != nil {
 		req.Body.CreatedBy = a.ID
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/cases/"+req.CaseId.String()+"/drafts", nil, req.Body)
@@ -611,7 +611,7 @@ func (g *Gateway) UpdateDraft(ctx context.Context, req api.UpdateDraftRequestObj
 	if req.Body == nil {
 		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
 	}
-	if a := actorOf(ctx); a != nil && req.Body.UpdatedBy == "" {
+	if a := actorOf(ctx); a != nil {
 		req.Body.UpdatedBy = a.ID
 	}
 	return g.workflowReq(ctx, http.MethodPatch, "/drafts/"+req.DraftId.String(), nil, req.Body)
@@ -625,7 +625,7 @@ func (g *Gateway) SubmitReview(ctx context.Context, req api.SubmitReviewRequestO
 	if req.Body == nil {
 		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
 	}
-	if a := actorOf(ctx); a != nil && req.Body.ReviewerId == "" {
+	if a := actorOf(ctx); a != nil {
 		req.Body.ReviewerId = a.ID
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/drafts/"+req.DraftId.String()+"/reviews", nil, req.Body)
@@ -638,7 +638,7 @@ func (g *Gateway) DispatchApprovedOrder(ctx context.Context, req api.DispatchApp
 	if req.Body == nil {
 		return nil, httpx.ValidationError("thân yêu cầu không được rỗng")
 	}
-	if a := actorOf(ctx); a != nil && req.Body.DispatchedBy == "" {
+	if a := actorOf(ctx); a != nil {
 		req.Body.DispatchedBy = a.ID
 	}
 	return g.workflowReq(ctx, http.MethodPost, "/drafts/"+req.DraftId.String()+"/dispatch", nil, req.Body)

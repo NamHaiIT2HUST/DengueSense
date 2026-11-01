@@ -704,7 +704,7 @@ export function createHandlers(
         content: generatedContent,
         content_hash: `hash-${draftId}-v1`,
         status: "PENDING_REVIEW",
-        created_by: currentUser()?.username || "officer",
+        created_by: currentUser()?.id || "officer",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -742,7 +742,7 @@ export function createHandlers(
       const current = currentUser();
       if (
         draft.draft_type === "b2g" &&
-        draft.created_by === current?.username &&
+        (draft.created_by === current?.id || draft.created_by === current?.username) &&
         body.action === "approve"
       ) {
         return problem(

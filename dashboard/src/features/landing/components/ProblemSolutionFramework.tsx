@@ -159,7 +159,7 @@ export function ProblemSolutionFramework() {
               </div>
               <div className="flex items-center gap-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-2 text-cyan-300">
                 <Target size={14} className="shrink-0 text-cyan-400" />
-                <span>Độ chính xác 89.5%</span>
+                <span>ROC-AUC 6 mùa 0.809</span>
               </div>
             </div>
 
@@ -239,17 +239,17 @@ export function ProblemSolutionFramework() {
               <li className="flex items-start gap-2.5">
                 <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong className="text-white">Khóa số liệu an toàn tuyệt đối:</strong> Khóa cứng
-                  100% số liệu dự báo và phân bổ nguồn lực. Triệt tiêu hoàn toàn nguy cơ ảo giác
-                  (Zero-Hallucination) trong y tế.
+                  <strong className="text-white">Khóa số liệu an toàn:</strong> Khóa cứng 100% số
+                  liệu dự báo và phân bổ nguồn lực qua Guardrail G1, ngăn chặn sai lệch số liệu
+                  trong y tế.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
                 <ShieldCheck size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                 <span>
                   <strong className="text-white">Thẩm định 4 mắt (Human-in-the-Loop):</strong> AI
-                  không tự ban hành. Cán bộ chuyên môn lập phương án, Lãnh đạo thẩm duyệt mới được
-                  ký số điện tử.
+                  không tự ban hành. Cán bộ chuyên môn lập hồ sơ, Lãnh đạo thẩm duyệt và ký phê
+                  duyệt theo quy trình 4 mắt.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">

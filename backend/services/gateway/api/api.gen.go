@@ -832,7 +832,10 @@ type CitationStatus string
 type CreateAllocationPlanRequest struct {
 	Budget float64 `json:"budget"`
 	Items  []struct {
-		CasesPred  float64 `json:"cases_pred"`
+		// CasesPred Số ca tầm 1 tháng từ lượt dự báo của cảnh báo; backend đối chiếu lại nguồn.
+		CasesPred float64 `json:"cases_pred"`
+
+		// Cost Giới hạn ngân sách do người lập phương án nhập cho địa bàn.
 		Cost       float64 `json:"cost"`
 		ProvinceId string  `json:"province_id"`
 	} `json:"items"`
@@ -1759,7 +1762,7 @@ type ServerInterface interface {
 	// GetDraft Chi tiết dự thảo văn bản
 	// (GET /drafts/{draft_id})
 	GetDraft(c *gin.Context, draftId openapi_types.UUID)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /drafts/{draft_id})
 	UpdateDraft(c *gin.Context, draftId openapi_types.UUID)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt
@@ -3278,6 +3281,14 @@ func (response CreateAllocationPlan404ApplicationProblemPlusJSONResponse) VisitC
 	return err
 }
 
+type CreateAllocationPlan503Response struct {
+}
+
+func (response CreateAllocationPlan503Response) VisitCreateAllocationPlanResponse(w http.ResponseWriter) error {
+	w.WriteHeader(503)
+	return nil
+}
+
 type ConfirmAllocationPlanRequestObject struct {
 	CaseId openapi_types.UUID `json:"case_id"`
 	PlanId openapi_types.UUID `json:"plan_id"`
@@ -3919,6 +3930,22 @@ func (response SubmitReview404ApplicationProblemPlusJSONResponse) VisitSubmitRev
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SubmitReview409ApplicationProblemPlusJSONResponse struct {
+	ConflictApplicationProblemPlusJSONResponse
+}
+
+func (response SubmitReview409ApplicationProblemPlusJSONResponse) VisitSubmitReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -4755,7 +4782,7 @@ type StrictServerInterface interface {
 	// GetDraft Chi tiết dự thảo văn bản
 	// (GET /drafts/{draft_id})
 	GetDraft(ctx context.Context, request GetDraftRequestObject) (GetDraftResponseObject, error)
-	// UpdateDraft Cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
+	// UpdateDraft Tác giả cập nhật nội dung dự thảo (tăng version, tính lại content_hash)
 	// (PATCH /drafts/{draft_id})
 	UpdateDraft(ctx context.Context, request UpdateDraftRequestObject) (UpdateDraftResponseObject, error)
 	// DispatchApprovedOrder Ban hành lệnh điều phối sau khi dự thảo đã được duyệt

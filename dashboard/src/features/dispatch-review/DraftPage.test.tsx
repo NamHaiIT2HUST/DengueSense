@@ -14,6 +14,7 @@ import { API_BASE, createHandlers, memoryStore, type DemoStore } from "@/mocks/h
 import { nodeDemoData } from "@/mocks/nodeDemoData";
 import { server } from "@/mocks/server";
 import { session } from "@/shared/api";
+import { env } from "@/shared/config/env";
 import { vi } from "@/shared/i18n/vi";
 
 import { DraftPage } from "./DraftPage";
@@ -54,6 +55,7 @@ function renderDraftPage(draftId: string = "draft-south-01", store: DemoStore = 
 
 describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)", () => {
   beforeEach(() => {
+    env.VITE_APP_MODE = "demo";
     session.open("demo-access-approver", {
       id: "u-approver",
       username: "demo.lanh-dao",
@@ -105,6 +107,60 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     // Nút phê duyệt bị disabled
     const approveBtn = screen.getByRole("button", { name: vi.drafts.actions.approve });
     expect(approveBtn).toBeDisabled();
+    expect(screen.getByRole("button", { name: vi.drafts.editBtn })).toBeInTheDocument();
+  });
+
+  it("chặn tự duyệt khi định danh tác giả là ID thay vì username", async () => {
+    session.open("demo-access-author-id", {
+      id: "officer",
+      username: "ten-dang-nhap-khac",
+      display_name: "Người soạn",
+      roles: ["officer", "approver"],
+      org_id: "cdc-demo",
+    });
+    renderDraftPage();
+    expect(await screen.findByText(vi.drafts.fourEyesNotice)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: vi.drafts.actions.approve })).toBeDisabled();
+  });
+
+  it("chặn phê duyệt dự thảo cũ không xác minh được tác giả trong console", async () => {
+    env.VITE_APP_MODE = "console";
+    renderDraftPage();
+    expect(await screen.findByText(vi.drafts.legacyAuthorNotice)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: vi.drafts.actions.approve })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: vi.drafts.editBtn })).not.toBeInTheDocument();
+  });
+
+  it("người có vai trò officer không được sửa dự thảo của người khác", async () => {
+    session.open("demo-access-other-officer", {
+      id: "u-other-officer",
+      username: "officer-khac",
+      display_name: "Cán bộ khác",
+      roles: ["officer"],
+      org_id: "cdc-demo",
+    });
+    renderDraftPage();
+    await screen.findByText(
+      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+    );
+    expect(screen.queryByRole("button", { name: vi.drafts.editBtn })).not.toBeInTheDocument();
+  });
+
+  it("không hiển thị nút duyệt cho admin không có vai trò approver", async () => {
+    session.open("demo-access-admin", {
+      id: "u-admin",
+      username: "admin",
+      display_name: "Quản trị viên",
+      roles: ["admin"],
+      org_id: "cdc-demo",
+    });
+    renderDraftPage();
+    await screen.findByText(
+      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+    );
+    expect(
+      screen.queryByRole("button", { name: vi.drafts.actions.approve })
+    ).not.toBeInTheDocument();
   });
 
   it("lãnh đạo độc lập phê duyệt văn bản thành công qua modal xác nhận", async () => {

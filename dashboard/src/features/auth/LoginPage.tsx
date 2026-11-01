@@ -170,7 +170,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                 <div className="font-mono text-lg font-bold text-cyan-400">1–6 Tháng</div>
                 <div className="text-xs font-semibold text-white mt-1">Cảnh Báo Sớm</div>
                 <div className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Độ chính xác 89.5%, kiểm chứng thực nghiệm 34 tỉnh.
+                  ROC-AUC 6 mùa 0.809 (exp_016), kiểm chứng 34 tỉnh.
                 </div>
               </div>
 

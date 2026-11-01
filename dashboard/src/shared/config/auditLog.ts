@@ -34,7 +34,7 @@ export const INITIAL_AUDIT_LOGS: AuditRecord[] = [
     checksum: "8f7b2c9e1a4d6e8f0b3c5a7d9e2f4a6c8b0d2e4f6a8c0e2b4d6f8a0c2e4f6a8b",
     latencyMs: 185,
     details:
-      "Thẩm định độc lập B2G, khóa cứng số liệu trích xuất từ ca bệnh, không phát hiện ảo giác (Zero-Hallucination).",
+      "Thẩm định độc lập B2G, khóa cứng số liệu trích xuất từ ca bệnh, đạt kiểm tra Guardrail G1.",
   },
   {
     id: "AUD-2026-0941",

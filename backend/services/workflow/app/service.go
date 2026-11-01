@@ -38,6 +38,9 @@ func (s *WorkflowService) HandleForecastRunCompleted(ctx context.Context, env ev
 	if err := json.Unmarshal(env.Data, &payload); err != nil {
 		return fmt.Errorf("không thể parse event data: %w", err)
 	}
+	if payload.RunID == uuid.Nil {
+		return fmt.Errorf("event forecast thiếu run_id hợp lệ")
+	}
 
 	// Gọi Forecast API để kiểm tra xem lượt dự báo này có sinh ra Cảnh báo nào không
 	provinceIDs, err := s.forecastClient.CheckRunAlerts(ctx, payload.RunID)
@@ -47,7 +50,8 @@ func (s *WorkflowService) HandleForecastRunCompleted(ctx context.Context, env ev
 
 	for _, pid := range provinceIDs {
 		alert := &domain.Alert{
-			ID:         uuid.New(),
+			// Cùng một lượt và tỉnh luôn có cùng ID, kể cả khi sự kiện được giao lại.
+			ID:         uuid.NewSHA1(payload.RunID, []byte(pid)),
 			RunID:      payload.RunID,
 			ProvinceID: pid,
 			CreatedAt:  time.Now(),

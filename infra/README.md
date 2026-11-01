@@ -1,80 +1,34 @@
-# infra
+# Hạ tầng Docker localhost
 
-Hạ tầng dùng chung: Docker Compose cho dev/pilot (docs/09 §3, §16).
+**Hướng dẫn chạy từ đầu đến cuối:** [README.md ở thư mục gốc](../README.md). File này giải thích cấu hình Compose để gỡ lỗi; mọi lệnh chạy từ thư mục gốc repo.
 
-## Thành phần hiện có (Đợt 0)
+## Thành phần
 
-| Service compose | Vai trò | Ghi chú |
-|---|---|---|
-| `postgres` | Postgres 16 + PostGIS + pgvector | 1 cụm, **mỗi service một schema + một user DB** (ADR-0002); khởi tạo bởi `postgres/init/01-roles-and-schemas.sh` |
-| `nats` (+ `nats-init`) | NATS JetStream | `nats-init` tạo stream `EVENTS` (giữ 30 ngày) và `DLQ` (90 ngày), chạy 1 lần, idempotent |
-| `identity-migrate` → `identity` | Xác thực (Go): người dùng, phiên, JWKS, token dịch vụ | Migration chạy xong (thoát) rồi `identity` mới khởi động; cần `IDENTITY_JWT_PRIVATE_KEY`, `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY` |
-| `surveillance-migrate` → `surveillance` | Danh mục tỉnh, ranh giới, phiên bản dữ liệu bất biến, quan sát (Go) | Kiểm token dịch vụ bằng khoá công khai `GATEWAY_JWT_PUBLIC_KEY` (dev). Dữ liệu nạp bằng `bash infra/scripts/seed-surveillance.sh` (idempotent; cần `ai-service/data/processed/v0.2.0/`) |
-| `forecast-migrate` → `forecast` | Chạy dự báo M4-R2 thật (Python/FastAPI), lưu kết quả bất biến | Cần `FORECAST_SERVICE_CLIENT_SECRET` + `IDENTITY_SERVICE_SECRET_SHA256_FORECAST` (cặp sinh bằng `go run ./cmd/devtool secret`, xem `.env.example`). Image ~1 GB (thư viện ML); một lượt backtest ~20 giây; cần `surveillance` đã nạp dữ liệu |
-| `gateway` | Cửa vào duy nhất (Go, cổng 8080): xác thực, chuyển tiếp, ghép `/risk-map`, cookie refresh HttpOnly, giới hạn đăng nhập theo IP | Lấy JWKS từ `identity`; cần `GATEWAY_SERVICE_CLIENT_SECRET` (+ băm ở `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY`); khởi động sau `identity`, `surveillance`, `forecast` |
-| `workflow` → `genai` | Sinh dự thảo qua token dịch vụ; B2G mặc định bị chặn khi chưa có kho căn cứ pháp lý đã xác minh | Sinh cặp bí mật riêng bằng `go run ./cmd/devtool secret`; đặt `SECRET` vào `WORKFLOW_SERVICE_CLIENT_SECRET` và `SHA256` vào `IDENTITY_SERVICE_SECRET_SHA256_WORKFLOW`. GenAI kiểm chữ ký bằng `GATEWAY_JWT_PUBLIC_KEY`. Không lưu bí mật trong Git. |
+- `postgres`: một PostgreSQL 16 với schema và user DB riêng cho từng service. Các job `*-migrate` áp migration trước khi service phục vụ.
+- `nats` và `nats-init`: JetStream lưu sự kiện dự báo. `forecast-relay` chuyển outbox dự báo sang NATS; `workflow` đọc bằng consumer bền vững, tạo cảnh báo có ID ổn định để xử lý sự kiện lặp.
+- `identity`, `gateway`, `surveillance`, `workflow`, `notification`: service Go. Gateway là cửa API duy nhất của Dashboard.
+- `forecast`, `optimize`, `genai`: service Python. Forecast chạy lại mô hình trên panel lịch sử đã nạp; Optimize giải ràng buộc ngân sách; GenAI tạo **dự thảo mô phỏng** và kiểm tra guardrail.
+- `dashboard`: Nginx phục vụ bundle React được build với `VITE_APP_MODE=console`; `/api/` được proxy cùng origin tới Gateway. Chế độ này không dùng MSW.
 
-Để trình diễn cuộc thi, đặt `GENAI_DEMO_MODE=true` và `GEMINI_API_KEY` trong `infra/.env` (file này bị Git bỏ qua). Chế độ này tạo công điện **mô phỏng**, chưa ký và không có citation pháp lý; không dùng để ban hành thực tế. Gemini chỉ chọn một hướng trình bày từ danh sách cố định: nội dung hồ sơ, số liệu và văn bản tự do không gửi đến model. Nếu Gemini không khả dụng, draft ghi rõ dùng mẫu cố định và không ghi nhận `model_used`. Tiêu đề và ghi chú tự do chỉ được xem như gợi ý trình bày; yêu cầu khác cần cán bộ tự bổ sung. Kho pháp lý, kiểm chứng hiệu lực và xác nhận phương án phân bổ vẫn chưa triển khai.
+`docker-compose.dev.yml` chỉ publish cổng trên `127.0.0.1`. Mặc định Dashboard `3000`, Gateway `8080`; file `.env` trên máy demo hiện đặt Gateway `18080`. Các cổng khác đổi được trong `infra/.env`. Không mở trực tiếp các cổng này cho mạng ngoài khi demo localhost.
 
-Redis **chưa thêm** — chỉ khi có số đo chứng minh cần (ADR-0003). Các service còn lại được thêm theo đợt (docs/09 §18).
+## Cấu hình bí mật
 
-## Chạy lần đầu
+Trên Windows, `infra/scripts/setup-local.ps1` sinh `infra/.env` từ `.env.example` bằng mật khẩu ngẫu nhiên, khóa Ed25519 và ba cặp bí mật dịch vụ. Nếu `.env` đã có, script kiểm tra rồi **không ghi đè**. Cần Go trong `PATH` cho lần tạo đầu tiên. File `.env` và `.env.devtool` bị Git bỏ qua.
 
-```bash
-cp infra/.env.example infra/.env        # rồi ĐỔI mọi giá trị "change-me" (mật khẩu mạnh, ngẫu nhiên)
-```
+Trên Linux/macOS có thể tạo thủ công: sao chép `.env.example`, thay toàn bộ `change-me`, chạy `go run ./cmd/devtool keygen` một lần và `go run ./cmd/devtool secret` ba lần từ `backend/`. Ghép `PUBLIC` với `GATEWAY_JWT_PUBLIC_KEY`, `PRIVATE` với `IDENTITY_JWT_PRIVATE_KEY`. Mỗi `SECRET` và `SHA256` phải đặt đúng cặp Gateway, Forecast hoặc Workflow theo chú thích trong `.env.example`. Không đưa khóa vào Git hoặc frontend.
 
-Tạo cặp khoá Ed25519 cho gateway (chỉ dev; ở pilot khoá do `identity` quản lý):
+`GENAI_DEMO_MODE=true` chỉ mở dự thảo B2G mô phỏng phục vụ cuộc thi. `GEMINI_API_KEY` là tùy chọn: không có khóa, service dùng mẫu cố định và không nhận là đã gọi Gemini. Mọi khóa đã lộ cần được thu hồi trước khi sử dụng khóa mới. Danh mục căn cứ pháp lý là danh mục tĩnh đã rà soát, không phải RAG pháp luật live.
 
-```bash
-cd backend && go run ./cmd/devtool keygen
-```
+## Dữ liệu và kiểm tra
 
-- Dán dòng `PUBLIC=...` vào `infra/.env` (biến `GATEWAY_JWT_PUBLIC_KEY`) và dòng `PRIVATE=...` vào `IDENTITY_JWT_PRIVATE_KEY` (dev dùng chung một cặp để gateway kiểm được token do `identity` ký).
-- `cd backend && go run ./cmd/devtool secret` in `SECRET=...` (vào `GATEWAY_SERVICE_CLIENT_SECRET`) và `SHA256=...` (vào `IDENTITY_SERVICE_SECRET_SHA256_GATEWAY`).
-- Lưu dòng `PRIVATE=...` vào `infra/.env.devtool` dưới dạng `DEV_JWT_PRIVATE_KEY=...` (file này bị `.gitignore`; **không commit, không dán vào chat/issue**).
+`surveillance-cli` (profile `tools`) đọc panel từ `ai-service/data/processed/v0.2.0/` qua volume chỉ đọc. Panel không nằm trong Git. Script `seed-surveillance.ps1` hoặc `seed-surveillance.sh` nạp 34 tỉnh, ranh giới và panel vào database, chạy lại được. **Không thay panel thiếu bằng dữ liệu mock.**
 
-Rồi chạy stack:
-
-```bash
-docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml up -d --build
+```powershell
 docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml ps
+docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml logs --tail=100 forecast-relay workflow
 ```
 
-`docker-compose.dev.yml` chỉ mở cổng ra `127.0.0.1` (Postgres 5432, NATS 4222/8222, gateway 8080). Cổng bị chiếm hoặc bị Windows giữ chỗ →
-đặt `POSTGRES_HOST_PORT`, `NATS_HOST_PORT`, `NATS_MONITOR_HOST_PORT`, `GATEWAY_HOST_PORT`, `IDENTITY_HOST_PORT`, `SURVEILLANCE_HOST_PORT` trong `infra/.env`.
+Kiểm tra phân quyền database khi cần bằng `infra/scripts/check-db-isolation.sh`. Khi chạy một stack thử nghiệm Compose song song, phải dùng **cả** project name (`-p`) **và** `DENGUESENSE_NETWORK_NAME` riêng; chỉ đổi project name sẽ khiến hai stack dùng chung network và có nguy cơ nối nhầm DB/NATS.
 
-## Chạy console trên backend thật
-
-```bash
-# 1. Stack đang chạy + đã nạp dữ liệu (bash infra/scripts/seed-surveillance.sh) — xem trên.
-# 2. Tạo tài khoản dev (mật khẩu sinh ngẫu nhiên, ghi vào infra/.env.devtool — file bị .gitignore, KHÔNG commit):
-#    docker compose ... exec -T -e IDENTITY_NEW_PASSWORD=<mk> identity /service create-user -username dev-analyst -display-name "Dev analyst" -org cdc-dev -roles analyst
-# 3. Trỏ dev server tới gateway rồi chạy:
-echo "DEV_API_PROXY=http://127.0.0.1:${GATEWAY_HOST_PORT:-8080}" > dashboard/.env.console.local   # bị .gitignore
-cd dashboard && npm run dev:console        # http://127.0.0.1:5173 (Vite proxy /api → gateway, cùng origin để cookie refresh hoạt động)
-E2E_ANALYST_PASSWORD=… E2E_VIEWER_PASSWORD=… npm run test:e2e:real   # 6 E2E trên stack thật
-```
-
-## Kiểm tra sau khi dựng
-
-```bash
-# Cô lập dữ liệu giữa các service (quyền tạo/đọc chéo schema, đặc quyền, extension, mật khẩu sai) — phải in "TẤT CẢ ĐẠT"
-docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/check-db-isolation.sh
-
-# Database thử nghiệm cho test tích hợp (repository contract test của identity...) — chạy lại được, idempotent
-docker compose -f infra/docker-compose.yml exec -T postgres bash -s < infra/scripts/create-test-db.sh
-
-# Stream JetStream
-docker run --rm --network denguesense-core natsio/nats-box:0.14.5 nats --server nats://nats:4222 stream ls
-```
-
-Đổi `01-roles-and-schemas.sh` chỉ có tác dụng khi khởi tạo **volume mới** (`docker compose down -v` xoá dữ liệu dev để chạy lại từ đầu).
-
-## Quy tắc
-
-- Không commit `.env`, `.env.*` (trừ `.env.example`), `*.local.yml` — đã có trong `.gitignore`.
-- Mật khẩu/khoá chỉ trong file env ngoài git; ở CI dùng GitHub Actions Secrets (docs/09 §11.4).
-- Thay đổi hạ tầng ảnh hưởng dev khác (đổi cổng, đổi biến env bắt buộc) phải báo trước, không âm thầm đổi.
-- File `.sh`, `Dockerfile`, `*.conf`, `*.sql` phải là kết thúc dòng **LF** (đã ép bằng `.gitattributes`; máy Windows bật `autocrlf` sẽ không làm hỏng script trong container).
-- Ở pilot/staging chỉ reverse proxy (Caddy, thêm ở đợt sau) được publish cổng; **không** dùng `docker-compose.dev.yml`.
+Dừng bằng `docker compose -f infra/docker-compose.yml -f infra/docker-compose.dev.yml down` để giữ volume. `down -v` xóa volume database và **không phải** bước xử lý lỗi thông thường.

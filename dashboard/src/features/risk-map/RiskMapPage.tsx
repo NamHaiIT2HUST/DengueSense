@@ -5,7 +5,13 @@ import { Download, Pause, Play, RotateCcw, Scale, Target } from "lucide-react";
 import { useForecastRuns, useGeometry, useRiskMap } from "@/entities/forecast";
 import type { Horizon, Region, RiskMap } from "@/shared/api";
 import { exportToCsv } from "@/shared/lib/exportCsv";
-import { formatCount, formatHorizon, formatIncidence, formatMonth } from "@/shared/lib/format";
+import {
+  addMonths,
+  formatCount,
+  formatHorizon,
+  formatIncidence,
+  formatMonth,
+} from "@/shared/lib/format";
 import { classColorVar } from "@/shared/lib/riskClass";
 import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
@@ -309,11 +315,11 @@ export function RiskMapPage({
                   Tháng mục tiêu can thiệp
                 </span>
                 <strong className="text-base font-bold text-emerald-800 dark:text-emerald-300">
-                  {formatMonth(map.meta.origin_month)} (+{search.h}T)
+                  {formatMonth(addMonths(map.meta.origin_month, search.h) ?? map.meta.origin_month)}
                 </strong>
               </div>
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                Chuẩn hóa
+                +{search.h} tháng
               </span>
             </div>
           </div>

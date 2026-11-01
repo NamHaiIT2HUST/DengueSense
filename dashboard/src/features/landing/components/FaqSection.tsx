@@ -10,20 +10,20 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     question:
-      "Chỉ số độ chính xác 89.5% của mô hình cảnh báo sớm được đo lường và kiểm chứng như thế nào?",
+      "Chỉ số ROC-AUC 0.895 của mô hình cảnh báo sớm được đo lường và kiểm chứng như thế nào?",
     answer:
-      "Chỉ số 89.5% là độ chính xác phân loại sự kiện bùng phát dịch (tháng có số ca vượt ngưỡng P75 lịch sử của chính tỉnh đó) được đo lường trên tập dữ liệu đo thật qua 6 mùa dịch (2005–2010) tại 34 tỉnh trọng điểm. Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) kết hợp 17 đặc trưng nhân quả từ dịch tễ học và dữ liệu tái phân tích khí hậu toàn cầu ERA5 (nhiệt độ, lượng mưa, độ ẩm), tuân thủ nghiêm ngặt quy tắc chia tập theo thời gian (Time-series split) và embargo 1 tháng để chống rò rỉ dữ liệu tương lai.",
+      "Chỉ số ROC-AUC 0.895 phản ánh khả năng phân định sự kiện bùng phát dịch (tháng có số ca vượt ngưỡng P75 lịch sử của chính tỉnh đó) được đo lường trên tập dữ liệu đo thật qua 6 mùa dịch (2005–2010) tại 34 tỉnh trọng điểm. Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) kết hợp 17 đặc trưng nhân quả từ dịch tễ học và dữ liệu tái phân tích khí hậu toàn cầu ECMWF ERA5 (nhiệt độ, lượng mưa, độ ẩm), tuân thủ nghiêm ngặt quy tắc chia tập theo thời gian (Time-series split) và embargo 1 tháng để chống rò rỉ dữ liệu tương lai.",
   },
   {
     question: "Giải thuật tối ưu hoá nguồn lực (MILP) có bị chậm khi mở rộng hàng trăm huyện/xã?",
     answer:
-      "Không. Hệ thống sử dụng công cụ giải toán công nghiệp Google OR-Tools CP-SAT, mô hình hoá xấp xỉ tuyến tính từng đoạn (piecewise linear) cho hàm lợi ích biên giảm dần. Trên quy mô 34 tỉnh trọng điểm toàn quốc, thời gian giải bài toán phân bổ chỉ mất từ vài chục mili-giây đến dưới 1 giây, hoàn toàn đáp ứng yêu cầu phản ứng khẩn cấp thời gian thực.",
+      "Không. Hệ thống sử dụng công cụ giải toán công nghiệp Google OR-Tools CP-SAT, mô hình hoá xấp xỉ tuyến tính từng đoạn (piecewise linear) cho hàm lợi ích biên giảm dần. Trên quy mô 34 tỉnh trọng điểm toàn quốc, thời gian giải bài toán phân bổ chỉ mất từ vài chục mili-giây đến dưới 1 giây, hoàn toàn đáp ứng yêu cầu phản ứng khẩn cấp trong điều hành tác chiến.",
   },
   {
     question:
       "Làm thế nào để đảm bảo Trợ lý GenAI không bị ảo giác (Hallucination) số liệu trong y tế?",
     answer:
-      "DengueSense áp dụng cơ chế bảo vệ nghiêm ngặt Guardrail G1 (Strict Data Locking): Mô hình ngôn ngữ lớn (LLM) không được phép tự do sinh số liệu. Mọi số liệu trong văn bản (số ca dự báo, ngân sách, số giường bệnh, số hóa chất, số đội cơ động, tên địa bàn) đều được khóa cứng 100% từ kết quả tính toán của mô hình dự báo dịch tễ và thuật toán phân bổ nguồn lực. Nếu phát hiện sai lệch dù chỉ 1 con số, hệ thống tự động kích hoạt bộ ngắt mạch (Circuit Breaker) và phục hồi về bản mẫu khóa cứng an toàn. Đồng thời tuân thủ cơ chế thẩm định 4 mắt (Human-in-the-loop: chuyên viên lập, lãnh đạo duyệt mới ký số).",
+      "DengueSense áp dụng cơ chế kiểm soát nghiêm ngặt Guardrails G1-G6: Mô hình ngôn ngữ lớn (LLM) không được phép tự do sinh số liệu. Mọi số liệu trong văn bản (số ca dự báo, ngân sách, số giường bệnh, hóa chất, đội cơ động, tên địa bàn) đều được khóa cứng 100% từ kết quả tính toán của mô hình dự báo dịch tễ và phương án phân bổ đã xác nhận. Nếu phát hiện sai lệch số liệu hoặc trích dẫn ngoài danh mục kiểm chứng tĩnh, hệ thống tự động kích hoạt bộ ngắt mạch (Circuit Breaker) và phục hồi về bản mẫu an toàn. Đồng thời quy trình tuân thủ nghiêm ngặt nguyên tắc 4 mắt (chuyên viên lập, lãnh đạo duyệt và xác thực chữ ký mô phỏng trong bản demo).",
   },
   {
     question: "Hệ thống có bảo đảm an toàn dữ liệu cá nhân (PII) của bệnh nhân không?",

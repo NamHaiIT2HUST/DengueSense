@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
-	"github.com/nats-io/nats.go/jetstream"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/authx"
 	"github.com/NamHaiIT2HUST/DengueSense/backend/pkg/eventx"
@@ -66,7 +65,8 @@ func main() {
 	if forecastURL == "" {
 		forecastURL = "http://localhost:8001/internal/v1"
 	}
-	forecastAdapter, err := forecastclient.NewAdapter(forecastURL, http.DefaultClient)
+	forecastToken := httpapi.IdentityTokenSourceForAudience(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), "forecast", &http.Client{Timeout: 5 * time.Second})
+	forecastAdapter, err := forecastclient.NewAdapter(forecastURL, &http.Client{Timeout: 40 * time.Second}, forecastToken)
 	if err != nil {
 		slog.Error("Không thể init forecast client", "err", err)
 		os.Exit(1)
@@ -79,12 +79,11 @@ func main() {
 		slog.Error("Không thể kết nối NATS", "err", err)
 		os.Exit(1)
 	}
-	js, err := jetstream.New(nc)
+	js, err := nc.JetStream()
 	if err != nil {
 		slog.Error("Không thể init JetStream", "err", err)
 		os.Exit(1)
 	}
-	_ = js // TODO: Dùng js.Consume thay vì core NATS pub/sub nếu cần bền vững
 
 	// Init Event Consumer
 	inbox := eventx.NewPgxInboxStore(db, "inbox")
@@ -94,20 +93,15 @@ func main() {
 		}
 		return nil
 	}
-	consumer := eventx.NewConsumer(inbox, consumerHandler, eventx.ConsumerOptions{})
+	// JetStream đảm nhiệm giao lại; không đánh dấu thất bại là đã xử lý.
+	consumer := eventx.NewConsumer(inbox, consumerHandler, eventx.ConsumerOptions{MaxAttempts: 1})
 
-	// Subscription manually fetching from core NATS
-	sub, err := nc.Subscribe("events.forecast.run.completed", func(msg *nats.Msg) {
-		if err := consumer.HandleMessage(context.Background(), msg.Data); err != nil {
-			slog.Error("Lỗi xử lý event", "err", err)
-		} else {
-			_ = msg.Ack()
-		}
-	})
+	sub, err := subscribeForecastEvents(js, consumer)
 	if err != nil {
 		slog.Error("Không thể subscribe NATS", "err", err)
+		os.Exit(1)
 	} else {
-		slog.Info("Đã subscribe events.forecast.run.completed", "subject", sub.Subject)
+		slog.Info("Đã subscribe forecast.run.completed", "subject", sub.Subject)
 	}
 
 	// HTTP Server
@@ -124,7 +118,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var opts []httpapi.ServerOption
+	opts := []httpapi.ServerOption{httpapi.WithForecastCases(forecastAdapter.CasesPredicted)}
 	if genaiURL := os.Getenv("GENAI_API_URL"); genaiURL != "" {
 		opts = append(opts, httpapi.WithGenAIURL(genaiURL))
 		opts = append(opts, httpapi.WithGenAITokenSource(httpapi.IdentityTokenSource(os.Getenv("WORKFLOW_IDENTITY_URL"), os.Getenv("WORKFLOW_SERVICE_CLIENT_SECRET"), &http.Client{Timeout: 5 * time.Second})))
@@ -141,4 +135,15 @@ func main() {
 	if err := http.ListenAndServe(":8001", r); err != nil {
 		slog.Error("Server lỗi", "err", err)
 	}
+}
+
+func subscribeForecastEvents(js nats.JetStreamContext, consumer *eventx.Consumer) (*nats.Subscription, error) {
+	return js.QueueSubscribe(eventx.TypeForecastRunCompleted, "workflow-forecast", func(msg *nats.Msg) {
+		if err := consumer.HandleMessage(context.Background(), msg.Data); err != nil {
+			slog.Error("Lỗi xử lý event", "err", err)
+			_ = msg.NakWithDelay(10 * time.Second)
+		} else {
+			_ = msg.Ack()
+		}
+	}, nats.Durable("workflow-forecast"), nats.BindStream("EVENTS"), nats.ManualAck(), nats.AckExplicit(), nats.AckWait(5*time.Minute), nats.MaxDeliver(-1))
 }

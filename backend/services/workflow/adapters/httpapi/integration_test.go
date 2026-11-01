@@ -87,6 +87,8 @@ func TestIntegrationGenAIAndPostgres(t *testing.T) {
 	request := func(kind string) *httptest.ResponseRecorder {
 		t.Helper()
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/internal/v1/workflow/cases/%s/drafts/generate", c.ID), bytes.NewBufferString(fmt.Sprintf(`{"draft_type":%q}`, kind)))
+		req.Header.Set(authx.HeaderActorID, "0192f0e1-7c1a-7000-8000-000000000001")
+		req.Header.Set(authx.HeaderActorRoles, "officer")
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+issued.AccessToken)
 		result := httptest.NewRecorder()
