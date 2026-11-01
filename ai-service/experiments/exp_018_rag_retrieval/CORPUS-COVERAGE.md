@@ -1,11 +1,11 @@
 # Độ phủ nguồn được chọn — chưa khóa corpus
 
-Đối chiếu manifest với `reviewed-units.partial.json` (13 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
+Đối chiếu manifest với `reviewed-units.partial.json` (17 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
 
 | Nguồn / section_id | Unit tương ứng (tiền tố là document_id) | Đối chiếu / độ phủ |
 |---|---|---|
 | vn-qd02-2016 / dieu-2/khoan-2 | `/dieu-2/khoan-2/a`, `/b`, `/c` | Đã kiểm văn bản ba điểm a–c |
-| vn-qd02-2016 / dieu-4 | — | Thiếu khoản 1–4; chưa kiểm |
+| vn-qd02-2016 / dieu-4 | `/dieu-4/khoan-1`, `/khoan-2`, `/khoan-3`, `/khoan-4` | Đã đối chiếu bốn khoản với PDF trang 2; hiệu lực và rà chuyên môn chưa xác minh |
 | vn-qd02-2016 / dieu-5/khoan-1 | `/dieu-5/khoan-1` | Đã kiểm văn bản khoản 1 |
 | vn-qd02-2016 / dieu-7 | `/dieu-7/khoan-1`, `/khoan-2` | Đã kiểm văn bản hai khoản |
 | vn-qd02-2016 / phu-luc/dong-14 | `/phu-luc/dong-14` | Đã kiểm dòng Dengue cùng cột và đơn vị; dòng 16 về sởi ngoài phạm vi |

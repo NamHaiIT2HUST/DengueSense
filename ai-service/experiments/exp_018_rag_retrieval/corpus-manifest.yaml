@@ -20,7 +20,7 @@ documents:
         unit_ids: [vn-qd02-2016/dieu-2/khoan-2/a, vn-qd02-2016/dieu-2/khoan-2/b, vn-qd02-2016/dieu-2/khoan-2/c]
       - section_id: dieu-4
         description: "Điều 4 / Khoản 1–4 (PDF 2)"
-        unit_ids: []
+        unit_ids: [vn-qd02-2016/dieu-4/khoan-1, vn-qd02-2016/dieu-4/khoan-2, vn-qd02-2016/dieu-4/khoan-3, vn-qd02-2016/dieu-4/khoan-4]
       - section_id: dieu-5/khoan-1
         description: "Điều 5 / Khoản 1 (PDF 2)"
         unit_ids: [vn-qd02-2016/dieu-5/khoan-1]
