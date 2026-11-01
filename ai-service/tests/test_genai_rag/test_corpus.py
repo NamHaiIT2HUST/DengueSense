@@ -191,7 +191,7 @@ def test_render_page_images_and_ocr_draft(tmp_path, monkeypatch):
 
     data = json.loads(target.read_text(encoding="utf-8"))
     assert len(data) == 2
-    assert data[0]["status"] == "raw_ocr_draft"
+    assert data[0]["status"] == "ocr_required"
     assert data[0]["review_status"] == "unreviewed"
 
 
@@ -211,6 +211,7 @@ def test_pages_and_review_status_are_validated(tmp_path):
         "text": "sample",
         "review_status": "checked",
         "eligibility": "benchmark_only",
+        "pdf_sha256": manifest["documents"][0]["sha256"],
     }
     units.write_text(json.dumps([record]), encoding="utf-8")
     with pytest.raises(ValueError, match="PAGE_RANGE_INVALID"):
@@ -219,6 +220,11 @@ def test_pages_and_review_status_are_validated(tmp_path):
     units.write_text(json.dumps([record]), encoding="utf-8")
     unit = load_units(mp, units)[0]
     assert unit.eligibility == "benchmark_only"
+    record.pop("pdf_sha256")
+    units.write_text(json.dumps([record]), encoding="utf-8")
+    with pytest.raises(ValueError, match="UNIT_HASH_MISMATCH"):
+        load_units(mp, units)
+    record["pdf_sha256"] = manifest["documents"][0]["sha256"]
     record["review_status"] = "pending"
     units.write_text(json.dumps([record]), encoding="utf-8")
     with pytest.raises(ValueError, match="UNREVIEWED_TEXT"):

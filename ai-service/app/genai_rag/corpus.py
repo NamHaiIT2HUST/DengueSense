@@ -141,7 +141,7 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
     manifest_path = manifest_path.resolve()
     root = next(
         (p for p in manifest_path.parents if (p / ".git").exists()),
-        manifest_path.parent,
+        manifest_path.parents[2],
     )
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     documents = {d.document_id: d for d in validate_manifest(manifest, root)}
@@ -160,6 +160,6 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
             raise ValueError("PAGE_RANGE_INVALID")
         if unit.review_status != "checked" or not unit.text.strip():
             raise ValueError("UNREVIEWED_TEXT")
-        if unit.pdf_sha256 and unit.pdf_sha256 != documents[unit.document_id].sha256:
+        if not unit.pdf_sha256 or unit.pdf_sha256 != documents[unit.document_id].sha256:
             raise ValueError("UNIT_HASH_MISMATCH")
     return units

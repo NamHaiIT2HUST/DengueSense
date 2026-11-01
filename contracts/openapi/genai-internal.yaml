@@ -44,9 +44,9 @@ paths:
       operationId: queryRagBenchmark
       summary: Truy hồi đơn vị văn bản phục vụ nghiên cứu benchmark offline (fail-closed)
       description: |
-        Endpoint nghiên cứu/benchmark phục vụ đánh giá truy hồi tài liệu offline.
-        Fail-closed: Trả về answerable=false và hits rỗng nếu truy vấn nằm ngoài phạm vi hoặc không đủ điểm tin cậy.
-        Các trích dẫn (citations) được lấy trực tiếp từ các đơn vị đã đối chiếu nguyên văn trong reviewed-units; không cho phép LLM tự tạo URL hoặc quote.
+        Endpoint nghiên cứu/benchmark phục vụ đánh giá truy hồi tài liệu offline, tắt theo mặc định.
+        Chỉ chấp nhận chính xác câu hỏi dương tính trong bộ benchmark đóng băng; mọi câu hỏi khác trả answerable=false và hits rỗng.
+        Bật bằng GENAI_RAG_BENCHMARK_ENABLED=true và cung cấp PDF gốc khớp SHA-256. Trích dẫn lấy từ reviewed-units, chưa phải kiểm chứng văn bản gốc lúc trả lời.
         Lưu ý: Không dùng cho công điện hành chính B2G do tài liệu chưa có phê duyệt pháp lý/chuyên môn.
       requestBody:
         required: true
@@ -63,6 +63,12 @@ paths:
                 $ref: "#/components/schemas/RagQueryResponse"
         "401":
           description: Thiếu hoặc sai token dịch vụ.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+        "503":
+          description: Benchmark chưa bật hoặc thiếu corpus PDF hợp lệ.
           content:
             application/problem+json:
               schema: { $ref: "#/components/schemas/Problem" }

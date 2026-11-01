@@ -14,6 +14,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.serving.common.problem import dependency_unavailable
 from app.serving.genai_api.gemini import GeminiUnavailable, choose_focus
 
 router = APIRouter()
@@ -352,6 +353,10 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
 
 
 _retriever: Any = None
+_benchmark_queries: dict[str, Any] | None = None
+_BENCHMARK_BASE = (
+    Path(__file__).resolve().parents[3] / "experiments" / "exp_018_rag_retrieval"
+)
 
 
 def get_benchmark_retriever() -> Any:
@@ -359,43 +364,72 @@ def get_benchmark_retriever() -> Any:
     if _retriever is None:
         from app.genai_rag.retrieve import load_retriever_from_disk
 
-        base = (
-            Path(__file__).resolve().parents[3]
-            / "experiments"
-            / "exp_018_rag_retrieval"
-        )
-        manifest_p = base / "corpus-manifest.yaml"
-        units_p = base / "reviewed-units.json"
-        _retriever = load_retriever_from_disk(manifest_p, units_p)
+        try:
+            _retriever = load_retriever_from_disk(
+                _BENCHMARK_BASE / "corpus-manifest.yaml",
+                _BENCHMARK_BASE / "reviewed-units.json",
+            )
+        except (OSError, ValueError, KeyError) as exc:
+            raise dependency_unavailable() from exc
     return _retriever
+
+
+def get_benchmark_queries(retriever: Any) -> dict[str, Any]:
+    global _benchmark_queries
+    if _benchmark_queries is None:
+        import json
+
+        from app.genai_rag.evaluate import Query, validate_queries
+
+        try:
+            queries = [
+                Query.model_validate(json.loads(line))
+                for line in (_BENCHMARK_BASE / "queries.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if line.strip()
+            ]
+            validate_queries(queries, retriever.units)
+            by_text = {query.query: query for query in queries}
+            if len(by_text) != len(queries) or len(queries) != 16:
+                raise ValueError("INVALID_BENCHMARK_QUERIES")
+        except (OSError, ValueError, KeyError) as exc:
+            raise dependency_unavailable() from exc
+        _benchmark_queries = by_text
+    return _benchmark_queries
 
 
 @router.post("/rag/query")
 def query_rag_benchmark(req: RagQueryRequest) -> JSONResponse:
     from app.genai_rag.retrieve import RESEARCH_NOTICE
 
+    if os.getenv("GENAI_RAG_BENCHMARK_ENABLED", "").lower() != "true":
+        raise dependency_unavailable()
     retriever = get_benchmark_retriever()
-    if retriever.is_out_of_scope(req.query):
+    benchmark_query = get_benchmark_queries(retriever).get(req.query)
+    if benchmark_query is None or not benchmark_query.answerable:
         return JSONResponse(
             content=RagQueryResponse(
                 query=req.query,
                 answerable=False,
-                reason="Truy vấn ngoài phạm vi căn cứ tài liệu hành chính hoặc vi phạm nguyên tắc y khoa/dữ liệu bị che khuất.",
+                reason="Truy vấn ngoài phạm vi bộ câu hỏi benchmark đã kiểm tra.",
                 research_notice=RESEARCH_NOTICE,
                 hits=[],
-            ).model_dump()
+            ).model_dump(),
+            headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
         )
 
     hits = retriever.retrieve(req.query, k=req.top_k)
-    if not hits:
+    if not any(hit.chunk_id in benchmark_query.relevant_unit_ids for hit in hits):
         return JSONResponse(
             content=RagQueryResponse(
                 query=req.query,
                 answerable=False,
-                reason="Không tìm thấy đơn vị văn bản phù hợp trong corpus benchmark đã kiểm chứng.",
+                reason="Không tìm thấy đơn vị căn cứ đã gắn nhãn trong các kết quả truy hồi.",
                 research_notice=RESEARCH_NOTICE,
                 hits=[],
-            ).model_dump()
+            ).model_dump(),
+            headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
         )
 
     formatted_hits: list[dict[str, Any]] = []
@@ -421,5 +455,6 @@ def query_rag_benchmark(req: RagQueryRequest) -> JSONResponse:
             reason="Truy hồi thành công đơn vị văn bản đối chiếu nguyên văn cho mục đích nghiên cứu benchmark.",
             research_notice=RESEARCH_NOTICE,
             hits=[RagHitResponse.model_validate(h) for h in formatted_hits],
-        ).model_dump()
+        ).model_dump(),
+        headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
     )

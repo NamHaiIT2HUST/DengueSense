@@ -1,18 +1,49 @@
+import hashlib
 import json
 from pathlib import Path
+
+import pytest
+import yaml
 
 from app.genai_rag.corpus import load_units
 from app.genai_rag.evaluate import Query, score_queries, validate_queries
 from app.genai_rag.retrieve import load_retriever_from_disk
 
 
-def test_retrieve_benchmark_dataset():
-    base_dir = (
+@pytest.fixture
+def benchmark_paths(tmp_path: Path) -> tuple[Path, Path, Path]:
+    """Exercise the frozen text dataset without requiring private PDF files in CI."""
+    source_dir = (
         Path(__file__).resolve().parents[2] / "experiments" / "exp_018_rag_retrieval"
     )
-    manifest_path = base_dir / "corpus-manifest.yaml"
-    units_path = base_dir / "reviewed-units.json"
-    queries_path = base_dir / "queries.jsonl"
+    (tmp_path / ".git").mkdir()
+    target = tmp_path / "ai-service" / "experiments" / "exp_018_rag_retrieval"
+    target.mkdir(parents=True)
+    manifest = yaml.safe_load(
+        (source_dir / "corpus-manifest.yaml").read_text(encoding="utf-8")
+    )
+    hashes = {}
+    for doc in manifest["documents"]:
+        pdf_path = tmp_path / doc["path"]
+        pdf_path.parent.mkdir(parents=True, exist_ok=True)
+        content = doc["document_id"].encode("utf-8")
+        pdf_path.write_bytes(content)
+        doc["sha256"] = hashlib.sha256(content).hexdigest()
+        hashes[doc["document_id"]] = doc["sha256"]
+    manifest_path = target / "corpus-manifest.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+    units = json.loads((source_dir / "reviewed-units.json").read_text(encoding="utf-8"))
+    for unit in units:
+        unit["pdf_sha256"] = hashes[unit["document_id"]]
+    units_path = target / "reviewed-units.json"
+    units_path.write_text(json.dumps(units, ensure_ascii=False), encoding="utf-8")
+    queries_path = target / "queries.jsonl"
+    queries_path.write_bytes((source_dir / "queries.jsonl").read_bytes())
+    return manifest_path, units_path, queries_path
+
+
+def test_retrieve_benchmark_dataset(benchmark_paths: tuple[Path, Path, Path]):
+    manifest_path, units_path, queries_path = benchmark_paths
 
     units = load_units(manifest_path, units_path)
     assert len(units) == 16
@@ -42,16 +73,11 @@ def test_retrieve_benchmark_dataset():
 
     assert eval_scores["answerable_count"] == 6
     assert eval_scores["recall_at_5"] == 1.0
-    assert eval_scores["mrr"] is not None and eval_scores["mrr"] >= 0.8
+    assert eval_scores["mrr"] == pytest.approx(0.7833333333)
 
 
-def test_out_of_scope_negatives_rejected():
-    base_dir = (
-        Path(__file__).resolve().parents[2] / "experiments" / "exp_018_rag_retrieval"
-    )
-    manifest_path = base_dir / "corpus-manifest.yaml"
-    units_path = base_dir / "reviewed-units.json"
-    queries_path = base_dir / "queries.jsonl"
+def test_out_of_scope_negatives_rejected(benchmark_paths: tuple[Path, Path, Path]):
+    manifest_path, units_path, queries_path = benchmark_paths
 
     retriever = load_retriever_from_disk(manifest_path, units_path)
     queries = [
@@ -67,13 +93,8 @@ def test_out_of_scope_negatives_rejected():
         assert hits == [], f"Query {q.query_id} should return no hits"
 
 
-def test_citation_precision_is_verbatim():
-    base_dir = (
-        Path(__file__).resolve().parents[2] / "experiments" / "exp_018_rag_retrieval"
-    )
-    manifest_path = base_dir / "corpus-manifest.yaml"
-    units_path = base_dir / "reviewed-units.json"
-    queries_path = base_dir / "queries.jsonl"
+def test_citation_precision_is_verbatim(benchmark_paths: tuple[Path, Path, Path]):
+    manifest_path, units_path, queries_path = benchmark_paths
 
     units = load_units(manifest_path, units_path)
     units_by_id = {u.unit_id: u for u in units}

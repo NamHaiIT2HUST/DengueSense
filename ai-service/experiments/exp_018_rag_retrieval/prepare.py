@@ -1,4 +1,4 @@
-"""Extract unreviewed PDF page drafts with OCR pipeline and PyMuPDF fallback."""
+"""Extract text layers and render scanned pages for later manual OCR."""
 
 import argparse
 import json
@@ -31,7 +31,7 @@ def process_document(
         )
     except ValueError as exc:
         if str(exc) == "OCR_REQUIRED":
-            # Scanned PDF: Render page images and save raw draft marked as unreviewed
+            # Scanned PDF: render images, but do not claim OCR was performed.
             img_dir = images_dir or (out_dir / "rendered_pages" / document.document_id)
             render_page_images(document, img_dir)
             draft_pages = [
@@ -39,7 +39,7 @@ def process_document(
                     "document_id": document.document_id,
                     "pdf_page": i,
                     "text": "",
-                    "status": "raw_ocr_draft",
+                    "status": "ocr_required",
                     "review_status": "unreviewed",
                 }
                 for i in range(1, document.page_count + 1)

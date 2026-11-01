@@ -201,18 +201,6 @@ class BM25Retriever:
         scored: list[tuple[int, float]] = []
         for idx in range(self.doc_count):
             s = self.score(query_tokens, idx)
-            unit = self.units[idx]
-            # Targeted section alignment for specific hierarchical administrative tiers
-            if (
-                "xã" in query_tokens
-                and "khoan-2/a" in unit.section_path
-                or "huyện" in query_tokens
-                and "khoan-2/b" in unit.section_path
-                or "tỉnh" in query_tokens
-                and "khoan-2/c" in unit.section_path
-            ):
-                s += 15.0
-
             if s >= min_score:
                 scored.append((idx, s))
 
@@ -252,7 +240,7 @@ def load_retriever_from_disk(
     manifest_data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     root = next(
         (p for p in manifest_path.resolve().parents if (p / ".git").exists()),
-        manifest_path.parent,
+        manifest_path.resolve().parents[2],
     )
     docs = {d.document_id: d for d in validate_manifest(manifest_data, root)}
     units = load_units(manifest_path, units_path)

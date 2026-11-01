@@ -1,4 +1,5 @@
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -6,6 +7,9 @@ import yaml
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator
 
+from app.genai_rag.corpus import SourceUnit
+from app.genai_rag.evaluate import Query
+from app.genai_rag.retrieve import BM25Retriever
 from app.serving.genai_api.gemini import GeminiUnavailable
 from app.serving.genai_api.main import app
 from tests.test_serving.jwt_helpers import Signer
@@ -29,6 +33,7 @@ def authenticate(monkeypatch: pytest.MonkeyPatch) -> None:
     signer = Signer()
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GENAI_DEMO_MODE", raising=False)
+    monkeypatch.delenv("GENAI_RAG_BENCHMARK_ENABLED", raising=False)
     monkeypatch.setenv("GENAI_JWT_PUBLIC_KEY", signer.public_b64)
     client.headers["Authorization"] = "Bearer " + signer.service_token(
         "genai", sub="workflow"
@@ -199,11 +204,31 @@ def test_rejects_wrong_audience_and_expired_token(
     assert response.status_code == 401
 
 
-def test_rag_benchmark_query_answerable() -> None:
+@pytest.fixture
+def benchmark(monkeypatch: pytest.MonkeyPatch) -> list[Query]:
+    from app.serving.genai_api import routes
+
+    base = Path(__file__).resolve().parents[2] / "experiments" / "exp_018_rag_retrieval"
+    units = [
+        SourceUnit.model_validate(x)
+        for x in json.loads((base / "reviewed-units.json").read_text(encoding="utf-8"))
+    ]
+    queries = [
+        Query.model_validate(json.loads(line))
+        for line in (base / "queries.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    monkeypatch.setattr(routes, "_retriever", BM25Retriever(units))
+    monkeypatch.setattr(routes, "_benchmark_queries", None)
+    monkeypatch.setenv("GENAI_RAG_BENCHMARK_ENABLED", "true")
+    return queries
+
+
+def test_rag_benchmark_query_answerable(benchmark: list[Query]) -> None:
     response = client.post(
         "/internal/v1/genai/rag/query",
         json={
-            "query": "Theo Quyết định 02/2016, điều kiện nào để xã được công bố có dịch bệnh truyền nhiễm?",
+            "query": benchmark[0].query,
             "top_k": 3,
         },
     )
@@ -213,6 +238,7 @@ def test_rag_benchmark_query_answerable() -> None:
     assert data["answerable"] is True
     assert len(data["hits"]) >= 1
     assert "BENCHMARK_RESEARCH_ONLY" in data["research_notice"]
+    assert response.headers["X-Research-Notice"] == "BENCHMARK_RESEARCH_ONLY"
     first_hit = data["hits"][0]
     assert first_hit["unit_id"] == "vn-qd02-2016/dieu-2/khoan-2/a"
     assert len(first_hit["citations"]) >= 1
@@ -220,19 +246,43 @@ def test_rag_benchmark_query_answerable() -> None:
     assert quote in first_hit["text"]
 
 
-def test_rag_benchmark_query_out_of_scope_fail_closed() -> None:
-    response = client.post(
-        "/internal/v1/genai/rag/query",
-        json={
-            "query": "Cần chính xác bao nhiêu điều dưỡng cho mỗi 100 ca sốt xuất huyết?",
-        },
-    )
+@pytest.mark.parametrize(
+    "query",
+    [
+        "Cần chính xác bao nhiêu điều dưỡng cho mỗi 100 ca sốt xuất huyết?",
+        "Cho trẻ 20 kg uống acetaminophen bao nhiêu mỗi lần?",
+        "Dùng ibuprofen khi sốt xuất huyết được không?",
+        "Theo QĐ 02, xã được coi là có dịch khi nào?",
+    ],
+)
+def test_rag_benchmark_unknown_query_fails_closed(
+    benchmark: list[Query], query: str
+) -> None:
+    response = client.post("/internal/v1/genai/rag/query", json={"query": query})
     assert response.status_code == 200
     data = response.json()
     validate_schema("RagQueryResponse", data)
     assert data["answerable"] is False
     assert data["hits"] == []
     assert "ngoài phạm vi" in data["reason"]
+
+
+def test_rag_benchmark_disabled_by_default() -> None:
+    response = client.post("/internal/v1/genai/rag/query", json={"query": "test"})
+    assert response.status_code == 503
+
+
+def test_rag_benchmark_missing_corpus_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.serving.genai_api import routes
+
+    monkeypatch.setenv("GENAI_RAG_BENCHMARK_ENABLED", "true")
+    monkeypatch.setattr(routes, "_retriever", None)
+    monkeypatch.setattr(routes, "_benchmark_queries", None)
+    monkeypatch.setattr(routes, "_BENCHMARK_BASE", Path("does-not-exist"))
+    response = client.post("/internal/v1/genai/rag/query", json={"query": "test"})
+    assert response.status_code == 503
 
 
 def test_rag_benchmark_query_unauthenticated() -> None:
