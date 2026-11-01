@@ -447,18 +447,6 @@ export function CaseDetailPage() {
               </div>
             </div>
 
-            <HealthEconomicsEvaluation
-              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
-              interventionCost={caseData.latest_plan.total_cost}
-            />
-
-            <PilotEvaluationBenchmark
-              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
-              interventionCost={caseData.latest_plan.total_cost}
-              provinceCount={caseData.latest_plan.allocations.length}
-              caseTitle={caseData.title}
-            />
-
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left text-xs">
                 <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
@@ -509,6 +497,39 @@ export function CaseDetailPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Phân tích chuyên sâu & Đối sánh kinh tế y tế (Mô phỏng phục vụ đánh giá) */}
+            <details className="group rounded-xl border border-indigo-200/80 dark:border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/20 overflow-hidden transition-all">
+              <summary className="flex items-center justify-between p-3.5 cursor-pointer font-medium text-xs text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-colors select-none">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 font-bold text-[11px]">
+                    ∑
+                  </span>
+                  <span className="font-semibold">
+                    Phân tích chuyên sâu: Đánh giá Kinh tế Y tế & Diễn tập Đối sánh (Mô phỏng)
+                  </span>
+                  <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 text-[10px] text-indigo-700 dark:text-indigo-300 font-normal hidden sm:inline">
+                    CEA / DALY / CDC Baselines
+                  </span>
+                </div>
+                <span className="text-xs text-indigo-500 font-medium group-open:rotate-180 transition-transform duration-200">
+                  ▼
+                </span>
+              </summary>
+              <div className="p-4 pt-2 space-y-4 border-t border-indigo-200/60 dark:border-indigo-500/10">
+                <HealthEconomicsEvaluation
+                  casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+                  interventionCost={caseData.latest_plan.total_cost}
+                />
+
+                <PilotEvaluationBenchmark
+                  casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+                  interventionCost={caseData.latest_plan.total_cost}
+                  provinceCount={caseData.latest_plan.allocations.length}
+                  caseTitle={caseData.title}
+                />
+              </div>
+            </details>
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-[var(--border-hairline)] p-6 text-center text-xs text-[var(--ink-secondary)]">

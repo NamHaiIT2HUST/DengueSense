@@ -665,11 +665,6 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               />
               <span>{vi.nav.home}</span>
             </Link>
-
-            <div className="hidden lg:flex items-center justify-between px-3.5 py-2.5 text-xs text-slate-500 dark:text-[var(--ink-muted)] mt-1 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80">
-              <span className="font-medium">Chế độ sáng/tối</span>
-              <ThemeToggle />
-            </div>
           </nav>
         </aside>
 
