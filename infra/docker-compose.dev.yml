@@ -32,6 +32,10 @@ services:
     ports:
       - "127.0.0.1:${OPTIMIZE_HOST_PORT:-8004}:8001"
   genai:
+    environment:
+      GENAI_RAG_BENCHMARK_ENABLED: "true"
+    volumes:
+      - ../RAG_Documents:/srv/RAG_Documents:ro
     ports:
       - "127.0.0.1:${GENAI_HOST_PORT:-8003}:8001"
   dashboard:

@@ -81,7 +81,8 @@
 ### 1.3. Thiết Kế Dự Kiến (Planned Design — Chưa Triển Khai Trong Production)
 
 1. **Kho tri thức Vector DB & Dynamic Retrieval RAG**:
-   - Hiện tại Layer 3 sử dụng **danh mục tĩnh đã kiểm chứng (static verified catalog)**. Thiết kế RAG động với pgvector hoặc Pinecone truy xuất văn bản pháp quy theo thời gian thực là kiến trúc định hướng cho giai đoạn nâng cấp sau cuộc thi.
+   - Hiện tại Layer 3 phục vụ công điện hành chính B2G sử dụng **danh mục tĩnh đã kiểm chứng (static verified catalog)**.
+   - Benchmark truy hồi offline `exp_018_rag_retrieval` có 16 đơn vị văn bản và 16 câu hỏi cố định (Recall@5 = 1.000, MRR = 0.892; riêng eval MRR = 0.783, thấp hơn mục tiêu 0.8). Endpoint `/internal/v1/genai/rag/query` tắt theo mặc định và khi bật chỉ nhận chính xác câu hỏi dương tính đã gắn nhãn. QĐ 02 dạng scan được chép thủ công từ ảnh; `review_status: checked` không phải phê duyệt chuyên môn. Các tài liệu chưa được xác thực pháp lý/chuyên môn (`legal_status: unverified`, `professional_review: pending`), nên công điện B2G runtime không dùng corpus này.
 2. **Chữ ký số pháp lý quốc gia (VGCA HSM / PKI)**:
    - Hiện tại hệ thống sử dụng **chữ ký điện tử mô phỏng (Simulated Digital Signature)**: SHA-256 hash snapshot của văn bản kết hợp danh tính Approver và mốc thời gian lưu trong PostgreSQL để đảm bảo quy tắc 4 mắt. Hệ thống chưa tích hợp chứng thư số phần cứng USB Token/HSM của Ban Cơ yếu Chính phủ.
 3. **Luồng dữ liệu thời gian thực (Real-time Streaming) & HIS/LIS Integration**:

@@ -7,13 +7,14 @@ import hashlib
 import os
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.serving.common.problem import dependency_unavailable
 from app.serving.genai_api.gemini import GeminiUnavailable, choose_focus
 
 router = APIRouter()
@@ -47,6 +48,37 @@ class GenerateDraftRequest(BaseModel):
     title: str | None = None
     slots: SlotsData
     extra_instructions: str | None = None
+
+
+class RagQueryRequest(BaseModel):
+    query: str = Field(min_length=1)
+    top_k: int = Field(default=5, ge=1, le=20)
+    language: str | None = None
+
+
+class RagHitCitation(BaseModel):
+    document_id: str
+    section_path: str
+    pdf_pages: str = ""
+    printed_pages: str = ""
+    quote: str
+    source_url: str = ""
+
+
+class RagHitResponse(BaseModel):
+    unit_id: str
+    document_id: str
+    score: float
+    text: str
+    citations: list[RagHitCitation]
+
+
+class RagQueryResponse(BaseModel):
+    query: str
+    answerable: bool
+    reason: str
+    research_notice: str
+    hits: list[RagHitResponse]
 
 
 class GuardrailCheck(BaseModel):
@@ -318,3 +350,111 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
     if model_used is not None:
         result["model_used"] = model_used
     return JSONResponse(content=result)
+
+
+_retriever: Any = None
+_benchmark_queries: dict[str, Any] | None = None
+_BENCHMARK_BASE = (
+    Path(__file__).resolve().parents[3] / "experiments" / "exp_018_rag_retrieval"
+)
+
+
+def get_benchmark_retriever() -> Any:
+    global _retriever
+    if _retriever is None:
+        from app.genai_rag.retrieve import load_retriever_from_disk
+
+        try:
+            _retriever = load_retriever_from_disk(
+                _BENCHMARK_BASE / "corpus-manifest.yaml",
+                _BENCHMARK_BASE / "reviewed-units.json",
+            )
+        except (OSError, ValueError, KeyError) as exc:
+            raise dependency_unavailable() from exc
+    return _retriever
+
+
+def get_benchmark_queries(retriever: Any) -> dict[str, Any]:
+    global _benchmark_queries
+    if _benchmark_queries is None:
+        import json
+
+        from app.genai_rag.evaluate import Query, validate_queries
+
+        try:
+            queries = [
+                Query.model_validate(json.loads(line))
+                for line in (_BENCHMARK_BASE / "queries.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+                if line.strip()
+            ]
+            validate_queries(queries, retriever.units)
+            by_text = {query.query: query for query in queries}
+            if len(by_text) != len(queries) or len(queries) != 16:
+                raise ValueError("INVALID_BENCHMARK_QUERIES")
+        except (OSError, ValueError, KeyError) as exc:
+            raise dependency_unavailable() from exc
+        _benchmark_queries = by_text
+    return _benchmark_queries
+
+
+@router.post("/rag/query")
+def query_rag_benchmark(req: RagQueryRequest) -> JSONResponse:
+    from app.genai_rag.retrieve import RESEARCH_NOTICE
+
+    if os.getenv("GENAI_RAG_BENCHMARK_ENABLED", "").lower() != "true":
+        raise dependency_unavailable()
+    retriever = get_benchmark_retriever()
+    benchmark_query = get_benchmark_queries(retriever).get(req.query)
+    if benchmark_query is None or not benchmark_query.answerable:
+        return JSONResponse(
+            content=RagQueryResponse(
+                query=req.query,
+                answerable=False,
+                reason="Truy vấn ngoài phạm vi bộ câu hỏi benchmark đã kiểm tra.",
+                research_notice=RESEARCH_NOTICE,
+                hits=[],
+            ).model_dump(),
+            headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
+        )
+
+    hits = retriever.retrieve(req.query, k=req.top_k)
+    if not any(hit.chunk_id in benchmark_query.relevant_unit_ids for hit in hits):
+        return JSONResponse(
+            content=RagQueryResponse(
+                query=req.query,
+                answerable=False,
+                reason="Không tìm thấy đơn vị căn cứ đã gắn nhãn trong các kết quả truy hồi.",
+                research_notice=RESEARCH_NOTICE,
+                hits=[],
+            ).model_dump(),
+            headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
+        )
+
+    formatted_hits: list[dict[str, Any]] = []
+    units_by_id = {u.unit_id: u for u in retriever.units}
+    for hit in hits:
+        unit = units_by_id.get(hit.chunk_id)
+        if not unit:
+            continue
+        formatted_hits.append(
+            {
+                "unit_id": hit.chunk_id,
+                "document_id": unit.document_id,
+                "score": hit.score,
+                "text": unit.text,
+                "citations": hit.citations,
+            }
+        )
+
+    return JSONResponse(
+        content=RagQueryResponse(
+            query=req.query,
+            answerable=True,
+            reason="Truy hồi thành công đơn vị văn bản đối chiếu nguyên văn cho mục đích nghiên cứu benchmark.",
+            research_notice=RESEARCH_NOTICE,
+            hits=[RagHitResponse.model_validate(h) for h in formatted_hits],
+        ).model_dump(),
+        headers={"X-Research-Notice": "BENCHMARK_RESEARCH_ONLY"},
+    )

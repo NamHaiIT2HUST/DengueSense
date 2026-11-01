@@ -1,9 +1,15 @@
-# Allowlist: ngữ cảnh build chỉ gồm những gì image cần. QUAN TRỌNG: data/raw (~4 GB), venv, notebooks, experiments
-# KHÔNG được đưa vào ngữ cảnh build (chậm, phình image, rò rỉ dữ liệu).
+# Allowlist: chỉ mã phục vụ và ba hiện vật benchmark nhỏ; không đưa PDF, data/raw, venv hay notebook vào image.
 *
 !requirements-serving.txt
 !app/serving
 !app/forecast
 !app/optimize
+!app/genai_rag
+!experiments
+!experiments/exp_018_rag_retrieval
+experiments/exp_018_rag_retrieval/*
+!experiments/exp_018_rag_retrieval/corpus-manifest.yaml
+!experiments/exp_018_rag_retrieval/reviewed-units.json
+!experiments/exp_018_rag_retrieval/queries.jsonl
 **/__pycache__
 **/*.pyc
