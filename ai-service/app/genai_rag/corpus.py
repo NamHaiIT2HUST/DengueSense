@@ -37,14 +37,19 @@ class PageDraft(BaseModel):
 
 
 class SourceUnit(BaseModel):
+    model_config = ConfigDict(extra="allow")
     unit_id: str
     document_id: str
     section_path: str
     pdf_pages: list[int]
-    printed_pages: str | None
+    printed_pages: str | None = None
     text: str
     review_status: str
     eligibility: Literal["benchmark_only"]
+    pdf_sha256: str | None = None
+    comparator: str | None = None
+    comparison_date: str | None = None
+    notes: str | None = None
 
 
 def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> list[Document]:
@@ -66,7 +71,39 @@ def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> list[Documen
     return documents
 
 
-def extract_pages(document: Document) -> list[PageDraft]:
+def render_page_images(
+    document: Document, output_dir: Path, dpi: int = 150
+) -> list[Path]:
+    pymupdf = importlib.import_module("pymupdf")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images: list[Path] = []
+    with pymupdf.open(document.resolved_path) as pdf:
+        for i, page in enumerate(pdf, 1):
+            target = output_dir / f"{document.document_id}-page-{i}.png"
+            pix = page.get_pixmap(dpi=dpi)
+            pix.save(target)
+            images.append(target)
+    return images
+
+
+def extract_pages(document: Document, use_fallback: bool = False) -> list[PageDraft]:
+    if use_fallback:
+        pymupdf = importlib.import_module("pymupdf")
+        with pymupdf.open(document.resolved_path) as pdf:
+            if len(pdf) != document.page_count:
+                raise ValueError("PAGE_COUNT_MISMATCH")
+            result = [
+                PageDraft(
+                    document_id=document.document_id,
+                    pdf_page=i,
+                    text=page.get_text() or "",
+                )
+                for i, page in enumerate(pdf, 1)
+            ]
+        if not any(page.text.strip() for page in result):
+            raise ValueError("OCR_REQUIRED")
+        return result
+
     if PdfReader is None:
         raise RuntimeError("pypdf required; install requirements-rag.txt")
     pages = PdfReader(document.resolved_path).pages
@@ -123,4 +160,6 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
             raise ValueError("PAGE_RANGE_INVALID")
         if unit.review_status != "checked" or not unit.text.strip():
             raise ValueError("UNREVIEWED_TEXT")
+        if unit.pdf_sha256 and unit.pdf_sha256 != documents[unit.document_id].sha256:
+            raise ValueError("UNIT_HASH_MISMATCH")
     return units

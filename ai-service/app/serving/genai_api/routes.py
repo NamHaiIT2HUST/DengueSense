@@ -7,7 +7,7 @@ import hashlib
 import os
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter
@@ -47,6 +47,37 @@ class GenerateDraftRequest(BaseModel):
     title: str | None = None
     slots: SlotsData
     extra_instructions: str | None = None
+
+
+class RagQueryRequest(BaseModel):
+    query: str = Field(min_length=1)
+    top_k: int = Field(default=5, ge=1, le=20)
+    language: str | None = None
+
+
+class RagHitCitation(BaseModel):
+    document_id: str
+    section_path: str
+    pdf_pages: str = ""
+    printed_pages: str = ""
+    quote: str
+    source_url: str = ""
+
+
+class RagHitResponse(BaseModel):
+    unit_id: str
+    document_id: str
+    score: float
+    text: str
+    citations: list[RagHitCitation]
+
+
+class RagQueryResponse(BaseModel):
+    query: str
+    answerable: bool
+    reason: str
+    research_notice: str
+    hits: list[RagHitResponse]
 
 
 class GuardrailCheck(BaseModel):
@@ -318,3 +349,77 @@ def generate_draft(req: GenerateDraftRequest) -> JSONResponse:
     if model_used is not None:
         result["model_used"] = model_used
     return JSONResponse(content=result)
+
+
+_retriever: Any = None
+
+
+def get_benchmark_retriever() -> Any:
+    global _retriever
+    if _retriever is None:
+        from app.genai_rag.retrieve import load_retriever_from_disk
+
+        base = (
+            Path(__file__).resolve().parents[3]
+            / "experiments"
+            / "exp_018_rag_retrieval"
+        )
+        manifest_p = base / "corpus-manifest.yaml"
+        units_p = base / "reviewed-units.json"
+        _retriever = load_retriever_from_disk(manifest_p, units_p)
+    return _retriever
+
+
+@router.post("/rag/query")
+def query_rag_benchmark(req: RagQueryRequest) -> JSONResponse:
+    from app.genai_rag.retrieve import RESEARCH_NOTICE
+
+    retriever = get_benchmark_retriever()
+    if retriever.is_out_of_scope(req.query):
+        return JSONResponse(
+            content=RagQueryResponse(
+                query=req.query,
+                answerable=False,
+                reason="Truy vấn ngoài phạm vi căn cứ tài liệu hành chính hoặc vi phạm nguyên tắc y khoa/dữ liệu bị che khuất.",
+                research_notice=RESEARCH_NOTICE,
+                hits=[],
+            ).model_dump()
+        )
+
+    hits = retriever.retrieve(req.query, k=req.top_k)
+    if not hits:
+        return JSONResponse(
+            content=RagQueryResponse(
+                query=req.query,
+                answerable=False,
+                reason="Không tìm thấy đơn vị văn bản phù hợp trong corpus benchmark đã kiểm chứng.",
+                research_notice=RESEARCH_NOTICE,
+                hits=[],
+            ).model_dump()
+        )
+
+    formatted_hits: list[dict[str, Any]] = []
+    units_by_id = {u.unit_id: u for u in retriever.units}
+    for hit in hits:
+        unit = units_by_id.get(hit.chunk_id)
+        if not unit:
+            continue
+        formatted_hits.append(
+            {
+                "unit_id": hit.chunk_id,
+                "document_id": unit.document_id,
+                "score": hit.score,
+                "text": unit.text,
+                "citations": hit.citations,
+            }
+        )
+
+    return JSONResponse(
+        content=RagQueryResponse(
+            query=req.query,
+            answerable=True,
+            reason="Truy hồi thành công đơn vị văn bản đối chiếu nguyên văn cho mục đích nghiên cứu benchmark.",
+            research_notice=RESEARCH_NOTICE,
+            hits=[RagHitResponse.model_validate(h) for h in formatted_hits],
+        ).model_dump()
+    )

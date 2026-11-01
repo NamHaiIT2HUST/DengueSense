@@ -197,3 +197,48 @@ def test_rejects_wrong_audience_and_expired_token(
         headers={"Authorization": "Bearer " + token},
     )
     assert response.status_code == 401
+
+
+def test_rag_benchmark_query_answerable() -> None:
+    response = client.post(
+        "/internal/v1/genai/rag/query",
+        json={
+            "query": "Theo Quyết định 02/2016, điều kiện nào để xã được công bố có dịch bệnh truyền nhiễm?",
+            "top_k": 3,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    validate_schema("RagQueryResponse", data)
+    assert data["answerable"] is True
+    assert len(data["hits"]) >= 1
+    assert "BENCHMARK_RESEARCH_ONLY" in data["research_notice"]
+    first_hit = data["hits"][0]
+    assert first_hit["unit_id"] == "vn-qd02-2016/dieu-2/khoan-2/a"
+    assert len(first_hit["citations"]) >= 1
+    quote = first_hit["citations"][0]["quote"]
+    assert quote in first_hit["text"]
+
+
+def test_rag_benchmark_query_out_of_scope_fail_closed() -> None:
+    response = client.post(
+        "/internal/v1/genai/rag/query",
+        json={
+            "query": "Cần chính xác bao nhiêu điều dưỡng cho mỗi 100 ca sốt xuất huyết?",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    validate_schema("RagQueryResponse", data)
+    assert data["answerable"] is False
+    assert data["hits"] == []
+    assert "ngoài phạm vi" in data["reason"]
+
+
+def test_rag_benchmark_query_unauthenticated() -> None:
+    response = client.post(
+        "/internal/v1/genai/rag/query",
+        json={"query": "test"},
+        headers={"Authorization": "Bearer invalid.token.here"},
+    )
+    assert response.status_code == 401

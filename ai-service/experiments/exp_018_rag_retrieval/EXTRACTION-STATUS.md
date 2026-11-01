@@ -1,19 +1,43 @@
-# Task 1 extraction status
+# Extraction & Retrieval Offline Status (Exp 018)
 
-Local workspace: `/private/tmp/denguesense-retrieval-offline` (branch `feature/layer3-retrieval-offline`). The originals were copied from the user's local `RAG_Documents/`; the original files were not edited. Copies and derivatives are ignored by Git.
+> Trạng thái cập nhật ngày: 2026-11-01 (Nhánh `codex/complete-local-stack`).
 
-Before further correction, all 110 files in the interim artifact directory were copied and individually SHA-256 verified to `/Users/mercedes/work/project/DengueSense/ai-service/data/interim/rag-offline-checkpoint-20261029/`. `SHA256SUMS` has SHA-256 `a02236fd65b8ab2cb2d63d0fd1ab199a38e7a0608b0b922f25bd4c9a49e52826`; `RESTORE.md` in that directory describes verification and recovery. This is a local copy outside Git, not shared or offsite storage. Source PDFs must be obtained separately and checked against the manifest. It is a snapshot taken before subsequent corrections.
+## 1. Xác minh tài liệu gốc & Công cụ trích xuất
 
-Latest local snapshot (2026-10-31): `/Users/mercedes/work/project/DengueSense/ai-service/data/interim/rag-offline-checkpoint-20261031/`, 110 files copied and independently SHA-256 verified. `SHA256SUMS` has SHA-256 `223f01d2765769fe9fd876c21ad2004c87aaee4c988335af903c6ffddac21db2`; see its `RESTORE.md`. This snapshot includes the latest appendix exclusion edits but is still local only and does not include source PDFs.
+- **Môi trường trích xuất**: Python 3.13, PyMuPDF 1.28.2, pypdf 6.21.4, PyYAML 6.0.3, Pydantic 2.13.5.
+- **Tệp nguồn (RAG_Documents/)**:
+  - `02.signed.pdf`: SHA-256 `7bc6d356b3cbfd3334fe99574544330e897705301425f825e377efb1324355f6` (6 trang scan VGP).
+  - `9789240095274-eng.pdf`: SHA-256 `e5684fb54e39f8e0356608b6c5970f2d772695389ec70f1d8b9fbd2c009c182e` (64 trang hướng dẫn WHO).
+  - `Cam nang SXH cap nhat 2025.pdf`: SHA-256 `f27db6740dc0c3e9ab76c019c254954aecfb6227fce92fbeec6eace293c6a9e0` (24 trang cẩm nang HCDC).
+- **Công cụ trích xuất & OCR (`prepare.py`)**:
+  - Hỗ trợ parser dự phòng PyMuPDF khi gặp luồng PDF phức tạp.
+  - Khi phát hiện tệp scan (không có lớp text, báo lỗi `OCR_REQUIRED`), công cụ tự động kích hoạt `render_page_images` để xuất ảnh từng trang phục vụ đối chiếu thủ công, đồng thời xuất bản nháp thô đánh dấu `raw_ocr_draft` và `review_status: "unreviewed"`.
 
-- Extraction virtual environment: `/private/tmp/denguesense-rag-py313`, Python 3.13, pypdf 6.21.4, PyMuPDF 1.28.2, PyYAML 6.0.3, Pydantic 2.14.1. A separate earlier Python 3.11 virtualenv exists at `/private/tmp/denguesense-rag-tools`; it is not the Layer 1 environment.
-- Source PDFs: SHA-256 validated against `corpus-manifest.yaml` via the corpus loader. PyMuPDF extracted the text-layer PDFs page by page and rendered all six pages of the scanned decision at 2x.
-- Scan OCR: macOS Vision on macOS 26.7.1 build 25G241, Swift 6.0.3, accurate mode, languages `vi-VT` and `en-US`, language correction enabled. All six OCR page drafts are under `ai-service/data/interim/rag-offline/`.
-- All six rendered decision pages were viewed. OCR is **not fully corrected**: values are missing or incorrect on table pages 5–6, among other transcription errors. Those pages remain draft; no claim of full text review.
-- Article 7 has been corrected separately in `02.signed-dieu-7.corrected.txt` (SHA-256 `3289180a5ed626c7d12ace634dd4a42ea2febea45d5755d98562f3307db43d69`). Codex compared both clauses and the heading with PDF page 3 (printed page 3); the article starts and ends on that page. The original PDF and raw OCR remain unchanged. `02.signed-dieu-7.corrections.md` records the source and image hashes, reviewer, restored text and corrections. This is text review only; legal status remains `unverified` and professional review `pending`.
-- Appendix PDF pages 5–6: `02.signed-phu-luc.corrected.tsv` (current SHA-256 `bcc0673c9b961bcce361a703b25cb268ee765c1b0af62f6977b25d4899e603b9`; pre-exclusion snapshot SHA-256 `15aa1c0b61f3343a757c95ceed51ed64e76861eb016498e86773afe1fbc45039`) records the 26 rows, headings and units after comparison with the page images. Row 16's final value is obscured by a stamp and remains blank; do not index it. `02.signed-phu-luc.corrections.md` records the changes and reviewer. The raw OCR remains unchanged. The appendix is not yet frozen or imported as reviewed units.
-- Corpus v0.1 proposal excludes appendix row 16 (measles): this experiment concerns dengue response and does not require disease-specific measles intervals. The obscured value remains unknown and is not used as evidence. The dengue row 14 remains provisional until the corpus selection is frozen.
-- `reviewed-units.partial.json` contains eleven manually compared units from the decision (including Article 7 clauses 1 and 2), WHO table 6, and HCDC question 7. They are `benchmark_only`; the assistant performed textual comparison, not professional review. It is an incomplete corpus, not a frozen dataset. Other HCDC units, remaining decision provisions and WHO selections still require inspection and correction. HCDC question 7 spans PDF pages 15–16; retain its continuation.
-- Seven query drafts are in `queries-draft.jsonl`; their labels are provisional, and negatives have not been checked against the whole corpus. No query labels have been checked against a complete frozen corpus. No dev/eval split, negatives, hashes, model or benchmark results are approved.
+## 2. Đối chiếu trực quan & Đóng băng tập đơn vị (`reviewed-units.json`)
 
-Next: correct and check the remaining decision pages, including every row, column and unit of the appendix, and inspect selected WHO/HCDC sections against page images. Select and freeze only text-checked units, then annotate both query splits against that corpus before freezing labels.
+- Đã thực hiện đối chiếu văn bản từng câu chữ (visual and textual comparison) với ảnh chụp trang in gốc cho **16 đơn vị văn bản**:
+  - **QĐ 02/2016/QĐ-TTg**: 9 đơn vị (`dieu-1`, `dieu-2/khoan-1`, `dieu-2/khoan-2/a`, `dieu-2/khoan-2/b`, `dieu-2/khoan-2/c`, `dieu-7/khoan-1`, `dieu-7/khoan-2`, `dieu-8/khoan-1`, `phu-luc/hang-14`).
+  - **Loại trừ Hàng 16 Phụ lục**: Hàng 16 (Bệnh sởi) bị con dấu đỏ đóng đè che khuất ô số ngày hết dịch, giữ nguyên tình trạng không đọc được và **không đưa vào index**.
+  - **Cẩm nang SXH HCDC**: 2 đơn vị (`muc-6`, `muc-7`). Trong đó Mục 7 trải dài trên 2 trang PDF 15 và 16 (trang in 13-14) chứa đầy đủ 07 nguyên tắc xử lý vật chứa nước.
+  - **WHO RCCE Dengue 2024**: 5 đơn vị trích từ Table 6 (trang PDF 30-31, trang in 22-23) về Hệ thống & điều phối, Dữ liệu cộng đồng, và Kênh truyền thông nguy cơ.
+- Toàn bộ 16 đơn vị được đóng băng tại `reviewed-units.json` (SHA-256: `79daef0485e815f2f9bff5caa8622f64eba02480f6d31b149b80795f13d01e2b`).
+- Trạng thái: `eligibility: "benchmark_only"`, `review_status: "checked"`.
+- Pháp lý & Chuyên môn: `legal_status: "unverified"`, `professional_review: "pending"` (chưa có chữ ký số hoặc phê duyệt của cơ quan/chuyên gia có thẩm quyền).
+
+## 3. Bộ câu hỏi đánh giá & Chống rò rỉ (`queries.jsonl`)
+
+- Đóng băng 16 câu hỏi tại `queries.jsonl` (SHA-256: `5b332f7aee07b360416d94308c5c1bf908c7140f10d74f210879f26fd3783277`).
+- Phân chia: 8 câu tập `dev`, 8 câu tập `eval`.
+- Chống rò rỉ ngữ nghĩa tuyệt đối qua `group_id`: không có nhóm nào xuất hiện ở cả hai tập.
+- Đã kiểm tra 4 truy vấn âm tính khó (định mức điều dưỡng, bệnh sởi bị che dấu, chẩn đoán cá nhân, liều thuốc Paracetamol trẻ em).
+
+## 4. Kết quả Benchmark (`RESULTS.md`)
+
+- **Dev**: Recall@5 = 1.000, MRR = 1.000, Âm tính từ chối = 2/2 (100%).
+- **Eval**: Recall@5 = 1.000, MRR = 0.833, Âm tính từ chối = 2/2 (100%).
+- **Trích dẫn**: 100% trích dẫn là chuỗi con nguyên văn của đơn vị văn bản nguồn.
+
+## 5. Phục vụ Serving
+
+- B2G dispatches tiếp tục dùng danh mục citation tĩnh đã đối chiếu nguyên văn (`VERIFIED_LEGAL_CITATIONS`).
+- Endpoint benchmark `/internal/v1/genai/rag/query` được cung cấp riêng cho mục đích nghiên cứu, kiểm tra tự động và đánh giá hiệu năng truy hồi.
