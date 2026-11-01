@@ -84,7 +84,7 @@ export function InterProvincialSupplyTransferModal({
 
   function handleExportManifestCsv() {
     exportCsv(
-      `DengueSense_Bien_Ban_Dieu_Dong_Chi_Vien_${evaluation.transferManifestId}_${new Date().toISOString().slice(0, 10)}.csv`,
+      `DengueSense_Mo_Phong_Chi_Vien_${evaluation.transferManifestId}_${new Date().toISOString().slice(0, 10)}.csv`,
       [
         { header: "Danh mục biên bản chi viện liên tỉnh", key: (r) => r.field },
         { header: "Thông tin chi tiết", key: (r) => r.value },
@@ -92,14 +92,14 @@ export function InterProvincialSupplyTransferModal({
       ],
       [
         {
-          field: "Mã lệnh điều động",
+          field: "Mã tham chiếu mô phỏng",
           value: evaluation.transferManifestId,
-          note: "Hệ số định danh chuẩn Nghị định 30/2020/NĐ-CP",
+          note: "ID minh họa cục bộ, chưa phát hành văn bản",
         },
         {
           field: "Đơn vị xuất cấp chi viện (Donor CDC)",
           value: donorProvince.provinceName,
-          note: `Tồn kho sau điều phối: ${evaluation.donorReserveRatio}% (Đạt ngưỡng an toàn)`,
+          note: `Tồn kho giả định sau mô phỏng: ${evaluation.donorReserveRatio}%`,
         },
         {
           field: "Đơn vị tiếp nhận khẩn cấp (Target CDC)",
@@ -140,15 +140,15 @@ export function InterProvincialSupplyTransferModal({
     );
 
     notify.success(
-      "Xuất lệnh điều động chi viện thành công",
-      "Đã tải về biên bản bàn giao vật tư liên tỉnh chuẩn RFC 4180 Excel."
+      "Đã xuất kịch bản mô phỏng",
+      "Tệp CSV chỉ phục vụ diễn tập; chưa tạo lệnh hoặc thay đổi tồn kho."
     );
   }
 
   function handleConfirmDispatch() {
     notify.success(
-      "Ban hành lệnh điều động chi viện khẩn cấp",
-      `Đã kích hoạt vận chuyển vật tư từ ${donorProvince.provinceName} sang ${targetProvince.provinceName}. Mã lệnh: ${evaluation.transferManifestId}`
+      "Đã xem xong kịch bản chi viện",
+      `Chưa điều vận vật tư từ ${donorProvince.provinceName} sang ${targetProvince.provinceName}; tồn kho chỉ là số liệu mô phỏng.`
     );
     onClose();
   }
@@ -176,12 +176,12 @@ export function InterProvincialSupplyTransferModal({
                   Điều Phối & Chi Viện Kho Vật Tư Liên Tỉnh
                 </h2>
                 <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-[var(--status-good-ink)]">
-                  Cơ chế mượn - hoàn trả
+                  Mô phỏng, không kết nối kho CDC
                 </span>
               </div>
               <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">
-                Quy chế phối hợp khẩn cấp giữa các CDC khu vực theo Nghị định 30/2020/NĐ-CP khi tâm
-                dịch cạn dự trữ.
+                Kịch bản minh họa với tồn kho giả định; chưa tạo phiếu điều vận hay cập nhật
+                database.
               </p>
             </div>
           </div>
@@ -253,7 +253,7 @@ export function InterProvincialSupplyTransferModal({
           <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2 text-xs font-semibold text-[var(--ink-primary)]">
             <span>Định mức vật tư đề nghị xuất cấp chi viện:</span>
             <span className="text-[11px] font-normal text-[var(--ink-muted)]">
-              Mã lệnh:{" "}
+              Mã kịch bản:{" "}
               <code className="font-mono text-[var(--accent)]">
                 {evaluation.transferManifestId}
               </code>
@@ -447,7 +447,7 @@ export function InterProvincialSupplyTransferModal({
               onClick={handleExportManifestCsv}
             >
               <Download size={13} />
-              Xuất biên bản lệnh điều động (.csv)
+              Xuất kịch bản mô phỏng (.csv)
             </Button>
             <Button
               variant="primary"
@@ -456,7 +456,7 @@ export function InterProvincialSupplyTransferModal({
               onClick={handleConfirmDispatch}
             >
               <FileCheck size={14} />
-              Ban hành lệnh chi viện
+              Đóng kịch bản mô phỏng
             </Button>
           </div>
         </div>

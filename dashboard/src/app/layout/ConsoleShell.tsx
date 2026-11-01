@@ -372,7 +372,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
             <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 lg:flex">
               <Activity size={13} className="text-emerald-600 dark:text-emerald-400" />
-              <span>AI Dịch tễ: Trực tuyến</span>
+              <span>Console dữ liệu giám sát lịch sử</span>
             </div>
           </div>
 
@@ -396,10 +396,10 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => setShowAuditModal(true)}
               className="flex items-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/60 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20 transition-all cursor-pointer shadow-2xs mr-0.5"
-              title="Nhật ký Giám sát & Hồ sơ Tuân thủ Nghị định 30/2020/NĐ-CP"
+              title="Nhật ký minh họa; không phải log kiểm toán backend"
             >
               <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-              <span className="hidden xl:inline">Nhật ký Giám sát</span>
+              <span className="hidden xl:inline">Nhật ký minh họa</span>
             </button>
 
             <NotificationCenter />

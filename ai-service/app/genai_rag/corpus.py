@@ -1,17 +1,20 @@
 """Load source documents and reviewed extraction units for offline retrieval."""
 
 import hashlib
+import importlib
 import json
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict
 
 try:
-    from pypdf import PdfReader
+    PdfReader: Any = importlib.import_module("pypdf").PdfReader
+    LimitReachedError: Any = importlib.import_module("pypdf.errors").LimitReachedError
 except ImportError:
     PdfReader = None
+    LimitReachedError = None
 
 
 class Document(BaseModel):
@@ -44,7 +47,7 @@ class SourceUnit(BaseModel):
     eligibility: Literal["benchmark_only"]
 
 
-def validate_manifest(manifest: dict, repo_root: Path) -> list[Document]:
+def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> list[Document]:
     documents = []
     seen = set()
     root = repo_root.resolve()
@@ -69,12 +72,29 @@ def extract_pages(document: Document) -> list[PageDraft]:
     pages = PdfReader(document.resolved_path).pages
     if len(pages) != document.page_count:
         raise ValueError("PAGE_COUNT_MISMATCH")
-    result = [
-        PageDraft(
-            document_id=document.document_id, pdf_page=i, text=page.extract_text() or ""
-        )
-        for i, page in enumerate(pages, 1)
-    ]
+    try:
+        result = [
+            PageDraft(
+                document_id=document.document_id,
+                pdf_page=i,
+                text=page.extract_text() or "",
+            )
+            for i, page in enumerate(pages, 1)
+        ]
+    except LimitReachedError:
+        # Some public PDF exports exceed pypdf's stream limit. Preserve the
+        # exact input file and use a second parser for extraction only.
+        pymupdf = importlib.import_module("pymupdf")
+
+        with pymupdf.open(document.resolved_path) as pdf:
+            result = [
+                PageDraft(
+                    document_id=document.document_id,
+                    pdf_page=i,
+                    text=page.get_text() or "",
+                )
+                for i, page in enumerate(pdf, 1)
+            ]
     if not any(page.text.strip() for page in result):
         raise ValueError("OCR_REQUIRED")
     return result

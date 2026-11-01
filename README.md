@@ -4,6 +4,16 @@ DengueSense gồm Dashboard React, Gateway và các service Go, Forecast/Optimiz
 
 > **Phạm vi dữ liệu:** lượt dự báo tái hiện trên số liệu giám sát lịch sử 1994–2010, không phải giám sát dịch hiện tại. Số ca ngăn ngừa và chi phí can thiệp là kết quả mô hình mô phỏng. Công điện B2G là **bản dự thảo mô phỏng**, dùng danh mục trích dẫn pháp lý tĩnh và quy trình duyệt 4 mắt; chưa phải văn bản có chữ ký số CA hoặc hệ thống RAG tra cứu pháp luật trực tiếp. Xem [giới hạn và nguồn dữ liệu](docs/competition-readiness.md).
 
+| Phần hiển thị | Nguồn và trạng thái |
+| --- | --- |
+| Bản đồ, lượt dự báo, cảnh báo | Panel giám sát lịch sử nạp vào PostgreSQL; Forecast và Workflow phục vụ qua Gateway. Không có dữ liệu ca bệnh thời gian thực. |
+| Hồ sơ, phương án, dự thảo, duyệt | Dữ liệu được tạo và lưu bởi service thật. Kết quả tối ưu là **ước tính mô hình**, không phải hiệu quả can thiệp đo tại hiện trường. |
+| Thông báo trên console | Chỉ hiện sự kiện phát sinh trong phiên trình duyệt; không tự tạo thông báo mẫu và chưa là hộp thư thông báo bền vững. |
+| Côn trùng, kho chi viện liên tỉnh, đối sánh kinh tế, nhật ký mẫu, kịch bản trang giới thiệu | **Mô phỏng có nhãn** từ giả định tĩnh, không nối dữ liệu CDC hoặc bảng audit backend. CSV xuất từ các mục này cũng là tệp diễn tập. |
+| Trang Vercel công khai | Demo tĩnh dùng MSW; **không phải** stack backend/database localhost. Đừng dùng để chứng minh luồng API thật. |
+
+Nhánh Layer 3 retrieval offline đã được tích hợp ở `ai-service/app/genai_rag/` để kiểm tra hash tài liệu, trích xuất PDF và chấm điểm truy hồi **trong nghiên cứu**. Ba PDF gốc đã được tìm lại trên máy demo và khớp SHA-256 trong manifest, nhưng **không nằm trong Git**. Người clone repo cần tải lại từ [cổng Chính phủ](https://vanban.chinhphu.vn/default.aspx?docid=183327&pageid=27160), [WHO](https://www.who.int/publications/i/item/9789240095274) và [trang trường công lập dẫn cẩm nang SXH](https://mnrangdonghocmon.hcm.edu.vn/truyen-thong-y-te/sot-xuat-huyet-va-cac-bien-phap-phong-tranh/ctfull/94269/802163), đặt đúng tên ở `RAG_Documents/` rồi đối chiếu hash trong `ai-service/experiments/exp_018_rag_retrieval/corpus-manifest.yaml`. Manifest vẫn ghi `professional_review: pending`, `legal_status: unverified` cho văn bản cần rà soát, `eligibility: benchmark_only` cho đơn vị đã trích. Quyết định 02 là PDF scan cần OCR và hiệu đính; việc kiểm tra hash không thay thế bước đó. Vì vậy service GenAI **chưa dùng corpus này để tạo dự thảo**. Các việc còn lại và mẫu báo cáo được ghi ở [hướng dẫn hoàn thiện RAG](docs/antigravity-rag-handoff.md).
+
 ## 1. Chuẩn bị
 
 - Windows PowerShell, Docker Desktop đang chạy (Docker Compose v2), Go trong `PATH` để sinh khóa lần đầu. Nên có ít nhất 8 GB RAM trống và kết nối Internet để tải/build image lần đầu.

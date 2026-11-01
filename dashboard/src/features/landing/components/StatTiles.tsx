@@ -61,10 +61,10 @@ export function StatTiles({ provinces }: { provinces: ProvinceRisk[] }) {
     },
     {
       icon: MapPin,
-      label: "Quy mô dữ liệu thực địa",
+      label: "Dữ liệu lịch sử cấp tỉnh",
       modelTag: "GIS-34",
       value: "34 Tỉnh",
-      sub: `${formatCount(totalCases)} ca đo lường thực tế`,
+      sub: `${formatCount(totalCases)} ca trong tập giám sát lịch sử`,
       microTag: "Dịch Tễ Trọng Điểm",
       badgeText: "34 Tỉnh VN",
       gradient: "from-red-600/20 via-rose-500/10 to-slate-950/95",

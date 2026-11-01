@@ -23,12 +23,12 @@ class Hit(BaseModel):
     chunk_id: str
     unit_ids: list[str]
     score: float
-    citations: list
+    citations: list[dict[str, str]]
 
 
 def validate_queries(queries: list[Query], units: list[SourceUnit]) -> None:
     known = {u.unit_id for u in units}
-    groups = {}
+    groups: dict[str, Literal["dev", "eval"]] = {}
     ids = set()
     for q in queries:
         if not q.query.strip() or q.query_id in ids:
@@ -45,7 +45,7 @@ def validate_queries(queries: list[Query], units: list[SourceUnit]) -> None:
 
 def score_queries(
     queries: list[Query], rankings: dict[str, list[Hit]], k: int = 5
-) -> dict:
+) -> dict[str, int | float | None]:
     if k < 1:
         raise ValueError("INVALID_K")
     recalls, reciprocals, noise = [], [], []

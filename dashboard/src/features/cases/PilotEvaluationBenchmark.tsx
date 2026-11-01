@@ -64,7 +64,7 @@ export function PilotEvaluationBenchmark({
 
   function handleExportReport() {
     exportCsv(
-      `DengueSense_Bien_Ban_Tham_Dinh_Thi_Diem_${new Date().toISOString().slice(0, 10)}.csv`,
+      `DengueSense_Mo_Phong_Doi_Sanh_${new Date().toISOString().slice(0, 10)}.csv`,
       [
         { header: "Chỉ số đánh giá (Evaluation Metric)", key: (r) => r.metric },
         { header: "Quy trình truyền thống CDC (Manual Baseline)", key: (r) => r.traditional },
@@ -106,8 +106,8 @@ export function PilotEvaluationBenchmark({
     );
 
     notify.success(
-      "Xuất biên bản thẩm định đối sánh thành công",
-      "Đã tải về tệp đối sánh thực nghiệm thí điểm CDC chuẩn RFC 4180 Excel."
+      "Đã xuất đối sánh mô phỏng",
+      "Tệp CSV sử dụng các giả định, không phải kết quả thí điểm CDC."
     );
   }
 
@@ -121,10 +121,10 @@ export function PilotEvaluationBenchmark({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-[var(--ink-primary)]">
-                Thẩm Định Đối Sánh Thí Điểm CDC (Shadow Run Benchmarking)
+                Đối sánh mô phỏng CDC (chưa có số liệu thử nghiệm thực địa)
               </h3>
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--status-good-ink)]">
-                Chứng nhận thực nghiệm
+                Giả định diễn tập
               </span>
             </div>
             <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">
@@ -165,9 +165,7 @@ export function PilotEvaluationBenchmark({
       {/* Summary Highlight Chips */}
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-2.5">
-          <span className="block text-[11px] text-[var(--ink-secondary)]">
-            Tiết kiệm chi phí y tế
-          </span>
+          <span className="block text-[11px] text-[var(--ink-secondary)]">Tiết kiệm giả định</span>
           <span className="text-base font-bold tabular-nums text-[var(--status-good-ink)]">
             -{metrics.savingsPercent}%
           </span>
@@ -216,7 +214,7 @@ export function PilotEvaluationBenchmark({
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)] text-[var(--ink-muted)] font-medium">
-                  <th className="py-2 pr-3">Hạng mục kiểm chứng thí điểm</th>
+                  <th className="py-2 pr-3">Hạng mục đối sánh giả định</th>
                   <th className="py-2 px-3 bg-[var(--border-subtle)]/30 rounded-t-md">
                     Phương án truyền thống CDC (Manual)
                   </th>
@@ -280,9 +278,9 @@ export function PilotEvaluationBenchmark({
           <div className="mt-3 flex items-center gap-2 rounded-lg bg-[var(--bg-surface)] p-2.5 text-[11px] text-[var(--ink-secondary)] border border-[var(--border-subtle)]">
             <ShieldCheck size={16} className="text-[var(--status-good-ink)] shrink-0" />
             <span>
-              <strong>Bằng chứng thực nghiệm:</strong> Dữ liệu mô phỏng đối sánh được chuẩn hóa theo
-              khung đánh giá Shadow Run của Viện Pasteur và CDC thực địa, chứng minh hiệu quả giảm
-              tải kinh tế y tế và phản ứng nhanh khép kín.
+              <strong>Giả định diễn tập:</strong> Các mức thời gian, độ bao phủ và chi phí đối chứng
+              chưa có số đo thực địa; bảng này chỉ minh họa cách đánh giá thử nghiệm trong tương
+              lai.
             </span>
           </div>
         </div>

@@ -49,8 +49,7 @@ export function TacticalScenarioModal({
                   Bảng Điều Khiển Diễn Tập Tình Huống Mẫu
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Chọn kịch bản thực tế để hệ thống tự động nạp dữ liệu dịch tễ và chuyển đúng vai
-                  trò tác chiến.
+                  Kịch bản diễn tập dùng số liệu giả định; không phải cảnh báo hoặc hồ sơ backend.
                 </p>
               </div>
             </div>

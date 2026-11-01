@@ -128,8 +128,8 @@ export function OutbreakTimeline() {
           </span>
         </h2>
         <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-          Cách DengueSense chuyển hóa dữ liệu viễn thám khí hậu thành hành động can thiệp y tế thực
-          địa, đón đầu và khống chế dịch bệnh từ trước 4 tháng (T-120 đến T-0).
+          Kịch bản minh họa hành trình xử lý; các thời điểm, số liệu và tác động can thiệp bên dưới
+          là giả định, chưa phải kết quả triển khai thực địa.
         </p>
       </div>
 

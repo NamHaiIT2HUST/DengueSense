@@ -89,14 +89,14 @@ export function HeroCommandCenter() {
         <div className="flex items-center gap-2.5">
           <Activity size={15} className="text-cyan-400 shrink-0" />
           <span className="font-display text-xs sm:text-sm font-bold text-white tracking-wide">
-            Bảng Điều Khiển Điều Phối Y Tế Dự Phòng DengueSense
+            Màn hình minh họa quy trình DengueSense (số liệu giả định)
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
             <Activity size={12} className="text-emerald-400" />
-            <span>Khí tượng ERA5: Trực tuyến</span>
+            <span>Kịch bản minh họa, không phải dữ liệu trực tuyến</span>
           </span>
           <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-medium text-cyan-300">
             <ShieldCheck size={12} className="text-cyan-400" />
@@ -409,7 +409,8 @@ export function HeroCommandCenter() {
                     Khóa cứng 100% số liệu: Số ca dự báo (
                     {selectedHotspot.casesExpected.toLocaleString()} ca), ngân sách và số vật tư
                     điều phối đều được truyền trực tiếp từ mô hình dự báo và bài toán tối ưu nguồn
-                    lực. Kiểm soát số liệu chặt chẽ qua Guardrail G1.
+                    lực trong luồng nghiệp vụ thật. Các con số trên màn minh họa này là giả định và
+                    không được gửi tới backend.
                   </p>
                 </div>
 
@@ -474,10 +475,10 @@ export function HeroCommandCenter() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-[11px]">
                       <ShieldCheck size={13} className="text-cyan-400" />
-                      <span>GUARDRAIL G1 VERIFIED: SỐ LIỆU ĐÃ KHÓA CỨNG</span>
+                      <span>MINH HỌA G1: CHƯA KIỂM TRA QUA BACKEND</span>
                     </div>
                     <span className="text-[9px] font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 px-1.5 py-0.5 rounded">
-                      GUARDRAILS G1-G6
+                      MẪU GIAO DIỆN
                     </span>
                   </div>
                   <p className="text-slate-300 leading-relaxed text-[11px]">
