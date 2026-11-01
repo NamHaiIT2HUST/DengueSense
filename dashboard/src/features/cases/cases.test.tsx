@@ -179,7 +179,7 @@ describe("CaseDetailPage (S7 Chi tiết hồ sơ & S8 Phân bổ nguồn lực)"
     expect(screen.getByText(/420 ca/)).toBeInTheDocument();
     expect(screen.getByText("600.000.000 đ")).toBeInTheDocument();
     expect(
-      screen.getByText("Thẩm Định Đối Sánh Thí Điểm CDC (Shadow Run Benchmarking)")
+      screen.getByText("Đối sánh mô phỏng CDC (chưa có số liệu thử nghiệm thực địa)")
     ).toBeInTheDocument();
 
     // Section 3: Dự thảo văn bản Layer 3

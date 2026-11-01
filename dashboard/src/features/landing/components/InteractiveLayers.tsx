@@ -62,7 +62,7 @@ export function InteractiveLayers() {
       <div className="text-center max-w-3xl mx-auto relative z-10">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-400 mb-3 shadow-sm backdrop-blur-sm">
           <Layers size={13} />
-          <span>QUY TRÌNH VẬN HÀNH KHÉP KÍN</span>
+          <span>SƠ ĐỒ MINH HỌA QUY TRÌNH; KHÔNG PHẢI KẾT QUẢ LIVE</span>
         </div>
         <h2 className="font-display text-3xl font-extrabold text-white sm:text-4xl tracking-tight leading-tight">
           Giải Pháp 3 Bước Toàn Diện Cho Y Tế Dự Phòng

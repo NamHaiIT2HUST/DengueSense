@@ -182,8 +182,8 @@ export function CommandPaletteModal({
       {
         id: "nav-audit",
         category: "actions",
-        title: "Nhật ký Giám sát & Hồ sơ Tuân thủ (Audit Trail)",
-        subtitle: "Truy vết kiểm toán bất biến theo Nghị định 30/2020/NĐ-CP và mã băm SHA-256",
+        title: "Nhật ký minh họa (không phải log backend)",
+        subtitle: "Dữ liệu diễn tập; không dùng làm bằng chứng kiểm toán",
         icon: ShieldCheck,
         iconColor: "text-emerald-500",
         onSelect: () => {

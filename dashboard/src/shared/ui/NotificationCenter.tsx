@@ -14,65 +14,11 @@ export interface SystemNotification {
   read: boolean;
 }
 
-const DEFAULT_NOTIFICATIONS: SystemNotification[] = [
-  {
-    id: "notif-01",
-    title: "Cảnh báo vượt ngưỡng P75",
-    message: "TP. Hồ Chí Minh xác suất bùng phát dịch 82% (ngưỡng nền: 35%). Cần chú ý giám sát.",
-    timestamp: "10 phút trước",
-    type: "alert",
-    link: "/app/canh-bao",
-    read: false,
-  },
-  {
-    id: "notif-02",
-    title: "Tối ưu phân bổ nguồn lực MILP",
-    message: "Hồ sơ Miền Nam đã hoàn tất giải bài toán phân bổ 1 tỷ VNĐ cho 2 tỉnh trọng điểm.",
-    timestamp: "35 phút trước",
-    type: "plan",
-    link: "/app/ho-so/case-south-2010-06",
-    read: false,
-  },
-  {
-    id: "notif-03",
-    title: "Công điện B2G chờ phê duyệt",
-    message: "Dự thảo Công điện khẩn gửi UBND các tỉnh phía Nam đang chờ thẩm định 4 mắt.",
-    timestamp: "1 giờ trước",
-    type: "draft",
-    link: "/app/du-thao/draft-south-01",
-    read: false,
-  },
-  {
-    id: "notif-04",
-    title: "Lượt dự báo M4-R2 mới",
-    message: "Hệ thống AI vừa hoàn tất chu kỳ dự báo đợt 2010-06 với 34 tỉnh thành.",
-    timestamp: "3 giờ trước",
-    type: "system",
-    link: "/app/ban-do",
-    read: true,
-  },
-];
-
 export function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<SystemNotification[]>(() => {
-    try {
-      const stored = localStorage.getItem("denguesense_notifications");
-      return stored ? (JSON.parse(stored) as SystemNotification[]) : DEFAULT_NOTIFICATIONS;
-    } catch {
-      return DEFAULT_NOTIFICATIONS;
-    }
-  });
+  const [notifications, setNotifications] = useState<SystemNotification[]>([]);
 
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("denguesense_notifications", JSON.stringify(notifications));
-    } catch {
-      // Bỏ qua lỗi quota storage
-    }
-  }, [notifications]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -167,7 +113,7 @@ export function NotificationCenter() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 px-1 dark:border-slate-800/80">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-900 dark:text-white">
-                  Trung tâm thông báo
+                  Hoạt động trong phiên này
                 </span>
                 {unreadCount > 0 && (
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-cyan-500/15 dark:text-cyan-300">
