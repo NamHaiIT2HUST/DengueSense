@@ -38,6 +38,20 @@ async function expected(origin: string, horizon: number) {
 }
 
 describe("S2 — bản đồ rủi ro", () => {
+  it("chọn năm 2026 rồi trở lại 2010 để đối chứng trên cùng bản đồ", async () => {
+    const user = userEvent.setup();
+    const { router } = renderApp(`/app/ban-do?run=${RUN_2010_03}&h=3`, { store: signedIn() });
+    await mapTable();
+    await user.selectOptions(screen.getByLabelText("Năm dự báo"), "2026");
+    await waitFor(() => expect(screen.getByText(/Phép chiếu 2026 thử nghiệm/)).toBeInTheDocument());
+    expect(screen.getAllByText(/03\/2026/).length).toBeGreaterThan(0);
+    expect(router.state.location.search.run).not.toBe(RUN_2010_03);
+    await user.selectOptions(screen.getByLabelText("Năm dự báo"), "2010");
+    await waitFor(() =>
+      expect(screen.getByText(/Tái hiện lịch sử: dự báo từ tháng neo/)).toBeInTheDocument()
+    );
+  });
+
   it("gate Đợt 1: tháng neo 2010-03, tầm 3 tháng → bảng hiện đúng số exp_016, mọi dòng có mức nền", async () => {
     renderApp(`/app/ban-do?run=${RUN_2010_03}&h=3`, { store: signedIn() });
     const table = await mapTable();
@@ -138,10 +152,10 @@ describe("S2 — bản đồ rủi ro", () => {
     expect(router.state.location.pathname).toBe("/app/ban-do");
   });
 
-  it("không chỉ định lượt → dùng lượt hoàn tất mới nhất (06/2010)", async () => {
+  it("không chỉ định lượt → dùng lượt hoàn tất mới nhất (phép chiếu 2026)", async () => {
     renderApp("/app/ban-do", { store: signedIn() });
     await mapTable();
-    expect(screen.getByText(/Tái hiện lịch sử: dự báo từ tháng neo 06\/2010/)).toBeInTheDocument();
+    expect(screen.getByText(/Phép chiếu 2026 thử nghiệm/)).toBeInTheDocument();
   });
 
   it("bấm tên tỉnh trong bảng → sang trang chi tiết đúng lượt và tầm", async () => {
@@ -232,15 +246,28 @@ describe("S4 — lượt dự báo", () => {
     expect(screen.queryByRole("button", { name: "Tạo lượt" })).not.toBeInTheDocument();
   });
 
-  it("danh sách có 8 lượt, mới nhất trước, mỗi lượt mở được bản đồ", async () => {
+  it("danh sách có 8 lượt lịch sử và phép chiếu 2026", async () => {
     renderApp("/app/luot-du-bao", { store: signedIn(VIEWER.username) });
     const table = await screen.findByRole("table", { name: "Lượt dự báo" });
     const rows = within(table).getAllByRole("row").slice(1);
-    expect(rows).toHaveLength(8);
-    expect(within(rows[0]!).getByRole("rowheader")).toHaveTextContent("06/2010");
-    expect(within(rows[7]!).getByRole("rowheader")).toHaveTextContent("11/2009");
+    expect(rows).toHaveLength(9);
+    expect(within(rows[0]!).getByRole("rowheader")).toHaveTextContent("12/2025");
+    expect(within(rows[8]!).getByRole("rowheader")).toHaveTextContent("11/2009");
     expect(
-      within(rows[0]!).getByRole("link", { name: /Mở bản đồ của lượt tháng neo 06\/2010/ })
+      within(rows[0]!).getByRole("link", { name: /Mở bản đồ của lượt tháng neo 12\/2025/ })
+    ).toBeInTheDocument();
+  });
+
+  it("chọn năm 2026 tạo lượt dự báo thử nghiệm và mở kết quả", async () => {
+    const user = userEvent.setup();
+    renderApp("/app/luot-du-bao", { store: signedIn(ANALYST.username) });
+    await screen.findByRole("button", { name: "Tạo lượt" });
+    await user.selectOptions(screen.getByLabelText("Năm dự báo"), "2026");
+    expect(screen.getByLabelText("Tháng neo")).toHaveValue("2025-12");
+    expect(screen.getByText(/04–12\/2025 được điền khuyết/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tạo lượt" }));
+    expect(
+      await screen.findByRole("link", { name: "Mở kết quả" }, { timeout: 5000 })
     ).toBeInTheDocument();
   });
 
@@ -270,7 +297,7 @@ describe("S4 — lượt dự báo", () => {
     await user.clear(input);
     await user.type(input, "2008-05");
     await user.click(screen.getByRole("button", { name: "Tạo lượt" }));
-    expect(await screen.findByText(/Bản demo chỉ có sẵn các tháng neo/)).toBeInTheDocument();
+    expect(await screen.findByText(/Bản demo có tháng neo/)).toBeInTheDocument();
     expect(screen.getByLabelText("Tháng neo")).toHaveAttribute("aria-invalid", "true");
   });
 

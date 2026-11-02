@@ -2,11 +2,11 @@
 
 DengueSense gồm Dashboard React, Gateway và các service Go, Forecast/Optimize/GenAI Python, PostgreSQL và NATS. Hướng dẫn này chạy **toàn bộ hệ thống trên máy cá nhân bằng Docker Compose**. Dashboard tại `http://127.0.0.1:3000` được build ở chế độ `console`, gọi API và database thật; không dùng MSW cho nghiệp vụ. Trang giới thiệu vẫn có nội dung minh họa tĩnh; trang Vercel công khai là bản demo tĩnh riêng, không đại diện cho stack localhost.
 
-> **Phạm vi dữ liệu:** lượt dự báo tái hiện trên số liệu giám sát lịch sử 1994–2010, không phải giám sát dịch hiện tại. Số ca ngăn ngừa và chi phí can thiệp là kết quả mô hình mô phỏng. Công điện B2G là **bản dự thảo mô phỏng**, dùng danh mục trích dẫn pháp lý tĩnh và quy trình duyệt 4 mắt; chưa phải văn bản có chữ ký số CA hoặc hệ thống RAG tra cứu pháp luật trực tiếp. Xem [giới hạn và nguồn dữ liệu](docs/competition-readiness.md).
+> **Phạm vi dữ liệu:** năm 2010 là tái hiện trên số ca đo thật 1994–2010. Năm 2026 là **phép chiếu thử nghiệm**: mô hình vẫn học từ số ca thật đến 2010, đầu vào gần đây ước lượng đến 03/2025 và điền khuyết 04–12/2025. Số ca 2026 là **dự báo**, chưa được kiểm chứng độ chính xác sau 2010. Số ca ngăn ngừa và chi phí can thiệp là kết quả mô hình mô phỏng. Công điện B2G là **bản dự thảo mô phỏng**, dùng danh mục trích dẫn pháp lý tĩnh và quy trình duyệt 4 mắt; chưa phải văn bản có chữ ký số CA hoặc hệ thống RAG tra cứu pháp luật trực tiếp. Xem [giới hạn và nguồn dữ liệu](docs/competition-readiness.md).
 
 | Phần hiển thị | Nguồn và trạng thái |
 | --- | --- |
-| Bản đồ, lượt dự báo, cảnh báo | Panel giám sát lịch sử nạp vào PostgreSQL; Forecast và Workflow phục vụ qua Gateway. Không có dữ liệu ca bệnh thời gian thực. |
+| Bản đồ, lượt dự báo, cảnh báo | Chọn năm 2010 để đối chứng lịch sử hoặc 2026 để xem phép chiếu M4-R2 thử nghiệm. Lượt 2026 không tự tạo cảnh báo/hồ sơ nghiệp vụ. Không có dữ liệu ca bệnh thời gian thực. |
 | Hồ sơ, phương án, dự thảo, duyệt | Dữ liệu được tạo và lưu bởi service thật. Kết quả tối ưu là **ước tính mô hình**, không phải hiệu quả can thiệp đo tại hiện trường. |
 | Thông báo trên console | Chỉ hiện sự kiện phát sinh trong phiên trình duyệt; không tự tạo thông báo mẫu và chưa là hộp thư thông báo bền vững. |
 | Côn trùng, kho chi viện liên tỉnh, đối sánh kinh tế, nhật ký mẫu, kịch bản trang giới thiệu | **Mô phỏng có nhãn** từ giả định tĩnh, không nối dữ liệu CDC hoặc bảng audit backend. CSV xuất từ các mục này cũng là tệp diễn tập. |
@@ -57,7 +57,7 @@ Tạo `infra/.env` theo `infra/.env.example` bằng bí mật riêng (hướng d
 
 ## 3. Trình tự demo nghiệp vụ
 
-1. Đăng nhập `dev-analyst`, tạo lượt **backtest** với tháng neo `03/2010`. Chờ trạng thái hoàn tất, mở bản đồ/chi tiết tỉnh và kiểm tra nguồn `v0.2.0` cùng phiên bản mô hình.
+1. Đăng nhập `dev-analyst`, chọn năm **2010**, tạo lượt **backtest** với tháng neo `03/2010`. Chờ hoàn tất và xem bản đồ/chi tiết tỉnh. Sau đó chọn năm **2026** để tạo phép chiếu từ tháng neo `12/2025`; bốn tầm dự báo cho `01`, `02`, `03`, `06/2026`. Trên bản đồ, dùng **Năm dự báo** để đổi giữa 2010 và 2026. Các ca 2026 là dự báo thử nghiệm từ dữ liệu ước lượng/điền khuyết, không phải ca bệnh đã ghi nhận. Không dùng lượt này để tạo cảnh báo nghiệp vụ.
 2. Đăng nhập `local-officer`, mở cảnh báo từ lượt dự báo, **xác nhận cảnh báo** để tạo hồ sơ. Tạo phương án phân bổ từ số ca dự báo của hồ sơ, nhập ngân sách và hạn mức từng tỉnh; **xác nhận phương án** trước khi đưa số liệu vào dự thảo.
 3. Tạo dự thảo B2G cho hồ sơ. Màn hình phải hiển thị guardrail và các căn cứ pháp lý mẫu. Nếu chưa có `GEMINI_API_KEY`, service dùng mẫu kiểm soát cố định và **không ghi nhận đã dùng Gemini**.
 4. Đăng nhập `local-approver` để duyệt phiên bản hiện tại. Tác giả không thể tự duyệt; dự thảo bị yêu cầu sửa phải tạo phiên bản mới trước khi duyệt. Đây là luồng mô phỏng hành chính, không phát hành công điện thật.

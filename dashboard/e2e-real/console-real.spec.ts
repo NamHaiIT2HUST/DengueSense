@@ -32,6 +32,21 @@ test("analyst tạo lượt dự báo THẬT (chạy nền ~20 s) rồi mở k�
   await expect(page.locator("path.leaflet-interactive")).toHaveCount(34);
 });
 
+test("analyst dự báo thử nghiệm 2026 rồi chọn lại năm 2010 để đối chứng", async ({ page }) => {
+  await login(page, "dev-analyst", analystPassword ?? "");
+  await expect(mapHeading(page)).toBeVisible();
+  await page.getByRole("link", { name: "Lượt dự báo" }).click();
+  await page.getByLabel("Năm dự báo").selectOption("2026");
+  await expect(page.getByRole("textbox", { name: "Tháng neo" })).toHaveValue("2025-12");
+  await page.getByRole("button", { name: "Tạo lượt" }).click();
+  await page.getByRole("link", { name: "Mở kết quả" }).click({ timeout: 120_000 });
+  await expect(page.getByText(/Phép chiếu 2026 thử nghiệm/)).toBeVisible();
+  await expect(page.locator("path.leaflet-interactive")).toHaveCount(34);
+  await expect(page.getByLabel("Năm dự báo")).toHaveValue("2026");
+  await page.getByLabel("Năm dự báo").selectOption("2010");
+  await expect(page.getByText(/Tái hiện lịch sử: dự báo từ tháng neo/)).toBeVisible();
+});
+
 test("viewer: bản đồ 34 tỉnh từ số thật, mọi dòng có mức nền; provenance đúng; không lỗi console", async ({
   page,
 }) => {
