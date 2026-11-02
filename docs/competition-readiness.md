@@ -69,6 +69,7 @@
 
 1. **Khả năng dự báo ngoài phân phối sau năm 2010**:
    - Mô hình được huấn luyện trên chuỗi 1994–2010, chưa từng được kiểm chứng trên các mùa dịch gần đây (2019, 2022–2023) do dữ liệu ca bệnh chính thức cấp tỉnh công khai sau 2010 của Việt Nam chưa được công bố đồng bộ.
+   - Lượt xem năm 2026 là **phép chiếu thử nghiệm** từ tháng neo 12/2025. Panel chỉ có đầu vào ước lượng đến 03/2025; các tháng 04–12/2025 được điền khuyết bằng cùng tháng 2024, lưu cờ `imputed` và không ghi vào panel nguồn. M4-R2 và classifier chỉ fit trên các cặp có nhãn `real` đến 2010; 2026 là kết quả dự báo, không phải số ca quan sát. Lượt này gắn cờ `estimated_inputs`, `stale_data`, `out_of_validated_period` và không phát sinh cảnh báo nghiệp vụ tự động.
 2. **Dữ liệu giám sát dịch tễ vi mô cấp quận/huyện**:
    - DengueSense hiện vận hành ở quy mô dịch tễ vĩ mô 34 tỉnh/thành phố trọng điểm. Nhóm chưa có quyền tiếp cận cơ sở dữ liệu ca bệnh vi mô cấp xã/phường/quận/huyện của Bộ Y tế/HCDC.
 3. **Tham số kinh tế y tế (ICER, QALY) & Tác động can thiệp thực địa**:
@@ -108,8 +109,8 @@
 
 | STT | Màn hình / Nghiệp vụ | Mã nguồn & Dịch vụ phụ trách trong Repo | Môi trường đã kiểm thử tích hợp | Hiện trạng trên bản deploy Vercel hiện hành (`denguesense.vercel.app`) |
 |---|---|---|---|---|
-| 1 | **Bản đồ dịch tễ & dự báo** (`/app/ban-do`) | `backend/services/surveillance`, `backend/services/gateway`, `ai-service` (`forecast_api`) | Local Docker Compose, Contract test OpenAPI, Vitest MSW handler (`console.test.tsx`) | ⚠️ **Frontend tĩnh + Demo JSON (`/demo/run-2010-06.json`)**. Chưa kết nối cluster backend thật. |
-| 2 | **Quản lý lượt chạy dự báo** (`/app/luot-du-bao`) | `backend/services/surveillance`, `ai-service` (`forecast_api`) | Go HTTP test, Async Job poller test, Local integration tests | ⚠️ **Frontend tĩnh + MSW mock handler**. |
+| 1 | **Bản đồ dịch tễ & dự báo** (`/app/ban-do`) | `backend/services/surveillance`, `backend/services/gateway`, `ai-service` (`forecast_api`) | Local Docker Compose thật và Playwright E2E: chọn năm 2026 rồi 2010; Vitest kiểm đủ 34 tỉnh × 4 tầm | ⚠️ **Frontend tĩnh + Demo JSON**. Bản build của nhánh này chứa cả snapshot lịch sử 2010 và phép chiếu thử nghiệm 2026; production alias có thể vẫn phục vụ bản cũ cho đến khi merge/deploy. |
+| 2 | **Quản lý lượt chạy dự báo** (`/app/luot-du-bao`) | `backend/services/surveillance`, `ai-service` (`forecast_api`) | Async Job trên Forecast và PostgreSQL local, Playwright E2E 2026 hoàn tất trong Docker | ⚠️ **Frontend tĩnh + MSW handler**; tạo lượt trong demo chỉ chọn snapshot đã sinh trước, không chạy mô hình trên Vercel. |
 | 3 | **Cảnh báo bùng phát dịch** (`/app/canh-bao`) | `backend/services/workflow`, `backend/services/gateway` | PostgreSQL repository integration test, Contract test | ⚠️ **Frontend tĩnh + MSW mock handler**. |
 | 4 | **Lập hồ sơ & Phân bổ vật tư** (`/app/ho-so`, `/$caseId`) | `backend/services/workflow`, `ai-service` (`optimize_api`) | Go Handler test (`handler_test.go`), Hash SHA-256 snapshot verification test, TanStack Router deep link test | ⚠️ **Frontend tĩnh + MSW mock handler**. Chưa ghi nhận vào DB PostgreSQL đám mây. |
 | 5 | **Soạn thảo & Thẩm định 4 mắt** (`/app/du-thao/$draftId`) | `backend/services/workflow`, `ai-service` (`genai_api`) | 6 Guardrails automated test (`test_genai_api.py`), Go 4-eyes approval test (`handler_test.go`) | ⚠️ **Frontend tĩnh + MSW mock handler**. Chữ ký và guardrails chạy mô phỏng phía client. |
@@ -117,8 +118,8 @@
 
 > **Lưu ý quan trọng về bản triển khai Preview và Production**:
 > - Địa chỉ `https://denguesense.vercel.app/` là URL chính thức (Production alias) trỏ vào bản build trước đó.
-> - Mỗi commit đẩy lên nhánh `feature/competition-real-services` được Vercel tự động tạo một **Deployment Preview** độc lập gắn với mã commit SHA đó (có thể truy cập trực tiếp qua tab GitHub Checks hoặc URL preview do Vercel bot sinh ra).
-> - Cả bản preview lẫn production của dashboard hiện tại đều hoạt động ở chế độ client-side mock/demo. Việc đấu nối dashboard trực tiếp vào cụm backend microservices thật (Go Gateway + Python AI Services + PostgreSQL) là mục tiêu cốt lõi của **Giai đoạn 2 (Phase 2)**.
+> - Mỗi commit đẩy lên nhánh có pull request được Vercel tự động tạo một **Deployment Preview** độc lập gắn với mã commit SHA đó (truy cập qua tab GitHub Checks hoặc URL do Vercel bot tạo).
+> - Bản Vercel vẫn là client-side demo. Bản **localhost Docker Compose** đã nối Dashboard với Gateway, Forecast, Workflow và PostgreSQL thật; lượt 2026 được tính nền bởi M4-R2 trên input ước lượng/điền khuyết và không phát sinh cảnh báo nghiệp vụ tự động.
 
 ---
 

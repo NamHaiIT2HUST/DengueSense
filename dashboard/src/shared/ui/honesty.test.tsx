@@ -73,8 +73,8 @@ describe("ProvenanceBar (luật T3, T4)", () => {
   it("live_experimental: banner cảnh báo, KHÔNG được trông như dự báo chính thức", async () => {
     await renderWithRouter(<ProvenanceBar meta={{ ...base, run_mode: "live_experimental" }} />);
     const banner = screen.getByRole("status");
-    expect(banner).toHaveTextContent(/Thử nghiệm trực tiếp/);
-    expect(banner).toHaveTextContent(/Không dùng làm dự báo chính thức/);
+    expect(banner).toHaveTextContent(/Phép chiếu 2026 thử nghiệm/);
+    expect(banner).toHaveTextContent(/Không dùng làm cảnh báo chính thức/);
     expect(banner).not.toHaveTextContent(/Tái hiện lịch sử/);
   });
 });

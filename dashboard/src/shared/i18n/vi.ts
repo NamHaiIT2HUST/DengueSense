@@ -154,7 +154,7 @@ export const vi = {
   },
 
   forecast: {
-    modes: { backtest: "Tái hiện lịch sử", live_experimental: "Thử nghiệm trực tiếp" } as Record<
+    modes: { backtest: "Tái hiện lịch sử", live_experimental: "Phép chiếu thử nghiệm" } as Record<
       string,
       string
     >,
@@ -169,7 +169,7 @@ export const vi = {
     backtestBanner: (origin: string) =>
       `Tái hiện lịch sử: dự báo từ tháng neo ${origin} bằng dữ liệu đo thật. Kết quả sau tháng neo chỉ để đối chiếu với thực tế — không phải dự báo cho hiện tại.`,
     liveBanner:
-      "Thử nghiệm trực tiếp: đầu vào có thể là dữ liệu ước lượng và/hoặc ngoài giai đoạn đã kiểm chứng (đến 2010). Không dùng làm dự báo chính thức.",
+      "Phép chiếu 2026 thử nghiệm: mô hình học từ số ca đo thật đến 2010; ca bệnh 2011–03/2025 là ước lượng, 04–12/2025 điền khuyết theo mùa vụ 2024. Số ca 2026 là dự báo, chưa có đánh giá độ chính xác ngoài giai đoạn 2010. Không dùng làm cảnh báo chính thức.",
     provenance: {
       label: "Nguồn gốc số liệu",
       mode: "Chế độ",
@@ -364,14 +364,20 @@ export const vi = {
     },
     open: (origin: string) => `Mở bản đồ của lượt tháng neo ${origin}`,
     create: {
-      title: "Tạo lượt dự báo tái hiện lịch sử",
+      title: "Tạo lượt dự báo",
       lead: "Chạy nền và có thể mất vài phút. Chỉ tháng neo đến 06/2010 (giai đoạn có dữ liệu thật) được chấp nhận.",
+      targetYear: "Năm dự báo",
+      experimentalLead:
+        "Dự báo thử nghiệm cho 01, 02, 03 và 06/2026 từ tháng neo 12/2025. Chạy nền và có thể mất vài phút.",
+      experimentalNote:
+        "Nguồn gần nhất là 03/2025; 04–12/2025 được điền khuyết bằng cùng tháng 2024. 2026 chưa được kiểm chứng, không dùng làm cảnh báo nghiệp vụ.",
       origin: "Tháng neo",
       submit: "Tạo lượt",
       submitting: "Đang gửi…",
       analystOnly:
         "Chỉ vai trò phân tích trở lên được tạo lượt dự báo. Bạn vẫn xem được danh sách.",
-      demoNote: "Bản demo chỉ có sẵn 8 tháng neo từ 11/2009 đến 06/2010; tháng khác sẽ bị từ chối.",
+      demoNote:
+        "Đối chứng lịch sử dùng số đo thật với tháng neo tối đa 06/2010. Bản demo Vercel lưu sẵn 8 tháng neo 11/2009–06/2010.",
       invalid: "Nhập tháng dạng năm-tháng (ví dụ 2010-03).",
       accepted: "Đã nhận, đang chạy nền.",
       progress: (pct: string) => `Tiến độ ${pct}`,

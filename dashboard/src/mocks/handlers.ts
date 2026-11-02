@@ -6,8 +6,7 @@
  *  - `base`: tuyệt đối trong Node ("http://localhost/api/v1"), tương đối trong trình duyệt ("/api/v1");
  *  - `store`: "phiên demo" — thay cho cookie refresh HttpOnly mà MSW không đặt được (sessionStorage trong demo; chỉ là
  *    giá trị GIẢ để mô phỏng, không phải bí mật thật);
- *  - `data`: nguồn dữ liệu dự báo THẬT của tái hiện lịch sử exp_016 (xem demoData.ts) — máy chủ giả chỉ cắt/ghép,
- *    không tự sinh số.
+ *  - `data`: snapshot tái hiện lịch sử và phép chiếu thử nghiệm do động cơ M4-R2 tạo (xem demoData.ts).
  */
 import { HttpResponse, http } from "msw";
 
@@ -370,22 +369,20 @@ export function createHandlers(
           { field: "origin_month", message: "Định dạng YYYY-MM" },
         ]);
       }
-      if (body.mode !== "backtest") {
-        return problem(
-          409,
-          "forecast.model_not_approved",
-          "Chưa có mô hình được duyệt để chạy trực tiếp"
-        );
+      if (body.mode !== "backtest" && body.mode !== "live_experimental") {
+        return problem(400, "common.validation_error", "Chế độ dự báo không hợp lệ");
       }
-      if (body.origin_month > LAST_BACKTEST_ORIGIN) {
+      if (body.mode === "backtest" && body.origin_month > LAST_BACKTEST_ORIGIN) {
         return problem(400, "forecast.origin_out_of_range", "Tháng neo ngoài khoảng cho phép");
       }
-      const target = (await data.index()).runs.find((r) => r.origin_month === body.origin_month);
+      const target = (await data.index()).runs.find(
+        (r) => r.origin_month === body.origin_month && r.run_mode === body.mode
+      );
       if (!target) {
         return problem(400, "common.validation_error", "Bản demo chưa có tháng neo này", [
           {
             field: "origin_month",
-            message: "Bản demo chỉ có sẵn các tháng neo từ 2009-11 đến 2010-06",
+            message: "Bản demo có tháng neo 11/2009–06/2010 và phép chiếu 12/2025",
           },
         ]);
       }

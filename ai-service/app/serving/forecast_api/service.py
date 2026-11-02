@@ -100,15 +100,7 @@ class ForecastService:
                 "forecast.model_not_approved",
                 "Phiên bản mô hình chưa được duyệt để chạy",
             )
-        if mode == "live_experimental":
-            # Chưa có đường dữ liệu đầu vào cho tháng hiện tại (thiếu số đo thật) — không giả vờ chạy được.
-            raise ApiError(
-                409,
-                "forecast.model_not_approved",
-                "Chế độ live_experimental chưa được bật",
-                "chưa có mô hình được duyệt cho dữ liệu sau 2010",
-            )
-        if origin > engine.MAX_BACKTEST_ORIGIN:
+        if mode == "backtest" and origin > engine.MAX_BACKTEST_ORIGIN:
             raise ApiError(
                 400,
                 "forecast.origin_out_of_range",
@@ -117,8 +109,12 @@ class ForecastService:
             )
 
         data_version = self.panels.resolve(dv)
-        try:  # kiểm tháng neo có dữ liệu thật đủ cho mọi tầm NGAY LÚC NHẬN, không đợi job thất bại
-            engine.validate_backtest_origin(self.panels.context(data_version), origin)
+        try:  # kiểm điều kiện đầu vào ngay khi nhận, trước khi tạo job
+            ctx = self.panels.context(data_version)
+            if mode == "backtest":
+                engine.validate_backtest_origin(ctx, origin)
+            else:
+                engine.validate_experimental_origin(ctx, origin)
         except engine.EngineError as exc:
             status = (
                 400

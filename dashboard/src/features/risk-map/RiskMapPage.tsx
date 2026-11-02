@@ -108,6 +108,17 @@ export function RiskMapPage({
 
   const completedRuns = (runs.data?.items ?? []).filter((r) => r.status === "completed");
   const selectedRunId = search.run ?? map?.meta.run_id ?? "";
+  const years = [
+    ...new Set(
+      completedRuns
+        .map((r) => addMonths(r.origin_month, search.h)?.slice(0, 4))
+        .filter((y): y is string => Boolean(y))
+    ),
+  ]
+    .sort()
+    .reverse();
+  const selectedYear =
+    addMonths(map?.meta.origin_month ?? "", search.h)?.slice(0, 4) ?? years[0] ?? "";
   const hovered = hoveredId ? (map?.items.find((i) => i.province_id === hoveredId) ?? null) : null;
 
   const onSort = (key: SortKey) =>
@@ -177,6 +188,26 @@ export function RiskMapPage({
       </header>
 
       <Card className="flex flex-wrap items-end gap-x-6 gap-y-4">
+        <Select
+          className="min-w-[14rem]"
+          label="Năm dự báo"
+          value={selectedYear}
+          onChange={(year) => {
+            const selected = completedRuns.find((r) =>
+              addMonths(r.origin_month, search.h)?.startsWith(year)
+            );
+            if (selected) onSearchChange({ run: selected.run_id });
+          }}
+          options={
+            years.length
+              ? years.map((year) => ({
+                  value: year,
+                  label: `${year} · ${completedRuns.some((r) => r.run_mode === "live_experimental" && addMonths(r.origin_month, search.h)?.startsWith(year)) ? "dự báo thử nghiệm" : "đối chứng lịch sử"}`,
+                }))
+              : [{ value: selectedYear, label: selectedYear || "…" }]
+          }
+          disabled={years.length === 0}
+        />
         <Select
           className="min-w-[17rem]"
           label={vi.map.controls.run}
@@ -262,7 +293,7 @@ export function RiskMapPage({
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-red-500/20 bg-red-500/5">
               <div>
                 <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Ổ dịch Báo động Đỏ
+                  Tỉnh có xác suất rủi ro cao
                 </span>
                 <strong className="text-base font-bold text-red-700 dark:text-red-300 tabular-nums">
                   {threatStats.redCount} tỉnh
@@ -275,9 +306,7 @@ export function RiskMapPage({
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
               <div>
-                <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Khu vực Nguy cơ Cảnh báo
-                </span>
+                <span className="text-[11px] text-[var(--ink-muted)] block">Tỉnh cần chú ý</span>
                 <strong className="text-base font-bold text-amber-800 dark:text-amber-300 tabular-nums">
                   {threatStats.amberCount} tỉnh
                 </strong>
@@ -289,9 +318,7 @@ export function RiskMapPage({
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-blue-500/20 bg-blue-500/5">
               <div>
-                <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Tổng ca dự báo toàn quốc
-                </span>
+                <span className="text-[11px] text-[var(--ink-muted)] block">Tổng số ca dự báo</span>
                 <strong className="text-base font-bold text-blue-700 dark:text-blue-300 tabular-nums">
                   ≈ {formatCount(threatStats.totalCases)} ca
                 </strong>

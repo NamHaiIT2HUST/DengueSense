@@ -86,14 +86,23 @@ class JobRunner:
     def _execute(self, run: RunRecord) -> None:
         try:
             ctx = self._panels.context(run.data_version)
-            result = self._compute(
+            compute = (
+                engine.compute_experimental_run
+                if run.run_mode == "live_experimental"
+                else self._compute
+            )
+            result = compute(
                 ctx, run.origin_month, lambda p: self._store.set_progress(run.run_id, p)
             )
             payload = RunPayload(
                 items=result.items,
                 explanations=result.explanations,
                 legend_cases_per_100k=[dict(c) for c in result.legend_cases_per_100k],
-                as_of=f"{run.origin_month}-01T00:00:00Z",
+                as_of=(
+                    ctx.latest_input_month.strftime("%Y-%m-%dT00:00:00Z")
+                    if run.run_mode == "live_experimental"
+                    else f"{run.origin_month}-01T00:00:00Z"
+                ),
             )
             now = self._clock()
             event = events.run_completed(

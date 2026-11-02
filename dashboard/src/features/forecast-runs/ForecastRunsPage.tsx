@@ -14,6 +14,7 @@ import { Button } from "@/shared/ui/Button";
 import { Card } from "@/shared/ui/Card";
 import { ErrorState } from "@/shared/ui/ErrorState";
 import { Skeleton } from "@/shared/ui/Skeleton";
+import { Select } from "@/shared/ui/Select";
 import { TextField } from "@/shared/ui/TextField";
 
 const schema = z.object({
@@ -106,12 +107,14 @@ function RunsTable({ runs }: { runs: readonly ForecastRun[] }) {
 
 function CreateRun() {
   const create = useCreateForecastRun();
+  const [targetYear, setTargetYear] = useState("2010");
   const [jobId, setJobId] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -122,7 +125,10 @@ function CreateRun() {
     setServerError(null);
     setJobId(null);
     try {
-      const job = await create.mutateAsync({ mode: "backtest", origin_month });
+      const job = await create.mutateAsync({
+        mode: targetYear === "2026" ? "live_experimental" : "backtest",
+        origin_month,
+      });
       setJobId(job.job_id);
     } catch (err) {
       // Lỗi theo trường của server → gắn vào ô nhập; còn lại là lỗi chung của form.
@@ -137,18 +143,38 @@ function CreateRun() {
 
   return (
     <div className="mt-3 space-y-4">
-      <p className="text-sm text-[var(--ink-secondary)]">{vi.runs.create.lead}</p>
+      <p className="text-sm text-[var(--ink-secondary)]">
+        {targetYear === "2026" ? vi.runs.create.experimentalLead : vi.runs.create.lead}
+      </p>
       <form
         onSubmit={onSubmit}
         noValidate
         className="flex flex-wrap items-start gap-3"
         aria-label={vi.runs.create.title}
       >
+        <Select
+          className="w-40"
+          label={vi.runs.create.targetYear}
+          value={targetYear}
+          onChange={(year) => {
+            setTargetYear(year);
+            setServerError(null);
+            setJobId(null);
+            setValue("origin_month", year === "2026" ? "2025-12" : "2010-03", {
+              shouldValidate: true,
+            });
+          }}
+          options={[
+            { value: "2010", label: "2010 · đối chứng" },
+            { value: "2026", label: "2026 · thử nghiệm" },
+          ]}
+        />
         <div className="w-48">
           <TextField
             label={vi.runs.create.origin}
             inputMode="numeric"
-            placeholder="2010-03"
+            placeholder={targetYear === "2026" ? "2025-12" : "2010-03"}
+            readOnly={targetYear === "2026"}
             autoComplete="off"
             error={errors.origin_month?.message}
             {...register("origin_month")}
@@ -159,7 +185,9 @@ function CreateRun() {
         </Button>
       </form>
       {serverError ? <Alert tone="error">{serverError}</Alert> : null}
-      <p className="text-xs text-[var(--ink-muted)]">{vi.runs.create.demoNote}</p>
+      <p className="text-xs text-[var(--ink-muted)]">
+        {targetYear === "2026" ? vi.runs.create.experimentalNote : vi.runs.create.demoNote}
+      </p>
       {jobId ? <JobStatus jobId={jobId} /> : null}
     </div>
   );

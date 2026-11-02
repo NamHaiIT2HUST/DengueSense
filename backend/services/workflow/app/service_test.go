@@ -81,6 +81,16 @@ func TestWorkflowService_HandleForecastRunCompleted_Success(t *testing.T) {
 	assert.Equal(t, repo.createdAlerts[1].ID, repo.createdAlerts[3].ID)
 }
 
+func TestWorkflowService_ExperimentalRunDoesNotCreateOperationalAlerts(t *testing.T) {
+	repo := &mockAlertRepo{}
+	svc := app.NewWorkflowService(repo, &mockForecastClient{provinces: []string{"ha_noi"}})
+	runID := uuid.New()
+	data, err := json.Marshal(map[string]any{"run_id": runID, "run_mode": "live_experimental"})
+	require.NoError(t, err)
+	require.NoError(t, svc.HandleForecastRunCompleted(context.Background(), eventx.Envelope{Data: data}))
+	assert.Empty(t, repo.createdAlerts)
+}
+
 func TestWorkflowService_RejectsMissingRunID(t *testing.T) {
 	repo := &mockAlertRepo{}
 	svc := app.NewWorkflowService(repo, &mockForecastClient{})

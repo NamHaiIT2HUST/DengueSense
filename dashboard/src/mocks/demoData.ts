@@ -1,6 +1,6 @@
 /**
- * Nguồn dữ liệu của máy chủ giả. Dữ liệu demo là KẾT QUẢ THẬT của tái hiện lịch sử exp_016 (mùa 2010, 8 tháng neo)
- * do `ai-service/app/serving/forecast_api/replay.py` sinh ra (`public/demo/*.json`) — không bịa số nào.
+ * Nguồn demo: các lượt lịch sử lấy từ exp_016; lượt 2026 do M4-R2 tính với đầu vào
+ * 2025 điền khuyết theo mùa vụ. File snapshot giữ nguyên provenance/flags.
  *
  * Trong trình duyệt: tải từng file khi cần (chỉ file của lượt đang xem, ~165 KB), không nằm trong bundle JS.
  * Trong test (Node): xem `nodeDemoData.ts`.
