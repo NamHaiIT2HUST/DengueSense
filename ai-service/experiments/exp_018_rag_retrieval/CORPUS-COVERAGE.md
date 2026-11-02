@@ -1,4 +1,4 @@
-# Độ phủ nguồn được chọn — chưa khóa corpus
+# Độ phủ nguồn được chọn — corpus kỹ thuật v0.1
 
 Đối chiếu manifest với `reviewed-units.partial.json` (43 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
 
@@ -22,4 +22,4 @@
 | hcdc-sxh-snapshot-2025 / muc-12 | `/muc-12` | Đã kiểm văn bản hai nhiệm vụ (PDF 20, trang in 18) |
 | hcdc-sxh-snapshot-2025 / muc-13 | `/muc-13` | Đã kiểm văn bản và điều kiện tuân theo đội phun (PDF 20, trang in 18) |
 
-Cần kiểm các mục còn thiếu, bổ sung từng unit ID vào đúng section và cập nhật bảng cùng snapshot; chỉ khóa corpus sau khi xác nhận độ phủ và provenance. Các câu hỏi hiện tại vẫn là draft.
+Corpus kỹ thuật v0.1 đã khóa 43 units sau khi kiểm 17 section có unit, tất cả IDs trong manifest và file units khớp, và snapshot ngoài máy được kiểm hash. Danh sách IDs, hash và trạng thái ở `corpus-lock-v0.1.json`; `professional_review` vẫn là `pending`. Các câu hỏi hiện tại vẫn là draft, chưa có nhãn được khóa.
