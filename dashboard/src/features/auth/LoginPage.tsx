@@ -158,9 +158,8 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                 </span>
               </h2>
               <p className="text-sm xl:text-base text-slate-300 leading-relaxed">
-                Nền tảng hỗ trợ ra quyết định lâm sàng và điều hành y tế công cộng đầu tiên tại Việt
-                Nam tích hợp dữ liệu viễn thám khí tượng ECMWF ERA5 cùng mô hình học máy tổ hợp
-                Spatio-Temporal M4-R2.
+                Bản demo hỗ trợ giám sát sốt xuất huyết cấp tỉnh từ dữ liệu lịch sử và khí hậu ERA5.
+                Kết quả dự báo, phân bổ và dự thảo cần được người có thẩm quyền thẩm định.
               </p>
             </div>
 
@@ -186,7 +185,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
                 <div className="font-mono text-lg font-bold text-emerald-400">NĐ 30/2020</div>
                 <div className="text-xs font-semibold text-white mt-1">Chuẩn Thể Thức</div>
                 <div className="text-[11px] text-slate-400 mt-1 leading-snug">
-                  Tự động xuất công điện khẩn chỉ đạo dập dịch tức thì.
+                  Hỗ trợ soạn dự thảo mô phỏng, chờ lãnh đạo phê duyệt.
                 </div>
               </div>
             </div>
@@ -196,7 +195,7 @@ export function LoginPage({ redirect }: { redirect?: string | undefined }) {
           <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 border-t border-slate-800/70 pt-4">
             <div className="flex items-center gap-1.5">
               <ShieldCheck size={14} className="text-cyan-400" />
-              <span>Chứng thực EdDSA Fail-Closed · Chuẩn Bộ Y Tế</span>
+              <span>Bản demo cuộc thi · Không dùng để ban hành văn bản thật</span>
             </div>
             <span>Bản quyền © 2026 MedSentinel</span>
           </div>

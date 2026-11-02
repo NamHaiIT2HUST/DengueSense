@@ -95,6 +95,9 @@ describe("AlertsPage (S6 Cảnh báo rủi ro)", () => {
       expect(screen.queryByText("Đồng Nai")).not.toBeInTheDocument(); // Đồng Nai đã đóng
       expect(screen.getByText("Hồ Chí Minh")).toBeInTheDocument();
       expect(screen.getByText("An Giang")).toBeInTheDocument();
+      expect(
+        screen.getByRole("status", { name: "Hiển thị 3 trên 4 cảnh báo" })
+      ).toBeInTheDocument();
     });
 
     // Bấm lọc "Đã đóng"

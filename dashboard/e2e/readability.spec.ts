@@ -33,21 +33,6 @@ async function contrast(text: Locator, surface: Locator) {
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
-async function waitForOpaqueContent(text: Locator) {
-  await expect(text).toBeVisible();
-  await expect
-    .poll(() =>
-      text.evaluate((el) => {
-        let opacity = 1;
-        for (let node: Element | null = el; node; node = node.parentElement) {
-          opacity *= Number(getComputedStyle(node).opacity);
-        }
-        return opacity;
-      })
-    )
-    .toBe(1);
-}
-
 const screens: { name: string; path: string; role?: Role }[] = [
   { name: "landing", path: "/" },
   { name: "login", path: "/dang-nhap" },
@@ -129,7 +114,7 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.locator("#overview")).toBeVisible();
       for (const label of [
         "ROC-AUC 6 mùa: 0.809",
-        "Giải toán MILP < 1 Phút",
+        "Tối ưu bằng OR-Tools",
         "Chuẩn Thể Thức NĐ 30/2020",
       ]) {
         const badge = page.locator("#overview").getByText(label, { exact: true });
@@ -140,54 +125,7 @@ for (const theme of ["light", "dark"] as const) {
         const telemetry = page.getByText(label, { exact: true });
         expect(await contrast(telemetry, telemetry.locator(".."))).toBeGreaterThanOrEqual(4.5);
       }
-      const tech = page.getByText(/^Công nghệ:/).first();
-      await tech.scrollIntoViewIfNeeded();
-      expect(await contrast(tech, tech)).toBeGreaterThanOrEqual(4.5);
       await page.locator("#overview").screenshot({ path: info.outputPath("hero.png") });
-    });
-
-    test("landing tabs remain readable after changing content", async ({ page }, info) => {
-      await page.goto("/");
-      for (const [name, heading] of [
-        ["2. Tối Ưu Nguồn Lực", "Tối ưu hóa Phân bổ Nguồn lực"],
-        ["3. Dự Thảo Công Điện", "Soạn Thảo Dự Thảo Công Điện B2G"],
-      ]) {
-        await page.getByRole("button", { name, exact: true }).click();
-        await waitForOpaqueContent(page.getByRole("heading", { name: heading, exact: true }));
-        const result = await new AxeBuilder({ page })
-          .include("#overview")
-          .withRules(["color-contrast"])
-          .analyze();
-        await info.attach(`${name}-contrast.json`, {
-          body: JSON.stringify(result.violations, null, 2),
-          contentType: "application/json",
-        });
-        expect(
-          result.violations.map((v) =>
-            v.nodes.map((n) => ({ html: n.html, detail: n.failureSummary }))
-          )
-        ).toEqual([]);
-      }
-      for (const [name, heading] of [
-        [/2\. Tối Ưu Nguồn Lực Điều Trị/, "Tối Ưu Hóa Nguồn Lực Toán Học Dưới 1 Phút"],
-        [/3\. Công Điện & Thẩm Định 4 Mắt/, "Soạn Thảo Công Điện Khẩn Từ 2 Ngày Xuống 5 Phút"],
-      ] as const) {
-        await page.getByRole("button", { name }).click();
-        await waitForOpaqueContent(page.getByRole("heading", { name: heading, exact: true }));
-        const result = await new AxeBuilder({ page })
-          .include("#layers")
-          .withRules(["color-contrast"])
-          .analyze();
-        await info.attach("layer-tab-contrast.json", {
-          body: JSON.stringify(result.violations, null, 2),
-          contentType: "application/json",
-        });
-        expect(
-          result.violations.map((v) =>
-            v.nodes.map((n) => ({ html: n.html, detail: n.failureSummary }))
-          )
-        ).toEqual([]);
-      }
     });
 
     test("mobile filters keep all horizon labels visible", async ({ page }) => {

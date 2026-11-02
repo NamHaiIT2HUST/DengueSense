@@ -384,7 +384,7 @@ export function CaseDetailPage() {
                   title="Phân tích độ nhạy ngân sách và so sánh đối chứng đa phương án A/B (+20% / -20%)"
                 >
                   <SlidersHorizontal size={14} className="text-indigo-500" />
-                  Độ nhạy & So sánh A/B
+                  Mô phỏng độ nhạy A/B
                 </Button>
                 <Button
                   variant="secondary"

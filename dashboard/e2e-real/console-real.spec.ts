@@ -7,6 +7,8 @@ import { expect, test, type Page } from "@playwright/test";
  */
 const analystPassword = process.env.E2E_ANALYST_PASSWORD;
 const viewerPassword = process.env.E2E_VIEWER_PASSWORD;
+const officerPassword = process.env.E2E_OFFICER_PASSWORD;
+const approverPassword = process.env.E2E_APPROVER_PASSWORD;
 
 test.skip(!analystPassword || !viewerPassword, "cần E2E_ANALYST_PASSWORD và E2E_VIEWER_PASSWORD");
 
@@ -101,4 +103,26 @@ test("viewer không thấy form tạo lượt", async ({ page }) => {
   await expect(mapHeading(page)).toBeVisible(); // đợi đăng nhập xong — goto ngay sẽ HUỶ request đăng nhập đang bay
   await page.goto("/app/luot-du-bao");
   await expect(page.getByText(/Chỉ vai trò phân tích trở lên/)).toBeVisible();
+});
+
+test("officer và approver mở màn hình cảnh báo, hồ sơ từ backend thật", async ({ page }) => {
+  test.skip(!officerPassword || !approverPassword, "cần mật khẩu officer và approver local");
+
+  for (const [username, password] of [
+    ["local-officer", officerPassword],
+    ["local-approver", approverPassword],
+  ] as const) {
+    await login(page, username, password ?? "");
+    await expect(mapHeading(page)).toBeVisible();
+    await page.getByRole("link", { name: "Cảnh báo" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Hộp cảnh báo rủi ro" })
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Hồ sơ xử lý" }).click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Hồ sơ xử lý phòng dịch" })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Đăng xuất" }).click();
+    await expect(page).toHaveURL(/\/dang-nhap$/);
+  }
 });

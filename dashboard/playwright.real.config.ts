@@ -2,8 +2,9 @@ import { defineConfig, devices } from "@playwright/test";
 
 /**
  * E2E trên BACKEND THẬT (gateway + identity + surveillance + forecast trong docker compose), không có MSW.
- * Chạy:  docker compose up (xem infra/README.md) → đặt E2E_ANALYST_PASSWORD, E2E_VIEWER_PASSWORD (tài khoản dev-analyst /
- * dev-viewer, mật khẩu trong infra/.env.devtool) → `npm run test:e2e:real`. Thiếu biến thì các test bị bỏ qua.
+ * Chạy: docker compose up (xem infra/README.md) → đặt E2E_ANALYST_PASSWORD, E2E_VIEWER_PASSWORD,
+ * E2E_OFFICER_PASSWORD, E2E_APPROVER_PASSWORD từ infra/.env.devtool → `npm run test:e2e:real`.
+ * Thiếu biến thì bài kiểm thử tương ứng được bỏ qua.
  * Dev server chạy `--mode console` và proxy /api tới gateway (DEV_API_PROXY, mặc định http://127.0.0.1:8080).
  */
 const PORT = 5174;

@@ -222,7 +222,7 @@ export function ProvinceDetailPage({
               onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
             >
               <Scale size={13} />
-              <span>Độ nhạy & So sánh A/B</span>
+              <span>Mô phỏng độ nhạy A/B</span>
             </Button>
             <Link
               to={relatedScenario.targetRoute}

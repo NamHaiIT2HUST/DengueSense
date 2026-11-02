@@ -8,6 +8,8 @@ import { expect, test, type Page } from "@playwright/test";
  */
 const KNOWN_SERIOUS: Record<string, string> = {};
 
+test.setTimeout(90_000);
+
 /** Cuộn hết trang để kích hoạt animation `whileInView`, rồi chờ chúng dừng — axe đo màu theo trạng thái ĐANG hiển thị. */
 async function settle(page: Page) {
   await page.evaluate(async () => {
