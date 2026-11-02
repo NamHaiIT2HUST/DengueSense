@@ -169,9 +169,9 @@ def test_public_routes_match_the_contract():
 )
 def test_every_contract_operation_is_fail_closed(env, method, path):
     url = _concrete(path)
-    assert env.client.request(method, url).status_code == 401, (
-        "thiếu token → 401 (trước cả kiểm tham số)"
-    )
+    assert (
+        env.client.request(method, url).status_code == 401
+    ), "thiếu token → 401 (trước cả kiểm tham số)"
     user_token = env.signer.service_token(
         "forecast", typ=None
     )  # giống token người dùng: không có typ=service
@@ -401,9 +401,9 @@ def test_idempotency_and_deduplication(env):
     )
     other_key = env.create("2010-03", key="0192f3a1-0000-7000-8000-000000000009").json()
     assert other_key["job_id"] != a["job_id"]
-    assert len(env.store.list_runs(None, None, 10, None)[0]) == 1, (
-        "cùng đầu vào KHÔNG tạo lượt thứ hai (mô hình tất định)"
-    )
+    assert (
+        len(env.store.list_runs(None, None, 10, None)[0]) == 1
+    ), "cùng đầu vào KHÔNG tạo lượt thứ hai (mô hình tất định)"
     assert env.runner.run_one() and not env.runner.run_one()
     assert (
         env.call("GET", f"/internal/v1/jobs/{other_key['job_id']}").json()["status"]
@@ -463,9 +463,9 @@ def test_create_run_authorization_and_validation(env):
         content=b"{khong json",
     )
     assert raw.status_code == 400
-    assert e2.store.list_runs(None, None, 10, None)[0] == [], (
-        "đầu vào sai không để lại lượt nào"
-    )
+    assert (
+        e2.store.list_runs(None, None, 10, None)[0] == []
+    ), "đầu vào sai không để lại lượt nào"
 
 
 def test_create_run_domain_errors(env):

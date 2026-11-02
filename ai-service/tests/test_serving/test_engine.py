@@ -135,9 +135,9 @@ def test_engine_reproduces_exp_016_at_gate_origin_2010_03():
                 w["incidence_pred_per_100k"], rel=1e-6
             ), key
             assert g["exceed_prob"] == pytest.approx(w["exceed_prob"], abs=1e-6), key
-            assert g["threshold_p75"] == pytest.approx(w["threshold_p75"], rel=1e-6), (
-                key
-            )
+            assert g["threshold_p75"] == pytest.approx(
+                w["threshold_p75"], rel=1e-6
+            ), key
             assert g["cases_pred"] == pytest.approx(w["cases_pred"], rel=1e-6), key
             assert g["flags"] == w["flags"], key
     else:
