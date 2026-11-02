@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import { Folder, FolderPlus, ArrowRight, Target } from "lucide-react";
+import { Folder, FolderPlus, ArrowRight } from "lucide-react";
 
 import { useCases, useCreateCase, type Case } from "@/entities/draft";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
@@ -28,9 +28,11 @@ export function CaseListPage() {
   const [newTitle, setNewTitle] = useState("");
 
   const casesQuery = useCases(statusFilter === "all" ? {} : { status: statusFilter });
+  const allCasesQuery = useCases();
   const createCaseMutation = useCreateCase();
 
   const cases: readonly Case[] = casesQuery.data ?? [];
+  const allCases: readonly Case[] = allCasesQuery.data ?? [];
 
   async function handleCreateCase() {
     if (!newTitle.trim()) return;
@@ -53,26 +55,19 @@ export function CaseListPage() {
     { value: "archived", label: vi.cases.statuses["archived"] ?? "Lưu trữ" },
   ];
 
-  const openCasesCount = cases.filter((c) => c.status === "open").length;
-  const completedCasesCount = cases.filter((c) => c.status === "completed").length;
-  const archivedCasesCount = cases.filter((c) => c.status === "archived").length;
+  const openCasesCount = allCases.filter((c) => c.status === "open").length;
+  const completedCasesCount = allCases.filter((c) => c.status === "completed").length;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-semibold text-white">{vi.cases.title}</h1>
+          <h1 className="font-display text-3xl font-semibold text-[var(--ink-primary)]">
+            {vi.cases.title}
+          </h1>
           <p className="mt-2 max-w-3xl text-sm text-[var(--ink-secondary)]">{vi.cases.lead}</p>
         </div>
         <div className="flex items-center gap-2.5">
-          <Button
-            variant="secondary"
-            className="gap-2 border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
-          >
-            <Target size={16} className="text-red-500" />
-            Kịch bản Diễn tập
-          </Button>
           {canCreate ? (
             <Button
               variant="primary"
@@ -89,49 +84,6 @@ export function CaseListPage() {
         </div>
       </div>
 
-      {/* KPI Stats */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-            <Folder className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <span className="text-xs text-[var(--ink-secondary)]">Tổng số hồ sơ</span>
-            <p className="text-xl font-bold text-white tabular-nums">{cases.length}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-            <FolderPlus className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <span className="text-xs text-[var(--ink-secondary)]">Đang mở (Đang xử lý)</span>
-            <p className="text-xl font-bold text-amber-400 tabular-nums">{openCasesCount}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-            <Folder className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <span className="text-xs text-[var(--ink-secondary)]">Đã hoàn tất</span>
-            <p className="text-xl font-bold text-emerald-400 tabular-nums">{completedCasesCount}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-2xl p-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-500/10 border border-zinc-500/20 text-zinc-400">
-            <Folder className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <span className="text-xs text-[var(--ink-secondary)]">Lưu trữ</span>
-            <p className="text-xl font-bold text-zinc-400 tabular-nums">{archivedCasesCount}</p>
-          </div>
-        </div>
-      </div>
-
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Segmented<StatusFilter>
@@ -140,8 +92,17 @@ export function CaseListPage() {
             onChange={setStatusFilter}
             options={statusOptions}
           />
-          <div className="text-sm text-[var(--ink-secondary)]">
-            Tổng số: <strong className="text-[var(--ink-primary)]">{cases.length}</strong> hồ sơ
+          <div
+            className="text-xs text-[var(--ink-secondary)]"
+            role="status"
+            aria-live="polite"
+            aria-label={`Hiển thị ${cases.length} trên ${allCases.length} hồ sơ`}
+          >
+            Hiển thị <strong className="text-[var(--ink-primary)]">{cases.length}</strong>/
+            <strong className="text-[var(--ink-primary)]">
+              {allCasesQuery.isPending ? "…" : allCases.length}
+            </strong>{" "}
+            hồ sơ · {openCasesCount} đang mở · {completedCasesCount} hoàn tất
           </div>
         </div>
       </Card>
@@ -159,8 +120,16 @@ export function CaseListPage() {
             size={36}
             aria-hidden="true"
           />
-          <p className="text-base font-semibold text-[var(--ink-primary)]">{vi.cases.empty}</p>
-          {canCreate ? (
+          <p className="text-base font-semibold text-[var(--ink-primary)]">
+            {statusFilter === "all" ? vi.cases.empty : "Không có hồ sơ ở trạng thái này."}
+          </p>
+          {statusFilter !== "all" ? (
+            <div className="mt-4">
+              <Button variant="secondary" onClick={() => setStatusFilter("all")}>
+                Xem tất cả hồ sơ
+              </Button>
+            </div>
+          ) : canCreate ? (
             <div className="mt-4">
               <Button variant="secondary" onClick={() => setIsCreating(true)}>
                 {vi.cases.createBtn}

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { Download, Pause, Play, RotateCcw, Scale, Target } from "lucide-react";
+import { Download, Pause, Play, RotateCcw, Scale } from "lucide-react";
 
 import { useForecastRuns, useGeometry, useRiskMap } from "@/entities/forecast";
 import type { Horizon, Region, RiskMap } from "@/shared/api";
@@ -167,19 +167,11 @@ export function RiskMapPage({
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
-            className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-500/10"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
-          >
-            <Target size={14} className="text-red-600 dark:text-red-400" />
-            Diễn tập Mẫu
-          </Button>
-          <Button
-            variant="secondary"
             className="gap-1.5 text-xs py-1.5 border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/10"
             onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
           >
             <Scale size={14} className="text-indigo-600 dark:text-indigo-400" />
-            Độ nhạy & So sánh A/B
+            Mô phỏng độ nhạy A/B
           </Button>
         </div>
       </header>
@@ -367,7 +359,7 @@ export function RiskMapPage({
           <section aria-labelledby="risk-table-title" className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 id="risk-table-title" className="text-lg font-semibold">
-                {vi.map.tableTitle}
+                {vi.map.tableTitle}{" "}
                 <span className="ml-2 text-sm font-normal text-[var(--ink-secondary)]">
                   {formatHorizon(map.meta.origin_month, map.horizon)}
                 </span>

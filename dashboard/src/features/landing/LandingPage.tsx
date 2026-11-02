@@ -3,13 +3,8 @@ import { Loader2 } from "lucide-react";
 
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
-import { StatTiles } from "./components/StatTiles";
 import { ProductSection } from "./components/ProductSection";
-import { ProblemSolutionFramework } from "./components/ProblemSolutionFramework";
-import { OutbreakTimeline } from "./components/OutbreakTimeline";
 import { ProvinceRanking } from "./components/ProvinceRanking";
-import { InteractiveLayers } from "./components/InteractiveLayers";
-import { ComparisonSection } from "./components/ComparisonSection";
 import { FaqSection } from "./components/FaqSection";
 import { RoadmapStrip } from "./components/RoadmapStrip";
 import { SectionHeader } from "./components/SectionHeader";
@@ -63,23 +58,13 @@ export function LandingPage() {
         <Hero />
 
         <main className="mx-auto max-w-7xl space-y-20 sm:space-y-28 px-4 sm:px-6 pb-28 w-full overflow-x-clip">
-          <section>
-            <StatTiles provinces={data.provinces} />
-          </section>
-
           <ProductSection />
-
-          <ProblemSolutionFramework />
-
-          <OutbreakTimeline />
-
-          <InteractiveLayers />
 
           <section id="map">
             <SectionHeader
               eyebrow="Giám sát dịch tễ không gian"
               title="Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành"
-              desc="Hệ thống tự động theo dõi, xếp hạng nguy cơ dịch bệnh và hỗ trợ cảnh báo sớm các điểm nóng truyền nhiễm trên toàn quốc."
+              desc="Bản đồ minh họa rủi ro trên 34 tỉnh/thành từ dữ liệu lịch sử và kịch bản demo; không phải giám sát dịch thời gian thực."
             />
             <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
               <Suspense fallback={<MapFallback />}>
@@ -88,8 +73,6 @@ export function LandingPage() {
               <ProvinceRanking provinces={data.provinces} />
             </div>
           </section>
-
-          <ComparisonSection />
 
           <section id="roadmap">
             <SectionHeader

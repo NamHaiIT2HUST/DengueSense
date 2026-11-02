@@ -123,6 +123,24 @@ describe("CaseListPage (S7 Danh sách hồ sơ)", () => {
     ).toBeInTheDocument();
   });
 
+  it("giữ tổng số hồ sơ chính xác khi lọc trạng thái", async () => {
+    const user = userEvent.setup();
+    renderCaseList();
+
+    await screen.findByText(
+      "Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)"
+    );
+    await user.click(screen.getByRole("radio", { name: "Hoàn tất" }));
+
+    expect(
+      await screen.findByRole("status", { name: "Hiển thị 0 trên 2 hồ sơ" })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Không có hồ sơ ở trạng thái này.")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Kế hoạch ứng phó dịch Sốt xuất huyết khu vực miền Nam (Tháng 06/2010)")
+    ).not.toBeInTheDocument();
+  });
+
   it("cho phép tạo hồ sơ mới qua modal", async () => {
     const user = userEvent.setup();
     renderCaseList();

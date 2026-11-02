@@ -46,6 +46,27 @@ describe("CommandPaletteModal", () => {
     expect(screen.getByText(/Bản đồ phân vùng dịch tễ 34 tỉnh/i)).toBeInTheDocument();
   });
 
+  it("ẩn kịch bản và điều hướng không đủ quyền trong console thật", () => {
+    renderWithClient(
+      <CommandPaletteModal
+        open={true}
+        demoMode={false}
+        role="viewer"
+        onClose={vi.fn()}
+        onOpenScenarios={vi.fn()}
+        onOpenTour={vi.fn()}
+        onNavigate={vi.fn()}
+        onSwitchRole={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText(/Bản đồ phân vùng dịch tễ 34 tỉnh/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Diễn tập Tình huống Mẫu/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chuyển vai trò:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Danh sách hồ sơ can thiệp/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Lượt chạy dự báo/i)).not.toBeInTheDocument();
+  });
+
   it("filters actions by query input", () => {
     renderWithClient(
       <CommandPaletteModal

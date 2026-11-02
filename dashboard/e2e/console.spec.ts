@@ -92,6 +92,15 @@ test.describe("console (bản build, chế độ demo)", () => {
     await expect(page).toHaveURL(/\/dang-nhap\?redirect=/);
   });
 
+  test("điện thoại: điều hướng và nội dung không tràn ngang màn hình", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/dang-nhap");
+    await login(page);
+    await expect(mapHeading(page)).toBeVisible();
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth).toBeLessThanOrEqual(390);
+  });
+
   test("điều hướng bàn phím: liên kết bỏ qua điều hướng là phần tử đầu tiên được focus", async ({
     page,
   }) => {

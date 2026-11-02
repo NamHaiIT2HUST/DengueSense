@@ -15,16 +15,10 @@ test.describe("trang giới thiệu (bản build)", () => {
     );
 
     await expect(
-      page.getByRole("heading", {
-        name: "Giải Pháp 3 Bước Toàn Diện Cho Y Tế Dự Phòng",
-        exact: true,
-      })
-    ).toBeVisible();
-    await expect(
       page.getByRole("heading", { name: "Bản Đồ Phân Vùng Rủi Ro 34 Tỉnh Thành", exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Tại sao chọn DengueSense?", exact: true })
+      page.getByRole("heading", { name: "Giới Thiệu Nền Tảng DengueSense", exact: true })
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Giải đáp thắc mắc thường gặp", exact: true })
@@ -54,6 +48,14 @@ test.describe("trang giới thiệu (bản build)", () => {
   }) => {
     await page.goto("/");
     await expect(page.getByText("Ước lượng").first()).toBeVisible();
+  });
+
+  test("điện thoại: nội dung giới thiệu không tràn ngang màn hình", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth).toBeLessThanOrEqual(390);
   });
 });
 

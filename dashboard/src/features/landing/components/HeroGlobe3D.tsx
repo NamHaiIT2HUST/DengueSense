@@ -218,7 +218,7 @@ export function HeroGlobe3D() {
         >
           <Cpu size={12} className="text-emerald-400" />
           <span className="font-mono text-[9px] font-bold text-emerald-300 uppercase">
-            MILP &lt; 60s
+            OR-Tools MILP
           </span>
         </div>
 

@@ -360,20 +360,9 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
                   <span className="font-display text-base sm:text-lg font-bold tracking-tight text-[var(--ink-primary)] leading-none">
                     Dengue<span className="text-red-500">Sense</span>
                   </span>
-                  <span className="hidden sm:inline-block rounded-full border border-blue-200 bg-blue-50/80 px-2 py-0.5 text-[10px] font-semibold text-blue-700 dark:border-cyan-500/30 dark:bg-cyan-500/10 dark:text-cyan-300">
-                    Console v1.0
-                  </span>
                 </div>
-                <span className="text-[11px] text-slate-500 dark:text-[var(--ink-muted)] mt-0.5 hidden md:block">
-                  Quyết định dịch tễ thông minh
-                </span>
               </div>
             </Link>
-
-            <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400 lg:flex">
-              <Activity size={13} className="text-emerald-600 dark:text-emerald-400" />
-              <span>Console dữ liệu giám sát lịch sử</span>
-            </div>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2.5 text-sm shrink-0">
@@ -386,21 +375,20 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
             >
               <Search size={14} className="text-slate-400 shrink-0" />
               <span className="hidden md:inline">Tìm kiếm (Ctrl+K)...</span>
-              <kbd className="hidden lg:inline-flex items-center gap-0.5 rounded border border-slate-300/80 bg-white px-1.5 py-0.2 text-[10px] font-mono text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
-                ⌘K
-              </kbd>
             </button>
 
             {/* Quick Audit Trail & Compliance Button */}
-            <button
-              type="button"
-              onClick={() => setShowAuditModal(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/60 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20 transition-all cursor-pointer shadow-2xs mr-0.5"
-              title="Nhật ký minh họa; không phải log kiểm toán backend"
-            >
-              <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
-              <span className="hidden xl:inline">Nhật ký minh họa</span>
-            </button>
+            {env.VITE_APP_MODE === "demo" ? (
+              <button
+                type="button"
+                onClick={() => setShowAuditModal(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-indigo-200/80 bg-indigo-50/60 px-2.5 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20 transition-all cursor-pointer shadow-2xs mr-0.5"
+                title="Nhật ký minh họa; không phải log kiểm toán backend"
+              >
+                <ShieldCheck size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="hidden xl:inline">Nhật ký minh họa</span>
+              </button>
+            ) : null}
 
             <NotificationCenter />
 
@@ -450,43 +438,21 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
       {/* Dynamic Role Mission & 1-Click Fast Role Switcher Ribbon (Demo Mode) */}
       {env.VITE_APP_MODE === "demo" && (
-        <div className="w-full px-3 sm:px-6 lg:px-8 pt-4 print:hidden">
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white/95 p-3.5 sm:p-4 backdrop-blur-xl shadow-xs dark:border-slate-800 dark:bg-slate-900/80 dark:shadow-lg">
+        <div className="w-full px-3 sm:px-6 lg:px-8 pt-3 print:hidden">
+          <div className="relative overflow-hidden rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2 backdrop-blur-xl shadow-xs dark:border-slate-800 dark:bg-slate-900/80">
             {/* Top glowing accent bar */}
             <div
               className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent ${roleMeta.glowBar} to-transparent`}
             />
 
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-              {/* Current Role Identity & Mission */}
-              <div className="flex items-start sm:items-center gap-3">
-                <div
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${roleMeta.color}`}
-                >
-                  <RoleIcon size={18} />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Tài khoản: {user?.display_name || user?.username}
-                    </span>
-                    <span
-                      className={`rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${roleMeta.color}`}
-                    >
-                      {roleMeta.name}
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
-                    {roleMeta.guidance}
-                  </span>
-                </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--ink-secondary)] shrink-0">
+                <RoleIcon size={14} aria-hidden="true" />
+                <span>Chuyển vai trò (demo):</span>
               </div>
 
               {/* 1-Click Fast Role Switcher */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0 border-t border-slate-200 lg:border-t-0 dark:border-slate-800/80 shrink-0">
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mr-1 hidden sm:inline">
-                  Chuyển nhanh vai trò:
-                </span>
+              <div className="flex flex-wrap items-center gap-1.5">
                 {DEMO_ACCOUNTS.map((a) => {
                   const isCurrent = user?.username === a.username;
                   const meta = ACCOUNT_SHORT_META[a.username] ?? {
@@ -665,11 +631,6 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
               />
               <span>{vi.nav.home}</span>
             </Link>
-
-            <div className="hidden lg:flex items-center justify-between px-3.5 py-2.5 text-xs text-slate-500 dark:text-[var(--ink-muted)] mt-1 pt-2.5 border-t border-slate-200/80 dark:border-slate-800/80">
-              <span className="font-medium">Chế độ sáng/tối</span>
-              <ThemeToggle />
-            </div>
           </nav>
         </aside>
 
@@ -697,6 +658,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
       <CommandPaletteModal
         open={showCommandPalette}
+        demoMode={env.VITE_APP_MODE === "demo"}
+        role={primaryRole}
         onClose={() => setShowCommandPalette(false)}
         onOpenScenarios={() => setShowScenarioModal(true)}
         onOpenTour={() => setShowTourModal(true)}

@@ -111,11 +111,13 @@ Get-Content infra/.env.devtool | ForEach-Object {
 }
 $env:E2E_ANALYST_PASSWORD = $saved['DEV_ANALYST_PASSWORD']
 $env:E2E_VIEWER_PASSWORD = $saved['DEV_VIEWER_PASSWORD']
+$env:E2E_OFFICER_PASSWORD = $saved['DEMO_OFFICER_PASSWORD']
+$env:E2E_APPROVER_PASSWORD = $saved['DEMO_APPROVER_PASSWORD']
 $env:DEV_API_PROXY = 'http://127.0.0.1:18080' # thay bằng GATEWAY_HOST_PORT trong infra/.env
 cd dashboard
 npm run test:e2e:real
 cd ..
-Remove-Item Env:E2E_ANALYST_PASSWORD, Env:E2E_VIEWER_PASSWORD, Env:DEV_API_PROXY
+Remove-Item Env:E2E_ANALYST_PASSWORD, Env:E2E_VIEWER_PASSWORD, Env:E2E_OFFICER_PASSWORD, Env:E2E_APPROVER_PASSWORD, Env:DEV_API_PROXY
 ```
 
 ## Cấu trúc dự án
