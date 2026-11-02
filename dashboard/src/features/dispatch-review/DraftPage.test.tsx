@@ -70,7 +70,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
 
     expect(
       await screen.findByText(
-        "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+        "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
       )
     ).toBeInTheDocument();
 
@@ -98,7 +98,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     renderDraftPage();
 
     await screen.findByText(
-      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+      "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
     );
 
     // Cảnh báo quy tắc 4 mắt hiển thị
@@ -141,7 +141,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     });
     renderDraftPage();
     await screen.findByText(
-      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+      "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
     );
     expect(screen.queryByRole("button", { name: vi.drafts.editBtn })).not.toBeInTheDocument();
   });
@@ -156,7 +156,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     });
     renderDraftPage();
     await screen.findByText(
-      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+      "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
     );
     expect(
       screen.queryByRole("button", { name: vi.drafts.actions.approve })
@@ -168,7 +168,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     renderDraftPage();
 
     await screen.findByText(
-      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+      "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
     );
 
     const approveBtn = screen.getByRole("button", { name: vi.drafts.actions.approve });
@@ -185,8 +185,8 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
-    expect(await screen.findByText(/Chữ ký số hợp lệ/)).toBeInTheDocument();
-    expect(screen.getByText(/Nghị định 30\/2020\/NĐ-CP/)).toBeInTheDocument();
+    expect(await screen.findByText(/Phê duyệt nội bộ mô phỏng/)).toBeInTheDocument();
+    expect(screen.getByText(/chưa phải chữ ký số công vụ/)).toBeInTheDocument();
   });
 
   it("lãnh đạo từ chối văn bản bắt buộc phải nhập lý do", async () => {
@@ -194,7 +194,7 @@ describe("DraftPage (S9 Dự thảo & Phê duyệt, S10 Lệnh điều phối)",
     renderDraftPage();
 
     await screen.findByText(
-      "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+      "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
     );
 
     const rejectBtn = screen.getByRole("button", { name: vi.drafts.actions.reject });

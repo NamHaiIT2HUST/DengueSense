@@ -32,7 +32,7 @@ export const TACTICAL_SCENARIOS: readonly TacticalScenario[] = [
       "Chỉ số mật độ lăng quăng/bọ gậy BI vượt mức 45, nguy cơ bùng phát dịch diện rộng trong vòng 3 tháng tới.",
     budget: 1_000_000_000,
     recommendedRole: "officer",
-    targetRoute: "/app/ho-so/case-south-2010-06",
+    targetRoute: "/app/ho-so",
     keyOutcomes: {
       preventedCases: 420,
       beds: 120,
@@ -53,7 +53,7 @@ export const TACTICAL_SCENARIOS: readonly TacticalScenario[] = [
       "Đợt dịch trái mùa đe dọa các khu vực đô thị du lịch ven biển. Cần kích hoạt sớm đội phản ứng nhanh cơ động.",
     budget: 600_000_000,
     recommendedRole: "officer",
-    targetRoute: "/app/ho-so/case-central-2010-06",
+    targetRoute: "/app/ho-so",
     keyOutcomes: {
       preventedCases: 230,
       beds: 60,
@@ -74,7 +74,7 @@ export const TACTICAL_SCENARIOS: readonly TacticalScenario[] = [
       "Kiểm chứng tính ưu việt của giải thuật toán học Google OR-Tools: tối đa hóa số ca ngăn chặn trên từng đồng kinh phí.",
     budget: 400_000_000,
     recommendedRole: "approver",
-    targetRoute: "/app/du-thao/draft-south-01",
+    targetRoute: "/app/ho-so",
     keyOutcomes: {
       preventedCases: 195,
       beds: 45,

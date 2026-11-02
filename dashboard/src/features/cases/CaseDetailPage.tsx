@@ -447,16 +447,16 @@ export function CaseDetailPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
+            <div className="overflow-x-auto rounded-lg border border-[var(--border-hairline)]">
+              <table className="w-full min-w-[1040px] border-collapse text-left text-xs leading-5">
                 <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
                   <tr>
-                    <th className="py-2">{vi.allocation.columns.province}</th>
-                    <th className="py-2">Vật tư y tế</th>
-                    <th className="py-2">Giường bệnh</th>
-                    <th className="py-2">Đội cơ động</th>
-                    <th className="py-2">{vi.allocation.columns.amount}</th>
-                    <th className="py-2">{vi.allocation.columns.explanation}</th>
+                    <th className="px-3 py-3">{vi.allocation.columns.province}</th>
+                    <th className="px-3 py-3">Vật tư y tế</th>
+                    <th className="px-3 py-3">Giường bệnh</th>
+                    <th className="px-3 py-3">Đội cơ động</th>
+                    <th className="px-3 py-3">{vi.allocation.columns.amount}</th>
+                    <th className="min-w-[280px] px-3 py-3">{vi.allocation.columns.explanation}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-hairline)]">
@@ -473,22 +473,22 @@ export function CaseDetailPage() {
 
                     return (
                       <tr key={alloc.province_id || idx}>
-                        <td className="py-2.5 font-medium text-[var(--ink-primary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top font-medium text-[var(--ink-primary)]">
                           {provName}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {suppliesText}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {bedsText}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {teamsText}
                         </td>
-                        <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums whitespace-nowrap">
+                        <td className="px-3 py-3 align-top font-semibold text-[var(--accent)] tabular-nums">
                           {formatCurrency(alloc.amount)}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] min-w-[200px]">
+                        <td className="min-w-[280px] px-3 py-3 align-top text-[var(--ink-secondary)] break-words">
                           {alloc.explanation}
                         </td>
                       </tr>

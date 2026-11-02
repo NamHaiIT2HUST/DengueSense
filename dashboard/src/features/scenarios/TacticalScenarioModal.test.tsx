@@ -24,7 +24,7 @@ describe("TacticalScenarioModal", () => {
   it("triggers onSelectScenario when clicking action button", () => {
     const onSelectSpy = vi.fn();
     render(<TacticalScenarioModal open={true} onClose={vi.fn()} onSelectScenario={onSelectSpy} />);
-    const actionButtons = screen.getAllByRole("button", { name: /Tác chiến ngay/i });
+    const actionButtons = screen.getAllByRole("button", { name: /Mở hồ sơ xử lý/i });
     expect(actionButtons.length).toBe(3);
 
     const firstButton = actionButtons[0];
