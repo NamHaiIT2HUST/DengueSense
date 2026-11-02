@@ -48,16 +48,16 @@ documents:
     indexed_sections:
       - section_id: table-6/systems/readiness
         description: "Table 6 / Systems and coordination / Readiness (PDF 30; printed 22)"
-        unit_ids: [who-rcce-dengue-2024/table-6/systems/readiness/team, who-rcce-dengue-2024/table-6/systems/readiness/budget]
+        unit_ids: [who-rcce-dengue-2024/table-6/systems/readiness/team, who-rcce-dengue-2024/table-6/systems/readiness/budget, who-rcce-dengue-2024/table-6/systems/readiness/coordination, who-rcce-dengue-2024/table-6/systems/readiness/plans, who-rcce-dengue-2024/table-6/systems/readiness/expertise, who-rcce-dengue-2024/table-6/systems/readiness/analysis]
       - section_id: table-6/systems/response
         description: "Table 6 / Systems and coordination / Response (PDF 30; printed 22)"
-        unit_ids: [who-rcce-dengue-2024/table-6/systems/response/staff]
+        unit_ids: [who-rcce-dengue-2024/table-6/systems/response/staff, who-rcce-dengue-2024/table-6/systems/response/coordinate, who-rcce-dengue-2024/table-6/systems/response/activate, who-rcce-dengue-2024/table-6/systems/response/update-plans]
       - section_id: table-6/community/readiness
         description: "Table 6 / Community engagement / Readiness (PDF 31; printed 23)"
-        unit_ids: []
+        unit_ids: [who-rcce-dengue-2024/table-6/community/readiness/discussion, who-rcce-dengue-2024/table-6/community/readiness/feasibility, who-rcce-dengue-2024/table-6/community/readiness/platforms, who-rcce-dengue-2024/table-6/community/readiness/feedback, who-rcce-dengue-2024/table-6/community/readiness/priority-actions, who-rcce-dengue-2024/table-6/community/readiness/co-implement, who-rcce-dengue-2024/table-6/community/readiness/training, who-rcce-dengue-2024/table-6/community/readiness/translation, who-rcce-dengue-2024/table-6/community/readiness/needs]
       - section_id: table-6/community/response
         description: "Table 6 / Community engagement / Response (PDF 31; printed 23)"
-        unit_ids: []
+        unit_ids: [who-rcce-dengue-2024/table-6/community/response/interventions, who-rcce-dengue-2024/table-6/community/response/feedback, who-rcce-dengue-2024/table-6/community/response/alliance, who-rcce-dengue-2024/table-6/community/response/representation, who-rcce-dengue-2024/table-6/community/response/referrals]
   - document_id: hcdc-sxh-snapshot-2025
     path: RAG_Documents/Cam nang SXH cap nhat 2025.pdf
     sha256: f27db6740dc0c3e9ab76c019c254954aecfb6227fce92fbeec6eace293c6a9e0

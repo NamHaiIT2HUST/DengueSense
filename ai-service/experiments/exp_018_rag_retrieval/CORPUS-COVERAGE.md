@@ -1,6 +1,6 @@
 # Độ phủ nguồn được chọn — chưa khóa corpus
 
-Đối chiếu manifest với `reviewed-units.partial.json` (22 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
+Đối chiếu manifest với `reviewed-units.partial.json` (43 units). `checked` là Codex đã đối chiếu văn bản với ảnh PDF; không phải phê duyệt chuyên môn. `professional_review` của cả ba nguồn vẫn là `pending`. Danh sách unit ID trong manifest là allowlist chính xác theo từng tài liệu; một unit chưa được liệt kê hoặc chưa `checked` bị loader từ chối. Các units ngoài phạm vi vẫn giữ trong artifacts, không đưa vào index. Bảng này không cấp phép chạy benchmark.
 
 | Nguồn / section_id | Unit tương ứng (tiền tố là document_id) | Đối chiếu / độ phủ |
 |---|---|---|
@@ -9,10 +9,10 @@
 | vn-qd02-2016 / dieu-5/khoan-1 | `/dieu-5/khoan-1` | Đã kiểm văn bản khoản 1 |
 | vn-qd02-2016 / dieu-7 | `/dieu-7/khoan-1`, `/khoan-2` | Đã kiểm văn bản hai khoản |
 | vn-qd02-2016 / phu-luc/dong-14 | `/phu-luc/dong-14` | Đã kiểm dòng Dengue cùng cột và đơn vị; dòng 16 về sởi ngoài phạm vi |
-| who-rcce-dengue-2024 / table-6/systems/readiness | `/table-6/systems/readiness/team`, `/budget` | Hai hoạt động đã kiểm; còn các hoạt động khác chưa được bao phủ |
-| who-rcce-dengue-2024 / table-6/systems/response | `/table-6/systems/response/staff` | Một hoạt động đã kiểm; còn các hoạt động khác chưa được bao phủ |
-| who-rcce-dengue-2024 / table-6/community/readiness | — | Thiếu, chưa kiểm |
-| who-rcce-dengue-2024 / table-6/community/response | — | Thiếu, chưa kiểm |
+| who-rcce-dengue-2024 / table-6/systems/readiness | explicit unit_ids in manifest | 6 activities checked (PDF 30, printed 22) |
+| who-rcce-dengue-2024 / table-6/systems/response | explicit unit_ids in manifest | 4 activities checked (PDF 30, printed 22) |
+| who-rcce-dengue-2024 / table-6/community/readiness | explicit unit_ids in manifest | 9 activities checked (PDF 31, printed 23) |
+| who-rcce-dengue-2024 / table-6/community/response | explicit unit_ids in manifest | 5 activities checked (PDF 31, printed 23) |
 | hcdc-sxh-snapshot-2025 / muc-5 | `/muc-5` | Đã đối chiếu câu hỏi và đáp án, PDF 13, trang in 11 |
 | hcdc-sxh-snapshot-2025 / muc-6 | `/muc-6` | Đã đối chiếu câu hỏi và đáp án, PDF 14, trang in 12 |
 | hcdc-sxh-snapshot-2025 / muc-7 | `/muc-7` | Đã kiểm văn bản cả hai trang PDF 15–16 và bảy nguyên tắc |
