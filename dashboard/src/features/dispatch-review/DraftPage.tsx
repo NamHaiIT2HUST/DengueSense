@@ -302,8 +302,7 @@ export function DraftPage() {
                   </p>
                   <div className="mx-auto my-2 h-[1px] w-24 bg-white/20 print:bg-black" />
                   <p className="text-xs text-[var(--ink-muted)] font-mono print:text-black print:text-xs">
-                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)} /
-                    CĐ-DENGUESENSE
+                    Mã dự thảo: {draft.id.slice(0, 8)} · Mô phỏng, chưa cấp số văn bản
                   </p>
                 </div>
                 <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans print:text-black print:text-base print:leading-normal print:prose-headings:text-black print:prose-strong:text-black">
@@ -319,7 +318,7 @@ export function DraftPage() {
                           KÝ BỞI: {user?.display_name?.toUpperCase() || "TS. BS. NGUYỄN VĂN A"}
                         </span>
                         <span className="rounded bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase">
-                          Chữ ký số hợp lệ
+                          Phê duyệt nội bộ mô phỏng
                         </span>
                       </div>
                       <div className="space-y-1 text-[11px] text-[var(--ink-secondary)]">
@@ -333,7 +332,7 @@ export function DraftPage() {
                         </div>
                         <div>
                           <strong className="text-[var(--ink-primary)]">Tổ chức chứng thực:</strong>{" "}
-                          Ban Cơ yếu Chính phủ (VGCA Root)
+                          Chưa có chứng thư số pháp lý
                         </div>
                         <div>
                           <strong className="text-[var(--ink-primary)]">Mã băm toàn vẹn:</strong>{" "}
@@ -343,7 +342,7 @@ export function DraftPage() {
                         </div>
                       </div>
                       <div className="mt-2 text-[10px] text-[var(--status-good-ink)] font-medium">
-                        ✓ Tuân thủ quy định chữ ký số tại Nghị định 30/2020/NĐ-CP
+                        Dấu kiểm toán nội bộ phục vụ diễn tập; chưa phải chữ ký số công vụ.
                       </div>
                     </div>
                   </div>
@@ -367,7 +366,7 @@ export function DraftPage() {
                       (Ký, ghi rõ họ tên và đóng dấu)
                     </p>
                     <div className="h-16" />
-                    <p className="font-semibold">{draft.created_by.toUpperCase()}</p>
+                    <p className="font-semibold">CHƯA KÝ VĂN BẢN CÔNG VỤ</p>
                   </div>
                 </div>
               </div>

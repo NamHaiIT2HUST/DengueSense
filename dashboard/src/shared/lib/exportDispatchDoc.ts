@@ -5,35 +5,49 @@ export interface PrintableDraft {
   version?: number;
 }
 
-/**
- * Xuất dự thảo công điện B2G thành tệp tài liệu Microsoft Word (.doc)
- * Tuân thủ chuẩn thể thức kỹ thuật soạn thảo văn bản hành chính theo Nghị định 30/2020/NĐ-CP.
- */
-export function exportDispatchDoc(
-  draft: PrintableDraft,
-  options?: { signerTitle?: string; signerName?: string; provinceName?: string }
-) {
-  const signerTitle = options?.signerTitle ?? "KT. CỤC TRƯỞNG\nPHÓ CỤC TRƯỞNG";
-  const signerName = options?.signerName ?? "Lãnh đạo phê duyệt";
-  const provinceName = options?.provinceName ?? "Hà Nội";
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char
+  );
+}
+
+/** Từng dòng nguồn là một đoạn riêng; tuyệt đối không căn đều dòng ngắn trong Word. */
+export function renderDispatchBody(content: string): string {
+  return content
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .trim()
+        .replace(/^#{1,6}\s*/, "")
+        .replaceAll("**", "")
+    )
+    .filter(Boolean)
+    .filter(
+      (line) =>
+        !/^(BẢN MÔ PHỎNG CUỘC THI|CƠ QUAN ĐIỀU PHỐI MÔ PHỎNG|CỘNG HÒA XÃ HỘI|Độc lập - Tự do|Số văn bản:|Công điện điều phối dịch tễ mô phỏng)/i.test(
+          line
+        )
+    )
+    .map((line) => `<p>${escapeHtml(line)}</p>`)
+    .join("\n");
+}
+
+/** Xuất bản xem trước .doc để cán bộ rà soát, không giả lập số văn bản hoặc chữ ký cơ quan. */
+export function exportDispatchDoc(draft: PrintableDraft) {
   const today = new Date();
   const day = String(today.getDate()).padStart(2, "0");
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const year = today.getFullYear();
 
-  const formattedContent = draft.content
-    .split("\n\n")
-    .map(
-      (p: string) =>
-        `<p style="margin: 6pt 0; text-indent: 1.27cm; line-height: 1.5; text-align: justify;">${p.replace(/\n/g, "<br/>")}</p>`
-    )
-    .join("");
+  const formattedContent = renderDispatchBody(draft.content);
 
   const docHtml = `
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
   <meta charset='utf-8'>
-  <title>${draft.title}</title>
+  <title>${escapeHtml(draft.title)}</title>
   <!--[if gte mso 9]>
   <xml>
     <w:WordDocument>
@@ -50,8 +64,8 @@ export function exportDispatchDoc(
     }
     body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 14pt;
-      line-height: 1.4;
+      font-size: 13pt;
+      line-height: 1.5;
       color: #000000;
     }
     table.header-table {
@@ -100,16 +114,10 @@ export function exportDispatchDoc(
     .sign-section td {
       vertical-align: top;
     }
-    .digital-seal {
-      display: inline-block;
-      border: 1px solid #16a34a;
-      background: #f0fdf4;
-      color: #15803d;
-      padding: 4pt 8pt;
-      font-size: 10pt;
-      font-family: Arial, sans-serif;
-      margin-top: 8pt;
-      border-radius: 4pt;
+    .main-content p {
+      margin: 0 0 8pt;
+      text-align: left;
+      overflow-wrap: break-word;
     }
   </style>
 </head>
@@ -117,31 +125,23 @@ export function exportDispatchDoc(
   <table class="header-table">
     <tr>
       <td style="width: 45%; text-align: center;">
-        <div style="font-size: 12pt; text-transform: uppercase;">BỘ Y TẾ</div>
-        <div style="font-size: 12pt; font-weight: bold; text-transform: uppercase;">CỤC Y TẾ DỰ PHÒNG</div>
+        <div style="font-size: 12pt; font-weight: bold; text-transform: uppercase;">DengueSense</div>
+        <div style="font-size: 10pt;">Bản xem trước phục vụ diễn tập</div>
         <div class="underline-short"></div>
-        <div style="font-size: 12pt; margin-top: 4pt;">Số: <strong>${draft.id.toUpperCase()}/CĐ-YTDP</strong></div>
+        <div style="font-size: 11pt; margin-top: 4pt;">Số văn bản: <strong>CHƯA CẤP</strong></div>
       </td>
       <td style="width: 55%; text-align: center;">
         <div class="quoc-hieu">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
         <div class="tieu-ngu">Độc lập - Tự do - Hạnh phúc</div>
         <div class="underline-short"></div>
-        <div style="font-size: 13pt; font-style: italic; margin-top: 4pt;">${provinceName}, ngày ${day} tháng ${month} năm ${year}</div>
+        <div style="font-size: 11pt; font-style: italic; margin-top: 4pt;">Ngày xuất bản xem trước: ${day}/${month}/${year}</div>
       </td>
     </tr>
   </table>
 
-  <div class="doc-title">CÔNG ĐIỆN KHẨN CẤP</div>
-  <div class="doc-subtitle">V/v: ${draft.title}</div>
-
-  <div style="margin-bottom: 12pt;">
-    <strong>Kính gửi:</strong>
-    <ul style="margin: 4pt 0 12pt 24pt; padding: 0;">
-      <li>Ủy ban nhân dân các tỉnh, thành phố trực thuộc Trung ương;</li>
-      <li>Sở Y tế, Trung tâm Kiểm soát bệnh tật (CDC) các tỉnh trọng điểm;</li>
-      <li>Các Viện Vệ sinh Dịch tễ, Viện Pasteur phụ trách khu vực.</li>
-    </ul>
-  </div>
+  <div class="doc-title">DỰ THẢO VĂN BẢN ĐIỀU PHỐI</div>
+  <div class="doc-subtitle">${escapeHtml(draft.title)}</div>
+  <p style="font-size: 10pt; text-align: center;">MÔ PHỎNG CUỘC THI — CHƯA BAN HÀNH, CHƯA KÝ</p>
 
   <div class="main-content">
     ${formattedContent}
@@ -150,25 +150,13 @@ export function exportDispatchDoc(
   <table class="sign-section">
     <tr>
       <td style="width: 50%; font-size: 11pt;">
-        <strong><em>Nơi nhận:</em></strong><br/>
-        - Như trên;<br/>
-        - Bộ trưởng Bộ Y tế (để b/c);<br/>
-        - Cục Quản lý Khám, chữa bệnh;<br/>
-        - Lưu: VT, YTDP (v${draft.version}).
+        <strong><em>Lưu hồ sơ:</em></strong><br/>
+        Mã dự thảo: ${escapeHtml(draft.id)}<br/>
+        Phiên bản: ${draft.version ?? 1}
       </td>
       <td style="width: 50%; text-align: center;">
-        <div style="font-size: 12pt; font-weight: bold; text-transform: uppercase;">
-          ${signerTitle.replace(/\n/g, "<br/>")}
-        </div>
-        <div style="height: 40pt;"></div>
-        <div class="digital-seal">
-          ✔ KÝ SỐ BỞI: CỤC Y TẾ DỰ PHÒNG - BỘ Y TẾ<br/>
-          Thời gian ký: ${day}/${month}/${year} ${today.toLocaleTimeString("vi-VN")}<br/>
-          Chứng thư số: Ban Cơ yếu Chính phủ / VNPT-CA
-        </div>
-        <div style="margin-top: 8pt; font-weight: bold; font-size: 13pt;">
-          ${signerName}
-        </div>
+        <div style="font-size: 11pt; font-weight: bold;">CHỜ CÁN BỘ RÀ SOÁT</div>
+        <div style="font-size: 10pt;">Không có chữ ký số pháp lý</div>
       </td>
     </tr>
   </table>
@@ -180,7 +168,7 @@ export function exportDispatchDoc(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `Cong_dien_${draft.id}_Nghi_dinh_30.doc`;
+  a.download = `Du_thao_${draft.id}.doc`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

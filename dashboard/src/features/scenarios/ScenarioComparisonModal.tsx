@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { TACTICAL_SCENARIOS, type TacticalScenario } from "@/shared/config/scenarios";
 import { exportToCsv } from "@/shared/lib/exportCsv";
@@ -186,10 +187,10 @@ export function ScenarioComparisonModal({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+        className="fixed inset-0 z-[2000] flex items-center justify-center overflow-y-auto p-4 bg-slate-950/80 backdrop-blur-sm"
         role="dialog"
         aria-modal="true"
         aria-labelledby="comparison-modal-title"
@@ -462,39 +463,34 @@ export function ScenarioComparisonModal({
 
                 {/* Khuyến nghị chiến lược B2G */}
                 <div className="rounded-xl border border-indigo-200/60 bg-indigo-50/50 p-4 text-xs text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-950/20 dark:text-indigo-200 space-y-2">
-                  <div className="flex items-center gap-2 font-bold">
+                  <div className="flex flex-wrap items-center gap-2 font-semibold leading-relaxed">
                     <ShieldCheck size={16} className="text-indigo-600 dark:text-indigo-400" />
-                    <span>
-                      Đánh Giá Chiến Lược Y Tế Công Cộng (Executive B2G Strategic Insight):
-                    </span>
+                    <span>Nhận định độ nhạy ngân sách · mô phỏng</span>
                   </div>
-                  <p className="leading-relaxed text-slate-700 dark:text-slate-300">
+                  <p className="max-w-prose text-sm leading-6 text-slate-700 dark:text-slate-300">
                     {budgetMultiplier >= 1.2 ? (
                       <>
-                        <strong>Khuyến nghị cấp cao:</strong> Tăng thêm 20% ngân sách giúp hệ thống
-                        tạo lập thế phòng ngự chủ động, khống chế chỉ số Breteau Index (BI) xuống
-                        dưới ngưỡng 20 tại các huyện giáp ranh. Lợi nhuận xã hội ròng bảo vệ ước
-                        tính đạt{" "}
+                        <strong>Ngân sách tăng:</strong> Theo giả định của mô hình độ nhạy, số ca có
+                        thể ngăn chặn tăng nhưng lợi ích biên giảm dần. Giá trị lợi ích quy đổi mô
+                        phỏng là{" "}
                         <strong className="text-emerald-600 dark:text-emerald-400">
                           {formatCurrency(netReturnBenefit)}
                         </strong>
-                        .
+                        ; cần kiểm chứng trước khi dùng để ra quyết định.
                       </>
                     ) : budgetMultiplier <= 0.8 ? (
                       <>
                         <strong className="text-amber-600 dark:text-amber-400">
                           Cảnh báo rủi ro bùng phát:
                         </strong>{" "}
-                        Cắt giảm 20% kinh phí buộc thuật toán MILP phải triệt tiêu vật tư dự phòng
-                        tại 30% trạm y tế cơ sở. Nguy cơ bùng phát ca nặng vượt khả năng tiếp nhận
-                        cấp cứu tại các bệnh viện tuyến cuối.
+                        Kịch bản giảm ngân sách làm giảm số ca ngăn chặn ước tính. Đây là kết quả mô
+                        phỏng độ nhạy, chưa được kiểm chứng bằng can thiệp thực địa.
                       </>
                     ) : (
                       <>
-                        <strong>Phương án đề xuất tối ưu:</strong> Tỷ lệ chi phí / hiệu quả đạt điểm
-                        cân bằng Pareto hoàn hảo. Đảm bảo 100% các ổ dịch nguy cơ cấp độ 3 và 4 đều
-                        được cấp phát hóa chất diệt muỗi, máy phun ULV và đội cơ động trong vòng 48
-                        giờ.
+                        <strong>Phương án cơ sở:</strong> So sánh ngân sách và hiệu quả ước tính với
+                        các mức tăng hoặc giảm. Kết quả chỉ phục vụ diễn tập, chưa chứng minh hiệu
+                        quả can thiệp thực địa.
                       </>
                     )}
                   </p>
@@ -642,6 +638,7 @@ export function ScenarioComparisonModal({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

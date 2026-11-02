@@ -184,6 +184,13 @@ describe("AlertsPage (S6 Cảnh báo rủi ro)", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
+    expect(await screen.findByText(/Đã tiếp nhận cảnh báo cho Hồ Chí Minh/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(within(row).getByText(vi.alerts.statusClosed)).toBeInTheDocument();
+      expect(
+        within(row).queryByRole("button", { name: vi.alerts.actions.confirm })
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("officer mở modal lập hồ sơ xử lý từ cảnh báo", async () => {

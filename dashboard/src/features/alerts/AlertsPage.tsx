@@ -33,6 +33,7 @@ export function AlertsPage() {
   const [confirmingAlert, setConfirmingAlert] = useState<Alert | null>(null);
   const [creatingCaseAlert, setCreatingCaseAlert] = useState<Alert | null>(null);
   const [caseTitle, setCaseTitle] = useState("");
+  const [confirmedProvince, setConfirmedProvince] = useState<string | null>(null);
 
   const alertsQuery = useAlerts(statusFilter === "all" ? {} : { status: statusFilter });
   const allAlertsQuery = useAlerts({});
@@ -64,8 +65,16 @@ export function AlertsPage() {
 
   async function handleConfirmAlert() {
     if (!confirmingAlert) return;
-    await confirmMutation.mutateAsync(confirmingAlert.id);
-    setConfirmingAlert(null);
+    try {
+      const province =
+        provincesMap.get(confirmingAlert.province_id)?.name ?? confirmingAlert.province_id;
+      await confirmMutation.mutateAsync(confirmingAlert.id);
+      setConfirmingAlert(null);
+      setStatusFilter("all");
+      setConfirmedProvince(province);
+    } catch {
+      // Giữ dialog mở để người dùng thấy lỗi và có thể thử lại.
+    }
   }
 
   async function handleCreateCase() {
@@ -102,6 +111,14 @@ export function AlertsPage() {
       </header>
 
       {!canAct ? <UiAlert tone="info">{vi.alerts.officerOnly}</UiAlert> : null}
+      {confirmedProvince ? (
+        <UiAlert tone="success">
+          {vi.alerts.confirmSuccess(confirmedProvince)}{" "}
+          <Link to="/app/ho-so" className="font-semibold underline">
+            {vi.nav.cases}
+          </Link>
+        </UiAlert>
+      ) : null}
 
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -289,7 +306,13 @@ export function AlertsPage() {
         loading={confirmMutation.isPending}
         onConfirm={() => void handleConfirmAlert()}
         onCancel={() => setConfirmingAlert(null)}
-      />
+      >
+        {confirmMutation.isError ? (
+          <p role="alert" className="text-sm text-[var(--status-critical-ink)]">
+            {vi.alerts.confirmFailed}
+          </p>
+        ) : null}
+      </ConfirmDialog>
 
       {/* Modal tạo hồ sơ xử lý từ cảnh báo */}
       <ConfirmDialog

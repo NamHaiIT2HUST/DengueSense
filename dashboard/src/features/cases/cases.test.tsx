@@ -204,7 +204,7 @@ describe("CaseDetailPage (S7 Chi tiết hồ sơ & S8 Phân bổ nguồn lực)"
     expect(screen.getByText(vi.cases.detail.drafts)).toBeInTheDocument();
     expect(
       await screen.findByText(
-        "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam"
+        "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam"
       )
     ).toBeInTheDocument();
   });

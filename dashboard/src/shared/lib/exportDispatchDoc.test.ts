@@ -1,8 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { exportDispatchDoc, type PrintableDraft } from "./exportDispatchDoc";
+import { exportDispatchDoc, renderDispatchBody, type PrintableDraft } from "./exportDispatchDoc";
 
 describe("exportDispatchDoc", () => {
+  it("giữ từng dòng thành đoạn riêng và thoát HTML khi xuất Word", () => {
+    const body = renderDispatchBody(
+      "BẢN MÔ PHỎNG CUỘC THI — CHƯA KÝ\nSố văn bản: CHƯA CẤP | Ngày: CHƯA CẤP\nKính gửi: CDC\nĐề xuất <script>alert(1)</script>"
+    );
+    expect(body).toContain("<p>Kính gửi: CDC</p>");
+    expect(body).toContain("&lt;script&gt;");
+    expect(body).not.toContain("text-align: justify");
+    expect(body).not.toContain("Số văn bản:");
+  });
   const sampleDraft: PrintableDraft = {
     id: "draft-test-01",
     version: 1,

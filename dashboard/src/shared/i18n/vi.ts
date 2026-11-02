@@ -415,6 +415,8 @@ export const vi = {
       desc: (province: string) =>
         `Bạn có chắc muốn xác nhận đã tiếp nhận cảnh báo dịch cho ${province}?`,
     },
+    confirmSuccess: (province: string) => `Đã tiếp nhận cảnh báo cho ${province}.`,
+    confirmFailed: "Chưa tiếp nhận được cảnh báo. Vui lòng thử lại.",
     empty: "Không có cảnh báo nào phù hợp với điều kiện lọc.",
     officerOnly:
       "Chỉ vai trò Cán bộ xử lý (Officer) trở lên mới được xác nhận cảnh báo hoặc lập hồ sơ.",

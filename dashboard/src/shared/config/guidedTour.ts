@@ -21,7 +21,7 @@ export const GUIDED_TOUR_STEPS: readonly TourStep[] = [
     roleName: "Người quan sát / Chuyên viên",
     targetRoute: "/app/ban-do",
     description:
-      "Nền tảng hiển thị bản đồ trực quan với 4 tầm dự báo (1, 3, 6, 12 tháng) ứng dụng mô hình AI M4-R2 (LightGBM + LSTM-ResNet) trên chuỗi dữ liệu 1997–2020.",
+      "Bản đồ hiển thị bốn tầm dự báo (1, 2, 3 và 6 tháng). Chọn năm 2010 để xem đối chứng lịch sử hoặc 2026 để xem dự báo thử nghiệm có đầu vào ước tính.",
     highlights: [
       "Bản đồ phân vùng dịch tễ Leaflet theo 3 vùng miền",
       "Bảng xếp hạng 34 tỉnh với chỉ số tỉ suất ca và xác suất vượt ngưỡng",
@@ -53,15 +53,15 @@ export const GUIDED_TOUR_STEPS: readonly TourStep[] = [
     title: "3. Khởi tạo hồ sơ & Tối ưu nguồn lực can thiệp (MILP)",
     role: "officer",
     roleName: "Cán bộ điều hành CDC",
-    targetRoute: "/app/ho-so/case-south-2010-06",
+    targetRoute: "/app/ho-so",
     description:
-      "Tự động tích hợp cảnh báo dịch vào hồ sơ tác chiến. Chạy thuật toán quy hoạch nguyên hỗn hợp (MILP) để phân bổ tối ưu giường bệnh, hóa chất diệt muỗi và đội cơ động dưới trần ngân sách ngặt nghèo.",
+      "Chọn một hồ sơ từ danh sách, kiểm tra cảnh báo đính kèm rồi lập và xác nhận phương án phân bổ nguồn lực. Số liệu hiệu quả can thiệp trong diễn tập là ước tính mô phỏng.",
     highlights: [
       "Thuật toán MILP giải trong < 3 giây với ràng buộc ngân sách thực",
       "Dự báo số ca bệnh ngăn chặn được (Prevented Cases)",
       "Bảng phân bổ chi tiết có thể xuất Excel phục vụ báo cáo",
     ],
-    actionPrompt: "Mở Hồ sơ Tác chiến Nam Bộ",
+    actionPrompt: "Mở danh sách hồ sơ",
   },
   {
     id: "step-draft",
@@ -70,11 +70,11 @@ export const GUIDED_TOUR_STEPS: readonly TourStep[] = [
     title: "4. Soạn thảo & Thẩm định công điện theo Nghị định 30/2020/NĐ-CP",
     role: "officer",
     roleName: "Cán bộ điều hành CDC",
-    targetRoute: "/app/du-thao/draft-south-2010-06",
+    targetRoute: "/app/ho-so",
     description:
-      "Hệ sinh thái B2G tự động sinh dự thảo công điện khẩn cấp theo thể thức hành chính chuẩn quốc gia. Hệ thống kích hoạt 5 lớp guardrails kiểm soát nghiêm ngặt số liệu.",
+      "Mở hồ sơ có dự thảo để kiểm tra nội dung, nguồn số liệu và sáu guardrail G1–G6. Văn bản trong demo chỉ là bản mô phỏng chờ cán bộ rà soát, chưa được ban hành.",
     highlights: [
-      "Thể thức văn bản hành chính Việt Nam chuẩn xác 100%",
+      "Bản xem trước văn bản dễ đọc, có nhãn mô phỏng",
       "Guardrails ngăn chặn số liệu ảo và sai lệch ngân sách",
       "Chế độ xem trước trang in A4 chuẩn công vụ",
     ],
@@ -87,11 +87,11 @@ export const GUIDED_TOUR_STEPS: readonly TourStep[] = [
     title: "5. Phê duyệt 4 mắt & Ban hành văn bản chỉ đạo",
     role: "approver",
     roleName: "Lãnh đạo phê duyệt",
-    targetRoute: "/app/du-thao/draft-south-2010-06",
+    targetRoute: "/app/ho-so",
     description:
-      "Thực thi nghiêm ngặt nguyên tắc Four-Eyes (người soạn không được tự phê duyệt). Lãnh đạo Sở/Bộ thẩm định, ghi nhận chữ ký số mật mã và ban hành chính thức.",
+      "Thử luồng duyệt bốn mắt: người tạo dự thảo không tự phê duyệt. Dấu kiểm toán nội bộ trong demo không phải chữ ký số công vụ hay hành vi ban hành thật.",
     highlights: [
-      "Chữ ký số xác thực tính toàn vẹn văn bản",
+      "Mã băm kiểm tra tính toàn vẹn bản mô phỏng",
       "Lịch sử kiểm toán và audit log bất biến",
       "Xuất lệnh can thiệp tới các đơn vị y tế cơ sở",
     ],

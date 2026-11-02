@@ -123,20 +123,18 @@ export const draftsFixture: Record<string, DispatchDraft> = {
     case_id: "case-south-2010-06",
     version: 1,
     draft_type: "b2g",
-    title: "Công điện về việc tăng cường công tác phòng chống sốt xuất huyết khu vực phía Nam",
-    content: `## CÔNG ĐIỆN KHẨN
+    title: "Dự thảo điều phối mô phỏng phòng, chống sốt xuất huyết khu vực phía Nam",
+    content: `BẢN MÔ PHỎNG CUỘC THI — CHƯA BAN HÀNH, CHƯA KÝ
 
-**Kính gửi:** Ban Chỉ đạo Phòng chống Dịch bệnh các tỉnh, thành phố: TP. Hồ Chí Minh, An Giang.
+Kính gửi: Các đơn vị tham gia diễn tập tại TP. Hồ Chí Minh và An Giang.
 
-Theo kết quả dự báo giám sát dịch tễ tháng 06/2010 từ hệ thống DengueSense:
-- TP. Hồ Chí Minh có xác suất vượt ngưỡng dịch 82% (mức nền: 35%).
-- Tỉnh An Giang ghi nhận đà dịch tăng nhanh trong 2 tháng gần nhất.
+Hồ sơ tham chiếu: Kế hoạch ứng phó dịch sốt xuất huyết khu vực miền Nam, tháng 06/2010. Đây là tình huống đối chứng lịch sử, không phải cảnh báo hiện tại.
 
-**Yêu cầu:**
-1. Kích hoạt đội phản ứng nhanh và phun hoá chất diện rộng tại các ổ dịch trọng điểm.
-2. Bố trí ngân sách hỗ trợ 600 triệu VNĐ cho TP. Hồ Chí Minh và 350 triệu VNĐ cho tỉnh An Giang.
+Phương án phân bổ trong hồ sơ đang chờ cán bộ xác nhận; các chỉ số nguồn lực chỉ phục vụ diễn tập.
 
-Đề nghị các đơn vị khẩn trương triển khai.`,
+Đề nghị cán bộ rà soát số liệu dự báo, địa bàn và khả năng đáp ứng trước khi đề xuất biện pháp cụ thể.
+
+Nơi nhận: Các đơn vị tham gia diễn tập.`,
     content_hash: "hash-draft-south-v1",
     status: "PENDING_REVIEW",
     created_by: "officer",

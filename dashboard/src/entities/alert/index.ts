@@ -5,6 +5,7 @@ import {
   newIdempotencyKey,
   qk,
   unwrap,
+  unwrapVoid,
   type Alert,
 } from "@/shared/api";
 
@@ -34,15 +35,18 @@ export function useConfirmAlert() {
   return useMutation({
     mutationFn: async (alertId: string) => {
       const key = newIdempotencyKey();
-      return unwrap(
+      return unwrapVoid(
         await api.POST("/alerts/{alert_id}/confirm", {
           params: { path: { alert_id: alertId } },
           headers: { [HEADER_IDEMPOTENCY_KEY]: key },
         })
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["alerts"] }),
+        queryClient.invalidateQueries({ queryKey: ["cases"] }),
+      ]);
     },
   });
 }
