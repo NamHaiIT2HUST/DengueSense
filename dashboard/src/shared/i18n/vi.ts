@@ -283,6 +283,12 @@ export const vi = {
       forecast: "Dự báo",
       threshold: "Ngưỡng P75 (theo tháng)",
       origin: "Tháng neo",
+      range: "Khoảng thời gian biểu đồ",
+      focus: "Quanh tháng neo",
+      all: "Toàn bộ dữ liệu",
+      visibleRange: (from: string, to: string) => `Đang xem: ${from} – ${to}`,
+      timelineHint:
+        "Nhãn thời gian được giãn để dễ đọc. Xem đầy đủ từng tháng trong bảng dữ liệu bên dưới; đoạn trống là tháng thiếu số liệu.",
       ariaLabel: (name: string) =>
         `Biểu đồ số ca bệnh hàng tháng của ${name} cùng 4 điểm dự báo. Bảng dữ liệu tương đương nằm ngay bên dưới.`,
       tableSummary: "Bảng dữ liệu của biểu đồ",

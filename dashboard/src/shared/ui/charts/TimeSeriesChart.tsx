@@ -1,8 +1,11 @@
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 import type { DataSource } from "@/shared/api";
 import { formatCount, formatMonth } from "@/shared/lib/format";
 import { vi } from "@/shared/i18n/vi";
+import { Button } from "@/shared/ui/Button";
+
+import { forecastLabels, monthAt, monthIndex as idx, timeTicks } from "./timeSeriesLayout";
 
 export interface ObservedPoint {
   month: string;
@@ -30,15 +33,7 @@ interface Props {
   afterOriginIsComparison?: boolean;
 }
 
-const W = 800;
-const H = 320;
-const M = { l: 56, r: 16, t: 20, b: 40 };
-
-/** "YYYY-MM" → số tháng tuyệt đối (để đặt lên trục tuyến tính). */
-function idx(month: string): number {
-  const [y, m] = month.split("-");
-  return Number(y) * 12 + Number(m) - 1;
-}
+const H = 360;
 
 function niceMax(v: number): number {
   if (v <= 0) return 10;
@@ -62,26 +57,61 @@ export function TimeSeriesChart({
   afterOriginIsComparison = false,
 }: Props) {
   const uid = useId();
+  const container = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(800);
+  const [scope, setScope] = useState<"focus" | "all">("focus");
+  const hasData = observed.length + forecast.length + threshold.length > 0;
+  useEffect(() => {
+    const element = container.current;
+    if (!element) return;
+    const measure = () => {
+      const measured = element.getBoundingClientRect().width;
+      if (measured > 0) setWidth(Math.max(200, Math.round(measured)));
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasData]);
+
+  if (!hasData) return null;
+
   const months = [
     ...observed.map((o) => o.month),
     ...forecast.map((f) => f.month),
     ...threshold.map((t) => t.month),
   ];
-  if (months.length === 0) return null;
-  const lo = Math.min(...months.map(idx));
-  const hi = Math.max(...months.map(idx));
+  const allLo = Math.min(...months.map(idx));
+  const allHi = Math.max(...months.map(idx));
+  const focusLo = Math.max(allLo, idx(originMonth) - 23);
+  const focusHi = Math.min(
+    allHi,
+    Math.max(idx(originMonth) + 6, ...forecast.map((f) => idx(f.month)))
+  );
+  const focused = scope === "focus" && focusLo <= focusHi;
+  const lo = focused ? focusLo : allLo;
+  const hi = focused ? focusHi : allHi;
+  const inRange = (point: { month: string }) => idx(point.month) >= lo && idx(point.month) <= hi;
+  const visibleObserved = observed.filter(inRange);
+  const sortedForecast = forecast.filter(inRange).sort((a, b) => idx(a.month) - idx(b.month));
+  const sortedThreshold = threshold.filter(inRange).sort((a, b) => idx(a.month) - idx(b.month));
   const values = [
-    ...observed.flatMap((o) => (o.value == null ? [] : [o.value])),
-    ...forecast.map((f) => f.value),
-    ...threshold.map((t) => t.value),
+    ...visibleObserved.flatMap((o) => (o.value == null ? [] : [o.value])),
+    ...sortedForecast.map((f) => f.value),
+    ...sortedThreshold.map((t) => t.value),
   ];
   const yMax = niceMax(Math.max(...values, 0) * 1.05);
-  const x = (month: string) => M.l + ((idx(month) - lo) / Math.max(1, hi - lo)) * (W - M.l - M.r);
+  const W = width;
+  const M = { l: Math.max(56, formatCount(yMax).length * 8 + 16), r: 16, t: 56, b: 48 };
+  // Inset points so diamonds at the first/last month stay wholly inside the plot.
+  const plotWidth = W - M.l - M.r - 20;
+  const x = (month: string) => M.l + 10 + ((idx(month) - lo) / Math.max(1, hi - lo)) * plotWidth;
   const y = (v: number) => H - M.b - (v / yMax) * (H - M.t - M.b);
 
   // Đoạn liền theo nguồn: đổi nguồn (thật ↔ ước lượng) hoặc gặp tháng thiếu thì ngắt nét.
   const segments: { source: DataSource; pts: string[] }[] = [];
-  for (const o of observed) {
+  for (const o of visibleObserved) {
     if (o.value == null || o.source == null) {
       segments.push({ source: "real", pts: [] });
       continue;
@@ -93,9 +123,8 @@ export function TimeSeriesChart({
       last.pts.push(`${x(o.month)},${y(o.value)}`);
     }
   }
-  const hasEstimated = observed.some((o) => o.source != null && o.source !== "real");
+  const hasEstimated = visibleObserved.some((o) => o.source != null && o.source !== "real");
 
-  const sortedForecast = [...forecast].sort((a, b) => idx(a.month) - idx(b.month));
   const originPoint = observed.find((o) => o.month === originMonth && o.value != null);
   const connector = [
     ...(originPoint && originPoint.value != null
@@ -103,174 +132,228 @@ export function TimeSeriesChart({
       : []),
     ...sortedForecast.map((f) => `${x(f.month)},${y(f.value)}`),
   ].join(" ");
-  const sortedThreshold = [...threshold].sort((a, b) => idx(a.month) - idx(b.month));
-
   const yTicks = [0, 1, 2, 3, 4].map((i) => (yMax / 4) * i);
-  const xTicks: string[] = [];
-  for (let i = lo; i <= hi; i++) {
-    const m = (i % 12) + 1;
-    if (m === 1 || m === 7) xTicks.push(`${Math.floor(i / 12)}-${String(m).padStart(2, "0")}`);
-  }
+  const xTicks = timeTicks(lo, hi, plotWidth);
+  const labels = forecastLabels(
+    sortedForecast.map((f) => ({ x: x(f.month), y: y(f.value) })),
+    { left: M.l, right: W - M.r, top: M.t, bottom: H - M.b }
+  );
 
   const clipId = `${uid}-clip`;
   const showOriginLine = idx(originMonth) >= lo && idx(originMonth) <= hi;
   const rows = [
-    ...observed
-      .filter((o) => o.value != null)
-      .map((o) => ({
-        month: o.month,
-        value: o.value as number,
-        kind: "obs" as const,
-        source: o.source,
-      })),
-    ...sortedForecast.map((f) => ({
+    ...observed.map((o) => ({
+      month: o.month,
+      value: o.value,
+      kind: "obs" as const,
+      source: o.source,
+    })),
+    ...forecast.map((f) => ({
       month: f.month,
       value: f.value,
       kind: "fc" as const,
       source: null,
     })),
-  ];
+  ].sort((a, b) => a.month.localeCompare(b.month) || (a.kind === "obs" ? -1 : 1));
 
   return (
     <figure className="min-w-0">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="h-auto w-full">
-        <defs>
-          <clipPath id={clipId}>
-            <rect x={M.l} y={M.t} width={W - M.l - M.r} height={H - M.t - M.b} />
-          </clipPath>
-        </defs>
+      <div role="group" aria-label={vi.province.chart.range} className="mb-3 flex flex-wrap gap-2">
+        <Button
+          variant={scope === "focus" ? "primary" : "secondary"}
+          aria-pressed={scope === "focus"}
+          onClick={() => setScope("focus")}
+        >
+          {vi.province.chart.focus}
+        </Button>
+        <Button
+          variant={scope === "all" ? "primary" : "secondary"}
+          aria-pressed={scope === "all"}
+          onClick={() => setScope("all")}
+        >
+          {vi.province.chart.all}
+        </Button>
+      </div>
+      <p className="mb-2 text-xs text-[var(--ink-secondary)]" aria-live="polite">
+        {vi.province.chart.visibleRange(formatMonth(monthAt(lo)), formatMonth(monthAt(hi)))}
+      </p>
+      <div ref={container} className="min-w-0">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-label={ariaLabel}
+          className="block h-auto w-full"
+        >
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={M.l} y={M.t} width={W - M.l - M.r} height={H - M.t - M.b} />
+            </clipPath>
+          </defs>
 
-        <text x={4} y={12} textAnchor="start" fontSize="11" fill="var(--ink-muted)">
-          {vi.province.chart.yAxis}
-        </text>
-        {/* lưới ngang + trục y (bắt đầu từ 0) */}
-        {yTicks.map((t) => (
-          <g key={t}>
-            <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke="var(--border-hairline)" />
-            <text x={M.l - 8} y={y(t) + 4} textAnchor="end" fontSize="11" fill="var(--ink-muted)">
-              {formatCount(t)}
-            </text>
-          </g>
-        ))}
-        {xTicks.map((m) => (
-          <text
-            key={m}
-            x={x(m)}
-            y={H - M.b + 18}
-            textAnchor="middle"
-            fontSize="11"
-            fill="var(--ink-muted)"
-          >
-            {formatMonth(m)}
+          <text x={4} y={16} textAnchor="start" fontSize="12" fill="var(--ink-muted)">
+            {vi.province.chart.yAxis}
           </text>
-        ))}
-
-        {/* vùng sau tháng neo: chỉ để đối chiếu */}
-        {afterOriginIsComparison && showOriginLine ? (
-          <rect
-            x={x(originMonth)}
-            y={M.t}
-            width={Math.max(0, W - M.r - x(originMonth))}
-            height={H - M.t - M.b}
-            fill="var(--bg-surface-2)"
-            opacity="0.55"
-          />
-        ) : null}
-
-        <g clipPath={`url(#${clipId})`}>
-          {sortedThreshold.length > 0 ? (
-            <polyline
-              points={sortedThreshold.map((t) => `${x(t.month)},${y(t.value)}`).join(" ")}
-              fill="none"
-              stroke="var(--ink-secondary)"
-              strokeWidth="1.5"
-              strokeDasharray="2 4"
-            />
-          ) : null}
-          {segments
-            .filter((s) => s.pts.length > 1)
-            .map((s, i) => (
-              <polyline
-                key={i}
-                points={s.pts.join(" ")}
-                fill="none"
-                stroke="var(--accent)"
-                strokeWidth="2"
-                strokeDasharray={s.source === "real" ? undefined : "6 4"}
-                strokeLinejoin="round"
-              />
+          {/* lưới ngang + trục y (bắt đầu từ 0) */}
+          {yTicks.map((t) => (
+            <g key={t}>
+              <line x1={M.l} x2={W - M.r} y1={y(t)} y2={y(t)} stroke="var(--border-hairline)" />
+              <text x={M.l - 8} y={y(t) + 4} textAnchor="end" fontSize="12" fill="var(--ink-muted)">
+                {formatCount(t)}
+              </text>
+            </g>
+          ))}
+          <g data-chart-axis="time">
+            {xTicks.map((m, i) => (
+              <g key={m}>
+                <line
+                  x1={x(m)}
+                  x2={x(m)}
+                  y1={H - M.b}
+                  y2={H - M.b + 6}
+                  stroke="var(--border-strong)"
+                />
+                <text
+                  data-month={m}
+                  x={x(m)}
+                  y={H - M.b + 26}
+                  textAnchor={i === 0 ? "start" : i === xTicks.length - 1 ? "end" : "middle"}
+                  fontSize="12"
+                  fill="var(--ink-muted)"
+                >
+                  {formatMonth(m)}
+                </text>
+              </g>
             ))}
-          {connector && sortedForecast.length > 0 ? (
-            <polyline
-              points={connector}
-              fill="none"
-              stroke="var(--ink-primary)"
-              strokeWidth="1.5"
-              strokeDasharray="7 4"
+          </g>
+
+          {/* vùng sau tháng neo: chỉ để đối chiếu */}
+          {afterOriginIsComparison && showOriginLine ? (
+            <rect
+              x={x(originMonth)}
+              y={M.t}
+              width={Math.max(0, W - M.r - x(originMonth))}
+              height={H - M.t - M.b}
+              fill="var(--bg-surface-2)"
+              opacity="0.55"
             />
           ) : null}
-        </g>
 
-        {showOriginLine ? (
-          <g>
+          <g clipPath={`url(#${clipId})`}>
+            {sortedThreshold.length > 0 ? (
+              <polyline
+                points={sortedThreshold.map((t) => `${x(t.month)},${y(t.value)}`).join(" ")}
+                fill="none"
+                stroke="var(--ink-secondary)"
+                strokeWidth="1.5"
+                strokeDasharray="2 4"
+              />
+            ) : null}
+            {segments
+              .filter((s) => s.pts.length > 1)
+              .map((s, i) => (
+                <polyline
+                  key={i}
+                  points={s.pts.join(" ")}
+                  fill="none"
+                  stroke="var(--accent)"
+                  strokeWidth="2"
+                  strokeDasharray={s.source === "real" ? undefined : "6 4"}
+                  strokeLinejoin="round"
+                />
+              ))}
+            {connector && sortedForecast.length > 0 ? (
+              <polyline
+                points={connector}
+                fill="none"
+                stroke="var(--ink-primary)"
+                strokeWidth="1.5"
+                strokeDasharray="7 4"
+              />
+            ) : null}
+          </g>
+
+          {showOriginLine ? (
+            <g>
+              <line
+                x1={x(originMonth)}
+                x2={x(originMonth)}
+                y1={M.t}
+                y2={H - M.b}
+                stroke="var(--ink-secondary)"
+                strokeWidth="1"
+              />
+              <text
+                x={
+                  x(originMonth) - M.l >= 170
+                    ? x(originMonth) - 6
+                    : Math.min(x(originMonth) + 6, W - M.r - 170)
+                }
+                y={M.t - 16}
+                textAnchor={x(originMonth) - M.l >= 170 ? "end" : "start"}
+                fontSize="12"
+                fill="var(--ink-secondary)"
+              >
+                {vi.province.chart.origin} {formatMonth(originMonth)}
+              </text>
+            </g>
+          ) : null}
+
+          {sortedThreshold.map((t) => (
             <line
-              x1={x(originMonth)}
-              x2={x(originMonth)}
-              y1={M.t}
-              y2={H - M.b}
+              key={`t-${t.month}`}
+              x1={x(t.month) - 6}
+              x2={x(t.month) + 6}
+              y1={y(t.value)}
+              y2={y(t.value)}
               stroke="var(--ink-secondary)"
-              strokeWidth="1"
+              strokeWidth="2"
             />
-            <text
-              x={x(originMonth) - 4}
-              y={M.t + 10}
-              textAnchor="end"
-              fontSize="11"
-              fill="var(--ink-secondary)"
-            >
-              {vi.province.chart.origin} {formatMonth(originMonth)}
-            </text>
-          </g>
-        ) : null}
-
-        {sortedThreshold.map((t) => (
-          <line
-            key={`t-${t.month}`}
-            x1={x(t.month) - 6}
-            x2={x(t.month) + 6}
-            y1={y(t.value)}
-            y2={y(t.value)}
-            stroke="var(--ink-secondary)"
-            strokeWidth="2"
-          />
-        ))}
-        {sortedForecast.map((f, i) => (
-          <g key={`f-${f.horizon}`}>
-            <rect
-              x={x(f.month) - 5}
-              y={y(f.value) - 5}
-              width="10"
-              height="10"
-              transform={`rotate(45 ${x(f.month)} ${y(f.value)})`}
-              fill="var(--ink-primary)"
-              stroke="var(--bg-page)"
-              strokeWidth="1"
-            >
-              <title>{`${vi.province.chart.forecast} ${formatMonth(f.month)}: ${formatCount(f.value)}`}</title>
-            </rect>
-            <text
-              x={x(f.month)}
-              // Nhãn tầm dự báo so le lên xuống: các tháng liền kề (+1, +2, +3) không đè lên nhau.
-              y={y(f.value) - 10 - (i % 2) * 11}
-              textAnchor="middle"
-              fontSize="10"
-              fill="var(--ink-secondary)"
-            >
-              {`+${f.horizon}`}
-            </text>
-          </g>
-        ))}
-      </svg>
+          ))}
+          {sortedForecast.map((f, i) => (
+            <g key={`f-${f.horizon}`} data-forecast-horizon={f.horizon}>
+              <line
+                x1={x(f.month)}
+                y1={y(f.value)}
+                x2={labels[i]!.x}
+                y2={labels[i]!.y}
+                stroke="var(--ink-secondary)"
+                strokeWidth="1"
+              />
+              <rect
+                x={x(f.month) - 5}
+                y={y(f.value) - 5}
+                width="10"
+                height="10"
+                transform={`rotate(45 ${x(f.month)} ${y(f.value)})`}
+                fill="var(--ink-primary)"
+                stroke="var(--bg-page)"
+                strokeWidth="1"
+              >
+                <title>{`${vi.province.chart.forecast} ${formatMonth(f.month)}: ${formatCount(f.value)}`}</title>
+              </rect>
+              <rect
+                x={labels[i]!.x - 16}
+                y={labels[i]!.y - 10}
+                width="32"
+                height="20"
+                rx="5"
+                fill="var(--bg-surface)"
+                stroke="var(--border-hairline)"
+              />
+              <text
+                x={labels[i]!.x}
+                y={labels[i]!.y + 4}
+                textAnchor="middle"
+                fontSize="12"
+                fill="var(--ink-primary)"
+              >
+                {`+${f.horizon}`}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <p className="text-xs text-[var(--ink-muted)]">{vi.province.chart.timelineHint}</p>
 
       <figcaption className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-[var(--ink-secondary)]">
         <LegendItem
