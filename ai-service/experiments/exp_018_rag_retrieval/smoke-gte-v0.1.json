@@ -1,0 +1,227 @@
+{
+  "model": "gte",
+  "model_revision": "9bbca17d9273fd0d03d5725c7a4b0f6b45142062",
+  "tokenizer_revision": "9bbca17d9273fd0d03d5725c7a4b0f6b45142062",
+  "code_revision": "40ced75c3017eb27626c9d4ea981bde21a2662f4",
+  "device": "cpu",
+  "dtype": "float32",
+  "batch": 1,
+  "threads": [
+    4,
+    1
+  ],
+  "corpus_sha256": "3a7cdd649f1f449b6c58923bc8c84899477ce08050442620bdd4c6198888a48a",
+  "dev_sha256": "15f93d2949cb8659097c14b0c1f38c8819ce53cd756be8f6197fe476fd5f0759",
+  "peak_rss_observed_bytes": 2518827008,
+  "memory_levels": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+  ],
+  "swap_used_mb": [
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75,
+    6435.75
+  ],
+  "status": "passed",
+  "reason": null,
+  "exit_code": 0,
+  "versions": {
+    "python": "3.13.16",
+    "torch": "2.8.0",
+    "transformers": "4.57.1",
+    "tokenizers": "0.22.2"
+  },
+  "venv": "/Users/mercedes/work/project/DengueSense/ai-service/data/processed/rag-offline/denguesense-rag",
+  "load_and_run_seconds": 2.302358499960974,
+  "peak_rss_bytes": 3049046016,
+  "records": [
+    {
+      "id": "ab4da16deb9d2dfeacdd70c3d59366981c3ac7dbdf6f001a266249fb68148dc5",
+      "tokens": 500,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.17964316601864994
+    },
+    {
+      "id": "96c070e4e4ff3cc8c67fbd12cafbcad2e71bde8a479937f4c69d21d9515b8803",
+      "tokens": 142,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.05150049994699657
+    },
+    {
+      "id": "727b5b7605725606858e6e15712346d1d1d0c07dd4e975d6e8e22335f6b02b1a",
+      "tokens": 129,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.050432457937859
+    },
+    {
+      "id": "7d615f6a0ce1743a9a2f5e442490c5df2879266ae246bc6df19e17c04769f666",
+      "tokens": 123,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.046082167071290314
+    },
+    {
+      "id": "12bb168bd5b1758841591d09f867d16085fbf5be9a19e5c7cadf73607cf1aa28",
+      "tokens": 101,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.04364370903931558
+    },
+    {
+      "id": "15de771f8cba2c3c1bf75e4ca6a1c851075bc83832ea9a72bef491840c5ffbc5",
+      "tokens": 101,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.043635415961034596
+    },
+    {
+      "id": "5ad1397a8914f48b283a3b5708672f9eb6108858a40c60a6194b21b81ad213fe",
+      "tokens": 99,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.04404524993151426
+    },
+    {
+      "id": "f0919e32b09b8a35774f9f7a676f650378c27944de16f8ffc9e92afb927af156",
+      "tokens": 85,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03804079198744148
+    },
+    {
+      "id": "44e07cc6b105f09154b58a56a89b131740549f967b45f544537abc17e502b0cf",
+      "tokens": 83,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.037401000037789345
+    },
+    {
+      "id": "f82315a1ea8d3da1944179ed60c42d39066aa585843bc885c7461a759f66b03e",
+      "tokens": 83,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03893049992620945
+    },
+    {
+      "id": "06e327124272502e8c4838a06ba2202c30a479d534d7d2cf6d953d40f5cdb5f5",
+      "tokens": 79,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.036773167084902525
+    },
+    {
+      "id": "82c94f79fa5153d449c4ac6277983496473531e7d81aa74adbd015732e5fd2c5",
+      "tokens": 78,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03700258396565914
+    },
+    {
+      "id": "d171fccd483bba87a51f2cbfbc697a32eb614c0b8cad7fb4fe62e0dbf966e6d2",
+      "tokens": 77,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03718754090368748
+    },
+    {
+      "id": "729730bb3efb81a10345b12418bd1175388d9260f5409920c95b666e417f9f48",
+      "tokens": 71,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03676970803644508
+    },
+    {
+      "id": "dc355d97c59147b04044f4abc98642fbc382ea1ed5c0bfc20bb42935543d7b02",
+      "tokens": 71,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.036754583939909935
+    },
+    {
+      "id": "1e00b859b837d3000416cdbf36c2b1c3c48afd7eb967c5c7cad8d53003eec479",
+      "tokens": 70,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.036135375034064054
+    },
+    {
+      "id": "b3af5def6f7e8ffb755d38b9b667d2bff7ba09fdf013d1ad54ab459ed096dcc0",
+      "tokens": 70,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.036633457988500595
+    },
+    {
+      "id": "9b2f9985e8975540c22b8e50d13e0a66d361c00a5d08035c8d97134b667d4e6d",
+      "tokens": 69,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.036069707944989204
+    },
+    {
+      "id": "f91e7fb959fa3d57d6f53781ad4558ffac126a4e100c19e8470da08b727f6879",
+      "tokens": 65,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03618945903144777
+    },
+    {
+      "id": "aa4f130957400ce71d25b686dbf704803828456faaae91e35044e23ff4d26091",
+      "tokens": 63,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.030076750088483095
+    },
+    {
+      "id": "draft-01",
+      "tokens": 23,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.027233832981437445
+    },
+    {
+      "id": "draft-02",
+      "tokens": 20,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.027418708079494536
+    },
+    {
+      "id": "draft-03",
+      "tokens": 19,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03134108299855143
+    },
+    {
+      "id": "dev-04",
+      "tokens": 21,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.02867516700644046
+    },
+    {
+      "id": "dev-05",
+      "tokens": 14,
+      "dimension": 768,
+      "finite": true,
+      "seconds": 0.03300625004339963
+    }
+  ]
+}
