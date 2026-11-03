@@ -1,0 +1,48 @@
+{
+  "selection_version": "dev-selection-v0.1",
+  "status": "locked_for_future_eval",
+  "selected": {
+    "method": "dense",
+    "model": "BAAI/bge-m3",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "tokenizer_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "chunk_tokens": 512,
+    "top_k": 5,
+    "metric_version": "source-span-coverage-v1",
+    "pooling": "cls",
+    "similarity": "exact cosine",
+    "device": "cpu",
+    "dtype": "float32",
+    "batch_size": 1,
+    "threads": [
+      4,
+      1
+    ]
+  },
+  "selection_rule": "maximize dev Recall@5, then MRR, minimize Noise@5, then measured retrieval latency; 20 dev queries, 15 answerable",
+  "dev_metrics": {
+    "recall_at_5": 1.0,
+    "mrr": 0.9555555555555556,
+    "noise_at_5": 0.8
+  },
+  "negative_query_policy": "retrieval_only_no_threshold; no claim of answerability or verified support",
+  "professional_review": "pending",
+  "post_eval_provenance": "BM25 retrieval source hash added after eval; hybrid runner updated only to accept explicit dev artifact paths. Selected method, ranking algorithm and dev metrics unchanged. Original selection SHA-256: b58009f172f6653b8e32b782806020affc62a03bba9b14580f214e81f11ecf02; original hybrid runner SHA-256: c9f2f0b6c630b9480cbdac8a223d9694dd0818564563f8e6c314fdaea0cf530f; BM25 source matched commit 4f11045 before eval.",
+  "source_sha256": {
+    "corpus_lock": "e52df914b68014848af7af237d79412d4d14d878773c9a3a4d206035853c27bc",
+    "query_lock": "0dc3e1fd04a15adc9766211fc7e0edf59c9e349783e5018e9b576bd2972b32ff",
+    "bm25_config": "910db56cda600d3b7c0b3b446888dba6ceba07273952dae2663372182932cba9",
+    "hybrid_config": "fabd392509a07a6df96c1c1291751f758ef3b56285d76dc8aa962f06b29459ef",
+    "bm25_dev": "c2e674e1a96c0a64e7e809d5f565d2cbda9a6d7cfc35af717c07d918af823c9b",
+    "gte_dev": "902fb798cf7bfc275902cf987ebebab4a8b49889465964cebb6e23ebce239db2",
+    "bge_dev": "613f2b0a05568a9988d137f3bf7e4ebd0a6e714d09b3a0bbad8dbd9547f52644",
+    "hybrid_dev": "84ff1eac4687281c24bb06188e34b6249923fdeb467c49839cd2ac642308fbdf",
+    "chunking_code": "56214fc74f0bc5066a2053f3145b58a319bbff18457103b66b76cd846ad886a2",
+    "dense_code": "04d49fd7b7069d7f00a6e4064a9d907432bc4ba14e8fbbebe47bc5d56d3ec2f6",
+    "bm25_retriever_code": "c5475455bb9c3f448db97153efa4bdcf76bfad0583cea29aee55fbd45c0446e4",
+    "evaluator_code": "6b49c070243ef4227f8d3ed1ec140387443dc861b5c66bb11a9538ebf486dc5d",
+    "encoder_runner": "438dd003e82572dadb2a3f360cbca99a8043baddfff222bfcce8d9475bd3b2a2",
+    "dense_runner": "07f85011d5ee8d55583d28c6c799f5fd448775f49409e73f60560a28165b9f03",
+    "hybrid_runner": "12727d32a90002ad68e4e4575508406935149ae6d002996e7701bd735347e7d4"
+  }
+}

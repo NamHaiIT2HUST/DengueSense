@@ -1,0 +1,3 @@
+# Optional CPU encoder smoke; install separately from CI and Layer 1.
+torch==2.8.0
+transformers==4.57.1

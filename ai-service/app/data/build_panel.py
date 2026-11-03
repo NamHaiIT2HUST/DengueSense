@@ -14,7 +14,7 @@ lệnh này.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -162,7 +162,7 @@ def write(panel: pd.DataFrame, version: str) -> dict:
 
     manifest = {
         "version": version,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "sources": [
             {
                 "name": "opendengue_admin1",

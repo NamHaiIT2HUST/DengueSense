@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "dataset_version": "0.1",
+  "corpus_sha256": "3a7cdd649f1f449b6c58923bc8c84899477ce08050442620bdd4c6198888a48a",
+  "corpus_lock_file": "corpus-lock-v0.1.json",
+  "corpus_lock_sha256": "e52df914b68014848af7af237d79412d4d14d878773c9a3a4d206035853c27bc",
+  "splits": {
+    "dev": {
+      "file": "queries-dev.jsonl",
+      "sha256": "15f93d2949cb8659097c14b0c1f38c8819ce53cd756be8f6197fe476fd5f0759",
+      "count": 20,
+      "answerable": 15,
+      "unanswerable": 5
+    },
+    "eval": {
+      "file": "queries-eval.jsonl",
+      "sha256": "3c351cd7c0313e9f7ecad365891e32578a003f8ff7fabd11b5c59f683a1c6d5c",
+      "count": 20,
+      "answerable": 15,
+      "unanswerable": 5
+    }
+  },
+  "annotation_reviewer": "Codex — rà nhãn kỹ thuật",
+  "professional_review": "pending",
+  "relevance_rule": "Bằng chứng đủ để trả lời; chỉ cùng chủ đề hoặc đáp ứng một phần không tự động liên quan. Nếu cần nhiều units để trả lời đầy đủ, gán đủ units.",
+  "status": "technical_reviewed"
+}

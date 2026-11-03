@@ -13,7 +13,23 @@ documents:
     professional_review: pending
     reviewer: null
     usage_rights: unverified
-    indexed_sections: []
+    # Scope selection only: each unit still requires text review before indexing.
+    indexed_sections:
+      - section_id: dieu-2/khoan-2
+        description: "Điều 2 / Khoản 2 / Điểm a, b, c (PDF 1)"
+        unit_ids: [vn-qd02-2016/dieu-2/khoan-2/a, vn-qd02-2016/dieu-2/khoan-2/b, vn-qd02-2016/dieu-2/khoan-2/c]
+      - section_id: dieu-4
+        description: "Điều 4 / Khoản 1–4 (PDF 2)"
+        unit_ids: [vn-qd02-2016/dieu-4/khoan-1, vn-qd02-2016/dieu-4/khoan-2, vn-qd02-2016/dieu-4/khoan-3, vn-qd02-2016/dieu-4/khoan-4]
+      - section_id: dieu-5/khoan-1
+        description: "Điều 5 / Khoản 1 (PDF 2)"
+        unit_ids: [vn-qd02-2016/dieu-5/khoan-1]
+      - section_id: dieu-7
+        description: "Điều 7 / Khoản 1–2 (PDF 3)"
+        unit_ids: [vn-qd02-2016/dieu-7/khoan-1, vn-qd02-2016/dieu-7/khoan-2]
+      - section_id: phu-luc/dong-14
+        description: "Phụ lục / Dòng 14: Dengue (PDF 5)"
+        unit_ids: [vn-qd02-2016/phu-luc/dong-14]
   - document_id: who-rcce-dengue-2024
     path: RAG_Documents/9789240095274-eng.pdf
     sha256: e5684fb54e39f8e0356608b6c5970f2d772695389ec70f1d8b9fbd2c009c182e
@@ -28,7 +44,20 @@ documents:
     professional_review: pending
     reviewer: null
     usage_rights: CC BY-NC-SA 3.0 IGO; commercial use requires review
-    indexed_sections: []
+    # Table headings and readiness/response labels must accompany each activity.
+    indexed_sections:
+      - section_id: table-6/systems/readiness
+        description: "Table 6 / Systems and coordination / Readiness (PDF 30; printed 22)"
+        unit_ids: [who-rcce-dengue-2024/table-6/systems/readiness/team, who-rcce-dengue-2024/table-6/systems/readiness/budget, who-rcce-dengue-2024/table-6/systems/readiness/coordination, who-rcce-dengue-2024/table-6/systems/readiness/plans, who-rcce-dengue-2024/table-6/systems/readiness/expertise, who-rcce-dengue-2024/table-6/systems/readiness/analysis]
+      - section_id: table-6/systems/response
+        description: "Table 6 / Systems and coordination / Response (PDF 30; printed 22)"
+        unit_ids: [who-rcce-dengue-2024/table-6/systems/response/staff, who-rcce-dengue-2024/table-6/systems/response/coordinate, who-rcce-dengue-2024/table-6/systems/response/activate, who-rcce-dengue-2024/table-6/systems/response/update-plans]
+      - section_id: table-6/community/readiness
+        description: "Table 6 / Community engagement / Readiness (PDF 31; printed 23)"
+        unit_ids: [who-rcce-dengue-2024/table-6/community/readiness/discussion, who-rcce-dengue-2024/table-6/community/readiness/feasibility, who-rcce-dengue-2024/table-6/community/readiness/platforms, who-rcce-dengue-2024/table-6/community/readiness/feedback, who-rcce-dengue-2024/table-6/community/readiness/priority-actions, who-rcce-dengue-2024/table-6/community/readiness/co-implement, who-rcce-dengue-2024/table-6/community/readiness/training, who-rcce-dengue-2024/table-6/community/readiness/translation, who-rcce-dengue-2024/table-6/community/readiness/needs]
+      - section_id: table-6/community/response
+        description: "Table 6 / Community engagement / Response (PDF 31; printed 23)"
+        unit_ids: [who-rcce-dengue-2024/table-6/community/response/interventions, who-rcce-dengue-2024/table-6/community/response/feedback, who-rcce-dengue-2024/table-6/community/response/alliance, who-rcce-dengue-2024/table-6/community/response/representation, who-rcce-dengue-2024/table-6/community/response/referrals]
   - document_id: hcdc-sxh-snapshot-2025
     path: RAG_Documents/Cam nang SXH cap nhat 2025.pdf
     sha256: f27db6740dc0c3e9ab76c019c254954aecfb6227fce92fbeec6eace293c6a9e0
@@ -43,4 +72,13 @@ documents:
     professional_review: pending
     reviewer: null
     usage_rights: unverified
-    indexed_sections: []
+    # Question and answer remain together, including question 7 across two pages.
+    indexed_sections:
+      - {section_id: muc-5, description: "Mục 5: Phòng bệnh (PDF 13)", unit_ids: [hcdc-sxh-snapshot-2025/muc-5]}
+      - {section_id: muc-6, description: "Mục 6: KHÔNG cho muỗi đốt (PDF 14)", unit_ids: [hcdc-sxh-snapshot-2025/muc-6]}
+      - {section_id: muc-7, description: "Mục 7: KHÔNG cho muỗi đẻ (PDF 15–16)", unit_ids: [hcdc-sxh-snapshot-2025/muc-7]}
+      - {section_id: muc-8, description: "Mục 8: KHÔNG cho muỗi ở (PDF 17)", unit_ids: [hcdc-sxh-snapshot-2025/muc-8]}
+      - {section_id: muc-9, description: "Mục 9: Nơi có thể bùng phát (PDF 18)", unit_ids: [hcdc-sxh-snapshot-2025/muc-9]}
+      - {section_id: muc-11, description: "Mục 11: Thông tin khi phun hóa chất (PDF 19)", unit_ids: [hcdc-sxh-snapshot-2025/muc-11]}
+      - {section_id: muc-12, description: "Mục 12: Nhiệm vụ cộng tác viên (PDF 20)", unit_ids: [hcdc-sxh-snapshot-2025/muc-12]}
+      - {section_id: muc-13, description: "Mục 13: Bảo hộ cho cộng tác viên (PDF 20)", unit_ids: [hcdc-sxh-snapshot-2025/muc-13]}
