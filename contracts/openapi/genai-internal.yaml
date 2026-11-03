@@ -39,6 +39,40 @@ paths:
             application/problem+json:
               schema: { $ref: "#/components/schemas/GuardrailBlockedProblem" }
 
+  /internal/v1/genai/rag/query:
+    post:
+      operationId: queryRagBenchmark
+      summary: Truy hồi đơn vị văn bản phục vụ nghiên cứu benchmark offline (fail-closed)
+      description: |
+        Endpoint nghiên cứu/benchmark phục vụ đánh giá truy hồi tài liệu offline, tắt theo mặc định.
+        Chỉ chấp nhận chính xác câu hỏi dương tính trong bộ benchmark đóng băng; mọi câu hỏi khác trả answerable=false và hits rỗng.
+        Bật bằng GENAI_RAG_BENCHMARK_ENABLED=true và cung cấp PDF gốc khớp SHA-256. Trích dẫn lấy từ reviewed-units, chưa phải kiểm chứng văn bản gốc lúc trả lời.
+        Lưu ý: Không dùng cho công điện hành chính B2G do tài liệu chưa có phê duyệt pháp lý/chuyên môn.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RagQueryRequest"
+      responses:
+        "200":
+          description: Kết quả truy hồi văn bản phục vụ benchmark
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RagQueryResponse"
+        "401":
+          description: Thiếu hoặc sai token dịch vụ.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
+        "503":
+          description: Benchmark chưa bật hoặc thiếu corpus PDF hợp lệ.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/Problem" }
+
 components:
   securitySchemes:
     serviceToken:
@@ -231,3 +265,76 @@ components:
               description: Các kiểm tra đã chạy; ít nhất một mục passed=false và blocking=true. Response không chứa nội dung, title, citations hoặc hash của draft bị chặn.
               items:
                 $ref: "#/components/schemas/GuardrailCheck"
+
+    RagQueryRequest:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+          description: Câu hỏi hoặc nội dung cần tra cứu căn cứ
+        top_k:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+          description: Số lượng đoạn văn bản tối đa cần truy hồi
+        language:
+          type: string
+          description: Mã ngôn ngữ (vi, en)
+
+    RagHitCitation:
+      type: object
+      required: [document_id, section_path, quote]
+      properties:
+        document_id:
+          type: string
+        section_path:
+          type: string
+        pdf_pages:
+          type: string
+        printed_pages:
+          type: string
+        quote:
+          type: string
+          description: Đoạn trích dẫn nguyên văn lấy từ văn bản nguồn
+        source_url:
+          type: string
+
+    RagHitResponse:
+      type: object
+      required: [unit_id, document_id, score, text, citations]
+      properties:
+        unit_id:
+          type: string
+        document_id:
+          type: string
+        score:
+          type: number
+        text:
+          type: string
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RagHitCitation"
+
+    RagQueryResponse:
+      type: object
+      required: [query, answerable, reason, research_notice, hits]
+      properties:
+        query:
+          type: string
+        answerable:
+          type: boolean
+          description: Xác định câu hỏi có thuộc phạm vi căn cứ được phép hay không
+        reason:
+          type: string
+          description: Lý do giải thích phạm vi hoặc kết quả truy hồi
+        research_notice:
+          type: string
+          description: Nhãn cảnh báo phục vụ nghiên cứu benchmark, chưa phê duyệt cho công điện B2G
+        hits:
+          type: array
+          items:
+            $ref: "#/components/schemas/RagHitResponse"

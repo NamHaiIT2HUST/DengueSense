@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowRight, Radar, Cpu, FileText, LayoutDashboard, MapPin } from "lucide-react";
-import { HeroCommandCenter } from "./HeroCommandCenter";
 import { HeroGlobe3D } from "./HeroGlobe3D";
-import { MedSentinelBadge } from "./MedSentinelBadge";
 import { SpatialBackground3D } from "./SpatialBackground3D";
 import { TiltCard3D } from "@/shared/ui/TiltCard3D";
 
@@ -12,9 +10,9 @@ const PILLARS = [
     icon: Radar,
     pillarNumber: "01",
     pillar: "Trụ Cột 01 - Cảnh Báo Sớm",
-    badge: "Độ chính xác 89,5%",
+    badge: "ROC-AUC 6 mùa: 0.809",
     title: "Dự báo Dịch tễ & Khí hậu ERA5",
-    desc: "Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) tích hợp dữ liệu viễn thám ERA5, cảnh báo sớm 1–6 tháng trước khi bùng dịch.",
+    desc: "Mô hình M4-R2 kết hợp GLM, XGBoost và LightGBM với dữ liệu khí hậu ERA5 để ước lượng rủi ro trước 1–6 tháng.",
     color: "from-cyan-950/40 via-slate-900/90 to-slate-950/95 border-cyan-500/30 text-cyan-400",
     hoverBorder: "hover:border-cyan-400/60 hover:shadow-[0_16px_50px_rgba(14,165,233,0.25)]",
     topGlow: "from-transparent via-cyan-400 to-transparent",
@@ -27,9 +25,9 @@ const PILLARS = [
     icon: Cpu,
     pillarNumber: "02",
     pillar: "Trụ Cột 02 - Tối Ưu Nguồn Lực",
-    badge: "Giải toán MILP < 1 Phút",
+    badge: "Tối ưu bằng OR-Tools",
     title: "Cân Đối Nguồn Lực Điều Trị",
-    desc: "Quy hoạch nguyên hỗn hợp giải bài toán phân bổ 3 trụ cột thiết yếu: Giường bệnh, Hóa chất Cloramin B và Đội phản ứng nhanh.",
+    desc: "Bộ giải OR-Tools lập phương án phân bổ giường bệnh, vật tư phòng dịch và đội phản ứng nhanh theo ngân sách mô phỏng.",
     color: "from-blue-950/40 via-slate-900/90 to-slate-950/95 border-blue-500/30 text-blue-400",
     hoverBorder: "hover:border-blue-400/60 hover:shadow-[0_16px_50px_rgba(37,99,235,0.25)]",
     topGlow: "from-transparent via-blue-400 to-transparent",
@@ -43,8 +41,8 @@ const PILLARS = [
     pillarNumber: "03",
     pillar: "Trụ Cột 03 - Điều Phối Hành Chính",
     badge: "Chuẩn Thể Thức NĐ 30/2020",
-    title: "Tự Động Hóa Công Điện Khẩn",
-    desc: "RAG tự động sinh dự thảo công văn chỉ đạo B2G và phác đồ điều trị B2B, tích hợp Guardrail G1 khóa cứng số liệu chống ảo giác.",
+    title: "Dự thảo chỉ đạo có kiểm soát",
+    desc: "GenAI hỗ trợ soạn dự thảo B2G và B2B; guardrail G1–G6 kiểm tra số liệu, trích dẫn và yêu cầu lãnh đạo duyệt trước khi dùng.",
     color:
       "from-indigo-950/40 via-slate-900/90 to-slate-950/95 border-indigo-500/30 text-indigo-300",
     hoverBorder: "hover:border-indigo-400/60 hover:shadow-[0_16px_50px_rgba(99,102,241,0.25)]",
@@ -52,7 +50,7 @@ const PILLARS = [
     iconBg:
       "bg-indigo-500/15 border-indigo-500/35 text-indigo-300 group-hover:bg-indigo-500/25 group-hover:shadow-[0_0_24px_rgba(99,102,241,0.45)]",
     badgeStyle: "ui-badge ui-badge-indigo",
-    tag: "Guardrail G1 RAG",
+    tag: "Guardrails G1-G6",
   },
 ];
 
@@ -76,9 +74,6 @@ export function Hero() {
       <div className="pointer-events-none absolute -right-20 top-1/4 h-80 w-80 rounded-full bg-indigo-500/15 blur-[120px]" />
 
       <div className="relative mx-auto max-w-6xl text-center">
-        {/* Top Signature Brand Logotype: High-Tech Interactive MedSentinel Crest */}
-        <MedSentinelBadge />
-
         {/* Main Heading */}
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -101,11 +96,10 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.12 }}
           className="mx-auto mt-6 max-w-3xl text-balance text-base sm:text-lg leading-relaxed text-slate-300"
         >
-          DengueSense là nền tảng AI y tế công cộng khép kín đầu tiên tại Việt Nam:{" "}
-          <strong className="text-white font-semibold">Cảnh báo sớm 1–6 tháng (89.5%)</strong>, tối
-          ưu hoá phân bổ <strong className="text-white font-semibold">3 nguồn lực thiết yếu</strong>{" "}
-          dưới 1 phút và tự động soạn thảo dự thảo công điện điều phối chuẩn{" "}
-          <strong className="text-cyan-400 font-semibold">Nghị định 30/2020/NĐ-CP</strong>.
+          Từ dữ liệu dịch tễ lịch sử đến bản đồ rủi ro, phương án phân bổ và dự thảo chỉ đạo trong
+          một luồng làm việc. Mô hình M4-R2 đạt{" "}
+          <strong className="text-white">ROC-AUC 0.809</strong> trung bình trên sáu mùa 2005–2010;
+          các tác động can thiệp trong bản demo là mô phỏng.
         </motion.p>
 
         {/* Call to Actions */}
@@ -130,50 +124,6 @@ export function Hero() {
             <MapPin size={16} className="text-cyan-400" />
             <span>Xem Bản đồ Dịch tễ 34 Tỉnh</span>
           </a>
-          <Link
-            to="/app/mo-hinh"
-            className="landing-secondary-link rounded-full border border-slate-800 bg-slate-950/60 px-5 py-3.5 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200"
-          >
-            Hồ sơ Mô hình (Model Card)
-          </Link>
-        </motion.div>
-
-        {/* Unified Institutional Verification Ribbon */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          className="mx-auto mt-10 max-w-4xl rounded-2xl border border-slate-800/80 bg-slate-950/70 p-3 sm:p-4 backdrop-blur-xl shadow-lg ring-1 ring-white/5"
-        >
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-xs font-medium text-slate-300">
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-400 ring-1 ring-blue-500/20">
-                ERA5
-              </span>
-              <span>Dữ liệu khí hậu ECMWF</span>
-            </div>
-            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-blue-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-blue-400 ring-1 ring-blue-500/20">
-                GIS 34
-              </span>
-              <span>34 Tỉnh dịch tễ trọng điểm</span>
-            </div>
-            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-[var(--bg-surface-2)] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[var(--ink-secondary)]">
-                NĐ 30
-              </span>
-              <span>Nghị định 30/2020/NĐ-CP</span>
-            </div>
-            <span className="h-3.5 w-px bg-slate-800 hidden sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="rounded bg-cyan-500/10 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300 ring-1 ring-cyan-500/20">
-                HITL
-              </span>
-              <span>Thẩm định 4 mắt (Cán bộ & Lãnh đạo)</span>
-            </div>
-          </div>
         </motion.div>
 
         {/* 3D Holographic Radar Wireframe Globe (ECMWF ERA5 Satellite & Spatial Telemetry) */}
@@ -183,15 +133,6 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.26 }}
         >
           <HeroGlobe3D />
-        </motion.div>
-
-        {/* Interactive Live Command Center Window */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.28 }}
-        >
-          <HeroCommandCenter />
         </motion.div>
 
         {/* 3 Pillars Bento Grid with 3D Tilt & Specular Light */}

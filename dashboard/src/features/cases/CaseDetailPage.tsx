@@ -24,7 +24,7 @@ import {
   useDraft,
   useGenerateDraft,
 } from "@/entities/draft";
-import { useProvinces } from "@/entities/forecast";
+import { useAlertForecasts, useProvinces } from "@/entities/forecast";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
 import { exportToCsv } from "@/shared/lib/exportCsv";
 import { formatCount, formatCurrency, formatDateTime } from "@/shared/lib/format";
@@ -56,7 +56,8 @@ export function CaseDetailPage() {
 
   // States cho modal phân bổ (S8)
   const [isAllocating, setIsAllocating] = useState(false);
-  const [budgetInput, setBudgetInput] = useState("1000000000"); // 1 tỷ mặc định
+  const [budgetInput, setBudgetInput] = useState("");
+  const [costInputs, setCostInputs] = useState<Record<string, string>>({});
   const [showTransferModal, setShowTransferModal] = useState(false);
   const createAllocationMutation = useCreateAllocationPlan(caseId);
   const confirmPlanMutation = useConfirmAllocationPlan(caseId);
@@ -79,25 +80,48 @@ export function CaseDetailPage() {
     caseData?.alert_ids ?? (caseData?.alert_id ? [caseData.alert_id] : [])
   );
   const attachedAlerts = allAlerts.filter((a) => attachedAlertIds.has(a.id));
+  const forecastQueries = useAlertForecasts(attachedAlerts, isAllocating);
+  const duplicateProvinces =
+    new Set(attachedAlerts.map((a) => a.province_id)).size !== attachedAlerts.length;
+  const allocationItems = attachedAlerts.map((alert, index) => {
+    const result = forecastQueries[index]?.data;
+    const forecast =
+      result?.meta.run_id === alert.run_id
+        ? result.items.find((item) => item.province_id === alert.province_id && item.horizon === 1)
+        : undefined;
+    return { alert, forecast, cost: Number(costInputs[alert.province_id] ?? "") };
+  });
+  const allocationReady =
+    attachedAlertIds.size > 0 &&
+    attachedAlerts.length === attachedAlertIds.size &&
+    !duplicateProvinces &&
+    Number.isFinite(Number(budgetInput)) &&
+    Number(budgetInput) > 0 &&
+    allocationItems.every(
+      ({ forecast, cost }) =>
+        forecast !== undefined &&
+        Number.isFinite(forecast.cases_pred) &&
+        forecast.cases_pred >= 0 &&
+        Number.isFinite(cost) &&
+        cost > 0
+    );
 
   async function handleCreateAllocation() {
     const budget = Number(budgetInput);
-    if (!budget || budget <= 0) return;
+    if (!allocationReady) return;
 
-    const items = attachedAlerts.map((a) => ({
-      province_id: a.province_id,
-      cases_pred: 150,
-      cost: 200_000_000,
+    const items = allocationItems.map(({ alert, forecast, cost }) => ({
+      province_id: alert.province_id,
+      cases_pred: forecast!.cases_pred,
+      cost,
     }));
 
-    await createAllocationMutation.mutateAsync({
-      budget,
-      items:
-        items.length > 0
-          ? items
-          : [{ province_id: "ho_chi_minh", cases_pred: 200, cost: 300_000_000 }],
-    });
-    setIsAllocating(false);
+    try {
+      await createAllocationMutation.mutateAsync({ budget, items });
+      setIsAllocating(false);
+    } catch {
+      // Mutation giữ lỗi để hiển thị trong modal; không giả báo thành công.
+    }
   }
 
   async function handleGenerateDraft() {
@@ -133,7 +157,7 @@ export function CaseDetailPage() {
       draft_type: "b2g",
       title: manualTitle.trim(),
       content: manualContent.trim(),
-      created_by: user?.username ?? "officer",
+      created_by: user?.id ?? "",
     });
     setIsCreatingManual(false);
     void router.navigate({
@@ -360,7 +384,7 @@ export function CaseDetailPage() {
                   title="Phân tích độ nhạy ngân sách và so sánh đối chứng đa phương án A/B (+20% / -20%)"
                 >
                   <SlidersHorizontal size={14} className="text-indigo-500" />
-                  Độ nhạy & So sánh A/B
+                  Mô phỏng độ nhạy A/B
                 </Button>
                 <Button
                   variant="secondary"
@@ -423,28 +447,16 @@ export function CaseDetailPage() {
               </div>
             </div>
 
-            <HealthEconomicsEvaluation
-              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
-              interventionCost={caseData.latest_plan.total_cost}
-            />
-
-            <PilotEvaluationBenchmark
-              casesPrevented={caseData.latest_plan.estimated_cases_prevented}
-              interventionCost={caseData.latest_plan.total_cost}
-              provinceCount={caseData.latest_plan.allocations.length}
-              caseTitle={caseData.title}
-            />
-
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-left text-xs">
+            <div className="overflow-x-auto rounded-lg border border-[var(--border-hairline)]">
+              <table className="w-full min-w-[1040px] border-collapse text-left text-xs leading-5">
                 <thead className="border-b border-[var(--border-hairline)] text-[var(--ink-secondary)]">
                   <tr>
-                    <th className="py-2">{vi.allocation.columns.province}</th>
-                    <th className="py-2">Vật tư y tế</th>
-                    <th className="py-2">Giường bệnh</th>
-                    <th className="py-2">Đội cơ động</th>
-                    <th className="py-2">{vi.allocation.columns.amount}</th>
-                    <th className="py-2">{vi.allocation.columns.explanation}</th>
+                    <th className="px-3 py-3">{vi.allocation.columns.province}</th>
+                    <th className="px-3 py-3">Vật tư y tế</th>
+                    <th className="px-3 py-3">Giường bệnh</th>
+                    <th className="px-3 py-3">Đội cơ động</th>
+                    <th className="px-3 py-3">{vi.allocation.columns.amount}</th>
+                    <th className="min-w-[280px] px-3 py-3">{vi.allocation.columns.explanation}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-hairline)]">
@@ -461,22 +473,22 @@ export function CaseDetailPage() {
 
                     return (
                       <tr key={alloc.province_id || idx}>
-                        <td className="py-2.5 font-medium text-[var(--ink-primary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top font-medium text-[var(--ink-primary)]">
                           {provName}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {suppliesText}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {bedsText}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] whitespace-nowrap">
+                        <td className="px-3 py-3 align-top text-[var(--ink-secondary)]">
                           {teamsText}
                         </td>
-                        <td className="py-2.5 font-semibold text-[var(--accent)] tabular-nums whitespace-nowrap">
+                        <td className="px-3 py-3 align-top font-semibold text-[var(--accent)] tabular-nums">
                           {formatCurrency(alloc.amount)}
                         </td>
-                        <td className="py-2.5 text-[var(--ink-secondary)] min-w-[200px]">
+                        <td className="min-w-[280px] px-3 py-3 align-top text-[var(--ink-secondary)] break-words">
                           {alloc.explanation}
                         </td>
                       </tr>
@@ -485,6 +497,39 @@ export function CaseDetailPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Phân tích chuyên sâu & Đối sánh kinh tế y tế (Mô phỏng phục vụ đánh giá) */}
+            <details className="group rounded-xl border border-indigo-200/80 dark:border-indigo-500/20 bg-indigo-50/30 dark:bg-indigo-950/20 overflow-hidden transition-all">
+              <summary className="flex items-center justify-between p-3.5 cursor-pointer font-medium text-xs text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-colors select-none">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 font-bold text-[11px]">
+                    ∑
+                  </span>
+                  <span className="font-semibold">
+                    Phân tích chuyên sâu: Đánh giá Kinh tế Y tế & Diễn tập Đối sánh (Mô phỏng)
+                  </span>
+                  <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/50 px-2 py-0.5 text-[10px] text-indigo-700 dark:text-indigo-300 font-normal hidden sm:inline">
+                    CEA / DALY / CDC Baselines
+                  </span>
+                </div>
+                <span className="text-xs text-indigo-500 font-medium group-open:rotate-180 transition-transform duration-200">
+                  ▼
+                </span>
+              </summary>
+              <div className="p-4 pt-2 space-y-4 border-t border-indigo-200/60 dark:border-indigo-500/10">
+                <HealthEconomicsEvaluation
+                  casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+                  interventionCost={caseData.latest_plan.total_cost}
+                />
+
+                <PilotEvaluationBenchmark
+                  casesPrevented={caseData.latest_plan.estimated_cases_prevented}
+                  interventionCost={caseData.latest_plan.total_cost}
+                  provinceCount={caseData.latest_plan.allocations.length}
+                  caseTitle={caseData.title}
+                />
+              </div>
+            </details>
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-[var(--border-hairline)] p-6 text-center text-xs text-[var(--ink-secondary)]">
@@ -575,6 +620,7 @@ export function CaseDetailPage() {
         confirmText={vi.allocation.submit}
         cancelText="Huỷ bỏ"
         loading={createAllocationMutation.isPending}
+        disabled={!allocationReady}
         onConfirm={() => void handleCreateAllocation()}
         onCancel={() => setIsAllocating(false)}
       >
@@ -587,6 +633,35 @@ export function CaseDetailPage() {
             type="number"
           />
           <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.budgetHelp}</p>
+          <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.forecastHelp}</p>
+          <p className="text-xs text-[var(--ink-secondary)]">{vi.allocation.costHelp}</p>
+          {createAllocationMutation.isError ? <p role="alert">{vi.allocation.failed}</p> : null}
+          {duplicateProvinces ? <p role="alert">{vi.allocation.duplicateProvince}</p> : null}
+          {allocationItems.map(({ alert, forecast }) => (
+            <div key={alert.id}>
+              <p className="text-sm text-[var(--ink-secondary)]">
+                {provincesMap.get(alert.province_id)?.name ?? alert.province_id}:{" "}
+                {forecast ? formatCount(forecast.cases_pred) : "—"}
+              </p>
+              <TextField
+                label={`${vi.allocation.costLabel} ${provincesMap.get(alert.province_id)?.name ?? alert.province_id}`}
+                type="number"
+                min="0"
+                value={costInputs[alert.province_id] ?? ""}
+                onChange={(e) =>
+                  setCostInputs((current) => ({ ...current, [alert.province_id]: e.target.value }))
+                }
+              />
+            </div>
+          ))}
+          {isAllocating &&
+          !forecastQueries.some((query) => query.isLoading) &&
+          !allocationReady &&
+          !duplicateProvinces &&
+          (attachedAlerts.length !== attachedAlertIds.size ||
+            allocationItems.some(({ forecast }) => !forecast)) ? (
+            <p role="alert">{vi.allocation.forecastUnavailable}</p>
+          ) : null}
         </div>
       </ConfirmDialog>
 

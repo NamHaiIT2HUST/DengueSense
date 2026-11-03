@@ -1,11 +1,17 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState } from "react";
-import { Download, Pause, Play, RotateCcw, Scale, Target } from "lucide-react";
+import { Download, Pause, Play, RotateCcw, Scale } from "lucide-react";
 
 import { useForecastRuns, useGeometry, useRiskMap } from "@/entities/forecast";
 import type { Horizon, Region, RiskMap } from "@/shared/api";
 import { exportToCsv } from "@/shared/lib/exportCsv";
-import { formatCount, formatHorizon, formatIncidence, formatMonth } from "@/shared/lib/format";
+import {
+  addMonths,
+  formatCount,
+  formatHorizon,
+  formatIncidence,
+  formatMonth,
+} from "@/shared/lib/format";
 import { classColorVar } from "@/shared/lib/riskClass";
 import { vi } from "@/shared/i18n/vi";
 import { Alert } from "@/shared/ui/Alert";
@@ -102,6 +108,17 @@ export function RiskMapPage({
 
   const completedRuns = (runs.data?.items ?? []).filter((r) => r.status === "completed");
   const selectedRunId = search.run ?? map?.meta.run_id ?? "";
+  const years = [
+    ...new Set(
+      completedRuns
+        .map((r) => addMonths(r.origin_month, search.h)?.slice(0, 4))
+        .filter((y): y is string => Boolean(y))
+    ),
+  ]
+    .sort()
+    .reverse();
+  const selectedYear =
+    addMonths(map?.meta.origin_month ?? "", search.h)?.slice(0, 4) ?? years[0] ?? "";
   const hovered = hoveredId ? (map?.items.find((i) => i.province_id === hoveredId) ?? null) : null;
 
   const onSort = (key: SortKey) =>
@@ -161,24 +178,36 @@ export function RiskMapPage({
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"
-            className="gap-1.5 text-xs py-1.5 border-red-500/30 text-red-700 dark:text-red-300 hover:bg-red-500/10"
-            onClick={() => window.dispatchEvent(new CustomEvent("open-tactical-scenarios"))}
-          >
-            <Target size={14} className="text-red-600 dark:text-red-400" />
-            Diễn tập Mẫu
-          </Button>
-          <Button
-            variant="secondary"
             className="gap-1.5 text-xs py-1.5 border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/10"
             onClick={() => window.dispatchEvent(new CustomEvent("open-scenario-comparison"))}
           >
             <Scale size={14} className="text-indigo-600 dark:text-indigo-400" />
-            Độ nhạy & So sánh A/B
+            Mô phỏng độ nhạy A/B
           </Button>
         </div>
       </header>
 
       <Card className="flex flex-wrap items-end gap-x-6 gap-y-4">
+        <Select
+          className="min-w-[14rem]"
+          label="Năm dự báo"
+          value={selectedYear}
+          onChange={(year) => {
+            const selected = completedRuns.find((r) =>
+              addMonths(r.origin_month, search.h)?.startsWith(year)
+            );
+            if (selected) onSearchChange({ run: selected.run_id });
+          }}
+          options={
+            years.length
+              ? years.map((year) => ({
+                  value: year,
+                  label: `${year} · ${completedRuns.some((r) => r.run_mode === "live_experimental" && addMonths(r.origin_month, search.h)?.startsWith(year)) ? "dự báo thử nghiệm" : "đối chứng lịch sử"}`,
+                }))
+              : [{ value: selectedYear, label: selectedYear || "…" }]
+          }
+          disabled={years.length === 0}
+        />
         <Select
           className="min-w-[17rem]"
           label={vi.map.controls.run}
@@ -264,7 +293,7 @@ export function RiskMapPage({
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-red-500/20 bg-red-500/5">
               <div>
                 <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Ổ dịch Báo động Đỏ
+                  Tỉnh có xác suất rủi ro cao
                 </span>
                 <strong className="text-base font-bold text-red-700 dark:text-red-300 tabular-nums">
                   {threatStats.redCount} tỉnh
@@ -277,9 +306,7 @@ export function RiskMapPage({
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-amber-500/20 bg-amber-500/5">
               <div>
-                <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Khu vực Nguy cơ Cảnh báo
-                </span>
+                <span className="text-[11px] text-[var(--ink-muted)] block">Tỉnh cần chú ý</span>
                 <strong className="text-base font-bold text-amber-800 dark:text-amber-300 tabular-nums">
                   {threatStats.amberCount} tỉnh
                 </strong>
@@ -291,9 +318,7 @@ export function RiskMapPage({
 
             <div className="glass-panel p-3.5 rounded-xl flex items-center justify-between border border-blue-500/20 bg-blue-500/5">
               <div>
-                <span className="text-[11px] text-[var(--ink-muted)] block">
-                  Tổng ca dự báo toàn quốc
-                </span>
+                <span className="text-[11px] text-[var(--ink-muted)] block">Tổng số ca dự báo</span>
                 <strong className="text-base font-bold text-blue-700 dark:text-blue-300 tabular-nums">
                   ≈ {formatCount(threatStats.totalCases)} ca
                 </strong>
@@ -309,11 +334,11 @@ export function RiskMapPage({
                   Tháng mục tiêu can thiệp
                 </span>
                 <strong className="text-base font-bold text-emerald-800 dark:text-emerald-300">
-                  {formatMonth(map.meta.origin_month)} (+{search.h}T)
+                  {formatMonth(addMonths(map.meta.origin_month, search.h) ?? map.meta.origin_month)}
                 </strong>
               </div>
               <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-300">
-                Chuẩn hóa
+                +{search.h} tháng
               </span>
             </div>
           </div>
@@ -361,7 +386,7 @@ export function RiskMapPage({
           <section aria-labelledby="risk-table-title" className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 id="risk-table-title" className="text-lg font-semibold">
-                {vi.map.tableTitle}
+                {vi.map.tableTitle}{" "}
                 <span className="ml-2 text-sm font-normal text-[var(--ink-secondary)]">
                   {formatHorizon(map.meta.origin_month, map.horizon)}
                 </span>

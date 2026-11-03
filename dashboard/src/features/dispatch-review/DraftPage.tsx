@@ -22,6 +22,7 @@ import {
   type DispatchOrder,
 } from "@/entities/draft";
 import { hasAnyRole, useCurrentUser } from "@/entities/user";
+import { env } from "@/shared/config/env";
 import { formatDateTime } from "@/shared/lib/format";
 import { notify } from "@/shared/lib/notify";
 import { exportDispatchDoc } from "@/shared/lib/exportDispatchDoc";
@@ -38,7 +39,7 @@ export function DraftPage() {
   const { draftId } = useParams({ from: "/app/du-thao/$draftId" });
   const user = useCurrentUser();
 
-  const isApprover = hasAnyRole(user, "approver", "admin");
+  const isApprover = hasAnyRole(user, "approver");
   const isOfficer = hasAnyRole(user, "officer", "admin");
 
   const draftQuery = useDraft(draftId);
@@ -77,9 +78,13 @@ export function DraftPage() {
   }
 
   // Kiểm tra quy tắc 4 mắt (four-eyes)
-  const isAuthor = draft.created_by === user?.username;
+  const isAuthor = draft.created_by === user?.id || draft.created_by === user?.username;
   const isB2G = draft.draft_type === "b2g";
   const fourEyesBlocked = isB2G && isAuthor;
+  const legacyAuthorBlocked =
+    env.VITE_APP_MODE === "console" &&
+    isB2G &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(draft.created_by);
 
   // Kiểm tra còn chỗ cần bổ sung không
   const hasIncompletePlaceholder = draft.content.includes("[CẦN BỔ SUNG]");
@@ -95,7 +100,7 @@ export function DraftPage() {
     await updateDraftMutation.mutateAsync({
       title: editTitle.trim(),
       content: editContent.trim(),
-      updated_by: user?.username ?? "officer",
+      updated_by: user?.id ?? "",
     });
     setIsEditing(false);
     notify.info("Cập nhật dự thảo", "Bản thảo đã được lưu trữ thành công", { type: "draft" });
@@ -104,7 +109,7 @@ export function DraftPage() {
   async function handleApprove() {
     if (!draft) return;
     await submitReviewMutation.mutateAsync({
-      reviewer_id: user?.username ?? "approver",
+      reviewer_id: user?.id ?? "",
       draft_version: draft.version,
       action: "approve",
     });
@@ -119,7 +124,7 @@ export function DraftPage() {
   async function handleReject() {
     if (!draft || !rejectReason.trim()) return;
     await submitReviewMutation.mutateAsync({
-      reviewer_id: user?.username ?? "approver",
+      reviewer_id: user?.id ?? "",
       draft_version: draft.version,
       action: "reject",
       note: rejectReason.trim(),
@@ -135,7 +140,7 @@ export function DraftPage() {
     if (!draft || !dispatchRecipient.trim()) return;
     const order = await dispatchOrderMutation.mutateAsync({
       recipient: dispatchRecipient.trim(),
-      dispatched_by: user?.username ?? "officer",
+      dispatched_by: user?.id ?? "",
     });
     setDispatchedOrder(order);
     setShowDispatchDialog(false);
@@ -191,6 +196,11 @@ export function DraftPage() {
           <UiAlert tone="warning">{vi.drafts.fourEyesNotice}</UiAlert>
         </div>
       ) : null}
+      {legacyAuthorBlocked && isApprover ? (
+        <div className="print:hidden">
+          <UiAlert tone="warning">{vi.drafts.legacyAuthorNotice}</UiAlert>
+        </div>
+      ) : null}
 
       {/* Grid 2 cột: Trái (Editor/Viewer 60%) - Phải (Evidence + Guardrails + Dispatch 40%) */}
       <div className="grid gap-6 lg:grid-cols-12 items-start print:block">
@@ -227,7 +237,7 @@ export function DraftPage() {
                   <Download size={14} />
                   Xuất Word (.doc)
                 </Button>
-                {isOfficer && draft.status !== "APPROVED" && (
+                {isOfficer && isAuthor && !legacyAuthorBlocked && draft.status !== "APPROVED" && (
                   <div>
                     {isEditing ? (
                       <div className="flex items-center gap-2">
@@ -292,8 +302,7 @@ export function DraftPage() {
                   </p>
                   <div className="mx-auto my-2 h-[1px] w-24 bg-white/20 print:bg-black" />
                   <p className="text-xs text-[var(--ink-muted)] font-mono print:text-black print:text-xs">
-                    Số hiệu: {draft.draft_type.toUpperCase()}-{draft.id.slice(0, 8)} /
-                    CĐ-DENGUESENSE
+                    Mã dự thảo: {draft.id.slice(0, 8)} · Mô phỏng, chưa cấp số văn bản
                   </p>
                 </div>
                 <div className="prose prose-sm dark:prose-invert max-w-none text-[var(--ink-primary)] whitespace-pre-wrap leading-relaxed font-sans print:text-black print:text-base print:leading-normal print:prose-headings:text-black print:prose-strong:text-black">
@@ -309,7 +318,7 @@ export function DraftPage() {
                           KÝ BỞI: {user?.display_name?.toUpperCase() || "TS. BS. NGUYỄN VĂN A"}
                         </span>
                         <span className="rounded bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase">
-                          Chữ ký số hợp lệ
+                          Phê duyệt nội bộ mô phỏng
                         </span>
                       </div>
                       <div className="space-y-1 text-[11px] text-[var(--ink-secondary)]">
@@ -323,7 +332,7 @@ export function DraftPage() {
                         </div>
                         <div>
                           <strong className="text-[var(--ink-primary)]">Tổ chức chứng thực:</strong>{" "}
-                          Ban Cơ yếu Chính phủ (VGCA Root)
+                          Chưa có chứng thư số pháp lý
                         </div>
                         <div>
                           <strong className="text-[var(--ink-primary)]">Mã băm toàn vẹn:</strong>{" "}
@@ -333,7 +342,7 @@ export function DraftPage() {
                         </div>
                       </div>
                       <div className="mt-2 text-[10px] text-[var(--status-good-ink)] font-medium">
-                        ✓ Tuân thủ quy định chữ ký số tại Nghị định 30/2020/NĐ-CP
+                        Dấu kiểm toán nội bộ phục vụ diễn tập; chưa phải chữ ký số công vụ.
                       </div>
                     </div>
                   </div>
@@ -357,7 +366,7 @@ export function DraftPage() {
                       (Ký, ghi rõ họ tên và đóng dấu)
                     </p>
                     <div className="h-16" />
-                    <p className="font-semibold">{draft.created_by.toUpperCase()}</p>
+                    <p className="font-semibold">CHƯA KÝ VĂN BẢN CÔNG VỤ</p>
                   </div>
                 </div>
               </div>
@@ -390,7 +399,7 @@ export function DraftPage() {
                     <Button
                       variant="primary"
                       className="px-4 py-1.5 text-xs gap-1.5"
-                      disabled={fourEyesBlocked || hasIncompletePlaceholder}
+                      disabled={fourEyesBlocked || legacyAuthorBlocked || hasIncompletePlaceholder}
                       onClick={() => setShowApproveDialog(true)}
                     >
                       <FileCheck2 size={14} />

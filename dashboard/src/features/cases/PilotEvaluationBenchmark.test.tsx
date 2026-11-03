@@ -19,9 +19,9 @@ describe("PilotEvaluationBenchmark Component", () => {
     );
 
     expect(
-      screen.getByText("Thẩm Định Đối Sánh Thí Điểm CDC (Shadow Run Benchmarking)")
+      screen.getByText("Đối sánh mô phỏng CDC (chưa có số liệu thử nghiệm thực địa)")
     ).toBeInTheDocument();
-    expect(screen.getByText("Chứng nhận thực nghiệm")).toBeInTheDocument();
+    expect(screen.getByText("Giả định diễn tập")).toBeInTheDocument();
     expect(screen.getByText("160x")).toBeInTheDocument();
     expect(screen.getByText("94.2%")).toBeInTheDocument();
   });
@@ -32,7 +32,7 @@ describe("PilotEvaluationBenchmark Component", () => {
     const toggleBtn = screen.getByRole("button", { name: /Chi tiết đối sánh/i });
     fireEvent.click(toggleBtn);
 
-    expect(screen.getByText("Hạng mục kiểm chứng thí điểm")).toBeInTheDocument();
+    expect(screen.getByText("Hạng mục đối sánh giả định")).toBeInTheDocument();
     expect(screen.getByText("Phương án truyền thống CDC (Manual)")).toBeInTheDocument();
     expect(screen.getByText("DengueSense MILP Proactive")).toBeInTheDocument();
   });
@@ -47,13 +47,10 @@ describe("PilotEvaluationBenchmark Component", () => {
     fireEvent.click(exportBtn);
 
     expect(exportSpy).toHaveBeenCalledWith(
-      expect.stringContaining("DengueSense_Bien_Ban_Tham_Dinh_Thi_Diem"),
+      expect.stringContaining("DengueSense_Mo_Phong_Doi_Sanh"),
       expect.any(Array),
       expect.any(Array)
     );
-    expect(notifySpy).toHaveBeenCalledWith(
-      "Xuất biên bản thẩm định đối sánh thành công",
-      expect.any(String)
-    );
+    expect(notifySpy).toHaveBeenCalledWith("Đã xuất đối sánh mô phỏng", expect.any(String));
   });
 });

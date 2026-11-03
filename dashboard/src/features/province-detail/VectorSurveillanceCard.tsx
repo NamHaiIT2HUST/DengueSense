@@ -22,15 +22,15 @@ export function VectorSurveillanceCard({ provinceId, provinceName }: VectorSurve
 
   function handleReset() {
     setSurvey(getProvinceVectorSurvey(provinceId));
-    notify.info("Đã đặt lại dữ liệu", "Phục hồi bộ chỉ số côn trùng điều tra thực địa ban đầu.");
+    notify.info("Đã đặt lại kịch bản", "Phục hồi bộ chỉ số côn trùng giả định ban đầu.");
   }
 
   function handleExportCsv() {
     exportCsv(
-      `DengueSense_${provinceName}_Giam_Sat_Con_Trung_QD3711_${new Date().toISOString().slice(0, 10)}.csv`,
+      `DengueSense_${provinceName}_Mo_Phong_Con_Trung_QD3711_${new Date().toISOString().slice(0, 10)}.csv`,
       [
         { header: "Chỉ số côn trùng (Entomological Index)", key: (r) => r.metric },
-        { header: "Giá trị đo đạc thực địa", key: (r) => r.value },
+        { header: "Giá trị giả định diễn tập", key: (r) => r.value },
         { header: "Ngưỡng cảnh báo QĐ 3711/QĐ-BYT", key: (r) => r.threshold },
         { header: "Đánh giá mức độ rủi ro", key: (r) => r.status },
       ],
@@ -75,8 +75,8 @@ export function VectorSurveillanceCard({ provinceId, provinceName }: VectorSurve
     );
 
     notify.success(
-      "Xuất dữ liệu giám sát côn trùng thành công",
-      "Đã tải về tệp khảo sát thực địa vector truyền bệnh chuẩn RFC 4180 Excel."
+      "Đã xuất kịch bản côn trùng",
+      "Số liệu trong tệp là giả định minh họa, không phải khảo sát thực địa."
     );
   }
 
@@ -93,14 +93,14 @@ export function VectorSurveillanceCard({ provinceId, provinceName }: VectorSurve
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-semibold text-[var(--ink-primary)]">
-                Giám Sát Côn Trùng Thực Địa & Chỉ Số Vector
+                Mô phỏng chỉ số côn trùng (chưa có khảo sát thực địa)
               </h3>
               <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--accent)]">
                 QĐ 3711/QĐ-BYT
               </span>
             </div>
             <p className="mt-0.5 text-xs text-[var(--ink-secondary)]">
-              Chỉ số điều tra bọ gậy và muỗi truyền bệnh tại {provinceName} theo quy chuẩn Bộ Y tế.
+              Số liệu đầu vào giả định cho {provinceName}; chỉ dùng để minh họa cách tính chỉ số.
             </p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function VectorSurveillanceCard({ provinceId, provinceName }: VectorSurve
             variant="ghost"
             className="px-2.5 py-1 text-xs gap-1 text-[var(--ink-secondary)]"
             onClick={handleReset}
-            title="Đặt lại về số liệu khảo sát gốc"
+            title="Đặt lại về số liệu giả định ban đầu"
           >
             <RotateCcw size={13} />
             Đặt lại
@@ -121,7 +121,7 @@ export function VectorSurveillanceCard({ provinceId, provinceName }: VectorSurve
             onClick={handleExportCsv}
           >
             <Download size={13} />
-            Xuất số liệu côn trùng (.csv)
+            Xuất kịch bản (.csv)
           </Button>
         </div>
       </div>

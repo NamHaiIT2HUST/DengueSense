@@ -8,6 +8,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 const VIEWER = { username: "demo.xem", password: "demo-2026-xem" };
 const ANALYST = { username: "demo.phan-tich", password: "demo-2026-phan-tich" };
+const OFFICER = { username: "officer", password: "officer123456" };
 const RUN_2010_03 = "0f6bac6d-b0cc-5177-83a7-ab3e02ae3fe4";
 
 async function login(page: Page, account = VIEWER) {
@@ -90,6 +91,15 @@ test.describe("console (bản build, chế độ demo)", () => {
 
     await page.goto("/app");
     await expect(page).toHaveURL(/\/dang-nhap\?redirect=/);
+  });
+
+  test("điện thoại: điều hướng và nội dung không tràn ngang màn hình", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/dang-nhap");
+    await login(page);
+    await expect(mapHeading(page)).toBeVisible();
+    const pageWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(pageWidth).toBeLessThanOrEqual(390);
   });
 
   test("điều hướng bàn phím: liên kết bỏ qua điều hướng là phần tử đầu tiên được focus", async ({
@@ -185,6 +195,60 @@ test.describe("bản đồ rủi ro và chi tiết tỉnh (số thật exp_016)"
     await page.goto("/app/luot-du-bao");
     await expect(page.getByText(/Chỉ vai trò phân tích trở lên/)).toBeVisible();
     await expect(page.getByRole("button", { name: "Tạo lượt" })).toHaveCount(0);
+  });
+});
+
+test.describe("luồng diễn tập và lớp giao diện", () => {
+  test("tiếp nhận cảnh báo cập nhật trạng thái và báo thành công", async ({ page }) => {
+    await page.goto("/dang-nhap");
+    await login(page, OFFICER);
+    await page.goto("/app/canh-bao");
+    const row = page.getByRole("row").filter({ hasText: "Hồ Chí Minh" });
+    await row.getByRole("button", { name: "Tiếp nhận cảnh báo" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Tiếp nhận cảnh báo" }).click();
+    await expect(page.getByText("Đã tiếp nhận cảnh báo cho Hồ Chí Minh.")).toBeVisible();
+    await expect(row.getByText("Đã đóng")).toBeVisible();
+    await page
+      .getByRole("status")
+      .filter({ hasText: "Đã tiếp nhận cảnh báo" })
+      .getByRole("link", { name: "Hồ sơ xử lý" })
+      .click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Hồ sơ xử lý phòng dịch" })
+    ).toBeVisible();
+    await expect(page.getByText("Hồ sơ xử lý cảnh báo dịch")).toBeVisible();
+  });
+
+  test("diễn tập mẫu mở danh sách hồ sơ thay vì ID hồ sơ không tồn tại", async ({ page }) => {
+    await page.goto("/dang-nhap");
+    await login(page);
+    await page.getByRole("button", { name: "Diễn tập Tình huống" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Mở hồ sơ xử lý" }).first().click();
+    await expect(page).toHaveURL(/\/app\/ho-so$/);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Hồ sơ xử lý phòng dịch" })
+    ).toBeVisible();
+  });
+
+  test("modal độ nhạy che đúng lớp bản đồ Leaflet", async ({ page }) => {
+    await page.goto("/dang-nhap");
+    await login(page);
+    await mapReady(page);
+    const mapControl = page.locator(".leaflet-control-zoom");
+    await mapControl.scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent("open-scenario-comparison")));
+    await expect(page.getByRole("dialog", { name: /Đối Sánh Đa Kịch Bản/ })).toBeVisible();
+    const box = await mapControl.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) return;
+    const coveredByDialog = await page.evaluate(
+      ({ x, y }) => {
+        const dialog = document.querySelector('[role="dialog"]');
+        return dialog?.contains(document.elementFromPoint(x, y)) ?? false;
+      },
+      { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+    );
+    expect(coveredByDialog).toBe(true);
   });
 });
 

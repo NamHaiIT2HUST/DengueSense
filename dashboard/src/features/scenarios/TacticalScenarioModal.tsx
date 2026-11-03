@@ -49,8 +49,7 @@ export function TacticalScenarioModal({
                   Bảng Điều Khiển Diễn Tập Tình Huống Mẫu
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Chọn kịch bản thực tế để hệ thống tự động nạp dữ liệu dịch tễ và chuyển đúng vai
-                  trò tác chiến.
+                  Kịch bản diễn tập dùng số liệu giả định; không phải cảnh báo hoặc hồ sơ backend.
                 </p>
               </div>
             </div>
@@ -138,7 +137,7 @@ export function TacticalScenarioModal({
                       className="w-full py-1.5 text-xs gap-1.5 justify-center"
                       onClick={() => onSelectScenario(sc)}
                     >
-                      <span>Tác chiến ngay</span>
+                      <span>Mở hồ sơ xử lý</span>
                       <ArrowRight size={13} />
                     </Button>
                   </div>
@@ -149,9 +148,9 @@ export function TacticalScenarioModal({
             <div className="rounded-xl border border-blue-200/60 bg-blue-50/60 p-3.5 text-xs text-blue-900 dark:border-cyan-500/20 dark:bg-cyan-500/5 dark:text-cyan-200 flex items-start gap-3">
               <ShieldAlert size={16} className="text-blue-600 dark:text-cyan-400 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                <strong>Ghi chú cho Giám khảo & Tester:</strong> Mỗi kịch bản sẽ tự động chuyển tài
-                khoản demo sang đúng vai trò phụ trách (Điều hành hoặc Lãnh đạo) và mở hồ sơ can
-                thiệp tương ứng để bạn kiểm chứng trọn vẹn luồng phân bổ MILP và quy tắc 4 mắt.
+                <strong>Phạm vi diễn tập:</strong> Chọn kịch bản sẽ chuyển sang vai trò phù hợp và
+                mở danh sách hồ sơ. Chọn hồ sơ hiện có hoặc tạo hồ sơ mới để thao tác; số liệu giả
+                định ở đây không tự ghi vào backend.
               </p>
             </div>
           </div>

@@ -166,8 +166,21 @@ def test_index_and_observations(runs):
         prov_v.validate(p)
     for d in idx["data_versions"]:
         dv_v.validate(d)
-    assert [r["origin_month"] for r in idx["runs"]] == ORIGINS
-    assert len({r["run_id"] for r in idx["runs"]}) == 8
+    historical = [r for r in idx["runs"] if r["run_mode"] == "backtest"]
+    assert [r["origin_month"] for r in historical] == ORIGINS
+    assert len({r["run_id"] for r in idx["runs"]}) == 9
+    experimental = [r for r in idx["runs"] if r["run_mode"] == "live_experimental"]
+    assert len(experimental) == 1 and experimental[0]["origin_month"] == "2025-12"
+    projection = _load("run-2025-12.json")
+    assert len(projection["items"]) == 34 * 4
+    assert {item["target_month"] for item in projection["items"]} == {
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-06",
+    }
+    assert projection["as_of"] == "2025-03-01T00:00:00Z"
+    assert all("stale_data" in item["flags"] for item in projection["items"])
 
     obs = _load("observations.json")
     assert len(obs) == 34

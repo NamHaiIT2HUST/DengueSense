@@ -22,19 +22,22 @@ import numpy as np
 import pandas as pd
 
 from app.forecast.alert_classifier import (
-    build_pairs as clf_pairs,
-)
-from app.forecast.alert_classifier import (
+    REL_SOURCES,
     fit_predict_classifier,
     with_thresholds,
+)
+from app.forecast.alert_classifier import (
+    build_pairs as clf_pairs,
 )
 from app.forecast.alerting import exceedance_thresholds
 from app.forecast.backtest import (
     FEATURE_COLS_T1,
     build_horizon_pairs,
+    calendarize_panel,
     load_real_panel_with_features,
 )
 from app.forecast.explain import fit_lightgbm_model, tree_shap
+from app.forecast.features import build_feature_matrix
 from app.forecast.m4 import predict_m4
 from app.serving.forecast_api import policy
 
@@ -75,15 +78,22 @@ class PanelContext:
     def __init__(self, panel: pd.DataFrame, regions: dict[str, str]) -> None:
         self.panel = panel
         self.regions = regions
+        self.latest_input_month: pd.Timestamp = panel["month"].max()
+        self.experimental_panel = self._extend_2025_inputs(panel)
         # Chỉ dữ liệu THẬT được dùng để huấn luyện/đánh giá (docs/01 §8); đặc trưng dựng theo lịch tháng (exp_015).
         self.feat = with_thresholds(
             load_real_panel_with_features(panel, calendarize=True)
         )
         self.last_real_month: pd.Timestamp = self.feat["month"].max()
-        self._pop = panel.set_index(["province_id", "month"])["population"]
-        self._src = panel.set_index(["province_id", "month"])["data_source"]
+        self._pop = self.experimental_panel.set_index(["province_id", "month"])[
+            "population"
+        ]
+        self._src = self.experimental_panel.set_index(["province_id", "month"])[
+            "data_source"
+        ]
         self._reg_pairs: dict[int, pd.DataFrame] = {}
         self._clf_pairs: dict[int, pd.DataFrame] = {}
+        self._experimental_feat: pd.DataFrame | None = None
 
     def reg_pairs(self, h: int) -> pd.DataFrame:
         if h not in self._reg_pairs:
@@ -94,6 +104,57 @@ class PanelContext:
         if h not in self._clf_pairs:
             self._clf_pairs[h] = clf_pairs(self.feat, h)
         return self._clf_pairs[h]
+
+    def experimental_features(self) -> pd.DataFrame:
+        """Đặc trưng tại tháng mới; dữ liệu ước lượng chỉ đi vào X, không vào y huấn luyện."""
+        if self._experimental_feat is None:
+            full = calendarize_panel(
+                self.experimental_panel.sort_values(
+                    ["province_id", "month"]
+                ).reset_index(drop=True)
+            )
+            feat = build_feature_matrix(full, reporting_delay_months=1)
+            self._experimental_feat = (
+                feat[~feat["_inserted"]]
+                .drop(columns="_inserted")
+                .reset_index(drop=True)
+            )
+        return self._experimental_feat
+
+    @staticmethod
+    def _extend_2025_inputs(panel: pd.DataFrame) -> pd.DataFrame:
+        """Điền khuyết tháng 2025 còn thiếu bằng cùng tháng 2024, có cờ nguồn riêng.
+
+        Đây là đầu vào kịch bản để dự báo 2026, không phải ca bệnh đã ghi nhận.
+        Không ghi ngược vào panel phiên bản bất biến và không đưa vào tập train.
+        """
+        latest = panel["month"].max()
+        if latest.year != 2025 or latest.month >= 12:
+            return panel
+        rows: list[pd.Series] = []
+        indexed = panel.set_index(["province_id", "month"])
+        for pid, group in panel.groupby("province_id"):
+            population = float(group.sort_values("month").iloc[-1]["population"])
+            for month in range(1, 13):
+                target = pd.Timestamp(2025, month, 1)
+                if (pid, target) in indexed.index:
+                    continue
+                prior = (pid, pd.Timestamp(2024, month, 1))
+                if prior not in indexed.index:
+                    continue
+                source = indexed.loc[prior].copy()
+                source["province_id"] = pid
+                source["month"] = target
+                source["data_source"] = "imputed"
+                source["population"] = population
+                source["population_source"] = "imputed"
+                source["incidence_per_100k"] = (
+                    float(source["cases"]) * 100_000 / population
+                )
+                rows.append(source)
+        return (
+            pd.concat([panel, pd.DataFrame(rows)], ignore_index=True) if rows else panel
+        )
 
     def population(self, province: str, month: pd.Timestamp) -> float:
         v = self._pop.get((province, month))
@@ -248,6 +309,8 @@ def assemble_items(
     origin: pd.Timestamp,
     res: HorizonResult,
     threshold_of: dict[str, float] | None = None,
+    *,
+    stale: bool = False,
 ) -> list[dict[str, Any]]:
     """Ghép `ForecastItem` theo hợp đồng từ kết quả một tầm. `threshold_of` (tỉ suất/100k) ghi đè ngưỡng (replay dùng
     ngưỡng đã lưu); mặc định lấy ngưỡng của chính kết quả."""
@@ -279,6 +342,7 @@ def assemble_items(
                     exceed_prob=prob,
                     estimated_share=sources["estimated"] + sources["imputed"],
                     origin_month=origin_month,
+                    stale=stale,
                 ),
             }
         )
@@ -314,4 +378,101 @@ def compute_backtest_run(
         items=items,
         explanations=explanations,
         legend_cases_per_100k=ctx.legend_incidence(origin),
+    )
+
+
+def validate_experimental_origin(ctx: PanelContext, origin_month: str) -> pd.Timestamp:
+    """Chỉ nhận tháng có dữ liệu đầu vào cho đủ 34 tỉnh và 12 tháng nguồn liên tục."""
+    origin = parse_month(origin_month)
+    if origin_month <= MAX_BACKTEST_ORIGIN:
+        raise EngineError(
+            "forecast.origin_out_of_range",
+            "Hãy dùng backtest cho giai đoạn đã kiểm chứng",
+        )
+    available = ctx.experimental_panel.loc[
+        ctx.experimental_panel["month"] == origin, "province_id"
+    ]
+    if set(available) != set(ctx.regions):
+        raise EngineError(
+            "forecast.origin_out_of_range", "Tháng neo chưa có đủ dữ liệu 34 tỉnh"
+        )
+    for pid in ctx.regions:
+        sources = ctx.input_window_sources(pid, origin)
+        if "missing" in sources:
+            raise EngineError(
+                "forecast.origin_out_of_range",
+                "Thiếu dữ liệu đầu vào 12 tháng liên tục",
+            )
+    return origin
+
+
+def compute_experimental_run(
+    ctx: PanelContext,
+    origin_month: str,
+    on_progress: Callable[[float], None] | None = None,
+) -> RunResult:
+    """Ngoại suy M4-R2: fit chỉ trên số đo thật tới 2010, X mới có thể ước lượng.
+
+    Đây là phép chiếu thử nghiệm, chưa có benchmark sau 2010 và không dùng để tạo cảnh báo nghiệp vụ.
+    """
+    origin = validate_experimental_origin(ctx, origin_month)
+    feat = ctx.experimental_features()
+    test_base = feat.loc[feat["month"] == origin].copy()
+    if len(test_base) != len(ctx.regions):
+        raise EngineError("forecast.run_failed", "Không đủ đặc trưng cho 34 tỉnh")
+    items: list[dict[str, Any]] = []
+    explanations: dict[str, dict[str, Any]] = {}
+    for k, h in enumerate(HORIZONS):
+        target = origin + pd.DateOffset(months=h)
+        train = ctx.reg_pairs(h).dropna(subset=["y_target"])
+        train = train[train["_target_month"] <= ctx.last_real_month]
+        test = test_base.copy()
+        test["population_target"] = test[
+            "population"
+        ]  # dân số cuối panel, không bịa 2026
+        test["y_target"] = np.nan
+        test["_target_month"] = target
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            m4 = predict_m4(train, test, ctx.feat, target, ctx.regions)
+
+        ctrain = ctx.clf_pairs(h).dropna(subset=["label"])
+        ctrain = ctrain[ctrain["_target_month"] <= ctx.last_real_month]
+        threshold = exceedance_thresholds(ctx.feat, target)
+        ctest = test.copy()
+        ctest["thr_target"] = ctest["province_id"].map(threshold)
+        for col in REL_SOURCES:
+            ctest[f"{col}__vs_thr"] = ctest[col] / (ctest["thr_target"] + 1.0)
+        if ctrain["label"].nunique() != 2 or ctest["thr_target"].isna().any():
+            raise EngineError(
+                "forecast.run_failed", "Không đủ ngưỡng lịch sử để dự báo"
+            )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            probs = fit_predict_classifier(ctrain, ctest)
+        result = HorizonResult(
+            horizon=h,
+            target_month=target,
+            m4={p: float(v) for p, v in m4.items()},
+            p_clf={
+                str(row.province_id): float(prob)
+                for row, prob in zip(ctest.itertuples(), probs, strict=True)
+            },
+            base_rate=float(ctrain["label"].mean()),
+            thresholds={str(p): float(v) for p, v in threshold.items()},
+            explanations=_explain(train, test),
+        )
+        items.extend(
+            assemble_items(ctx, origin, result, stale=origin > ctx.latest_input_month)
+        )
+        explanations.update(
+            {f"{pid}|{h}": expl for pid, expl in result.explanations.items()}
+        )
+        if on_progress:
+            on_progress(0.95 * (k + 1) / len(HORIZONS))
+    return RunResult(
+        origin_month=origin_month,
+        items=items,
+        explanations=explanations,
+        legend_cases_per_100k=ctx.legend_incidence(ctx.last_real_month),
     )

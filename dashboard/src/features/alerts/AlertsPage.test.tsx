@@ -95,6 +95,9 @@ describe("AlertsPage (S6 Cảnh báo rủi ro)", () => {
       expect(screen.queryByText("Đồng Nai")).not.toBeInTheDocument(); // Đồng Nai đã đóng
       expect(screen.getByText("Hồ Chí Minh")).toBeInTheDocument();
       expect(screen.getByText("An Giang")).toBeInTheDocument();
+      expect(
+        screen.getByRole("status", { name: "Hiển thị 3 trên 4 cảnh báo" })
+      ).toBeInTheDocument();
     });
 
     // Bấm lọc "Đã đóng"
@@ -180,6 +183,13 @@ describe("AlertsPage (S6 Cảnh báo rủi ro)", () => {
     // Chờ cập nhật trạng thái
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+    expect(await screen.findByText(/Đã tiếp nhận cảnh báo cho Hồ Chí Minh/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(within(row).getByText(vi.alerts.statusClosed)).toBeInTheDocument();
+      expect(
+        within(row).queryByRole("button", { name: vi.alerts.actions.confirm })
+      ).not.toBeInTheDocument();
     });
   });
 

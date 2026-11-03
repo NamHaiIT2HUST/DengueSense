@@ -48,14 +48,18 @@ describe("Mô hình & giới hạn", () => {
 
   it("nêu điểm yếu song song với điểm mạnh: độ tin cậy từng vùng và 12 giới hạn", async () => {
     renderPage();
-    const regions = await screen.findByRole("heading", { name: "Độ tin cậy theo vùng" });
+    const regions = await screen.findByRole(
+      "heading",
+      { name: "Độ tin cậy theo vùng" },
+      { timeout: 5000 }
+    );
     const card = regions.closest("section") as HTMLElement;
     expect(within(card).getByText("Miền Bắc")).toBeInTheDocument();
     expect(within(card).getByText("Thấp ở năm dịch bất thường")).toBeInTheDocument();
     expect(within(card).getByText("Cao")).toBeInTheDocument();
     expect(within(card).getByText("Ngang dự báo theo mùa")).toBeInTheDocument();
 
-    const items = await screen.findAllByRole("heading", { level: 3, name: /./ });
+    const items = await screen.findAllByRole("heading", { level: 3, name: /./ }, { timeout: 5000 });
     for (const lim of limitationsFixture) {
       expect(items.some((h) => h.textContent === lim.title)).toBe(true);
     }

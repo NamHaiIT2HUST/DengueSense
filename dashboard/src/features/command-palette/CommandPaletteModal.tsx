@@ -33,6 +33,8 @@ export interface PaletteAction {
 
 interface Props {
   open: boolean;
+  demoMode?: boolean;
+  role?: "viewer" | "analyst" | "officer" | "approver" | "admin";
   onClose: () => void;
   onOpenScenarios: () => void;
   onOpenTour: () => void;
@@ -44,6 +46,8 @@ interface Props {
 
 export function CommandPaletteModal({
   open,
+  demoMode = true,
+  role = "officer",
   onClose,
   onOpenScenarios,
   onOpenTour,
@@ -108,11 +112,11 @@ export function CommandPaletteModal({
       {
         id: "act-comparison",
         category: "actions",
-        title: "⚖️ Đối sánh A/B & Độ nhạy ngân sách",
+        title: "⚖️ Mô phỏng đối sánh A/B và độ nhạy ngân sách",
         subtitle: "Mô phỏng đường cong co giãn chi phí - hiệu quả (+20% / -20%) và 3 kịch bản",
         icon: Scale,
         iconColor: "text-indigo-500",
-        badge: "Sensitivity A/B",
+        badge: "Mô phỏng",
         badgeColor: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
         onSelect: () => {
           onClose();
@@ -123,7 +127,7 @@ export function CommandPaletteModal({
         id: "nav-map",
         category: "actions",
         title: "Bản đồ phân vùng dịch tễ 34 tỉnh",
-        subtitle: "Giám sát rủi ro 4 tầm dự báo 1-3-6-12 tháng",
+        subtitle: "Giám sát rủi ro ở các tầm dự báo 1, 2, 3 và 6 tháng",
         icon: Map,
         iconColor: "text-emerald-500",
         onSelect: () => {
@@ -182,8 +186,8 @@ export function CommandPaletteModal({
       {
         id: "nav-audit",
         category: "actions",
-        title: "Nhật ký Giám sát & Hồ sơ Tuân thủ (Audit Trail)",
-        subtitle: "Truy vết kiểm toán bất biến theo Nghị định 30/2020/NĐ-CP và mã băm SHA-256",
+        title: "Nhật ký minh họa (không phải log backend)",
+        subtitle: "Dữ liệu diễn tập; không dùng làm bằng chứng kiểm toán",
         icon: ShieldCheck,
         iconColor: "text-emerald-500",
         onSelect: () => {
@@ -194,22 +198,23 @@ export function CommandPaletteModal({
     ];
 
     // Role switcher actions
-    DEMO_ACCOUNTS.forEach((account) => {
-      list.push({
-        id: `role-${account.username}`,
-        category: "roles",
-        title: `Chuyển vai trò: ${account.displayName}`,
-        subtitle: `Tài khoản: ${account.username} (Quyền: ${account.roles.join(", ")})`,
-        icon: UserCheck,
-        iconColor: "text-cyan-500",
-        badge: "Đổi quyền",
-        badgeColor: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-        onSelect: () => {
-          onClose();
-          onSwitchRole(account.username, account.password);
-        },
+    if (demoMode)
+      DEMO_ACCOUNTS.forEach((account) => {
+        list.push({
+          id: `role-${account.username}`,
+          category: "roles",
+          title: `Chuyển vai trò: ${account.displayName}`,
+          subtitle: `Tài khoản: ${account.username} (Quyền: ${account.roles.join(", ")})`,
+          icon: UserCheck,
+          iconColor: "text-cyan-500",
+          badge: "Đổi quyền",
+          badgeColor: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+          onSelect: () => {
+            onClose();
+            onSwitchRole(account.username, account.password);
+          },
+        });
       });
-    });
 
     // 34 Provinces actions
     provinces.forEach((prov) => {
@@ -229,8 +234,19 @@ export function CommandPaletteModal({
       });
     });
 
-    return list;
+    return list.filter((action) => {
+      if (!demoMode && ["act-scenarios", "act-tour", "nav-audit"].includes(action.id)) {
+        return false;
+      }
+      if (["nav-cases", "nav-alerts"].includes(action.id)) {
+        return role === "officer" || role === "approver" || role === "admin";
+      }
+      if (action.id === "nav-runs") return role === "analyst" || role === "admin";
+      return true;
+    });
   }, [
+    demoMode,
+    role,
     onClose,
     onOpenScenarios,
     onOpenTour,
@@ -316,7 +332,11 @@ export function CommandPaletteModal({
                 setQuery(e.target.value);
                 setSelectedIndex(0);
               }}
-              placeholder="Tìm kiếm tỉnh thành, kịch bản, lệnh tác chiến..."
+              placeholder={
+                demoMode
+                  ? "Tìm kiếm tỉnh thành, kịch bản, lệnh tác chiến..."
+                  : "Tìm kiếm tỉnh thành và trang điều hành..."
+              }
               className="w-full bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
             />
             {query ? (

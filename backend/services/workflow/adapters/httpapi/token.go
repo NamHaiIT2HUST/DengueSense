@@ -12,11 +12,16 @@ import (
 
 // IdentityTokenSource requests a workflow service token scoped to GenAI.
 func IdentityTokenSource(identityURL, secret string, client *http.Client) func(context.Context) (string, error) {
+	return IdentityTokenSourceForAudience(identityURL, secret, "genai", client)
+}
+
+// IdentityTokenSourceForAudience requests a workflow service token for an allowed audience.
+func IdentityTokenSourceForAudience(identityURL, secret, audience string, client *http.Client) func(context.Context) (string, error) {
 	return func(ctx context.Context) (string, error) {
-		if identityURL == "" || secret == "" {
+		if identityURL == "" || secret == "" || audience == "" {
 			return "", errors.New("workflow identity credentials missing")
 		}
-		body, err := json.Marshal(map[string]string{"service": "workflow", "audience": "genai", "client_secret": secret})
+		body, err := json.Marshal(map[string]string{"service": "workflow", "audience": audience, "client_secret": secret})
 		if err != nil {
 			return "", err
 		}

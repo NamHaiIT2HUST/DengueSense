@@ -66,7 +66,7 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
     );
     notify.success(
       "Xuất nhật ký thành công",
-      "Tệp kiểm toán bất biến định dạng Excel CSV đã được tải về máy"
+      "Tệp chỉ chứa bản ghi minh họa, không lấy từ nhật ký backend."
     );
   }
 
@@ -93,14 +93,14 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
                   id="audit-modal-title"
                   className="text-base sm:text-lg font-bold text-slate-900 dark:text-white"
                 >
-                  Nhật Ký Giám Sát & Hồ Sơ Tuân Thủ AI (Audit Trail)
+                  Nhật ký minh họa (không kết nối audit backend)
                 </h2>
                 <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">
                   Nghị định 30/2020/NĐ-CP
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-[var(--ink-secondary)] mt-0.5">
-                Bảo đảm tính toàn vẹn dữ liệu, truy vết trách nhiệm và nguyên tắc Zero-Hallucination
+                Các dòng bên dưới là dữ liệu diễn tập; không phải bằng chứng kiểm toán thực.
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
               <strong className="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                 100%
               </strong>
-              <span className="text-[10px] text-slate-400">Zero-Hallucination</span>
+              <span className="text-[10px] text-slate-400">Khóa số liệu G1</span>
             </div>
           </div>
 
@@ -316,7 +316,7 @@ export function AuditGovernanceModal({ open, onClose }: AuditGovernanceModalProp
         <div className="flex items-center justify-between border-t border-slate-200 px-6 py-3.5 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900/40 text-xs">
           <div className="flex items-center gap-1.5 text-slate-500">
             <Lock size={13} className="text-emerald-500" />
-            <span>Mọi thao tác được đóng dấu bất biến và lưu trữ theo chuẩn ISO 27001</span>
+            <span>Dữ liệu minh họa; không dùng để chứng minh tuân thủ hoặc phê duyệt.</span>
           </div>
           <Button variant="secondary" className="px-4 py-1.5 text-xs" onClick={onClose}>
             Đóng

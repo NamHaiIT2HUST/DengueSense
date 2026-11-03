@@ -2,10 +2,13 @@ package domain
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrAlertNotFound = errors.New("không tìm thấy cảnh báo")
 
 type AlertStatus string
 

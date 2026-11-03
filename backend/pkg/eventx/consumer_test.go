@@ -94,3 +94,45 @@ func TestConsumer_RetriesAndRoutesToDLQ(t *testing.T) {
 	processed, _ := inbox.AlreadyProcessed(ctx, eventUUID)
 	assert.True(t, processed)
 }
+
+func TestConsumer_FailedDeliveryCanBeRetried(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		dlq  *eventx.InMemoryPublisher
+	}{
+		{name: "no DLQ"},
+		{name: "DLQ publish fails", dlq: eventx.NewInMemoryPublisher(0)},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			inbox := eventx.NewInMemoryInboxStore()
+			var dlq eventx.Publisher
+			if tc.dlq != nil {
+				tc.dlq.SetFailNext(errors.New("DLQ unavailable"))
+				dlq = tc.dlq
+			}
+			shouldFail := true
+			consumer := eventx.NewConsumer(inbox, func(_ context.Context, _ eventx.Envelope) error {
+				if shouldFail {
+					return errors.New("temporary failure")
+				}
+				return nil
+			}, eventx.ConsumerOptions{MaxAttempts: 1, DLQPublisher: dlq})
+			env, err := eventx.New("denguesense/surveillance", eventx.TypeDataVersionPublished, 1, "test", eventx.DataVersionPublished{
+				DataVersion: "v0.3.0", FirstMonth: "1994-01", LastMonth: "2025-12", RealShare: 0.727,
+			})
+			require.NoError(t, err)
+			raw, err := json.Marshal(env)
+			require.NoError(t, err)
+			require.Error(t, consumer.HandleMessage(ctx, raw))
+			processed, err := inbox.AlreadyProcessed(ctx, uuid.MustParse(env.ID))
+			require.NoError(t, err)
+			require.False(t, processed)
+			shouldFail = false
+			require.NoError(t, consumer.HandleMessage(ctx, raw))
+			processed, err = inbox.AlreadyProcessed(ctx, uuid.MustParse(env.ID))
+			require.NoError(t, err)
+			require.True(t, processed)
+		})
+	}
+}

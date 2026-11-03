@@ -52,6 +52,39 @@ def test_origin_without_data_or_targets_is_rejected():
         engine.validate_backtest_origin(_ctx_stub("2010-12", ["2010-02"]), "2010-03")
 
 
+@pytest.mark.skipif(not PANEL.exists(), reason="panel v0.2.0 chưa được dựng trên máy")
+def test_experimental_2026_uses_imputed_inputs_but_never_trains_on_estimates():
+    meta = pd.read_csv(_ROOT / "data" / "external" / "province_metadata.csv")
+    regions = dict(zip(meta["new_province_code"], meta["region"], strict=True))
+    ctx = engine.PanelContext(pd.read_parquet(PANEL), regions)
+    origin = engine.validate_experimental_origin(ctx, "2025-12")
+    assert ctx.latest_input_month == pd.Timestamp("2025-03-01")
+    assert ctx.last_real_month == pd.Timestamp("2010-12-01")
+    assert set(ctx.reg_pairs(1)["data_source"]) == {"real"}
+    assert (
+        ctx.input_window_sources("ha_noi", origin)
+        == ["estimated"] * 3 + ["imputed"] * 9
+    )
+    run = engine.compute_experimental_run(ctx, "2025-12")
+    assert len(run.items) == 34 * 4
+    assert {item["target_month"] for item in run.items} == {
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-06",
+    }
+    for item in run.items:
+        assert item["cases_pred"] >= 0
+        assert item["input_data_sources"] == {
+            "real": 0.0,
+            "estimated": 0.25,
+            "imputed": 0.75,
+        }
+        assert "estimated_inputs" in item["flags"]
+        assert "stale_data" in item["flags"]
+        assert "out_of_validated_period" in item["flags"]
+
+
 def _assert_statistically_equivalent(got, want):
     """Nền tảng KHÁC (Linux/Docker): RNG lấy mẫu con của XGBoost phụ thuộc thư viện chuẩn của trình biên dịch nên số không
     trùng từng chữ số. Đo trên container Linux: tương quan log ≥ 0,9997, Spearman xác suất ≥ 0,988, |Δp| trung bình ≈ 0,02.

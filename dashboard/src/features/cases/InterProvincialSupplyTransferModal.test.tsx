@@ -24,7 +24,7 @@ describe("InterProvincialSupplyTransferModal Component", () => {
     );
 
     expect(screen.getByText("Điều Phối & Chi Viện Kho Vật Tư Liên Tỉnh")).toBeInTheDocument();
-    expect(screen.getByText("Cơ chế mượn - hoàn trả")).toBeInTheDocument();
+    expect(screen.getByText("Mô phỏng, không kết nối kho CDC")).toBeInTheDocument();
     expect(screen.getByLabelText("Chọn đơn vị xuất cấp chi viện")).toBeInTheDocument();
     expect(screen.getByLabelText("Chọn địa bàn tâm dịch tiếp nhận")).toBeInTheDocument();
   });
@@ -41,18 +41,15 @@ describe("InterProvincialSupplyTransferModal Component", () => {
       />
     );
 
-    const exportBtn = screen.getByRole("button", { name: /Xuất biên bản lệnh điều động/i });
+    const exportBtn = screen.getByRole("button", { name: /Xuất kịch bản mô phỏng/i });
     fireEvent.click(exportBtn);
 
     expect(exportSpy).toHaveBeenCalledWith(
-      expect.stringContaining("DengueSense_Bien_Ban_Dieu_Dong_Chi_Vien"),
+      expect.stringContaining("DengueSense_Mo_Phong_Chi_Vien"),
       expect.any(Array),
       expect.any(Array)
     );
-    expect(notifySpy).toHaveBeenCalledWith(
-      "Xuất lệnh điều động chi viện thành công",
-      expect.any(String)
-    );
+    expect(notifySpy).toHaveBeenCalledWith("Đã xuất kịch bản mô phỏng", expect.any(String));
   });
 
   it("triggers dispatch order and closes modal on confirm", () => {
@@ -67,13 +64,10 @@ describe("InterProvincialSupplyTransferModal Component", () => {
       />
     );
 
-    const dispatchBtn = screen.getByRole("button", { name: /Ban hành lệnh chi viện/i });
+    const dispatchBtn = screen.getByRole("button", { name: /Đóng kịch bản mô phỏng/i });
     fireEvent.click(dispatchBtn);
 
-    expect(notifySpy).toHaveBeenCalledWith(
-      "Ban hành lệnh điều động chi viện khẩn cấp",
-      expect.any(String)
-    );
+    expect(notifySpy).toHaveBeenCalledWith("Đã xem xong kịch bản chi viện", expect.any(String));
     expect(closeMock).toHaveBeenCalledTimes(1);
   });
 });

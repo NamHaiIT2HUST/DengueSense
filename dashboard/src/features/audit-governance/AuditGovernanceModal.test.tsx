@@ -12,9 +12,7 @@ describe("AuditGovernanceModal", () => {
   it("renders audit records and stats when opened", () => {
     render(<AuditGovernanceModal open={true} onClose={vi.fn()} />);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(
-      screen.getByText("Nhật Ký Giám Sát & Hồ Sơ Tuân Thủ AI (Audit Trail)")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Nhật ký minh họa (không kết nối audit backend)")).toBeInTheDocument();
     expect(screen.getByText("AUD-2026-0942")).toBeInTheDocument();
     expect(screen.getByText("Phê duyệt Công điện B2G (Quy tắc 4 mắt)")).toBeInTheDocument();
   });

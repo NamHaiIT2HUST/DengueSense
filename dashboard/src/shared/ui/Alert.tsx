@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 
-type Tone = "error" | "info" | "warning";
+type Tone = "error" | "info" | "warning" | "success";
 
 const TONES: Record<Tone, string> = {
   error:
@@ -9,6 +9,8 @@ const TONES: Record<Tone, string> = {
   warning:
     "border-amber-300 bg-amber-50/90 text-amber-950 dark:border-[var(--status-warning)] dark:bg-[color-mix(in_srgb,var(--status-warning)_12%,transparent)] dark:text-[#fbd98a]",
   info: "border-blue-200 bg-blue-50/90 text-blue-900 dark:border-[var(--accent)] dark:bg-[var(--accent-soft)] dark:text-[var(--accent-ink)]",
+  success:
+    "border-emerald-300 bg-emerald-50/90 text-emerald-950 dark:border-[var(--status-good)] dark:bg-[color-mix(in_srgb,var(--status-good)_14%,transparent)] dark:text-[var(--status-good-ink)]",
 };
 
 /** Lỗi dùng role="alert" (đọc ngay); thông tin/cảnh báo dùng role="status". */

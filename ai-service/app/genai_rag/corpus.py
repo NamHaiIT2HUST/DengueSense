@@ -1,23 +1,20 @@
 """Load source documents and reviewed extraction units for offline retrieval."""
 
 import hashlib
+import importlib
 import json
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict
 
 try:
-    from pypdf import PdfReader
+    PdfReader: Any = importlib.import_module("pypdf").PdfReader
+    LimitReachedError: Any = importlib.import_module("pypdf.errors").LimitReachedError
 except ImportError:
     PdfReader = None
-
-
-class IndexedSection(BaseModel):
-    section_id: str
-    unit_ids: list[str]
-    description: str = ""
+    LimitReachedError = None
 
 
 class Document(BaseModel):
@@ -30,7 +27,6 @@ class Document(BaseModel):
         "unverified", "effective", "expired", "replaced", "not_applicable"
     ]
     professional_review: Literal["pending", "approved", "rejected"]
-    indexed_sections: list[IndexedSection]
     resolved_path: Path
 
 
@@ -41,20 +37,24 @@ class PageDraft(BaseModel):
 
 
 class SourceUnit(BaseModel):
+    model_config = ConfigDict(extra="allow")
     unit_id: str
     document_id: str
     section_path: str
     pdf_pages: list[int]
-    printed_pages: str | None
+    printed_pages: str | None = None
     text: str
     review_status: str
     eligibility: Literal["benchmark_only"]
+    pdf_sha256: str | None = None
+    comparator: str | None = None
+    comparison_date: str | None = None
+    notes: str | None = None
 
 
-def validate_manifest(manifest: dict, repo_root: Path) -> list[Document]:
+def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> list[Document]:
     documents = []
     seen = set()
-    unit_owners = {}
     root = repo_root.resolve()
     for item in manifest["documents"]:
         relative = Path(item["path"])
@@ -66,38 +66,72 @@ def validate_manifest(manifest: dict, repo_root: Path) -> list[Document]:
         doc = Document.model_validate({**item, "resolved_path": path})
         if doc.document_id in seen or doc.page_count < 1:
             raise ValueError("INVALID_MANIFEST")
-        section_ids = [section.section_id for section in doc.indexed_sections]
-        unit_ids = [uid for section in doc.indexed_sections for uid in section.unit_ids]
-        if (
-            not all(section_ids)
-            or len(set(section_ids)) != len(section_ids)
-            or not all(unit_ids)
-            or len(set(unit_ids)) != len(unit_ids)
-        ):
-            raise ValueError(f"INVALID_SECTIONS: {doc.document_id}")
-        for unit_id in unit_ids:
-            if unit_id in unit_owners:
-                raise ValueError(
-                    f"DUPLICATE_UNIT_ID: {unit_id} documents={unit_owners[unit_id]},{doc.document_id}"
-                )
-            unit_owners[unit_id] = doc.document_id
         seen.add(doc.document_id)
         documents.append(doc)
     return documents
 
 
-def extract_pages(document: Document) -> list[PageDraft]:
+def render_page_images(
+    document: Document, output_dir: Path, dpi: int = 150
+) -> list[Path]:
+    pymupdf = importlib.import_module("pymupdf")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images: list[Path] = []
+    with pymupdf.open(document.resolved_path) as pdf:
+        for i, page in enumerate(pdf, 1):
+            target = output_dir / f"{document.document_id}-page-{i}.png"
+            pix = page.get_pixmap(dpi=dpi)
+            pix.save(target)
+            images.append(target)
+    return images
+
+
+def extract_pages(document: Document, use_fallback: bool = False) -> list[PageDraft]:
+    if use_fallback:
+        pymupdf = importlib.import_module("pymupdf")
+        with pymupdf.open(document.resolved_path) as pdf:
+            if len(pdf) != document.page_count:
+                raise ValueError("PAGE_COUNT_MISMATCH")
+            result = [
+                PageDraft(
+                    document_id=document.document_id,
+                    pdf_page=i,
+                    text=page.get_text() or "",
+                )
+                for i, page in enumerate(pdf, 1)
+            ]
+        if not any(page.text.strip() for page in result):
+            raise ValueError("OCR_REQUIRED")
+        return result
+
     if PdfReader is None:
         raise RuntimeError("pypdf required; install requirements-rag.txt")
     pages = PdfReader(document.resolved_path).pages
     if len(pages) != document.page_count:
         raise ValueError("PAGE_COUNT_MISMATCH")
-    result = [
-        PageDraft(
-            document_id=document.document_id, pdf_page=i, text=page.extract_text() or ""
-        )
-        for i, page in enumerate(pages, 1)
-    ]
+    try:
+        result = [
+            PageDraft(
+                document_id=document.document_id,
+                pdf_page=i,
+                text=page.extract_text() or "",
+            )
+            for i, page in enumerate(pages, 1)
+        ]
+    except LimitReachedError:
+        # Some public PDF exports exceed pypdf's stream limit. Preserve the
+        # exact input file and use a second parser for extraction only.
+        pymupdf = importlib.import_module("pymupdf")
+
+        with pymupdf.open(document.resolved_path) as pdf:
+            result = [
+                PageDraft(
+                    document_id=document.document_id,
+                    pdf_page=i,
+                    text=page.get_text() or "",
+                )
+                for i, page in enumerate(pdf, 1)
+            ]
     if not any(page.text.strip() for page in result):
         raise ValueError("OCR_REQUIRED")
     return result
@@ -107,7 +141,7 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
     manifest_path = manifest_path.resolve()
     root = next(
         (p for p in manifest_path.parents if (p / ".git").exists()),
-        manifest_path.parent,
+        manifest_path.parents[2],
     )
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     documents = {d.document_id: d for d in validate_manifest(manifest, root)}
@@ -118,24 +152,14 @@ def load_units(manifest_path: Path, units_path: Path) -> list[SourceUnit]:
     seen = set()
     for unit in units:
         if unit.document_id not in documents or unit.unit_id in seen:
-            raise ValueError(
-                f"INVALID_UNIT: {unit.unit_id} document={unit.document_id}"
-            )
+            raise ValueError("INVALID_UNIT")
         seen.add(unit.unit_id)
-        doc = documents[unit.document_id]
-        allowed = {uid for section in doc.indexed_sections for uid in section.unit_ids}
-        if unit.unit_id not in allowed:
-            raise ValueError(
-                f"OUT_OF_SCOPE: {unit.unit_id} document={unit.document_id}"
-            )
         if not unit.pdf_pages or any(
             p < 1 or p > documents[unit.document_id].page_count for p in unit.pdf_pages
         ):
-            raise ValueError(
-                f"PAGE_RANGE_INVALID: {unit.unit_id} document={unit.document_id}"
-            )
+            raise ValueError("PAGE_RANGE_INVALID")
         if unit.review_status != "checked" or not unit.text.strip():
-            raise ValueError(
-                f"UNREVIEWED_TEXT: {unit.unit_id} document={unit.document_id}"
-            )
+            raise ValueError("UNREVIEWED_TEXT")
+        if not unit.pdf_sha256 or unit.pdf_sha256 != documents[unit.document_id].sha256:
+            raise ValueError("UNIT_HASH_MISMATCH")
     return units

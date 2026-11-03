@@ -3,10 +3,12 @@ package postgres
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/NamHaiIT2HUST/DengueSense/backend/services/workflow/domain"
@@ -25,7 +27,7 @@ func NewRepo(db *pgxpool.Pool) *Repo {
 // ---------------------------------------------------------------------
 
 func (r *Repo) CreateAlert(ctx context.Context, alert *domain.Alert) error {
-	query := `INSERT INTO alerts (id, run_id, province_id, created_at, status) VALUES ($1, $2, $3, $4, $5)`
+	query := `INSERT INTO alerts (id, run_id, province_id, created_at, status) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (id) DO NOTHING`
 	_, err := r.db.Exec(ctx, query, alert.ID, alert.RunID, alert.ProvinceID, alert.CreatedAt, alert.Status)
 	return err
 }
@@ -79,6 +81,44 @@ func (r *Repo) UpdateAlertStatus(ctx context.Context, id uuid.UUID, status domai
 	query := `UPDATE alerts SET status = $1 WHERE id = $2`
 	_, err := r.db.Exec(ctx, query, status, id)
 	return err
+}
+
+// ConfirmAlertWithCase khoá cảnh báo, tạo hồ sơ và đóng cảnh báo trong một giao dịch.
+func (r *Repo) ConfirmAlertWithCase(ctx context.Context, id uuid.UUID, actorID string) error {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	var status string
+	if err := tx.QueryRow(ctx, `SELECT status FROM alerts WHERE id=$1 FOR UPDATE`, id).Scan(&status); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.ErrAlertNotFound
+		}
+		return err
+	}
+	if status == string(domain.AlertStatusClosed) {
+		var linked bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM case_alerts WHERE alert_id=$1)`, id).Scan(&linked); err != nil {
+			return err
+		}
+		if linked {
+			return tx.Commit(ctx)
+		}
+		// Khôi phục cảnh báo bị đóng dở bởi phiên bản cũ nhưng chưa có hồ sơ.
+	}
+	caseID, now := uuid.New(), time.Now().UTC()
+	_, err = tx.Exec(ctx, `INSERT INTO cases (id, alert_id, title, status, created_by, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$6)`, caseID, id, "Hồ sơ xử lý cảnh báo dịch", domain.CaseStatusOpen, actorID, now)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `INSERT INTO case_alerts (case_id, alert_id) VALUES ($1,$2)`, caseID, id); err != nil {
+		return err
+	}
+	if _, err = tx.Exec(ctx, `UPDATE alerts SET status=$1 WHERE id=$2`, domain.AlertStatusClosed, id); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }
 
 // ---------------------------------------------------------------------
@@ -350,6 +390,47 @@ func (r *Repo) CreateReview(ctx context.Context, review *domain.Review) error {
 	          VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := r.db.Exec(ctx, query, review.ID, review.DraftID, review.DraftVersion, review.ReviewerID, string(review.Action), review.Note, review.ReviewedAt)
 	return err
+}
+
+// ReviewDraft locks the current version so two approvers cannot both approve, and
+// the audit row cannot be committed without the corresponding draft status.
+func (r *Repo) ReviewDraft(ctx context.Context, review *domain.Review) (*domain.DispatchDraft, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	var draft domain.DispatchDraft
+	var draftType, status string
+	err = tx.QueryRow(ctx, `SELECT id, case_id, version, draft_type, title, content, content_hash, status, created_by, created_at, updated_at, generation_evidence
+		FROM dispatch_drafts WHERE id=$1 FOR UPDATE`, review.DraftID).Scan(
+		&draft.ID, &draft.CaseID, &draft.Version, &draftType, &draft.Title, &draft.Content,
+		&draft.ContentHash, &status, &draft.CreatedBy, &draft.CreatedAt, &draft.UpdatedAt, &draft.GenerationEvidence,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrDraftNotFound
+		}
+		return nil, err
+	}
+	draft.DraftType = domain.DraftType(draftType)
+	draft.Status = domain.DraftStatus(status)
+	if err := draft.ValidateReview(review.ReviewerID, review.DraftVersion, review.Action); err != nil {
+		return nil, err
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO reviews (id, draft_id, draft_version, reviewer_id, action, note, reviewed_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)`, review.ID, review.DraftID, review.DraftVersion,
+		review.ReviewerID, string(review.Action), review.Note, review.ReviewedAt); err != nil {
+		return nil, err
+	}
+	draft.ApplyReview(review.Action)
+	if _, err := tx.Exec(ctx, `UPDATE dispatch_drafts SET status=$1, updated_at=$2 WHERE id=$3`, draft.Status, draft.UpdatedAt, draft.ID); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	return &draft, nil
 }
 
 func (r *Repo) GetLatestReviewByDraft(ctx context.Context, draftID uuid.UUID) (*domain.Review, error) {

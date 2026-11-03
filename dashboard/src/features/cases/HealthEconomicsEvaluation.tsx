@@ -32,10 +32,10 @@ export function HealthEconomicsEvaluation({ casesPrevented, interventionCost }: 
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Đánh Giá Hiệu Quả Kinh Tế Y Tế & DALYs
+              Ước tính mô phỏng kinh tế y tế & DALYs
             </h4>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Đối chuẩn phương án can thiệp sớm MILP so với phản ứng thụ động
+              Các đơn giá và hệ số DALY là giả định minh họa, chưa được kiểm chứng tại thực địa
             </span>
           </div>
         </div>

@@ -16,9 +16,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/* \
     && pip install -r requirements-serving.txt
 
-# Thư viện nghiên cứu (mô hình, đặc trưng — CHỈ mã Python, không notebook/data/experiments) + lớp phục vụ.
+# Chỉ mã phục vụ và ba hiện vật benchmark nhỏ; PDF nguồn không nằm trong image.
 COPY app/forecast ./app/forecast
+COPY app/optimize ./app/optimize
+COPY app/genai_rag ./app/genai_rag
 COPY app/serving ./app/serving
+COPY experiments/exp_018_rag_retrieval/corpus-manifest.yaml \
+     experiments/exp_018_rag_retrieval/reviewed-units.json \
+     experiments/exp_018_rag_retrieval/queries.jsonl \
+     ./experiments/exp_018_rag_retrieval/
 
 ARG VERSION=dev
 ENV BUILD_VERSION=${VERSION}

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.optimize import OptimizeItemInput, optimize_allocation
@@ -46,6 +46,7 @@ def allocate_resources(req: AllocateRequest) -> AllocateResponse:
             province_id=item.province_id,
             cases_pred=item.cases_pred,
             is_high_risk=item.cases_pred >= 250,
+            max_cost=item.cost if item.cost > 0 else None,
         )
         for item in req.items
     ]
@@ -55,6 +56,12 @@ def allocate_resources(req: AllocateRequest) -> AllocateResponse:
         budget=req.budget,
         strategy=req.strategy,
     )
+
+    if req.strategy == "milp_marginal" and not result.is_optimal:
+        raise HTTPException(
+            status_code=422,
+            detail="Không tìm được phương án thoả mãn ràng buộc ngân sách",
+        )
 
     allocations = [
         Allocation(

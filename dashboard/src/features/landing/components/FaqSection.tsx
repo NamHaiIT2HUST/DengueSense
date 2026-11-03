@@ -9,32 +9,29 @@ interface FaqItem {
 
 const FAQS: FaqItem[] = [
   {
-    question:
-      "Chỉ số độ chính xác 89.5% của mô hình cảnh báo sớm được đo lường và kiểm chứng như thế nào?",
+    question: "Chỉ số ROC-AUC của mô hình được đo như thế nào?",
     answer:
-      "Chỉ số 89.5% là độ chính xác phân loại sự kiện bùng phát dịch (tháng có số ca vượt ngưỡng P75 lịch sử của chính tỉnh đó) được đo lường trên tập dữ liệu đo thật qua 6 mùa dịch (2005–2010) tại 34 tỉnh trọng điểm. Mô hình tổ hợp M4-R2 (XGBoost + Random Forest) kết hợp 17 đặc trưng nhân quả từ dịch tễ học và dữ liệu tái phân tích khí hậu toàn cầu ERA5 (nhiệt độ, lượng mưa, độ ẩm), tuân thủ nghiêm ngặt quy tắc chia tập theo thời gian (Time-series split) và embargo 1 tháng để chống rò rỉ dữ liệu tương lai.",
+      "M4-R2 đạt ROC-AUC trung bình 0.809 trên sáu mùa 2005–2010 trong thí nghiệm exp_016. Đây là kết quả đánh giá dữ liệu lịch sử cấp tỉnh, không phải độ chính xác dự báo hiện nay. Thiết kế mô hình đã chịu ảnh hưởng của các mùa đánh giá, nên chưa thể coi đây là kiểm chứng độc lập hoàn toàn. Xem Hồ sơ mô hình để biết phương pháp và giới hạn.",
   },
   {
-    question: "Giải thuật tối ưu hoá nguồn lực (MILP) có bị chậm khi mở rộng hàng trăm huyện/xã?",
+    question: "Phương án phân bổ đã được kiểm chứng ngoài thực địa chưa?",
     answer:
-      "Không. Hệ thống sử dụng công cụ giải toán công nghiệp Google OR-Tools CP-SAT, mô hình hoá xấp xỉ tuyến tính từng đoạn (piecewise linear) cho hàm lợi ích biên giảm dần. Trên quy mô 34 tỉnh trọng điểm toàn quốc, thời gian giải bài toán phân bổ chỉ mất từ vài chục mili-giây đến dưới 1 giây, hoàn toàn đáp ứng yêu cầu phản ứng khẩn cấp thời gian thực.",
+      "Chưa. Google OR-Tools giải bài toán phân bổ trong bản demo; ngân sách, hiệu quả giảm ca và tồn kho liên tỉnh là giả định mô phỏng. Cần dữ liệu thực địa và đánh giá chuyên môn trước khi dùng để điều hành.",
   },
   {
-    question:
-      "Làm thế nào để đảm bảo Trợ lý GenAI không bị ảo giác (Hallucination) số liệu trong y tế?",
+    question: "Dự thảo GenAI được kiểm soát thế nào?",
     answer:
-      "DengueSense áp dụng cơ chế bảo vệ nghiêm ngặt Guardrail G1 (Strict Data Locking): Mô hình ngôn ngữ lớn (LLM) không được phép tự do sinh số liệu. Mọi số liệu trong văn bản (số ca dự báo, ngân sách, số giường bệnh, số hóa chất, số đội cơ động, tên địa bàn) đều được khóa cứng 100% từ kết quả tính toán của mô hình dự báo dịch tễ và thuật toán phân bổ nguồn lực. Nếu phát hiện sai lệch dù chỉ 1 con số, hệ thống tự động kích hoạt bộ ngắt mạch (Circuit Breaker) và phục hồi về bản mẫu khóa cứng an toàn. Đồng thời tuân thủ cơ chế thẩm định 4 mắt (Human-in-the-loop: chuyên viên lập, lãnh đạo duyệt mới ký số).",
+      "Guardrails G1–G6 kiểm tra số liệu và trích dẫn; khi không đủ căn cứ, service chặn hoặc dùng mẫu dự phòng có nhãn. Văn bản vẫn chỉ là dự thảo mô phỏng, cần người có thẩm quyền xem và phê duyệt. Corpus truy hồi thử nghiệm chưa được dùng cho công điện B2G.",
   },
   {
-    question: "Hệ thống có bảo đảm an toàn dữ liệu cá nhân (PII) của bệnh nhân không?",
+    question: "Bản demo có dữ liệu cá nhân bệnh nhân không?",
     answer:
-      "Tuyệt đối an toàn. DengueSense là nền tảng giám sát dịch tễ học vĩ mô cấp cộng đồng (xã, huyện, tỉnh). Toàn bộ dữ liệu đầu vào là số liệu ca bệnh cộng gộp (aggregated data), hệ thống không thu thập, không lưu trữ và không xử lý bất kỳ thông tin nhận dạng cá nhân nào (như tên tuổi, địa chỉ nhà, số CCCD/BHYT) của người bệnh, tuân thủ đúng quy định bảo vệ dữ liệu cá nhân theo Nghị định số 13/2023/NĐ-CP.",
+      "Bản demo dùng số ca cộng gộp cấp tỉnh và dữ liệu lịch sử. Không nhập tên, địa chỉ, số CCCD/BHYT hoặc hồ sơ bệnh án vào các biểu mẫu. Hệ thống chưa được thẩm định để xử lý dữ liệu bệnh nhân trong vận hành thực tế.",
   },
   {
-    question:
-      "DengueSense có khả năng tích hợp vào các hệ thống HIS/LIS hiện hữu của bệnh viện không?",
+    question: "Đã kết nối HIS/LIS hoặc hệ thống CDC chưa?",
     answer:
-      "Có. Toàn bộ kiến trúc backend của DengueSense được thiết kế theo chuẩn RESTful API và sự kiện Event-Driven (NATS/Kafka) với hợp đồng dữ liệu chuẩn hóa OpenAPI 3.1. Các bệnh viện và viện nghiên cứu có thể tích hợp trực tiếp qua API Gateway để nhận cảnh báo sớm lâm sàng hoặc đồng bộ dự thảo báo cáo vào hệ thống quản lý bệnh viện (HIS) sẵn có mà không cần thay đổi hạ tầng cốt lõi.",
+      "Chưa. Dự án có OpenAPI và kiến trúc service để phát triển tích hợp, nhưng bản thi chạy dữ liệu lịch sử trên localhost. Việc kết nối hệ thống y tế thực cần hợp đồng dữ liệu, phân quyền và kiểm thử riêng.",
   },
 ];
 

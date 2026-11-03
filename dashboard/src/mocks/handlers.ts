@@ -6,8 +6,7 @@
  *  - `base`: tuyệt đối trong Node ("http://localhost/api/v1"), tương đối trong trình duyệt ("/api/v1");
  *  - `store`: "phiên demo" — thay cho cookie refresh HttpOnly mà MSW không đặt được (sessionStorage trong demo; chỉ là
  *    giá trị GIẢ để mô phỏng, không phải bí mật thật);
- *  - `data`: nguồn dữ liệu dự báo THẬT của tái hiện lịch sử exp_016 (xem demoData.ts) — máy chủ giả chỉ cắt/ghép,
- *    không tự sinh số.
+ *  - `data`: snapshot tái hiện lịch sử và phép chiếu thử nghiệm do động cơ M4-R2 tạo (xem demoData.ts).
  */
 import { HttpResponse, http } from "msw";
 
@@ -370,22 +369,20 @@ export function createHandlers(
           { field: "origin_month", message: "Định dạng YYYY-MM" },
         ]);
       }
-      if (body.mode !== "backtest") {
-        return problem(
-          409,
-          "forecast.model_not_approved",
-          "Chưa có mô hình được duyệt để chạy trực tiếp"
-        );
+      if (body.mode !== "backtest" && body.mode !== "live_experimental") {
+        return problem(400, "common.validation_error", "Chế độ dự báo không hợp lệ");
       }
-      if (body.origin_month > LAST_BACKTEST_ORIGIN) {
+      if (body.mode === "backtest" && body.origin_month > LAST_BACKTEST_ORIGIN) {
         return problem(400, "forecast.origin_out_of_range", "Tháng neo ngoài khoảng cho phép");
       }
-      const target = (await data.index()).runs.find((r) => r.origin_month === body.origin_month);
+      const target = (await data.index()).runs.find(
+        (r) => r.origin_month === body.origin_month && r.run_mode === body.mode
+      );
       if (!target) {
         return problem(400, "common.validation_error", "Bản demo chưa có tháng neo này", [
           {
             field: "origin_month",
-            message: "Bản demo chỉ có sẵn các tháng neo từ 2009-11 đến 2010-06",
+            message: "Bản demo có tháng neo 11/2009–06/2010 và phép chiếu 12/2025",
           },
         ]);
       }
@@ -528,8 +525,18 @@ export function createHandlers(
       if (!authed(request)) return unauthenticated();
       const alert = alerts.find((a) => a.id === params.alertId);
       if (!alert) return problem(404, "workflow.alert_not_found", "Không tìm thấy cảnh báo");
+      if (alert.status === "closed") return new HttpResponse(null, { status: 204 });
+      cases.unshift({
+        id: `case-${Date.now()}`,
+        alert_id: alert.id,
+        alert_ids: [alert.id],
+        title: "Hồ sơ xử lý cảnh báo dịch",
+        status: "open",
+        created_by: currentUser()?.id ?? "officer",
+        created_at: new Date().toISOString(),
+      });
       alert.status = "closed";
-      return HttpResponse.json(alert);
+      return new HttpResponse(null, { status: 204 });
     }),
 
     // ----- workflow: cases -----
@@ -691,10 +698,32 @@ export function createHandlers(
         (draftType === "b2g"
           ? "Công điện chỉ đạo khẩn cấp phòng chống dịch Sốt xuất huyết"
           : "Thông báo dịch tễ & Khuyến nghị thu dung điều trị bệnh viện");
-      const generatedContent =
+      const selectedPlan = body?.plan_id ? plans.get(body.plan_id) : undefined;
+      if (body?.plan_id && (!selectedPlan || selectedPlan.status !== "confirmed")) {
+        return problem(400, "workflow.plan_not_confirmed", "Phương án chưa được xác nhận");
+      }
+      const planLines = selectedPlan
+        ? [
+            `Phương án đã xác nhận v${selectedPlan.version}: ngân sách ${selectedPlan.budget.toLocaleString("vi-VN")} đồng; chi phí dự kiến ${selectedPlan.total_cost.toLocaleString("vi-VN")} đồng.`,
+            ...selectedPlan.allocations.map(
+              (item) =>
+                `Địa bàn ${item.province_id}: ${item.beds} giường, ${item.supplies} đơn vị vật tư, ${item.teams} đội cơ động; phân bổ ${item.amount.toLocaleString("vi-VN")} đồng.`
+            ),
+          ]
+        : [
+            "Chưa đính kèm phương án phân bổ được xác nhận; không đưa số liệu nguồn lực vào dự thảo.",
+          ];
+      const generatedContent = [
+        "BẢN MÔ PHỎNG CUỘC THI — CHƯA BAN HÀNH, CHƯA KÝ",
         draftType === "b2g"
-          ? `## CÔNG ĐIỆN KHẨN CHỈ ĐẠO PHÒNG CHỐNG DỊCH SỐT XUẤT HUYẾT\n\n**Kính gửi:** Ban Chỉ đạo Phòng chống Dịch bệnh các tỉnh, thành phố và Trung tâm Kiểm soát Bệnh tật (CDC).\n\nCăn cứ vào kết quả mô hình dự báo dịch tễ (XGBoost + Random Forest, ERA5) và phương án tối ưu hoá phân bổ nguồn lực (Google OR-Tools) thuộc hồ sơ "${found.title}":\n\n1. **Kích hoạt phản ứng khẩn cấp:** Huy động đội cơ động phản ứng nhanh và bố trí cơ số giường bệnh thu dung dự phòng tại các cơ sở điều trị.\n2. **Tiếp nhận & cấp phát vật tư:** Khẩn trương tiếp nhận và phân bổ hóa chất Cloramin B, máy phun ULV theo định mức tối ưu đã phê duyệt cho các ổ dịch trọng điểm.\n3. **Giám sát & báo cáo dịch tễ:** Định kỳ tổng hợp, báo cáo ca mắc hàng ngày theo quy định tại Quyết định số 02/2016/QĐ-BYT của Bộ Y tế.\n\n${body?.extra_instructions ? `*Lưu ý chỉ đạo bổ sung:* ${body.extra_instructions}\n\n` : ""}Yêu cầu các đơn vị khẩn trương triển khai thực hiện nghiêm túc.`
-          : `## THÔNG BÁO DỊCH TỄ & KHUYẾN NGHỊ THU DUNG ĐIỀU TRỊ\n\n**Kính gửi:** Ban Giám đốc các Bệnh viện Đa khoa và Bệnh viện Tư nhân trên địa bàn.\n\nCăn cứ vào cảnh báo sớm nguy cơ bùng phát dịch Sốt xuất huyết từ hệ thống DengueSense (chu kỳ dự báo sớm 1–6 tháng):\n\n1. **Chủ động công tác thu dung:** Chuẩn bị sẵn cơ số giường bệnh nội trú, dịch truyền chống sốc và thuốc thiết yếu theo phác đồ điều trị sốt xuất huyết của Bộ Y tế.\n2. **Thiết lập phân luồng:** Bố trí khu vực sàng lọc riêng tại khoa Khám bệnh để phát hiện sớm các dấu hiệu cảnh báo chuyển nặng.\n3. **Liên thông số liệu:** Thực hiện báo cáo ca bệnh nội trú qua hệ thống thông tin giám sát bệnh truyền nhiễm.\n\n${body?.extra_instructions ? `*Khuyến nghị đặc biệt:* ${body.extra_instructions}\n\n` : ""}Trân trọng thông báo đến các cơ sở y tế phối hợp thực hiện.`;
+          ? "Kính gửi: Các đơn vị tham gia diễn tập phòng, chống sốt xuất huyết."
+          : "Kính gửi: Nhóm chuyên môn tham gia diễn tập.",
+        `Hồ sơ tham chiếu: ${found.title}.`,
+        ...planLines,
+        "Đề nghị cán bộ đối chiếu cảnh báo, số liệu dự báo và khả năng đáp ứng tại địa bàn trước khi đề xuất biện pháp.",
+        "Các số liệu và phân bổ trong bản diễn tập không chứng minh hiệu quả can thiệp thực địa.",
+        "Nơi nhận: Các đơn vị tham gia diễn tập.",
+      ].join("\n\n");
       const newDraft: DispatchDraft = {
         id: draftId,
         case_id: found.id,
@@ -704,7 +733,7 @@ export function createHandlers(
         content: generatedContent,
         content_hash: `hash-${draftId}-v1`,
         status: "PENDING_REVIEW",
-        created_by: currentUser()?.username || "officer",
+        created_by: currentUser()?.id || "officer",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -742,7 +771,7 @@ export function createHandlers(
       const current = currentUser();
       if (
         draft.draft_type === "b2g" &&
-        draft.created_by === current?.username &&
+        (draft.created_by === current?.id || draft.created_by === current?.username) &&
         body.action === "approve"
       ) {
         return problem(

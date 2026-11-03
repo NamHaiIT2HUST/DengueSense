@@ -655,7 +655,7 @@ func TestWorkflow_ListAlertsAndConfirmRBAC(t *testing.T) {
 
 func TestWorkflow_ReviewRequiresApproverRole(t *testing.T) {
 	e := newEnv(t, nil)
-	body := `{"draft_version":1,"action":"approve","note":"dong y"}`
+	body := `{"draft_version":1,"action":"approve","note":"dong y","reviewer_id":"forged-reviewer"}`
 
 	// Officer không thể duyệt (403)
 	w := e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleOfficer), body)
@@ -668,7 +668,13 @@ func TestWorkflow_ReviewRequiresApproverRole(t *testing.T) {
 	// Approver duyệt thành công (200)
 	w = e.do("POST", "/api/v1/drafts/"+runID+"/reviews", e.user(t, authx.RoleApprover), body)
 	require.Equal(t, 200, w.Code)
-	assert.Len(t, e.b.callsTo("/internal/v1/workflow/drafts/"+runID+"/reviews"), 1)
+	calls := e.b.callsTo("/internal/v1/workflow/drafts/" + runID + "/reviews")
+	require.Len(t, calls, 1)
+	var forwarded struct {
+		ReviewerID string `json:"reviewer_id"`
+	}
+	require.NoError(t, json.Unmarshal([]byte(calls[0].Body), &forwarded))
+	assert.Equal(t, userID, forwarded.ReviewerID)
 }
 
 func TestWorkflow_ConfirmAllocationPlanForwardsActorIdentity(t *testing.T) {

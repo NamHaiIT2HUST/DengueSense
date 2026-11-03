@@ -20,9 +20,9 @@ export function DispatchPreview({ top }: { top?: ProvinceRisk }) {
             Trụ cột 3 — Tự động hóa dự thảo điều phối (GenAI B2G)
           </h3>
           <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-[var(--ink-secondary)]">
-            Định dạng văn bản hành chính tự động cho luồng điều phối B2G. Toàn bộ số liệu dự báo và
-            phân bổ được khóa cứng từ tầng tính toán AI, ngăn chặn triệt để ảo giác thông tin và
-            tuân thủ thể thức Nghị định 30/2020/NĐ-CP.
+            Định dạng văn bản hành chính tự động cho luồng điều phối B2G mô phỏng. Toàn bộ số liệu
+            dự báo và phân bổ được khóa cứng từ phương án đã xác nhận (Guardrail G1) và tuân thủ thể
+            thức Nghị định 30/2020/NĐ-CP.
           </p>
         </div>
         <ConceptTag />

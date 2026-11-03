@@ -1,0 +1,3 @@
+BEGIN;
+ALTER TABLE inbox DROP COLUMN IF EXISTS event_type;
+COMMIT;

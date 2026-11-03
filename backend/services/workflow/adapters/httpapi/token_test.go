@@ -36,3 +36,19 @@ func TestIdentityTokenSourceRejectsFailure(t *testing.T) {
 		t.Fatal("identity rejection must not produce a service token")
 	}
 }
+
+func TestIdentityTokenSourceForForecastAudience(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request map[string]string
+		if json.NewDecoder(r.Body).Decode(&request) != nil || request["service"] != "workflow" || request["audience"] != "forecast" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		_, _ = w.Write([]byte(`{"access_token":"forecast-token"}`))
+	}))
+	defer server.Close()
+	token, err := httpapi.IdentityTokenSourceForAudience(server.URL, "secret", "forecast", server.Client())(context.Background())
+	if err != nil || token != "forecast-token" {
+		t.Fatalf("unexpected token response: %v", err)
+	}
+}

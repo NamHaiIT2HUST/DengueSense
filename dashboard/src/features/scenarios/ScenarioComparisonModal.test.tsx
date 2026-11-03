@@ -19,6 +19,10 @@ describe("ScenarioComparisonModal", () => {
       />
     );
 
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.parentElement).toBe(document.body);
+    expect(dialog.className).toContain("z-[2000]");
+
     expect(
       screen.getByText(/Đối Sánh Đa Kịch Bản & Phân Tích Độ Nhạy Ngân Sách/i)
     ).toBeInTheDocument();

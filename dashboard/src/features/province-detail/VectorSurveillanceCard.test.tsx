@@ -12,7 +12,9 @@ describe("VectorSurveillanceCard Component", () => {
   it("renders 4 core entomological indices per QĐ 3711/QĐ-BYT", () => {
     render(<VectorSurveillanceCard provinceId="hcm" provinceName="TP. Hồ Chí Minh" />);
 
-    expect(screen.getByText("Giám Sát Côn Trùng Thực Địa & Chỉ Số Vector")).toBeInTheDocument();
+    expect(
+      screen.getByText("Mô phỏng chỉ số côn trùng (chưa có khảo sát thực địa)")
+    ).toBeInTheDocument();
     expect(screen.getByText("QĐ 3711/QĐ-BYT")).toBeInTheDocument();
     expect(screen.getByText("Chỉ số Breteau (BI)")).toBeInTheDocument();
     expect(screen.getByText("Nhà có bọ gậy (HI)")).toBeInTheDocument();
@@ -26,18 +28,15 @@ describe("VectorSurveillanceCard Component", () => {
 
     render(<VectorSurveillanceCard provinceId="hcm" provinceName="TP. Hồ Chí Minh" />);
 
-    const exportBtn = screen.getByRole("button", { name: /Xuất số liệu côn trùng/i });
+    const exportBtn = screen.getByRole("button", { name: /Xuất kịch bản/i });
     fireEvent.click(exportBtn);
 
     expect(exportSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Giam_Sat_Con_Trung_QD3711"),
+      expect.stringContaining("Mo_Phong_Con_Trung_QD3711"),
       expect.any(Array),
       expect.any(Array)
     );
-    expect(notifySpy).toHaveBeenCalledWith(
-      "Xuất dữ liệu giám sát côn trùng thành công",
-      expect.any(String)
-    );
+    expect(notifySpy).toHaveBeenCalledWith("Đã xuất kịch bản côn trùng", expect.any(String));
   });
 
   it("updates indices when adjusting simulation slider", () => {
@@ -58,6 +57,6 @@ describe("VectorSurveillanceCard Component", () => {
     const resetBtn = screen.getByRole("button", { name: /Đặt lại/i });
     fireEvent.click(resetBtn);
 
-    expect(notifySpy).toHaveBeenCalledWith("Đã đặt lại dữ liệu", expect.any(String));
+    expect(notifySpy).toHaveBeenCalledWith("Đã đặt lại kịch bản", expect.any(String));
   });
 });
