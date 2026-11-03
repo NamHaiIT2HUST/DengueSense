@@ -31,6 +31,7 @@ def test_hcdc_question_spanning_two_pages_keeps_complete_text_and_citation():
     assert len(chunks) == 1
     assert text in chunks[0].text
     assert chunks[0].unit_ids == [unit.unit_id]
+    assert chunks[0].source_spans == {unit.unit_id: [(0, len(text))]}
     assert chunks[0].citations == [
         {
             "document_id": "fixture-hcdc",

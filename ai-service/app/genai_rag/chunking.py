@@ -16,6 +16,7 @@ class Chunk:
     citations: list[dict]
     token_counts: dict[str, int]
     content_hash: str
+    source_spans: dict[str, list[tuple[int, int]]]
 
 
 def build_chunks(
@@ -71,6 +72,7 @@ def build_chunks(
                 citations=[citation],
                 token_counts=counts,
                 content_hash=content_hash,
+                source_spans={unit.unit_id: [(0, len(unit.text))]},
             )
         )
     return chunks
