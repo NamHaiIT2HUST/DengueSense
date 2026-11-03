@@ -7,6 +7,7 @@ import re
 import resource
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -124,6 +125,22 @@ def worker(args: argparse.Namespace) -> None:
             attn_implementation="eager",
         )
     model = AutoModel.from_pretrained(model_id, **options).to("cpu").eval()
+    if args.stage == "dev":
+        from experiments.exp_018_rag_retrieval.dense_dev import run
+
+        result = run(
+            args, units, dev, counters, model, tokenizer, torch, revision, dimension
+        )
+        result["load_and_run_seconds"] = time.monotonic() - start
+        result["peak_rss_bytes"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        result["versions"] = {
+            "python": sys.version.split()[0],
+            "torch": torch.__version__,
+            "transformers": transformers.__version__,
+            "tokenizers": tokenizers.__version__,
+        }
+        print(json.dumps(result))
+        return
     records = []
     for sample_id, text in samples:
         encoded = tokenizer(text, return_tensors="pt", truncation=False)
@@ -172,6 +189,7 @@ def worker(args: argparse.Namespace) -> None:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--model", choices=MODELS, required=True)
+    p.add_argument("--stage", choices=("smoke", "dev"), default="smoke")
     p.add_argument("--corpus", type=Path, required=True)
     p.add_argument("--bge-tokenizer", type=Path, required=True)
     p.add_argument("--gte-tokenizer", type=Path, required=True)
@@ -190,6 +208,13 @@ def main() -> None:
     level, swap = memory_state()
     if level != 1:
         raise RuntimeError("INITIAL_MEMORY_PRESSURE")
+    lock = (
+        args.cache / ("dense-" + args.model + ".lock") if args.stage == "dev" else None
+    )
+    if lock:
+        fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        os.write(fd, str(os.getpid()).encode())
+        os.close(fd)
     env = dict(
         os.environ,
         HF_HUB_OFFLINE="1",
@@ -205,30 +230,37 @@ def main() -> None:
         *sys.argv[1:],
         "--worker",
     ]
-    proc = subprocess.Popen(
-        command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env
-    )
-    levels, swaps, peak = [level], [swap], 0
-    reason = None
-    while proc.poll() is None:
-        try:
-            rss_output = subprocess.check_output(
-                ["ps", "-o", "rss=", "-p", str(proc.pid)], text=True
-            ).strip()
-            rss = int(rss_output) * 1024 if rss_output else 0
-            peak = max(peak, rss)
-            level, swap = memory_state()
-            levels.append(level)
-            swaps.append(swap)
-            reason = stop_reason(rss, levels, swaps)
-        except (OSError, ValueError, subprocess.SubprocessError, RuntimeError):
-            reason = "MEMORY_MONITOR_UNAVAILABLE"
-        if reason:
-            proc.terminate()
-            break
-        time.sleep(1)
-    stdout, stderr = proc.communicate()
+    with tempfile.TemporaryFile(mode="w+") as stdout_log, tempfile.TemporaryFile(
+        mode="w+"
+    ) as stderr_log:
+        proc = subprocess.Popen(
+            command, stdout=stdout_log, stderr=stderr_log, text=True, env=env
+        )
+        levels, swaps, peak = [level], [swap], 0
+        reason = None
+        while proc.poll() is None:
+            try:
+                rss_output = subprocess.check_output(
+                    ["ps", "-o", "rss=", "-p", str(proc.pid)], text=True
+                ).strip()
+                rss = int(rss_output) * 1024 if rss_output else 0
+                peak = max(peak, rss)
+                level, swap = memory_state()
+                levels.append(level)
+                swaps.append(swap)
+                reason = stop_reason(rss, levels, swaps)
+            except (OSError, ValueError, subprocess.SubprocessError, RuntimeError):
+                reason = "MEMORY_MONITOR_UNAVAILABLE"
+            if reason:
+                proc.terminate()
+                break
+            time.sleep(1)
+        proc.wait()
+        stdout_log.seek(0)
+        stderr_log.seek(0)
+        stdout, stderr = stdout_log.read(), stderr_log.read()
     result = {
+        "stage": args.stage,
         "model": args.model,
         "model_revision": MODELS[args.model][1],
         "tokenizer_revision": MODELS[args.model][1],
@@ -259,6 +291,8 @@ def main() -> None:
     with args.output.open("x", encoding="utf-8") as output:
         json.dump(result, output, ensure_ascii=False, indent=2)
         output.write("\n")
+    if lock:
+        lock.unlink()
     print(
         json.dumps(
             {"status": result["status"], "reason": reason, "output": str(args.output)}
