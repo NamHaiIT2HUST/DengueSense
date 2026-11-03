@@ -36,6 +36,9 @@ def main() -> None:
     parser.add_argument("--gte-tokenizer", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
+    config = json.loads((EXPERIMENT / "bm25-baseline.json").read_text(encoding="utf-8"))
+    if config["top_k"] != 5:
+        raise ValueError("METRIC_REQUIRES_TOP_5")
     lock = json.loads(verified_bytes(EXPERIMENT / "queries-lock-v0.1.json", LOCK_HASH))
     units = [
         SourceUnit.model_validate(u)
@@ -76,9 +79,9 @@ def main() -> None:
         "bm25": {
             "package": "rank-bm25",
             "version": version("rank-bm25"),
-            "k1": 1.5,
-            "b": 0.75,
-            "top_k": 5,
+            "k1": config["k1"],
+            "b": config["b"],
+            "top_k": config["top_k"],
             "normalization": "NFC + casefold + Unicode alphanumeric",
         },
         "environment": {
@@ -88,7 +91,7 @@ def main() -> None:
         },
         "configurations": {},
     }
-    for target in (256, 512, 1024):
+    for target in config["chunk_sizes"]:
         entry = {"errors": [], "rankings": {}}
         result["configurations"][str(target)] = entry
         try:
@@ -103,7 +106,13 @@ def main() -> None:
             rankings = {}
             for query in queries:
                 try:
-                    rankings[query.query_id] = search_bm25(chunks, query.query)
+                    rankings[query.query_id] = search_bm25(
+                        chunks,
+                        query.query,
+                        top_k=config["top_k"],
+                        k1=config["k1"],
+                        b=config["b"],
+                    )
                     entry["rankings"][query.query_id] = [
                         hit.model_dump() for hit in rankings[query.query_id]
                     ]
@@ -115,7 +124,9 @@ def main() -> None:
                         }
                     )
             entry["metrics"] = (
-                score_queries(queries, rankings, units) if not entry["errors"] else None
+                score_queries(queries, rankings, units, k=config["top_k"])
+                if not entry["errors"]
+                else None
             )
         except (ValueError, RuntimeError) as exc:
             entry["errors"].append({"error": f"{type(exc).__name__}: {exc}"})

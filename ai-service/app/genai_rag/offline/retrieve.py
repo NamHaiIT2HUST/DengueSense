@@ -1,5 +1,6 @@
 """Offline lexical retrieval over reviewed chunks."""
 
+import math
 import re
 import unicodedata
 
@@ -13,18 +14,22 @@ def _tokens(text: str) -> list[str]:
     return re.findall(r"[^\W_]+", unicodedata.normalize("NFC", text).casefold())
 
 
-def search_bm25(chunks: list[Chunk], query: str, top_k: int = 5) -> list[Hit]:
+def search_bm25(
+    chunks: list[Chunk], query: str, top_k: int = 5, *, k1: float, b: float
+) -> list[Hit]:
     if not chunks:
         raise ValueError("EMPTY_CORPUS")
     if type(top_k) is not int or top_k < 1:
         raise ValueError("INVALID_TOP_K")
+    if not math.isfinite(k1) or k1 <= 0 or not math.isfinite(b) or not 0 <= b <= 1:
+        raise ValueError("INVALID_BM25_CONFIG")
     query_tokens = _tokens(query)
     if not query_tokens:
         raise ValueError("INVALID_QUERY")
     corpus = [_tokens(chunk.text) for chunk in chunks]
     if not any(corpus):
         raise ValueError("EMPTY_CORPUS")
-    bm25 = BM25Okapi(corpus, k1=1.5, b=0.75)
+    bm25 = BM25Okapi(corpus, k1=k1, b=b)
     scores = bm25.get_scores(query_tokens)
     terms = set(query_tokens)
     matching = [i for i, tokens in enumerate(corpus) if terms.intersection(tokens)]
