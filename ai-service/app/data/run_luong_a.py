@@ -29,7 +29,7 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 _DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -43,7 +43,7 @@ FULL_YEARS = range(1994, 2026)  # panel muốn phủ hết chuỗi OpenDengue
 
 def _setup_logging() -> logging.Logger:
     _LOG_DIR.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     log_path = _LOG_DIR / f"run_luong_a_{ts}.log"
 
     logger = logging.getLogger("run_luong_a")
