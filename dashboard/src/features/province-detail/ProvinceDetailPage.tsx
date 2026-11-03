@@ -19,7 +19,6 @@ import { TACTICAL_SCENARIOS } from "@/shared/config/scenarios";
 import { exportToCsv } from "@/shared/lib/exportCsv";
 import { evaluateNorthernThermalPhase } from "@/shared/lib/thermalTrigger";
 import {
-  addMonths,
   formatCount,
   formatDecimal,
   formatHorizon,
@@ -428,11 +427,7 @@ function ObservationsChart({
   origin: string;
   isBacktest: boolean;
 }) {
-  // Chỉ vẽ 3 năm trước tháng neo (và phần sau neo): đủ thấy mùa vụ mà không làm phần đáng chú ý bị nén lại.
-  const observed = useMemo(() => {
-    const from = addMonths(origin, -35) ?? "0000-00";
-    return fillMonths(observations.filter((o) => o.month >= from));
-  }, [observations, origin]);
+  const observed = useMemo(() => fillMonths(observations), [observations]);
   const forecast = items.map((i) => ({
     month: i.target_month,
     value: i.cases_pred,
