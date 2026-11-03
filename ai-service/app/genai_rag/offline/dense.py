@@ -73,3 +73,29 @@ def search_dense(
         )
         for i in order
     ]
+
+
+def fuse_rrf(rankings: list[list[Hit]], top_k: int = 5, k: int = 60) -> list[Hit]:
+    if type(top_k) is not int or top_k < 1 or type(k) is not int or k < 1:
+        raise ValueError("INVALID_RRF_SETTINGS")
+    items, scores = {}, {}
+    for ranking in rankings:
+        seen = set()
+        for rank, hit in enumerate(ranking, 1):
+            if hit.chunk_id in seen:
+                raise ValueError("DUPLICATE_CHUNK")
+            seen.add(hit.chunk_id)
+            previous = items.get(hit.chunk_id)
+            if previous and (
+                previous.unit_ids != hit.unit_ids
+                or previous.citations != hit.citations
+                or previous.source_spans != hit.source_spans
+            ):
+                raise ValueError("INCONSISTENT_PROVENANCE")
+            items[hit.chunk_id] = hit
+            scores[hit.chunk_id] = scores.get(hit.chunk_id, 0.0) + 1 / (k + rank)
+    ordered = sorted(scores, key=lambda chunk_id: (-scores[chunk_id], chunk_id))
+    return [
+        items[chunk_id].model_copy(update={"score": scores[chunk_id]})
+        for chunk_id in ordered[:top_k]
+    ]

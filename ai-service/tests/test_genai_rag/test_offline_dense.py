@@ -2,7 +2,12 @@ import numpy as np
 import pytest
 
 from app.genai_rag.offline.chunking import Chunk
-from app.genai_rag.offline.dense import cache_key, load_cached_vector, search_dense
+from app.genai_rag.offline.dense import (
+    cache_key,
+    fuse_rrf,
+    load_cached_vector,
+    search_dense,
+)
 
 
 def sample(chunk_id):
@@ -50,3 +55,27 @@ def test_cache_identity_and_corruption(tmp_path):
     path.write_bytes(b"bad")
     with pytest.raises(ValueError, match="INVALID_VECTOR_CACHE"):
         load_cached_vector(path, 2)
+
+
+def test_rrf_uses_ranks_and_preserves_provenance():
+    from app.genai_rag.offline.evaluate import Hit
+
+    def hit(chunk_id, score):
+        c = sample(chunk_id)
+        return Hit(
+            chunk_id=c.chunk_id,
+            unit_ids=c.unit_ids,
+            score=score,
+            citations=c.citations,
+            source_spans=c.source_spans,
+        )
+
+    result = fuse_rrf([[hit("a", -10), hit("b", 100)], [hit("b", -20), hit("c", 100)]])
+    assert [h.chunk_id for h in result] == ["b", "a", "c"]
+    assert result[0].score == pytest.approx(1 / 62 + 1 / 61)
+    assert result[0].source_spans == {"b": [(0, 5)]}
+    with pytest.raises(ValueError, match="DUPLICATE_CHUNK"):
+        fuse_rrf([[hit("a", 1), hit("a", 2)]])
+    altered = hit("b", 1).model_copy(update={"source_spans": {"b": [(0, 1)]}})
+    with pytest.raises(ValueError, match="INCONSISTENT_PROVENANCE"):
+        fuse_rrf([[hit("b", 1)], [altered]])
