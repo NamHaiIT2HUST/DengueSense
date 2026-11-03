@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 import os
 import tempfile
 import time
@@ -31,6 +32,54 @@ def verify_hashes(expected, paths):
             raise ValueError(f"LOCK_MISMATCH: {key}")
 
 
+def entry_digest(entry):
+    data = json.dumps(
+        entry,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+def verify_checkpoint_digests(checkpoint):
+    if set(checkpoint.get("digests", {})) != set(checkpoint.get("configurations", {})):
+        raise ValueError("CHECKPOINT_INVALID: missing digest")
+    for key, entry in checkpoint["configurations"].items():
+        if entry_digest(entry) != checkpoint["digests"][key]:
+            raise ValueError(f"CHECKPOINT_INVALID: digest {key}")
+
+
+def verify_checkpoint_entry(entry, queries, units, expected_rankings):
+    try:
+        rows = {
+            qid: [Hit.model_validate(h) for h in hits]
+            for qid, hits in entry["rankings"].items()
+        }
+        if rows != expected_rankings or set(rows) != {q.query_id for q in queries}:
+            raise ValueError("rankings")
+        if entry["metrics"] != score_queries(queries, rows, units):
+            raise ValueError("metrics")
+        negatives = {
+            q.query_id: len(rows[q.query_id]) for q in queries if not q.answerable
+        }
+        if entry["negative_hit_counts"] != negatives:
+            raise ValueError("negative hits")
+        timings = entry["combined_retrieval_seconds"]
+        if set(timings) != set(rows):
+            raise ValueError("timing keys")
+        for value in timings.values():
+            if (
+                not isinstance(value, (float, int))
+                or not math.isfinite(value)
+                or value < 0
+            ):
+                raise ValueError("timing")
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("CHECKPOINT_INVALID") from exc
+
+
 def rank_methods(chunks, vectors, query_vector, query, bm25, rrf):
     lexical = search_bm25(
         chunks, query, top_k=rrf["pool_k"], k1=bm25["k1"], b=bm25["b"]
@@ -43,7 +92,7 @@ def rank_methods(chunks, vectors, query_vector, query, bm25, rrf):
     }
 
 
-def main():
+def run_matrix(args):
     from experiments.exp_018_rag_retrieval.bm25_dev import (
         TOKENIZER_HASHES,
         verified_bytes,
@@ -55,17 +104,6 @@ def main():
         check_selection,
     )
 
-    parser = argparse.ArgumentParser(description=__doc__)
-    for name in (
-        "corpus",
-        "bge-tokenizer",
-        "gte-tokenizer",
-        "cache",
-        "output",
-        "checkpoint",
-    ):
-        parser.add_argument("--" + name, type=Path, required=True)
-    args = parser.parse_args()
     check_selection()
     if args.output.exists():
         raise FileExistsError(args.output)
@@ -98,14 +136,17 @@ def main():
         for name, tok in toks.items()
     }
     sources = {
-        name: ROOT / filename
-        for name, filename in (
-            ("gte", "eval-gte-v0.1.json"),
-            ("bge", "eval-bge-v0.1.json"),
-        )
+        "gte": args.gte_run or ROOT / "eval-gte-v0.1.json",
+        "bge": args.bge_run or ROOT / "eval-bge-v0.1.json",
     }
     identity = {
         "matrix_runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "corpus_code_sha256": hashlib.sha256(
+            Path("app/genai_rag/offline/corpus.py").read_bytes()
+        ).hexdigest(),
+        "bm25_runner_sha256": hashlib.sha256(
+            (ROOT / "bm25_dev.py").read_bytes()
+        ).hexdigest(),
         "eval_encoder_sha256": hashlib.sha256(
             (ROOT / "eval_encoder.py").read_bytes()
         ).hexdigest(),
@@ -119,11 +160,12 @@ def main():
             for name, path in sources.items()
         },
     }
-    checkpoint = {"identity": identity, "configurations": {}}
+    checkpoint = {"identity": identity, "configurations": {}, "digests": {}}
     if args.checkpoint.exists():
         checkpoint = json.loads(args.checkpoint.read_text())
         if checkpoint.get("identity") != identity:
             raise ValueError("CHECKPOINT_MISMATCH")
+        verify_checkpoint_digests(checkpoint)
 
     def save():
         fd, temp = tempfile.mkstemp(prefix=".eval-", dir=args.checkpoint.parent)
@@ -157,8 +199,6 @@ def main():
             keys = [f"dense-{model}-{size}", f"hybrid-{model}-{size}"]
             if model == "gte":
                 keys.append(f"bm25-{size}")
-            if all(key in checkpoint["configurations"] for key in keys):
-                continue
             chunks = build_chunks(units, size, counters)
             vectors = np.stack([vector(c.text) for c in chunks])
             rankings = {key: {} for key in keys}
@@ -183,7 +223,12 @@ def main():
                     rankings[key][q.query_id] = methods[kind]
             for key in keys:
                 rows = rankings[key]
-                checkpoint["configurations"][key] = {
+                if key in checkpoint["configurations"]:
+                    verify_checkpoint_entry(
+                        checkpoint["configurations"][key], queries, units, rows
+                    )
+                    continue
+                entry = {
                     "metrics": score_queries(queries, rows, units),
                     "rankings": {
                         qid: [h.model_dump() for h in hits]
@@ -196,12 +241,39 @@ def main():
                     },
                     "combined_retrieval_seconds": timings,
                 }
+                checkpoint["configurations"][key] = entry
+                checkpoint["digests"][key] = entry_digest(entry)
             save()
-    if len(checkpoint["configurations"]) != 15:
+    expected_keys = {
+        f"{method}-{size}"
+        for size in bm["chunk_sizes"]
+        for method in ("bm25", "dense-gte", "dense-bge", "hybrid-gte", "hybrid-bge")
+    }
+    if set(checkpoint["configurations"]) != expected_keys:
         raise ValueError("INCOMPLETE_MATRIX")
     with args.output.open("x", encoding="utf-8") as output:
         json.dump(checkpoint, output, ensure_ascii=False, indent=2)
         output.write("\n")
+
+
+def main():
+    from experiments.exp_018_rag_retrieval.run import writer_lock
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in (
+        "corpus",
+        "bge-tokenizer",
+        "gte-tokenizer",
+        "cache",
+        "output",
+        "checkpoint",
+    ):
+        parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--gte-run", type=Path)
+    parser.add_argument("--bge-run", type=Path)
+    args = parser.parse_args()
+    with writer_lock(args.checkpoint.parent, ".eval-matrix-writer.lock"):
+        run_matrix(args)
 
 
 if __name__ == "__main__":

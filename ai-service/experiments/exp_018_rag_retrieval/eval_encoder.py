@@ -44,6 +44,7 @@ def check_selection():
         {
             "chunking_code": Path("app/genai_rag/offline/chunking.py"),
             "dense_code": Path("app/genai_rag/offline/dense.py"),
+            "bm25_retriever_code": Path("app/genai_rag/offline/retrieve.py"),
             "evaluator_code": Path("app/genai_rag/offline/evaluate.py"),
         }
     )
