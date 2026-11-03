@@ -32,6 +32,13 @@ def main():
     parser.add_argument("--gte-tokenizer", type=Path, required=True)
     parser.add_argument("--cache", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--bm25-run", type=Path, default=ROOT / "bm25-dev-v0.1.json")
+    parser.add_argument(
+        "--gte-run", type=Path, default=ROOT / "dense-gte-dev-resume-v0.1.json"
+    )
+    parser.add_argument(
+        "--bge-run", type=Path, default=ROOT / "dense-bge-dev-v0.1.json"
+    )
     args = parser.parse_args()
     bm = json.loads((ROOT / "bm25-baseline.json").read_text())
     rrf = json.loads((ROOT / "hybrid-baseline.json").read_text())
@@ -57,7 +64,7 @@ def main():
         name: (lambda text, t=tok: len(t.encode(text, add_special_tokens=False).ids))
         for name, tok in toks.items()
     }
-    prior_bm = json.loads((ROOT / "bm25-dev-v0.1.json").read_text())
+    prior_bm = json.loads(args.bm25_run.read_text())
     results = {
         "stage": "dev",
         "corpus_sha256": CORPUS_SHA,
@@ -66,10 +73,10 @@ def main():
         "configurations": {},
     }
     for model, file in (
-        ("gte", "dense-gte-dev-resume-v0.1.json"),
-        ("bge", "dense-bge-dev-v0.1.json"),
+        ("gte", args.gte_run),
+        ("bge", args.bge_run),
     ):
-        previous = json.loads((ROOT / file).read_text())
+        previous = json.loads(file.read_text())
         if (
             previous["status"] != "passed"
             or previous["model_revision"] != MODELS[model][1]

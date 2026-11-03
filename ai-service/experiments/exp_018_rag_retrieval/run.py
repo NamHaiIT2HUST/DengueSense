@@ -6,13 +6,19 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from contextlib import contextmanager
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parent
+
+
+def hash_paths(paths):
+    return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
 
 
 @contextmanager
@@ -32,7 +38,7 @@ def writer_lock(directory: Path, name: str = ".retrieval-writer.lock"):
         path.unlink()
 
 
-def load_config(path: Path):
+def load_config(path: Path, stage: str):
     from experiments.exp_018_rag_retrieval.bm25_dev import (
         TOKENIZER_HASHES,
         verified_bytes,
@@ -54,12 +60,20 @@ def load_config(path: Path):
     }
     if any("$" in str(value) for value in values.values()):
         raise ValueError("UNSET_CONFIG_ENVIRONMENT")
-    check_selection()
+    if stage == "eval":
+        check_selection()
     corpus_lock = json.loads((ROOT / "corpus-lock-v0.1.json").read_text())
     verified_bytes(ROOT / "corpus-manifest.yaml", corpus_lock["manifest_sha256"])
     verified_bytes(values["corpus"], CORPUS_SHA)
     for name in ("bge", "gte"):
         verified_bytes(values[name + "_tokenizer"], TOKENIZER_HASHES[name])
+    from experiments.exp_018_rag_retrieval.encoder_smoke import DEV_SHA
+    from experiments.exp_018_rag_retrieval.eval_encoder import EVAL_SHA
+
+    verified_bytes(
+        ROOT / ("queries-eval.jsonl" if stage == "eval" else "queries-dev.jsonl"),
+        EVAL_SHA if stage == "eval" else DEV_SHA,
+    )
     if not values["cache"].is_dir():
         raise ValueError("CACHE_NOT_FOUND")
     return values
@@ -96,23 +110,59 @@ def main():
         raise ValueError("ENCODE_EVAL_REQUIRES_EVAL_STAGE")
     if sys.prefix == sys.base_prefix:
         raise RuntimeError("VENV_REQUIRED")
-    config = load_config(args.config)
+    config = load_config(args.config, args.stage)
     if args.dry_run:
         print(json.dumps(describe(args.stage), ensure_ascii=False))
         return
     args.out.mkdir(parents=True, exist_ok=True)
+    packages = {}
+    for name in (
+        "numpy",
+        "pydantic",
+        "rank-bm25",
+        "tokenizers",
+        "torch",
+        "transformers",
+    ):
+        try:
+            packages[name] = version(name)
+        except PackageNotFoundError:
+            packages[name] = None
+    shared_paths = [
+        Path("app/genai_rag/offline/corpus.py"),
+        Path("app/genai_rag/offline/chunking.py"),
+        Path("app/genai_rag/offline/dense.py"),
+        Path("app/genai_rag/offline/evaluate.py"),
+        Path("app/genai_rag/offline/retrieve.py"),
+        ROOT / "bm25_dev.py",
+        ROOT / "eval_encoder.py",
+        ROOT / "eval_matrix.py",
+        ROOT / "encoder_smoke.py",
+        ROOT / "dense_dev.py",
+        ROOT / "hybrid_dev.py",
+        ROOT / "bm25-baseline.json",
+        ROOT / "hybrid-baseline.json",
+        ROOT / "queries-dev.jsonl",
+    ]
     identity = hashlib.sha256(
         json.dumps(
             {
                 "config": {k: str(v.resolve()) for k, v in config.items()},
                 "stage": args.stage,
                 "encode_eval": args.encode_eval,
+                "python": sys.version,
+                "packages": packages,
+                "shared_sources": hash_paths(shared_paths),
                 "runner_sha256": hashlib.sha256(
                     Path(__file__).read_bytes()
                 ).hexdigest(),
-                "selection": hashlib.sha256(
-                    (ROOT / "selection-dev-v0.1.json").read_bytes()
-                ).hexdigest(),
+                "selection": (
+                    hashlib.sha256(
+                        (ROOT / "selection-dev-v0.1.json").read_bytes()
+                    ).hexdigest()
+                    if args.stage == "eval"
+                    else None
+                ),
             },
             sort_keys=True,
         ).encode()
@@ -126,21 +176,23 @@ def main():
         str(config["gte_tokenizer"]),
     ]
 
-    def invoke(module, output, extra):
+    def invoke(module, output, extra, inputs=()):
         job_identity = hashlib.sha256(
             (
                 identity
                 + hashlib.sha256(
                     (ROOT / (module.rsplit(".", 1)[-1] + ".py")).read_bytes()
                 ).hexdigest()
+                + "".join(
+                    hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs
+                )
             ).encode()
         ).hexdigest()
         marker = output.with_suffix(output.suffix + ".sha256.json")
         if args.resume and output.exists() and not marker.exists():
-            previous = json.loads(output.read_text())
-            if previous.get("status") != "failed":
-                raise ValueError(f"UNVERIFIED_EXISTING_OUTPUT: {output}")
-            output.rename(output.with_name(output.name + f".failed-{time.time_ns()}"))
+            output.rename(
+                output.with_name(output.name + f".unverified-{time.time_ns()}")
+            )
         if output.exists() or marker.exists():
             if not args.resume or not output.exists() or not marker.exists():
                 raise FileExistsError(f"UNVERIFIED_EXISTING_OUTPUT: {output}")
@@ -150,6 +202,28 @@ def main():
                 "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
             }:
                 raise ValueError(f"OUTPUT_MISMATCH: {output}")
+            if module.endswith(".eval_matrix"):
+                with tempfile.TemporaryDirectory(
+                    prefix=".resume-check-", dir=args.out
+                ) as temp:
+                    verified = Path(temp) / "verified.json"
+                    subprocess.run(
+                        [
+                            sys.executable,
+                            "-m",
+                            module,
+                            *common,
+                            *extra,
+                            "--output",
+                            str(verified),
+                        ],
+                        check=True,
+                    )
+                    if (
+                        json.loads(verified.read_text())["configurations"]
+                        != json.loads(output.read_text())["configurations"]
+                    ):
+                        raise ValueError("OUTPUT_CHECKPOINT_MISMATCH")
             return
         try:
             subprocess.run(
@@ -229,7 +303,21 @@ def main():
             invoke(
                 "experiments.exp_018_rag_retrieval.hybrid_dev",
                 args.out / "hybrid-dev.json",
-                ["--cache", str(config["cache"])],
+                [
+                    "--cache",
+                    str(config["cache"]),
+                    "--bm25-run",
+                    str(args.out / "bm25-dev.json"),
+                    "--gte-run",
+                    str(args.out / "dense-gte-dev.json"),
+                    "--bge-run",
+                    str(args.out / "dense-bge-dev.json"),
+                ],
+                inputs=(
+                    args.out / "bm25-dev.json",
+                    args.out / "dense-gte-dev.json",
+                    args.out / "dense-bge-dev.json",
+                ),
             )
         else:
             if args.encode_eval:
@@ -278,6 +366,7 @@ def main():
                     "--bge-run",
                     str(sources["bge"]),
                 ],
+                inputs=(sources["gte"], sources["bge"]),
             )
 
 

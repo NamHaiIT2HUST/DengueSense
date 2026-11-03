@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -107,7 +109,7 @@ def test_cli_dry_run_never_launches_encoder(monkeypatch, tmp_path, capsys):
 
     from experiments.exp_018_rag_retrieval import run
 
-    monkeypatch.setattr(run, "load_config", lambda _: {})
+    monkeypatch.setattr(run, "load_config", lambda _path, _stage: {})
     monkeypatch.setattr(
         run.subprocess,
         "run",
@@ -131,3 +133,80 @@ def test_cli_dry_run_never_launches_encoder(monkeypatch, tmp_path, capsys):
     run.main()
     assert '"query_runs": 300' in capsys.readouterr().out
     assert not (tmp_path / "out").exists()
+
+
+def test_dev_cli_passes_current_outputs_to_hybrid(monkeypatch, tmp_path):
+    import sys
+
+    from experiments.exp_018_rag_retrieval import run
+
+    config = {
+        name: tmp_path for name in ("corpus", "cache", "bge_tokenizer", "gte_tokenizer")
+    }
+    commands = []
+
+    def fake_run(command, check):
+        commands.append(command)
+        Path(command[command.index("--output") + 1]).write_text("{}")
+
+    monkeypatch.setattr(run, "load_config", lambda _path, _stage: config)
+    monkeypatch.setattr(run.subprocess, "run", fake_run)
+    monkeypatch.setattr(sys, "base_prefix", "not-the-current-prefix")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run",
+            "--config",
+            "config.yaml",
+            "--out",
+            str(tmp_path / "out"),
+            "--stage",
+            "dev",
+        ],
+    )
+    run.main()
+    hybrid = commands[-1]
+    assert (
+        Path(hybrid[hybrid.index("--bm25-run") + 1]) == tmp_path / "out/bm25-dev.json"
+    )
+    assert (
+        Path(hybrid[hybrid.index("--gte-run") + 1])
+        == tmp_path / "out/dense-gte-dev.json"
+    )
+    assert (
+        Path(hybrid[hybrid.index("--bge-run") + 1])
+        == tmp_path / "out/dense-bge-dev.json"
+    )
+
+
+def test_dev_config_does_not_require_eval_selection(monkeypatch, tmp_path):
+    import json
+
+    from experiments.exp_018_rag_retrieval import bm25_dev, eval_encoder, run
+
+    monkeypatch.setattr(run, "ROOT", tmp_path)
+    monkeypatch.setattr(bm25_dev, "verified_bytes", lambda *_: b"")
+    monkeypatch.setattr(
+        eval_encoder,
+        "check_selection",
+        lambda: pytest.fail("selection checked before eval"),
+    )
+    (tmp_path / "corpus-lock-v0.1.json").write_text(
+        json.dumps({"manifest_sha256": "x"})
+    )
+    config = tmp_path / "config.yaml"
+    config.write_text(
+        "corpus: x\nbge_tokenizer: x\ngte_tokenizer: x\ncache: " + str(tmp_path) + "\n"
+    )
+    assert run.load_config(config, "dev")["cache"] == tmp_path
+
+
+def test_shared_source_change_alters_resume_fingerprint(tmp_path):
+    from experiments.exp_018_rag_retrieval.run import hash_paths
+
+    source = tmp_path / "retrieve.py"
+    source.write_text("before")
+    before = hash_paths([source])
+    source.write_text("after")
+    assert hash_paths([source]) != before
