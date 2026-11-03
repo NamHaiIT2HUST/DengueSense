@@ -210,3 +210,16 @@ def test_shared_source_change_alters_resume_fingerprint(tmp_path):
     before = hash_paths([source])
     source.write_text("after")
     assert hash_paths([source]) != before
+
+
+def test_incomplete_marker_is_preserved_for_retry(tmp_path):
+    from experiments.exp_018_rag_retrieval.run import recover_incomplete_marker
+
+    output = tmp_path / "output.json"
+    marker = tmp_path / "output.json.sha256.json"
+    output.write_text('{"result": 1}')
+    marker.write_text('{"identity":')
+    assert recover_incomplete_marker(output, marker)
+    assert not output.exists() and not marker.exists()
+    assert len(list(tmp_path.glob("output.json.unverified-*"))) == 1
+    assert len(list(tmp_path.glob("output.json.sha256.json.unverified-*"))) == 1

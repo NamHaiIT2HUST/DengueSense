@@ -21,6 +21,20 @@ def hash_paths(paths):
     return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
 
 
+def recover_incomplete_marker(output: Path, marker: Path) -> bool:
+    if not marker.exists():
+        return False
+    try:
+        json.loads(marker.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        suffix = f".unverified-{time.time_ns()}"
+        marker.rename(marker.with_name(marker.name + suffix))
+        if output.exists():
+            output.rename(output.with_name(output.name + suffix))
+        return True
+    return False
+
+
 @contextmanager
 def writer_lock(directory: Path, name: str = ".retrieval-writer.lock"):
     path = directory / name
@@ -189,6 +203,8 @@ def main():
             ).encode()
         ).hexdigest()
         marker = output.with_suffix(output.suffix + ".sha256.json")
+        if args.resume:
+            recover_incomplete_marker(output, marker)
         if args.resume and output.exists() and not marker.exists():
             output.rename(
                 output.with_name(output.name + f".unverified-{time.time_ns()}")
@@ -251,15 +267,23 @@ def main():
                     handle,
                 )
             raise
-        marker.write_text(
-            json.dumps(
-                {
-                    "identity": job_identity,
-                    "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
-                }
-            )
-            + "\n"
-        )
+        fd, temporary = tempfile.mkstemp(prefix=".marker-", dir=marker.parent)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "identity": job_identity,
+                        "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+                    },
+                    handle,
+                )
+                handle.write("\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, marker)
+        finally:
+            if os.path.exists(temporary):
+                os.unlink(temporary)
 
     with writer_lock(args.out):
         if args.stage == "smoke":
