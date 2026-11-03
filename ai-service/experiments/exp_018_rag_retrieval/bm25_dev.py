@@ -9,10 +9,10 @@ from pathlib import Path
 
 from tokenizers import Tokenizer
 
-from app.genai_rag.chunking import build_chunks
-from app.genai_rag.corpus import SourceUnit
-from app.genai_rag.evaluate import Query, score_queries, validate_queries
-from app.genai_rag.retrieve import search_bm25
+from app.genai_rag.offline.chunking import build_chunks
+from app.genai_rag.offline.corpus import SourceUnit
+from app.genai_rag.offline.evaluate import Query, score_queries, validate_queries
+from app.genai_rag.offline.retrieve import search_bm25
 
 EXPERIMENT = Path(__file__).resolve().parent
 LOCK_HASH = "0dc3e1fd04a15adc9766211fc7e0edf59c9e349783e5018e9b576bd2972b32ff"
